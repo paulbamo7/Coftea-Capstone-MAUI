@@ -1,6 +1,6 @@
 using SQLite;
 
-namespace Coftea_Capstone.Views;
+namespace Coftea_Capstone.Pages;
 
 public partial class LoginPage : ContentPage
 {
@@ -8,18 +8,17 @@ public partial class LoginPage : ContentPage
     public LoginPage()
 	{
 		InitializeComponent();
-        Routing.RegisterRoute(nameof(Employee), typeof(Employee));
-        Routing.RegisterRoute(nameof(RegisterPage), typeof(RegisterPage));
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        Shell.Current.GoToAsync(nameof(RegisterPage));
+        Navigation.PopModalAsync();
+        Navigation.PushModalAsync(new RegisterPage());
     }
     private void LoginBtn_Clicked(object sender, EventArgs e)
     {
- 
-        Shell.Current.GoToAsync(nameof(Employee));
+        Navigation.PopModalAsync();
+        Navigation.PushModalAsync(new EmployeeDashboard());
     }
     
 }

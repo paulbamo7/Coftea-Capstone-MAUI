@@ -1,8 +1,8 @@
-namespace Coftea_Capstone.Views;
+namespace Coftea_Capstone.Pages;
 
-public partial class Employee : ContentPage
+public partial class AdminDashboard : ContentPage
 {
-	public Employee()
+	public AdminDashboard()
 	{
 		InitializeComponent();
 	}

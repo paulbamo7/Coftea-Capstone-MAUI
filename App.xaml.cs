@@ -1,4 +1,6 @@
-﻿namespace Coftea_Capstone
+﻿using Coftea_Capstone.Pages;
+
+namespace Coftea_Capstone
 {
     public partial class App : Application
     {
@@ -6,7 +8,8 @@
         {
             InitializeComponent();
 
-            MainPage = new AppShell();
+            var NavigatePage = new NavigationPage(new LoginPage());
+            MainPage = NavigatePage;
         }
     }
 }
