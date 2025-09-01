@@ -7,7 +7,7 @@ using SQLite;
 
 namespace Coftea_Capstone.C_
 {
-    class UserInfo
+    public class UserInfo
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
@@ -17,6 +17,6 @@ namespace Coftea_Capstone.C_
 
         public string Password { get; set; }
 
-        public string Role { get; set; } // "Admin" or "Employee"
+        public string Role { get; set; }
     }
 }

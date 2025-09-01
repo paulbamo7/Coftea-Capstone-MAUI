@@ -66,46 +66,42 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Pages\AdminDashboard.xaml.cs">
+	  <Compile Update="View\AdminDashboard.xaml.cs">
 	    <DependentUpon>AdminDashboard.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\EmployeeDashboard.xaml.cs">
+	  <Compile Update="View\EmployeeDashboard.xaml.cs">
 	    <DependentUpon>EmployeeDashboard.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\LoginPage.xaml.cs">
+	  <Compile Update="View\LoginPage.xaml.cs">
 	    <DependentUpon>LoginPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Pages\AdminDashboard.xaml">
+	  <MauiXaml Update="View\AdminDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\EmployeeDashboard.xaml">
+	  <MauiXaml Update="View\EmployeeDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\Inventory.xaml">
+	  <MauiXaml Update="View\Inventory.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\LoginPage.xaml">
+	  <MauiXaml Update="View\LoginPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\PointOfSale.xaml">
+	  <MauiXaml Update="View\PointOfSale.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\RegisterPage.xaml">
+	  <MauiXaml Update="View\RegisterPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\SalesReport.xaml">
+	  <MauiXaml Update="View\SalesReport.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\Settings.xaml">
+	  <MauiXaml Update="View\Settings.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Models\ViewModel\" />
 	</ItemGroup>
 
 </Project>
