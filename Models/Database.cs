@@ -14,24 +14,46 @@ namespace Coftea_Capstone.C_
         {
             var dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
             _db = new SQLiteAsyncConnection(dbPath);
-            _db.CreateTableAsync<LoginPageModel>().Wait();
+            _db.CreateTableAsync<UserInfoModel>().Wait();
+            _db.CreateTableAsync<POSPageModel>().Wait();
+            _db.CreateTableAsync<InventoryPageModel>().Wait();
+            _db.CreateTableAsync<SalesReportPageModel>().Wait();
         }
 
-        public Task<LoginPageModel> GetUserByEmailAsync(string email)
+        public Task<UserInfoModel> GetUserByEmailAsync(string email)
         {
-            return _db.Table<LoginPageModel>()
+            return _db.Table<UserInfoModel>()
                       .Where(u => u.Email == email)
                       .FirstOrDefaultAsync();
         }
 
-        public Task<int> AddUserAsync(LoginPageModel user)
+        public Task<int> AddUserAsync(UserInfoModel user)
         {
             return _db.InsertAsync(user);
         }
 
-        public Task<List<LoginPageModel>> GetAllUsersAsync()
+        public Task<List<UserInfoModel>> GetAllUsersAsync()
         {
-            return _db.Table<LoginPageModel>().ToListAsync();
+            return _db.Table<UserInfoModel>().ToListAsync();
+        }
+
+        public Task<int> AddProductAsync(POSPageModel product)
+        {
+            return _db.InsertAsync(product);
+        }
+
+        public Task<List<POSPageModel>> GetAllProductsAsync()
+        {
+            return _db.Table<POSPageModel>().ToListAsync();
+        }
+
+        public Task<int> UpdateProductAsync(POSPageModel product) {
+            return _db.UpdateAsync(product);
+        }
+
+        public Task<int> DeleteProductAsync(POSPageModel product)
+        {
+            return _db.DeleteAsync(product);
         }
     }
 

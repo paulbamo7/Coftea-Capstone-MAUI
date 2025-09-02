@@ -24,7 +24,7 @@ namespace Coftea_Capstone.ViewModels
 
         [ObservableProperty]
         private string password;
-
+            
        
         // Login command
         [RelayCommand]
@@ -42,7 +42,6 @@ namespace Coftea_Capstone.ViewModels
             {
                 await Application.Current.MainPage.DisplayAlert("Success", "Login successful!", "OK");
 
-                // Navigate to main page (replace with your actual main page)
                 await Application.Current.MainPage.Navigation.PushAsync(new EmployeeDashboard());
             }
             else

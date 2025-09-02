@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Coftea_Capstone.C_
 {
-    class POSPageModel
+    public class POSPageModel
     {
-
         private int ProductID;
         private string ProductName;
-        private double ProductPrice, ProductTax;]
+        private double ProductPrice;
+        private double ProductTax;
+        private int ProductStock;
     }
 }
