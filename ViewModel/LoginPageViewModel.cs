@@ -66,7 +66,7 @@ namespace Coftea_Capstone.ViewModels
                 return;
             }
 
-            var newUser = new LoginPageModel
+            var newUser = new UserInfoModel
             {
                 Email = Email,
                 Password = Password

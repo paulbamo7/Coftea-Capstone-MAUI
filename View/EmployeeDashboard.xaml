@@ -2,34 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Pages.EmployeeDashboard"
+             xmlns:views="clr-namespace:Coftea_Capstone.View"
              Shell.NavBarIsVisible="False"
              BackgroundColor="#C1A892">
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
 
         <!-- Sidebar Navigation -->
-        <StackLayout Grid.Column="0" BackgroundColor="#F8E8D7" Padding="10">
-            <!-- Logo -->
-            <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
-
-            <VerticalStackLayout Spacing="6" Margin="0,4,0,0">
-                <Button ImageSource="home.png" Background="Transparent" HeightRequest="80"
-                        Clicked="HomeButton_Clicked"/>
-                <Label Text="Home" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="pos.png" Background="Transparent" HeightRequest="80"
-                        Clicked="PointOfSaleButton_Clicked"/>
-                <Label  Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="inventory.png" Background="Transparent" HeightRequest="80"
-                        Clicked="InventoryButton_Clicked"/>
-                <Label  Text="Inventory" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="sales_report.png" Background="Transparent" HeightRequest="80"
-                        Clicked="SalesReportButton_Clicked"/>
-                <Label  Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="settings2.png" Background="Transparent" HeightRequest="80"
-                        Clicked="SettingsButton_Clicked"/>
-                <Label  Text="Settings" FontAttributes="Bold" HorizontalOptions="Center"/>
-            </VerticalStackLayout>
-        </StackLayout> 
+        <views:NavigationBar Grid.Column="0"/>
 
         <!-- Main Content -->
         <VerticalStackLayout Grid.Column="1" Padding="20">

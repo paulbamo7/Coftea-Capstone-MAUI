@@ -2,36 +2,16 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Pages.PointOfSale"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
+             xmlns:views="clr-namespace:Coftea_Capstone.View"
              Title="PointOfSale"
+             Shell.NavBarIsVisible="False"
              BackgroundColor="#C1A892">
-    
+
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
 
             <!-- Sidebar Navigation -->
-            <StackLayout Grid.Column="0" BackgroundColor="#F8E8D7" Padding="10">
-                <!-- Logo -->
-                <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
-
-                <VerticalStackLayout Spacing="6" Margin="0,4,0,0">
-                    <Button ImageSource="home.png" Background="Transparent" HeightRequest="80"
-                            x:Name="HomeButton"
-                    Clicked="HomeButton_Clicked"/>
-                    <Label Text="Home" FontAttributes="Bold" HorizontalOptions="Center"/>
-                    <Button ImageSource="pos.png" Background="Transparent" HeightRequest="80"
-                            x:Name="POSButton"
-                    Clicked="POSButton_Clicked"/>
-                    <Label  Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center"/>
-                    <Button ImageSource="inventory.png" Background="Transparent" HeightRequest="80" x:Name="InventoryButton"
-                    Clicked="InventoryButton_Clicked"/>
-                    <Label  Text="Inventory" FontAttributes="Bold" HorizontalOptions="Center"/>
-                    <Button ImageSource="sales_report.png" Background="Transparent" HeightRequest="80" x:Name="SalesReportButton"
-                    Clicked="SalesReportButton_Clicked"/>
-                    <Label  Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center"/>
-                    <Button ImageSource="settings2.png" Background="Transparent" HeightRequest="80" x:Name="SettingsButton"
-                    Clicked="SettingsButton_Clicked"/>
-                    <Label  Text="Settings" FontAttributes="Bold" HorizontalOptions="Center"/>
-                </VerticalStackLayout>
-            </StackLayout>
+        <views:NavigationBar Grid.Column="0"/>
 
         <VerticalStackLayout Grid.Column="1" Padding="20">
             <VerticalStackLayout Spacing="20">
@@ -57,33 +37,41 @@
                     <Border StrokeShape="RoundRectangle 20" 
                             BackgroundColor="White" MaximumHeightRequest="1000" MaximumWidthRequest="1000" HeightRequest="500" WidthRequest="550" HorizontalOptions="Start"
                             Margin="15,20,0,0">
-                        <Grid RowDefinitions="*,*" ColumnDefinitions="*,*,*">
-                            <Frame BackgroundColor="#D9D9D9" Grid.Column="0" Grid.Row="0" MaximumHeightRequest="250" HeightRequest="180" 
-                                   MaximumWidthRequest="150" WidthRequest="150" HorizontalOptions="Center" Margin="25" VerticalOptions="Start">
+                        <CollectionView ItemsSource="{Binding Products}">
+                            <CollectionView.ItemsLayout>
+                                <GridItemsLayout Orientation="Vertical"
+                         Span="3" />
+                                <!-- 3 columns like your grid -->
+                            </CollectionView.ItemsLayout>
 
-                            </Frame>
-                            <Frame BackgroundColor="#D9D9D9" Grid.Column="1" Grid.Row="0" MaximumHeightRequest="250" HeightRequest="180" 
-                                   MaximumWidthRequest="150" WidthRequest="150" HorizontalOptions="Center" Margin="25" VerticalOptions="Start">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame BackgroundColor="#D9D9D9"
+                                           HeightRequest="180"
+                                           WidthRequest="150"
+                                           CornerRadius="20"
+                                           Margin="10">
+                                        <VerticalStackLayout Spacing="5" HorizontalOptions="Center" VerticalOptions="Center">
+                                            <!-- Product Image -->
+                                            <Image Source="{Binding Image}" HeightRequest="80" WidthRequest="80"/>
 
-                            </Frame>
-                            <Frame BackgroundColor="#D9D9D9" Grid.Column="2" Grid.Row="0" MaximumHeightRequest="250" HeightRequest="180" 
-                                   MaximumWidthRequest="150" WidthRequest="150" HorizontalOptions="Center" Margin="25" VerticalOptions="Start">
+                                            <!-- Product Name -->
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16" HorizontalOptions="Center"/>
 
-                            </Frame>
-                            <Frame BackgroundColor="#D9D9D9" Grid.Column="0" Grid.Row="1" MaximumHeightRequest="250" HeightRequest="180" 
-                                   MaximumWidthRequest="150" WidthRequest="150" HorizontalOptions="Center" Margin="25" VerticalOptions="Start">
+                                            <!-- Price -->
+                                            <Label Text="{Binding Price, StringFormat='₱{0:F2}'}" FontSize="14" HorizontalOptions="Center"/>
 
-                            </Frame>
-                            <Frame BackgroundColor="#D9D9D9" Grid.Column="1" Grid.Row="1" MaximumHeightRequest="250" HeightRequest="180" 
-                                   MaximumWidthRequest="150" WidthRequest="150" HorizontalOptions="Center" Margin="25" VerticalOptions="Start">
-
-                            </Frame>
-                            <Frame BackgroundColor="#D9D9D9" Grid.Column="2" Grid.Row="1" MaximumHeightRequest="250" HeightRequest="180" 
-                                   MaximumWidthRequest="150" WidthRequest="150" HorizontalOptions="Center" Margin="25" VerticalOptions="Start">
-
-                            </Frame>
-
-                        </Grid>
+                                            <!-- Add Button -->
+                                            <Button Text="Add"
+                                                    FontSize="12"
+                                                    Padding="5,0"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:POSPageViewModel}}, Path=AddToCartCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </Border>
 
                     <!-- Cart -->

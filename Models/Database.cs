@@ -15,9 +15,9 @@ namespace Coftea_Capstone.C_
             var dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
             _db = new SQLiteAsyncConnection(dbPath);
             _db.CreateTableAsync<UserInfoModel>().Wait();
-            _db.CreateTableAsync<POSPageModel>().Wait();
+/*            _db.CreateTableAsync<POSPageModel>().Wait();
             _db.CreateTableAsync<InventoryPageModel>().Wait();
-            _db.CreateTableAsync<SalesReportPageModel>().Wait();
+            _db.CreateTableAsync<SalesReportPageModel>().Wait();*/
         }
 
         public Task<UserInfoModel> GetUserByEmailAsync(string email)
@@ -37,7 +37,7 @@ namespace Coftea_Capstone.C_
             return _db.Table<UserInfoModel>().ToListAsync();
         }
 
-        public Task<int> AddProductAsync(POSPageModel product)
+        /*public Task<int> AddProductAsync(POSPageModel product)
         {
             return _db.InsertAsync(product);
         }
@@ -54,7 +54,6 @@ namespace Coftea_Capstone.C_
         public Task<int> DeleteProductAsync(POSPageModel product)
         {
             return _db.DeleteAsync(product);
-        }
+        }*/
     }
-
 }

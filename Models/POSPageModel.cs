@@ -8,10 +8,9 @@ namespace Coftea_Capstone.C_
 {
     public class POSPageModel
     {
-        private int ProductID;
-        private string ProductName;
-        private double ProductPrice;
-        private double ProductTax;
-        private int ProductStock;
+        public int ProductID { get; set; }
+        public string Name { get; set; }
+        public double Price { get; set; }
+        public string Image { get; set; }
     }
 }
