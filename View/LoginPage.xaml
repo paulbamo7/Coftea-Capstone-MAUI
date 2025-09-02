@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Views.RegisterPage"
-             Shell.NavBarIsVisible="False"
-             >
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             x:Class="Coftea_Capstone.Pages.LoginPage"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModels"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.BindingContext>
+        <vm:LoginPageViewModel />
+    </ContentPage.BindingContext>
+
     <!-- Background Gradient -->
     <ContentPage.Background>
         <LinearGradientBrush>
@@ -25,7 +30,7 @@
                 <VerticalStackLayout Spacing="15"
                                      VerticalOptions="Center"
                                      HorizontalOptions="Fill">
-
+                    
                     <!-- Logo -->
                     <Image Source="coftea_logo.png"
                            HeightRequest="250"
@@ -35,7 +40,9 @@
                     <Label Text="Email:" 
                            FontAttributes="Bold" 
                            HorizontalOptions="Start"/>
+     
                     <Entry x:Name="EmailInput" 
+                           Text="{Binding Email}"
                            Placeholder="Enter Email" 
                            PlaceholderColor="White"
                            BackgroundColor="Transparent"
@@ -46,24 +53,36 @@
                            FontAttributes="Bold" 
                            HorizontalOptions="Start"/>
                     <Entry x:Name="PasswordInput" 
+                           Text="{Binding Password}"
                            Placeholder="Enter Password"
                            PlaceholderColor="White"
                            IsPassword="True"
                            BackgroundColor="Transparent"
                            HeightRequest="40"/>
-
+                    
+                    <HorizontalStackLayout VerticalOptions="Center" Margin="-10,-12,0,0">
+                        <CheckBox IsChecked="False" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <Label Text="Remember Me"
+                            TextColor="White"
+                            VerticalOptions="Center"
+                            VerticalTextAlignment="Center"
+                            HorizontalTextAlignment="Start"/>
+                    </HorizontalStackLayout>
+                    
                     <!-- Register -->
-                    <Label Text="No Account?  Register Now!" 
+                    <Label Text="No Account? Register Now!" 
                            FontAttributes="Bold" 
                            HorizontalOptions="Center" 
                            FontSize="12"
                            TextColor="Black"
-                           Padding="10">
-                        
+                           Padding="5">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding RegisterCommand}" />
+                        </Label.GestureRecognizers>
                     </Label>
 
                     <!-- Login Button -->
-                    <Button Text="Register" 
+                    <Button Text="Login" 
                             x:Name="LoginBtn"
                             BackgroundColor="#5B4F45" 
                             TextColor="White"
@@ -71,14 +90,14 @@
                             HeightRequest="45"
                             WidthRequest="200"
                             HorizontalOptions="Center"
-                            Clicked="RegisterBtn_Clicked"/>
+                            Command="{Binding LoginCommand}"/>
 
                     <!-- Admin Login -->
                     <Label Text="Admin Login" 
                            FontAttributes="Bold" 
                            HorizontalOptions="Center"
                            FontSize="12"
-                           Padding="10,20,10,0"/>
+                           Padding="10,5,10,0"/>
                 </VerticalStackLayout>
             </Frame>
         </ScrollView>

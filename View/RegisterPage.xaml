@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-             x:Class="Coftea_Capstone.Views.LoginPage" 
-             Shell.NavBarIsVisible="False">
-
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Pages.RegisterPage"
+             Shell.NavBarIsVisible="False"
+             >
     <!-- Background Gradient -->
     <ContentPage.Background>
         <LinearGradientBrush>
@@ -59,13 +59,11 @@
                            FontSize="12"
                            TextColor="Black"
                            Padding="10">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
-                        </Label.GestureRecognizers>
+                        
                     </Label>
 
                     <!-- Login Button -->
-                    <Button Text="Login" 
+                    <Button Text="Register" 
                             x:Name="LoginBtn"
                             BackgroundColor="#5B4F45" 
                             TextColor="White"
@@ -73,7 +71,7 @@
                             HeightRequest="45"
                             WidthRequest="200"
                             HorizontalOptions="Center"
-                            Clicked="LoginBtn_Clicked"/>
+                            Clicked="RegisterBtn_Clicked"/>
 
                     <!-- Admin Login -->
                     <Label Text="Admin Login" 

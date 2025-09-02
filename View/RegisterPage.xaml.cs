@@ -1,4 +1,4 @@
-namespace Coftea_Capstone.Views;
+namespace Coftea_Capstone.Pages;
 
 public partial class RegisterPage : ContentPage
 {
@@ -8,7 +8,7 @@ public partial class RegisterPage : ContentPage
 	}
     private void RegisterBtn_Clicked(object sender, EventArgs e)
     {
-
-        Shell.Current.GoToAsync(nameof(LoginPage));
+        Navigation.PopAsync();
+        Navigation.PushModalAsync(new LoginPage());
     }
 }
