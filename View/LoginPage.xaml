@@ -2,7 +2,8 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              x:Class="Coftea_Capstone.Pages.LoginPage"
-             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModels"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
+             Shell.TabBarIsVisible="False"
              Shell.NavBarIsVisible="False">
 
     <ContentPage.BindingContext>
@@ -77,7 +78,7 @@
                            TextColor="Black"
                            Padding="5">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding RegisterCommand}" />
+                            <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
                         </Label.GestureRecognizers>
                     </Label>
 

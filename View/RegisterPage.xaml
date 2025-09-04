@@ -2,8 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Pages.RegisterPage"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
              Shell.NavBarIsVisible="False"
              >
+
+    <ContentPage.BindingContext>
+        <vm:RegisterPageViewModel/>
+    </ContentPage.BindingContext>
+    
     <!-- Background Gradient -->
     <ContentPage.Background>
         <LinearGradientBrush>
@@ -13,74 +19,78 @@
     </ContentPage.Background>
 
     <!-- Outer Grid to center content -->
-    <Grid>
-        <ScrollView VerticalOptions="Center" HorizontalOptions="Center">
-            <Frame BackgroundColor="#C0BBB6"
-                   CornerRadius="5"
-                   Padding="45,0,45,0"
-                   HasShadow="False"
-                   WidthRequest="420"
-                   HeightRequest="650">
+    <ScrollView VerticalOptions="Center" HorizontalOptions="Center">
+        <HorizontalStackLayout HorizontalOptions="Center">
+            <Grid RowDefinitions="*,*">
+                <HorizontalStackLayout  Grid.Row="0" >
+                    <Frame BackgroundColor="#BDAEA2"
+                           CornerRadius="5"
+                           Padding="25,60,25,0"
+                           BorderColor="Gray"
+                           HasShadow="False"
+                           WidthRequest="420"
+                           HeightRequest="620">
 
-                <VerticalStackLayout Spacing="15"
-                                     VerticalOptions="Center"
-                                     HorizontalOptions="Fill">
+                        <VerticalStackLayout Spacing="12">
+                            <HorizontalStackLayout Spacing="10">
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179" >
+                                    <Entry Placeholder="First Name" PlaceholderColor="White" Text="{Binding FirstName}"/>
+                                </Border>
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179">
+                                    <Entry Placeholder="Last Name" PlaceholderColor="White" Text="{Binding LastName}" />
+                                </Border>
+                            </HorizontalStackLayout>
 
-                    <!-- Logo -->
-                    <Image Source="coftea_logo.png"
-                           HeightRequest="250"
-                           HorizontalOptions="Center"/>
+                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370" Margin="15">
+                                <Entry Placeholder="Enter Email" Keyboard="Email" PlaceholderColor="White" Text="{Binding Email}"/>
+                            </Border>
+                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                <Entry Placeholder="Enter Password" IsPassword="True" PlaceholderColor="White"  Text="{Binding Password}"/>
+                            </Border>
 
-                    <!-- Email -->
-                    <Label Text="Email:" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Start"/>
-                    <Entry x:Name="EmailInput" 
-                           Placeholder="Enter Email" 
-                           PlaceholderColor="White"
-                           BackgroundColor="Transparent"
-                           HeightRequest="40"/>
+                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                <Entry Placeholder="Confirm Password" IsPassword="True" PlaceholderColor="White" Text="{Binding Password}"/>
+                            </Border>
+                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                <DatePicker Date="{Binding BirthDate}"/>
+                            </Border>
 
-                    <!-- Password -->
-                    <Label Text="Enter Password:" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Start"/>
-                    <Entry x:Name="PasswordInput" 
-                           Placeholder="Enter Password"
-                           PlaceholderColor="White"
-                           IsPassword="True"
-                           BackgroundColor="Transparent"
-                           HeightRequest="40"/>
+                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                <Entry Placeholder="Phone Number" Keyboard="Telephone" PlaceholderColor="White" Text="{Binding PhoneNumber}" />
+                            </Border>
+                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                <Entry Placeholder="Address" PlaceholderColor="White" Text="{Binding Addreess}}"/>
+                            </Border>
+                            <!-- Checkbox for T&C -->
+                            <HorizontalStackLayout>
+                                <CheckBox />
+                                <Label Text="I agree to the " VerticalOptions="Center" />
+                                <Label Text="Terms and Conditions" TextColor="Blue" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
 
-                    <!-- Register -->
-                    <Label Text="No Account?  Register Now!" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Center" 
-                           FontSize="12"
-                           TextColor="Black"
-                           Padding="10">
-                        
-                    </Label>
+                            <!-- Submit Button -->
+                            <Button Text="Verify"
+                                    BackgroundColor="#5B4F45"
+                                    TextColor="White"
+                                    CornerRadius="10"/>
+                        </VerticalStackLayout>
+                    </Frame>
 
-                    <!-- Login Button -->
-                    <Button Text="Register" 
-                            x:Name="LoginBtn"
-                            BackgroundColor="#5B4F45" 
-                            TextColor="White"
-                            CornerRadius="10"
-                            HeightRequest="45"
-                            WidthRequest="200"
-                            HorizontalOptions="Center"
-                            Clicked="RegisterBtn_Clicked"/>
+                    <!-- Right Frame (Logo) -->
+                    <Frame BackgroundColor="#C0BBB6"
+                           CornerRadius="5"
+                           Padding="45,0,45,0"
+                           HasShadow="False"
+                           WidthRequest="420"
+                           HeightRequest="620">
+                        <Image Source="coftea_logo.png"
+                               HeightRequest="250"
+                               HorizontalOptions="Center"/>
+                    </Frame>
+                </HorizontalStackLayout>
 
-                    <!-- Admin Login -->
-                    <Label Text="Admin Login" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Center"
-                           FontSize="12"
-                           Padding="10,20,10,0"/>
-                </VerticalStackLayout>
-            </Frame>
-        </ScrollView>
-    </Grid>
+               
+            </Grid>
+        </HorizontalStackLayout>
+    </ScrollView>
 </ContentPage>

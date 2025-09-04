@@ -14,23 +14,24 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class POSPageViewModel : ObservableObject
     {
+        private readonly Database _database;
         [ObservableProperty]
         private ObservableCollection<POSPageModel> products;
 
         [ObservableProperty]
         private ObservableCollection<POSPageModel> cartItems;
 
-        public POSPageViewModel()
+        public POSPageViewModel(Database database)
         {
-            Products = new ObservableCollection<POSPageModel>
-        {
-            new POSPageModel { ProductID=1, Name="Caramel Latte", Price=120, Image="latte.png" },
-            new POSPageModel { ProductID=2, Name="Milk Tea", Price=100, Image="milktea.png" },
-            new POSPageModel { ProductID=3, Name="Espresso", Price=80, Image="espresso.png" }
-            
-        };
+            _database = database;  
+        }
 
-            CartItems = new ObservableCollection<POSPageModel>();
+        public async Task LoadDataAsync()
+        {
+            var productList = await _database.GetProductsAsync();
+
+            Products = new ObservableCollection<POSPageModel>(productList);
+      
         }
 
         [RelayCommand]

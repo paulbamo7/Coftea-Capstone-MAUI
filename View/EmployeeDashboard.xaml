@@ -4,6 +4,7 @@
              x:Class="Coftea_Capstone.Pages.EmployeeDashboard"
              xmlns:views="clr-namespace:Coftea_Capstone.View"
              Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="#C1A892">
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">

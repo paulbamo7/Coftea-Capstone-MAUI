@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Coftea_Capstone.C_;
+using Coftea_Capstone.Models;
 using Coftea_Capstone.Pages;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.Maui.Controls;
-using Coftea_Capstone.Models;
+using Coftea_Capstone.C_;
 
-namespace Coftea_Capstone.ViewModels
+namespace Coftea_Capstone.ViewModel
 {
     public partial class LoginPageViewModel : ObservableObject
     {
@@ -15,6 +15,7 @@ namespace Coftea_Capstone.ViewModels
 
         public LoginPageViewModel()
         {
+            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
             _database = new Database();
         }
 
@@ -49,32 +50,10 @@ namespace Coftea_Capstone.ViewModels
                 await Application.Current.MainPage.DisplayAlert("Error", "Invalid username or password", "OK");
             }
         }
-
         [RelayCommand]
-        private async Task Register()
+        private async Task GoToRegister()
         {
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please enter email and password", "OK");
-                return;
-            }
-
-            var existingUser = await _database.GetUserByEmailAsync(Email);
-            if (existingUser != null)
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Email already exists!", "OK");
-                return;
-            }
-
-            var newUser = new UserInfoModel
-            {
-                Email = Email,
-                Password = Password
-            };
-
-            await _database.AddUserAsync(newUser);
-            await Application.Current.MainPage.DisplayAlert("Success", "Registration successful!", "OK");
-            await Application.Current.MainPage.Navigation.PushAsync(new LoginPage());
+            await Application.Current.MainPage.Navigation.PushAsync(new RegisterPage());
         }
     }
 }

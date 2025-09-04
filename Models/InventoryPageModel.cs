@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SQLite;
 
-namespace Coftea_Capstone
+namespace Coftea_Capstone.Models
 {
-    partial class InventoryPageModel : ObservableObject
+    public class InventoryPageModel : ObservableObject
     {
         [PrimaryKey, AutoIncrement]
         public int itemID { get; set; }
 
         [NotNull]
-        public int itemQuantity { get; set; }
+        public string itemName { get; set; } = string.Empty;
 
         [NotNull]
-        public string itemName { get; set; } = string.Empty;
+        public string itemQuantity { get; set; } = string.Empty;
 
         [NotNull]
         public string itemCategory { get; set; } = string.Empty;

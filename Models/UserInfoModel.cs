@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using SQLite;
 
-namespace Coftea_Capstone.C_
+namespace Coftea_Capstone.Models
 {
-    public class UserInfoModel
+    public class UserInfoModel : ObservableObject
     {
         [PrimaryKey, AutoIncrement]
         public int ID { get; set; }
