@@ -23,7 +23,7 @@ namespace Coftea_Capstone.ViewModel
 
         public POSPageViewModel(Database database)
         {
-            _database = database;  
+            _database = new Database(App.dbPath);
         }
 
         public async Task LoadDataAsync()
@@ -40,6 +40,27 @@ namespace Coftea_Capstone.ViewModel
             if (product != null)
                 CartItems.Add(product); // use the generated property
         }
+        [RelayCommand]
+        private void RemoveFromCart(POSPageModel product)
+        {
+            if (product != null && CartItems.Contains(product))
+                CartItems.Remove(product); // use the generated property
+        }
+        [RelayCommand]
+        private void EditProduct(POSPageModel product)
+        {
+
+        }
+        [RelayCommand]
+        private void RemoveProduct(POSPageModel product)
+        {
+
+        }
+        [RelayCommand]
+        private void AddProduct()
+        {
+        }
+
 
     }
 }

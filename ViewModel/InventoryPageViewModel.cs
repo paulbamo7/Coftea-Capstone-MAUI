@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Coftea_Capstone.C_;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +9,28 @@ using System.Threading.Tasks;
 
 namespace Coftea_Capstone.ViewModel
 {
-    internal class InventoryPageViewModel
+    public partial class InventoryPageViewModel : ObservableObject
     {
+        private readonly Database _database;
+        public InventoryPageViewModel(Database database)
+        {
+            _database = new Database(App.dbPath);
+        }
+        [RelayCommand]
+        private void AddInventoryItem(InventoryPageViewModel inventory)
+        {
+
+        }
+        [RelayCommand]
+        private void EditInventoryItem(InventoryPageViewModel inventory)
+        {
+
+        }
+        [RelayCommand]
+        private void RemoveInventoryItem(InventoryPageViewModel inventory)
+        {
+
+        }   
+        
     }
 }
