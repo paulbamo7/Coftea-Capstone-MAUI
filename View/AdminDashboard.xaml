@@ -2,34 +2,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Pages.AdminDashboard"
+             xmlns:views="clr-namespace:Coftea_Capstone.View"
              Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="#C1A892">
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
 
         <!-- Sidebar Navigation -->
-        <StackLayout Grid.Column="0" BackgroundColor="#F8E8D7" Padding="10">
-            <!-- Logo -->
-            <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
-
-            <VerticalStackLayout Spacing="6" Margin="0,4,0,0">
-                <Button ImageSource="home.png" Background="Transparent" HeightRequest="80"
-                        Clicked="HomeButton_Clicked"/>
-                <Label Text="Home" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="pos.png" Background="Transparent" HeightRequest="80"
-                        Clicked="PointOfSaleButton_Clicked"/>
-                <Label  Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="inventory.png" Background="Transparent" HeightRequest="80"
-                        Clicked="InventoryButton_Clicked"/>
-                <Label  Text="Inventory" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="sales_report.png" Background="Transparent" HeightRequest="80"
-                        Clicked="SalesReportButton_Clicked"/>
-                <Label  Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center"/>
-                <Button ImageSource="settings2.png" Background="Transparent" HeightRequest="80"
-                        Clicked="SettingsButton_Clicked"/>
-                <Label  Text="Settings" FontAttributes="Bold" HorizontalOptions="Center"/>
-            </VerticalStackLayout>
-        </StackLayout> 
+        <views:NavigationBar Grid.Column="0"/>
 
         <!-- Main Content -->
         <VerticalStackLayout Grid.Column="1" Padding="20">
@@ -75,9 +56,9 @@
                     <Frame Grid.Column="0" CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
                         <VerticalStackLayout>
                             <Label Text="Monthly Sales Report" FontAttributes="Bold"/>
-                            
-                        <!-- Chart Placeholder -->
-                        <BoxView HeightRequest="150" Color="#eee"/>
+
+                            <!-- Chart Placeholder -->
+                            <BoxView HeightRequest="150" Color="#eee"/>
                         </VerticalStackLayout>
                     </Frame>
 
@@ -99,8 +80,8 @@
                     <!-- List of Recent Actions -->
                     <Frame Grid.Column="0" CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
                         <HorizontalStackLayout Spacing="15" Margin="0,10,0,0">
-                        <Label Text="List of Recent Action" FontAttributes="Bold"/>
-                             <Frame BackgroundColor="#f5f5f5" Padding="10">
+                            <Label Text="List of Recent Action" FontAttributes="Bold"/>
+                            <Frame BackgroundColor="#f5f5f5" Padding="10">
                                 <Label Text="Order #23 Completed"/>
                             </Frame>
                             <Frame BackgroundColor="#f5f5f5" Padding="10">
@@ -116,7 +97,7 @@
                     <Frame Grid.Column="1" CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
                         <VerticalStackLayout>
                             <Label Text="Today's Sales Report" FontAttributes="Bold"/>
-                        <!-- Chart Placeholder -->
+                            <!-- Chart Placeholder -->
                             <BoxView HeightRequest="150" Color="#eee"/>
                         </VerticalStackLayout>
                     </Frame>

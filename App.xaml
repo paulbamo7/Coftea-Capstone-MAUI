@@ -2,13 +2,17 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Coftea_Capstone"
-             x:Class="Coftea_Capstone.App">
+             x:Class="Coftea_Capstone.App"
+             NavigationPage.HasNavigationBar="False">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+                <Setter Property="NavigationPage.HasNavigationBar" Value="False" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

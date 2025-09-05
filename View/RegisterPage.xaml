@@ -24,8 +24,8 @@
             <Grid RowDefinitions="*,*">
                 <HorizontalStackLayout  Grid.Row="0" >
                     <Frame BackgroundColor="#BDAEA2"
-                           CornerRadius="5"
                            Padding="25,60,25,0"
+                           CornerRadius="0"
                            BorderColor="Gray"
                            HasShadow="False"
                            WidthRequest="420"
@@ -59,7 +59,7 @@
                                 <Entry Placeholder="Phone Number" Keyboard="Telephone" PlaceholderColor="White" Text="{Binding PhoneNumber}" />
                             </Border>
                             <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
-                                <Entry Placeholder="Address" PlaceholderColor="White" Text="{Binding Addreess}}"/>
+                                <Entry Placeholder="Address" PlaceholderColor="White" Text="{Binding Address}"/>
                             </Border>
                             <!-- Checkbox for T&C -->
                             <HorizontalStackLayout>
@@ -78,8 +78,8 @@
 
                     <!-- Right Frame (Logo) -->
                     <Frame BackgroundColor="#C0BBB6"
-                           CornerRadius="5"
                            Padding="45,0,45,0"
+                           CornerRadius="0"
                            HasShadow="False"
                            WidthRequest="420"
                            HeightRequest="620">

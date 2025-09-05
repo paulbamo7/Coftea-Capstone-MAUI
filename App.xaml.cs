@@ -6,12 +6,16 @@ namespace Coftea_Capstone
 {
     public partial class App : Application
     {
+        public static string dbPath;
         public App()
         {
             InitializeComponent();
 
+            dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
+            
             var NavigatePage = new NavigationPage(new LoginPage());
             MainPage = NavigatePage;
+
             SeedDatabase();
 
         }
@@ -22,8 +26,9 @@ namespace Coftea_Capstone
             {
                 var dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
                 var database = new Database(dbPath);
-
+                System.Diagnostics.Debug.WriteLine($"DB Path: {dbPath}");
                 var products = await database.GetProductsAsync();
+                
                 System.Diagnostics.Debug.WriteLine($"Products count: {products.Count}");
                 if (!products.Any())
                 {
@@ -36,6 +41,34 @@ namespace Coftea_Capstone
                     });
                 
                 }
+                var user = await database.GetAllUsersAsync();
+               
+                if (!user.Any())
+                {
+                    await database.AddUserAsync(new UserInfoModel
+                    {
+                        Email = "paul",
+                        Password = "1234",
+                        FirstName = "Test",
+                        LastName = "User",
+                        IsAdmin = false,
+                        Birthday = DateTime.Now,
+                        PhoneNumber = "0000000000",
+                        Address = "Default Address"
+                    });
+                    await database.AddUserAsync(new UserInfoModel
+                    {
+                        Email = "james",
+                        Password = "1234",
+                        FirstName = "Test",
+                        LastName = "User",
+                        IsAdmin = true,
+                        Birthday = DateTime.Now,
+                        PhoneNumber = "0000000000",
+                        Address = "Default Address"
+                    });
+                }
+
             }
             catch (Exception ex)
             {

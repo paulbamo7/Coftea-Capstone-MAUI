@@ -13,7 +13,7 @@ namespace Coftea_Capstone.C_
         public Database(string dbPath = null)
         {
             if (string.IsNullOrEmpty(dbPath))
-                dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
+                dbPath = App.dbPath;
 
             _db = new SQLiteAsyncConnection(dbPath);
             _db.CreateTableAsync<UserInfoModel>().Wait();
@@ -31,7 +31,10 @@ namespace Coftea_Capstone.C_
         }
         public Task<int> AddUserAsync(UserInfoModel user)
         {
-            return _db.InsertAsync(user);
+            if (user.ID == 0)
+                return _db.InsertAsync(user);
+            else
+                return _db.UpdateAsync(user);
         }
 
         public Task<List<UserInfoModel>> GetAllUsersAsync()

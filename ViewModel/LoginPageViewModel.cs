@@ -15,8 +15,7 @@ namespace Coftea_Capstone.ViewModel
 
         public LoginPageViewModel()
         {
-            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
-            _database = new Database();
+            _database = new Database(App.dbPath);
         }
 
         // Observable properties bound to XAML
@@ -25,31 +24,48 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private string password;
-            
-       
+
+        [ObservableProperty]
+        private bool isAdmin;
+
         // Login command
         [RelayCommand]
         private async Task Login()
         {
-            // Always use the public properties (capitalized)
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Please enter username and password", "OK");
                 return;
             }
 
-            // Hardcoded credentials (replace with database later)
-            if (Email == "admin" && Password == "1234") 
-            {
-                await Application.Current.MainPage.DisplayAlert("Success", "Login successful!", "OK");
+            var user = await _database.GetUserByEmailAsync(Email);
 
-                await Application.Current.MainPage.Navigation.PushAsync(new EmployeeDashboard());
+            if (user == null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "User not found", "OK");
+                return;
+            }
+
+            if (user.Password != Password)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Incorrect password", "OK");
+                return;
+            }
+
+            if (user.IsAdmin)
+            {
+                await Application.Current.MainPage.DisplayAlert("Success", "Welcome Admin!", "OK");
+                await (Application.Current.MainPage as NavigationPage)
+                    .PushAsync(new AdminDashboard());
             }
             else
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Invalid username or password", "OK");
+                await Application.Current.MainPage.DisplayAlert("Success", "Welcome User!", "OK");
+                await (Application.Current.MainPage as NavigationPage)
+                    .PushAsync(new EmployeeDashboard());
             }
         }
+
         [RelayCommand]
         private async Task GoToRegister()
         {
