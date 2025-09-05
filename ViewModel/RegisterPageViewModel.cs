@@ -14,64 +14,67 @@ namespace Coftea_Capstone.ViewModel
         private readonly Database _database;
         public RegisterPageViewModel()
         {
-            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
-            _database = new Database();
+            _database = new Database(App.dbPath);
         }
 
-        [ObservableProperty]
+        [ObservableProperty] 
         private string email;
-
-        [ObservableProperty]
+        [ObservableProperty] 
         private string password;
-
-        [ObservableProperty]
+        [ObservableProperty] 
+        private string confirmPassword;
+        [ObservableProperty] 
         private string firstName;
-        [ObservableProperty]
+        [ObservableProperty] 
         private string lastName;
-        [ObservableProperty]
-        private bool role;
-        [ObservableProperty]
-        private DateTime birthday;
-        [ObservableProperty]
+        [ObservableProperty] 
         private string phoneNumber;
-        [ObservableProperty]
+        [ObservableProperty] 
         private string address;
-
-
+        [ObservableProperty] 
+        private DateTime birthday = DateTime.Today;
+        
 
         [RelayCommand]
         private async Task Register()
         {
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(Email) ||
+                string.IsNullOrWhiteSpace(Password) ||
+                string.IsNullOrWhiteSpace(ConfirmPassword))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please enter email and password", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "All fields are required.", "OK");
                 return;
             }
 
-            var existingUser = await _database.GetUserByEmailAsync(Email);
-            if (existingUser != null)
+            if (Password != ConfirmPassword)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Email already exists!", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Passwords do not match.", "OK");
                 return;
             }
 
-            var newUser = new UserInfoModel
+            var user = new UserInfoModel
             {
-                Email = Email,
+                Email = Email.Trim(),
                 Password = Password,
-                FirstName = FirstName,
-                LastName = LastName,
-                /*Role = Role,*/
+                FirstName = FirstName?.Trim() ?? string.Empty,
+                LastName = LastName?.Trim() ?? string.Empty,
+                PhoneNumber = PhoneNumber?.Trim() ?? string.Empty,
+                Address = Address?.Trim() ?? string.Empty,
                 Birthday = Birthday,
-                PhoneNumber = PhoneNumber,
-                Address = Address
             };
 
-            await _database.AddUserAsync(newUser);
-            await Application.Current.MainPage.DisplayAlert("Success", "Registration successful!", "OK");
+            try
+            {
+                await _database.AddUserAsync(user);
+                await Application.Current.MainPage.DisplayAlert("Success", "Account created successfully!", "OK");
 
-            // Navigate back to Login Page
-            await Application.Current.MainPage.Navigation.PushAsync(new LoginPage());
+                // Go back to login
+                await Application.Current.MainPage.Navigation.PopAsync();
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to register: {ex.Message}", "OK");
+            }
         }
     }
 }

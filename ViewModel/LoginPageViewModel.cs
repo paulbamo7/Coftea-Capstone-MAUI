@@ -57,6 +57,7 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Success", "Welcome Admin!", "OK");
                 await (Application.Current.MainPage as NavigationPage)
                     .PushAsync(new AdminDashboard());
+               
             }
             else
             {
