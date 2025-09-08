@@ -10,28 +10,51 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
+
 namespace Coftea_Capstone.ViewModel
 {
     public partial class POSPageViewModel : ObservableObject
     {
+        public SettingsPopUpViewModel SettingsPopup { get; } = new SettingsPopUpViewModel();
+
         private readonly Database _database;
+
         [ObservableProperty]
         private ObservableCollection<POSPageModel> products;
 
         [ObservableProperty]
         private ObservableCollection<POSPageModel> cartItems;
 
-        public POSPageViewModel(Database database)
+        
+        [ObservableProperty]
+        private bool isAdmin;
+
+        [ObservableProperty]
+        private bool isAddItemVisible = false;
+
+        public POSPageViewModel()
         {
             _database = new Database(App.dbPath);
+            if (App.CurrentUser != null)
+            {
+                IsAdmin = App.CurrentUser.IsAdmin;
+            }
         }
 
+        public async Task InitializeAsync(string email)
+        {
+
+            if (App.CurrentUser != null)
+            {
+                IsAdmin = App.CurrentUser.IsAdmin;
+            }
+        }
         public async Task LoadDataAsync()
         {
             var productList = await _database.GetProductsAsync();
 
             Products = new ObservableCollection<POSPageModel>(productList);
-      
+            
         }
 
         [RelayCommand]
@@ -49,7 +72,7 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void EditProduct(POSPageModel product)
         {
-
+           
         }
         [RelayCommand]
         private void RemoveProduct(POSPageModel product)
@@ -57,10 +80,12 @@ namespace Coftea_Capstone.ViewModel
 
         }
         [RelayCommand]
-        private void AddProduct()
+        private void AddItem()
         {
+            if (IsAdmin)
+            {
+                IsAddItemVisible = !IsAddItemVisible;
+            }
         }
-
-
     }
 }

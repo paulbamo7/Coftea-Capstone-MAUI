@@ -55,6 +55,7 @@ namespace Coftea_Capstone.ViewModel
             if (user.IsAdmin)
             {
                 await Application.Current.MainPage.DisplayAlert("Success", "Welcome Admin!", "OK");
+                App.SetCurrentUser(user);
                 await (Application.Current.MainPage as NavigationPage)
                     .PushAsync(new AdminDashboard());
                
@@ -62,6 +63,7 @@ namespace Coftea_Capstone.ViewModel
             else
             {
                 await Application.Current.MainPage.DisplayAlert("Success", "Welcome User!", "OK");
+                App.SetCurrentUser(user);
                 await (Application.Current.MainPage as NavigationPage)
                     .PushAsync(new EmployeeDashboard());
             }

@@ -1,0 +1,41 @@
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Pages.Settings"
+    BackgroundColor="#80000000">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="20"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="550"
+               HeightRequest="450">
+            <VerticalStackLayout Spacing="15">
+                <Label Text="Settings"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                
+                <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*,*"
+                      HorizontalOptions="Center" VerticalOptions="Center" ColumnSpacing="10" RowSpacing="10">
+
+                    <!-- Row 0 -->
+                    <Button Text="User Management" Grid.Row="0" Grid.Column="0" HeightRequest="120" WidthRequest="200"/>
+                    <Button Text="Add Item to POS" Grid.Row="0" Grid.Column="1" HeightRequest="120"  WidthRequest="200"/>
+
+                    <!-- Row 1 -->
+                    <Button Text="Add Item to Inventory" Grid.Row="1" Grid.Column="0" HeightRequest="120"  WidthRequest="200"/>
+                    <Button Text="Another Button" Grid.Row="1" Grid.Column="1" HeightRequest="120"  WidthRequest="200"/>
+
+                    <!-- Row 2 (Close button centered across 2 columns) -->
+                    <Button Text="Close" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,10,0,0" WidthRequest="90"
+                            BackgroundColor="Red" HorizontalOptions="Center" VerticalOptions="End"
+                            Command="{Binding CloseSettingsPopupCommand}"/>
+                </Grid>
+
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentView>

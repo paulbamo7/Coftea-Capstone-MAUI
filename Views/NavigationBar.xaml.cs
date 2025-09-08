@@ -2,17 +2,31 @@ using Coftea_Capstone.Pages;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.ViewModel;
+using Coftea_Capstone.Views;
 
 namespace Coftea_Capstone.View;
 
 public partial class NavigationBar : ContentView
 {
     private UserInfoModel user;
-	public NavigationBar()
-	{
-		InitializeComponent();
-        user = new UserInfoModel();
-	}
+    public static readonly BindableProperty ParentViewModelProperty =
+        BindableProperty.Create(
+            nameof(ParentViewModel),
+            typeof(POSPageViewModel),
+            typeof(NavigationBar),
+            default(POSPageViewModel));
+
+    public POSPageViewModel ParentViewModel
+    {
+        get => (POSPageViewModel)GetValue(ParentViewModelProperty);
+        set => SetValue(ParentViewModelProperty, value);
+    }
+
+    public NavigationBar()
+    {
+        InitializeComponent();
+        user = App.CurrentUser;
+    }
 
     private void HomeButton_Clicked(object sender, EventArgs e)
     {
@@ -49,7 +63,8 @@ public partial class NavigationBar : ContentView
 
     private void SettingsButton_Clicked(object sender, EventArgs e)
     {
-        Navigation.PopModalAsync();
-        Navigation.PushAsync(new Settings());
+        /*Navigation.PopModalAsync();
+        Navigation.PushAsync(new SettingsPopUp());*/
+        ParentViewModel.SettingsPopup.ShowSettingsPopupCommand.Execute(null);
     }
 }

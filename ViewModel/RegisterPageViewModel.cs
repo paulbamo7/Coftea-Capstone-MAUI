@@ -52,6 +52,13 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            var existingUser = await _database.GetUserByEmailAsync(Email);
+            if (existingUser != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Email already registered", "OK");
+                return;
+            }
+
             var user = new UserInfoModel
             {
                 Email = Email.Trim(),

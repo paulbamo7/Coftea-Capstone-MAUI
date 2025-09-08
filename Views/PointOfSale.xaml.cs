@@ -1,8 +1,11 @@
-using Coftea_Capstone.ViewModel;
-using Coftea_Capstone.Models;
 using Coftea_Capstone.C_;
+using Coftea_Capstone.Models;
+using Coftea_Capstone.ViewModel;
+using Coftea_Capstone.View;
+using Microsoft.Maui.ApplicationModel.Communication;
+using Coftea_Capstone.Pages;
 
-namespace Coftea_Capstone.Pages;
+namespace Coftea_Capstone.Views;
 
 public partial class PointOfSale : ContentPage
 {
@@ -16,7 +19,7 @@ public partial class PointOfSale : ContentPage
         var database = new Database(dbPath);
 
         // Create ViewModel
-        _viewModel = new POSPageViewModel(database);
+        _viewModel = new POSPageViewModel();
 
         // Set as BindingContext
         BindingContext = _viewModel;
@@ -25,6 +28,11 @@ public partial class PointOfSale : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        await _viewModel.InitializeAsync(App.CurrentUser?.Email);
+        if (BindingContext is POSPageViewModel vm && App.CurrentUser != null)
+        {
+            vm.IsAdmin = App.CurrentUser.IsAdmin;
+        }   
         await _viewModel.LoadDataAsync();
     }
 

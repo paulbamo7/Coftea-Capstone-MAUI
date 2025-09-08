@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Pages.AdminDashboard"
+             x:Class="Coftea_Capstone.Pages.EmployeeDashboard"
              xmlns:views="clr-namespace:Coftea_Capstone.View"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
-             BackgroundColor="#C1A892">
+             BackgroundColor="#D6BCA8">
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
 
@@ -17,7 +17,7 @@
             <VerticalStackLayout Spacing="20">
 
                 <!-- Top Bar -->
-                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center">
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center"  ColumnSpacing="25">
                     <Label Text="Home" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
                     <SearchBar Placeholder="Search for something" Grid.Column="1" WidthRequest="300"/>
                     <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" />
@@ -25,63 +25,59 @@
                 </Grid>
 
                 <!-- Top Metrics -->
-                <Grid ColumnDefinitions="*,*,*" HeightRequest="200">
-                    <Frame CornerRadius="20" Padding="20" BackgroundColor="#c8a47e" Margin="5">
+                <Grid ColumnDefinitions="*,*,*" 
+                      HeightRequest="300">
+                    <Frame CornerRadius="20" Padding="20" BackgroundColor="#baa593" Margin="5">
                         <VerticalStackLayout>
                             <Label Text="Total Sales Today:" FontAttributes="Bold" FontSize="24"/>
-                            <Label Text="₱ 2,500" FontSize="30" FontAttributes="Bold" HorizontalOptions="Center" Padding="0,25,0,0"/>
+                            <Label Text="{Binding TotalSales}" FontSize="30" FontAttributes="Bold" HorizontalOptions="Center" Padding="0,25,0,0"/>
                         </VerticalStackLayout>
                     </Frame>
 
-                    <Frame CornerRadius="20" Padding="20" BackgroundColor="#c8a47e" Margin="5" Grid.Column="1">
+                    <Frame CornerRadius="20" Padding="20" BackgroundColor="#baa593" Margin="5" Grid.Column="1">
                         <VerticalStackLayout>
-                            <Label Text="Number of Orders Today:" FontAttributes="Bold" FontSize="24"/>
+                            <Label Text="{Binding TotalOrder}" FontAttributes="Bold" FontSize="24"/>
                             <Label Text="50" FontSize="30" FontAttributes="Bold" HorizontalOptions="Center" Padding="0,25,0,0"/>
                         </VerticalStackLayout>
                     </Frame>
 
-                    <Frame CornerRadius="20" Padding="20" BackgroundColor="#c8a47e" Margin="5" Grid.Column="2" >
+                    <Frame CornerRadius="20" Padding="20" BackgroundColor="#F0F0F0" Margin="5" Grid.Column="2" Grid.RowSpan="3" >
                         <VerticalStackLayout>
-                            <Label Text="Best Selling Today:" FontAttributes="Bold" FontSize="24"/>
-                            <Image Source="drink.png" HeightRequest="85"/>
-                            <Label Text="Java Chip" FontSize="20" HorizontalOptions="Center" Padding="0, 20, 0, 0"/>
+                            <Label Text="Inventory Alert" FontAttributes="Bold" FontSize="24"/>
+                            <CollectionView ItemsSource="{Binding InventoryItems}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="50,*,Auto" Padding="10">
+                                            <!-- Colored circle -->
+                                            <Frame WidthRequest="30" HeightRequest="30" CornerRadius="15" BackgroundColor="{Binding Color}" VerticalOptions="Center" HorizontalOptions="Center"/>
+
+                                            <!-- Product Name -->
+                                            <Label Text="{Binding Name}" Grid.Column="1" VerticalOptions="Center" FontSize="16" />
+
+                                            <!-- Stock Status -->
+                                            <Label Text="{Binding StockStatus}" Grid.Column="2" VerticalOptions="Center" FontSize="16"
+                       TextColor="{Binding StockStatus, Converter={StaticResource StockColorConverter}}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                            <Label Text="{Binding InventoryProduct}" FontSize="20" HorizontalOptions="Center" Padding="0, 20, 0, 0"/>
+
+                            <HorizontalStackLayout VerticalOptions="EndAndExpand" HorizontalOptions="Center" Spacing="10">
+                                <Button Text="Request Restock" CornerRadius="20" BackgroundColor="#897564" WidthRequest="150" HeightRequest="40"/>
+                                <Label Text="See More" TextColor="#000000" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
                         </VerticalStackLayout>
                     </Frame>
                 </Grid>
-
-                <!-- Sales Report & Inventory -->
-                <Grid ColumnDefinitions="2*, *" RowDefinitions="Auto, Auto">
-
-                    <!-- Monthly Sales Report -->
-                    <Frame Grid.Column="0" CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
-                        <VerticalStackLayout>
-                            <Label Text="Monthly Sales Report" FontAttributes="Bold"/>
-
-                            <!-- Chart Placeholder -->
-                            <BoxView HeightRequest="150" Color="#eee"/>
-                        </VerticalStackLayout>
-                    </Frame>
-
-                    <!-- Inventory Alert -->
-                    <Frame Grid.Column="1" CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
-                        <VerticalStackLayout Spacing="10" Margin="0,10,0,0">
-                            <Label Text="Inventory Alert" FontAttributes="Bold"/>
-                            <Label Text="Espresso - Out of Stock" TextColor="Red"/>
-                            <Label Text="Pearl - Low of Stock" TextColor="Orange"/>
-                            <Label Text="Yakult - Low of Stock" TextColor="Orange"/>
-                            <Button Text="See More" BackgroundColor="#c8a47e" TextColor="White"/>
-                        </VerticalStackLayout>
-                    </Frame>
-                </Grid>
-
                 <!-- Recent Actions + Today's Sales Report -->
-                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto" Margin="0,10,0,0">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="300" Margin="0,10,0,0">
 
                     <!-- List of Recent Actions -->
                     <Frame Grid.Column="0" CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
                         <HorizontalStackLayout Spacing="15" Margin="0,10,0,0">
-                            <Label Text="List of Recent Action" FontAttributes="Bold"/>
-                            <Frame BackgroundColor="#f5f5f5" Padding="10">
+                        <Label Text="List of Recent Action" FontAttributes="Bold"/>
+                             <Frame BackgroundColor="#f5f5f5" Padding="10">
                                 <Label Text="Order #23 Completed"/>
                             </Frame>
                             <Frame BackgroundColor="#f5f5f5" Padding="10">
@@ -97,7 +93,7 @@
                     <Frame Grid.Column="1" CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
                         <VerticalStackLayout>
                             <Label Text="Today's Sales Report" FontAttributes="Bold"/>
-                            <!-- Chart Placeholder -->
+                        <!-- Chart Placeholder -->
                             <BoxView HeightRequest="150" Color="#eee"/>
                         </VerticalStackLayout>
                     </Frame>

@@ -7,17 +7,26 @@ namespace Coftea_Capstone
     public partial class App : Application
     {
         public static string dbPath;
+        public static UserInfoModel CurrentUser { get; set; }
         public App()
         {
             InitializeComponent();
 
             dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
-            
+           /* if (File.Exists(dbPath))
+            {
+                File.Delete(dbPath);  // deletes the database file
+            }*/
+
             var NavigatePage = new NavigationPage(new LoginPage());
             MainPage = NavigatePage;
 
             SeedDatabase();
 
+        }
+        public static void SetCurrentUser(UserInfoModel user)
+        {
+            CurrentUser = user;
         }
 
         private async void SeedDatabase()
@@ -39,7 +48,42 @@ namespace Coftea_Capstone
                         Status = "Available",
                         Image = "drink.png"
                     });
-                
+                    await database.SaveProductAsync(new POSPageModel
+                    {
+                        Name = "Matcha Tea",
+                        Price = 110,
+                        Status = "Available",
+                        Image = "drink.png"
+                    });
+                    await database.SaveProductAsync(new POSPageModel
+                    {
+                        Name = "Strawberry Tea",
+                        Price = 130,
+                        Status = "Available",
+                        Image = "drink.png"
+                    });
+                    await database.SaveProductAsync(new POSPageModel
+                    {
+                        Name = "Matcha Caffe",
+                        Price = 100,
+                        Status = "Available",
+                        Image = "drink.png"
+                    });
+                    await database.SaveProductAsync(new POSPageModel
+                    {
+                        Name = "Strawberry Milktea",
+                        Price = 105,
+                        Status = "Available",
+                        Image = "drink.png"
+                    });
+                    await database.SaveProductAsync(new POSPageModel
+                    {
+                        Name = "Strawberry Milk",
+                        Price = 135,
+                        Status = "Available",
+                        Image = "drink.png"
+                    });
+
                 }
                 var user = await database.GetAllUsersAsync();
                

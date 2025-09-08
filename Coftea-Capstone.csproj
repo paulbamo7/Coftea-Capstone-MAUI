@@ -40,8 +40,8 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
-
+		<MauiIcon Include="Resources\AppIcon\appicon.png" />
+		
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 
@@ -50,7 +50,7 @@
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 
 		<!-- Custom Fonts -->
-		<MauiFont Include="Resources\Fonts\*" />
+		<MauiFont Include="Resources/Fonts/Montserrat-Black.ttf" Alias="MontserratBlack" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
@@ -66,43 +66,43 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="View\AdminDashboard.xaml.cs">
+	  <Compile Update="Views\AdminDashboard.xaml.cs">
 	    <DependentUpon>AdminDashboard.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="View\EmployeeDashboard.xaml.cs">
+	  <Compile Update="Views\EmployeeDashboard.xaml.cs">
 	    <DependentUpon>EmployeeDashboard.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="View\LoginPage.xaml.cs">
+	  <Compile Update="Views\LoginPage.xaml.cs">
 	    <DependentUpon>LoginPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="View\AdminDashboard.xaml">
+	  <MauiXaml Update="Views\AdminDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\EmployeeDashboard.xaml">
+	  <MauiXaml Update="Views\EmployeeDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\Inventory.xaml">
+	  <MauiXaml Update="Views\Inventory.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\LoginPage.xaml">
+	  <MauiXaml Update="Views\LoginPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\NavigationBar.xaml">
+	  <MauiXaml Update="Views\NavigationBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\PointOfSale.xaml">
+	  <MauiXaml Update="Views\PointOfSale.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\RegisterPage.xaml">
+	  <MauiXaml Update="Views\RegisterPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\SalesReport.xaml">
+	  <MauiXaml Update="Views\SalesReport.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="View\Settings.xaml">
+	  <MauiXaml Update="Views\Settings.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

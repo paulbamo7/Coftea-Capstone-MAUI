@@ -1,0 +1,67 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="Coftea_Capstone.Pages.SalesReport" xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" xmlns:views="clr-namespace:Coftea_Capstone.View" Shell.TabBarIsVisible="False" BackgroundColor="#C1A892">
+    <!-- Add Item to POS Section -->
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+        <!-- Sidebar Navigation -->
+        <views:NavigationBar Grid.Column="0"/>
+        <!-- Background Gradient -->
+        <VerticalStackLayout Grid.Column="1" Padding="20">
+            <VerticalStackLayout Spacing="10">
+                <!-- Top Bar -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center">
+                    <Label Text="Add Item To POS" FontSize="54" FontFamily="MontserratBlack" VerticalOptions="Center"/>
+                    <SearchBar Placeholder="Search for something" Grid.Column="1" WidthRequest="300"/>
+                    <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" />
+                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                </Grid>
+                <HorizontalStackLayout Spacing="20">
+                    <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7">
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="Product Details" FontAttributes="Bold" FontSize="30" Padding="0,0,0,25"/>
+                            <Label Text="Product Name" FontSize="25"/>
+                            <Entry Placeholder="Product Name" PlaceholderColor="Black" Text="{Binding Email}"/>
+
+                            <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="120" WidthRequest="455" BackgroundColor="#E0E0E0" HorizontalOptions="Start" Margin="0,30,0,30">
+                                <Grid>
+                                    <Label Text="Click to upload or drag and drop" HorizontalOptions="Center" VerticalOptions="Center" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="Black" FontAttributes="Bold" />
+                                    <Image Source="uploadicon.png" WidthRequest="30" Margin="0,0,0,35"/>
+                                    <Button x:Name="UploadButton" BackgroundColor="Transparent" />
+                                </Grid>
+                            </Frame>
+                            <Label Text="Product Category" FontSize="25"/>
+                            <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Email}"/>
+
+                            <Label Text="Color Code" FontSize="25"/>
+                            <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Email}"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7">
+                        <VerticalStackLayout >
+                            <Label Text="Product Size" FontAttributes="Bold" FontSize="30" Padding="0,0,0,25"/>
+                            <Label Text="Select Size" FontSize="25"/>
+                            <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
+                                <Button Text="Small" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" HeightRequest="40" WidthRequest="85" Command="{Binding SmallSize}"/>
+                                <Button Text="Large" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" HeightRequest="40" WidthRequest="85" Command="{Binding LargeSize}"/>
+                            </HorizontalStackLayout>
+                            <Label Text="Enter Price" FontSize="25" Margin="0,25,0,0"/>
+                            <Entry Placeholder="Product Price" PlaceholderColor="Black" />
+                            <Label Text="Description (Optional)" FontSize="25" Margin="0,25,0,0"/>
+                            <Frame BackgroundColor="#FFFFFF" 
+                                   Margin="0,10,0,0"
+                                   CornerRadius="10" 
+                                   Padding="10"
+                                   HasShadow="False">
+                                <Editor Placeholder="Enter product description..." 
+                                    HeightRequest="150" 
+                                    Text="{Binding ProductDescription}" 
+                                    BackgroundColor="Transparent"
+                                    TextColor="Black"/>
+                            </Frame>
+
+                            <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" Command="{Binding SaveProduct}" HorizontalOptions="End" Margin="0,20,0,0"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+
 namespace Coftea_Capstone
 {
     public static class MauiProgram

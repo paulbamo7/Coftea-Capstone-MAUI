@@ -6,8 +6,10 @@ namespace Coftea_Capstone.Pages;
 
 public partial class LoginPage : ContentPage
 {
+    private readonly Database _database;
     public LoginPage()
     {
-        InitializeComponent();      
+        InitializeComponent();
+        _database = new Database(App.dbPath);
     }
 }

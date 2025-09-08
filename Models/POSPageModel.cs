@@ -20,6 +20,7 @@ namespace Coftea_Capstone.C_
         public string Status { get; set; } = string.Empty;
         [NotNull]
         public string Image { get; set; } = string.Empty;
+       
         /*[NotNull]
         public string MenuCategory { get; set; } = string.Empty;*/
     }

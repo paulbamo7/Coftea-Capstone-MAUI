@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.PointOfSale"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
+             xmlns:views="clr-namespace:Coftea_Capstone.View"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Pages"
+             Shell.NavBarIsVisible="False"      
+             Shell.TabBarIsVisible="False"
+             x:Name="POS"
+             BackgroundColor="#D6BCA8">
+
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+
+        <!-- Sidebar Navigation -->
+        <views:NavigationBar Grid.Column="0" ParentViewModel="{Binding .}" />
+
+        <!-- Main Content -->
+        <VerticalStackLayout Grid.Column="1" Padding="20">
+            <VerticalStackLayout Spacing="10">
+
+                <!-- Top Bar -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center">
+                    <Label Text="Point Of Sale"  FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
+                    <SearchBar Placeholder="Search for something" Grid.Column="1" WidthRequest="300"/>
+                    <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30"/>
+                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                </Grid>
+
+                <!-- Menu Categories -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalOptions="Center" ColumnSpacing="10" Padding="0,20,0,0">
+                    <Button Text="Frappe" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="15" BackgroundColor="#897564" Grid.Column="0" WidthRequest="150" HeightRequest="40"/>
+                    <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="15"  BackgroundColor="#897564" Grid.Column="1" WidthRequest="150" HeightRequest="40"/>
+                    <Button Text="Milktea" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="15" BackgroundColor="#897564" Grid.Column="2" WidthRequest="150" HeightRequest="40"/>
+                    <Button Text="Coffee" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="15" BackgroundColor="#897564" Grid.Column="3" WidthRequest="150" HeightRequest="40"/>
+                </Grid>
+
+                <!-- Menu Items -->
+                <ScrollView>
+                    <HorizontalStackLayout>
+                        <Border StrokeShape="RoundRectangle 20" 
+                                BackgroundColor="White" MaximumHeightRequest="1000" MaximumWidthRequest="1000" HeightRequest="500" WidthRequest="550" HorizontalOptions="Start"
+                                Margin="15,5,0,0">
+                            <CollectionView ItemsSource="{Binding Products}">
+                                <CollectionView.ItemsLayout>
+                                    <GridItemsLayout Orientation="Vertical" Span="3" />
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Frame BackgroundColor="#D9D9D9" HeightRequest="225" WidthRequest="160" CornerRadius="20" Margin="10" >
+                                            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                                                <!-- Product Image -->
+                                                <Frame CornerRadius="20" Margin="0" Padding="0">
+                                                    <Image Source="{Binding Image}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill" Margin="0"/>
+                                                </Frame>
+                                                <Frame CornerRadius="15" BackgroundColor="White" Padding="5,2" Margin="0,5,0,0" HasShadow="False" HorizontalOptions="Center">
+                                                    <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                                </Frame>
+                                                <!-- Price -->
+                                                <HorizontalStackLayout>
+                                                    <Label Text="{Binding Price, StringFormat='₱{0:F2}'}" FontSize="14" HorizontalOptions="Center"/>
+                                                    <Label Text=" | " FontSize="14" HorizontalOptions="Center"/>
+                                                    <Label Text="{Binding Price, StringFormat='₱{0:F2}'}" FontSize="14" HorizontalOptions="Center"/>
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Border>
+
+                        <!-- Cart -->
+                        <Frame CornerRadius="20" BackgroundColor="White" MaximumHeightRequest="1000" MaximumWidthRequest="1000" HeightRequest="400" WidthRequest="450" HorizontalOptions="Start" VerticalOptions="Start" Margin="15,5,0,0">
+                            <VerticalStackLayout>
+                                <Frame>
+                                    <Label Text="EMPTY" HorizontalOptions="Center" VerticalOptions="Center" FontSize="50" FontAttributes="Bold" TextColor="#534F4F" FontFamily="Roboto" />
+                                </Frame>
+
+                                <Button Text="Check Out" WidthRequest="150" HeightRequest="50" HorizontalOptions="End" VerticalOptions="End" Margin="20" FontAttributes="Bold" FontSize="16" TextColor="White">
+                                    <Button.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#A57C5C" Offset="0.0" />
+                                            <GradientStop Color="#5B4F45" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Button.Background>
+                                    <Button.Shadow>
+                                        <Shadow Brush="#000000" Opacity="0.3" Offset="4,4" />
+                                    </Button.Shadow>
+                                    <Button.CornerRadius>25</Button.CornerRadius>
+                                </Button>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </HorizontalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- Overlay Popup on top -->
+        <otherViews:Settings 
+                BindingContext="{Binding SettingsPopup}" 
+                IsVisible="{Binding IsSettingsPopupVisible, Mode=TwoWay}"
+                Grid.ColumnSpan="2" 
+                Grid.RowSpan="1" 
+                />
+
+    </Grid>
+</ContentPage>
