@@ -17,17 +17,19 @@
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Product Details" FontAttributes="Bold" FontSize="30" Padding="0,0,0,25"/>
                         <Label Text="Product Name" FontSize="25"/>
-                        <Entry Placeholder="Product Name" PlaceholderColor="Black" Text="{Binding Email}"/>
+                        <Entry Placeholder="Product Name" PlaceholderColor="Black" Text="{Binding ProductName}"/>
 
-                        <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="120" WidthRequest="455" BackgroundColor="#E0E0E0" HorizontalOptions="Start" Margin="0,30,0,30">
+                        <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="120" WidthRequest="455" BackgroundColor="#E0E0E0" 
+                               HorizontalOptions="Start" Margin="0,30,0,30">
                             <Grid>
-                                <Label Text="Click to upload or drag and drop" HorizontalOptions="Center" VerticalOptions="Center" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="Black" FontAttributes="Bold" />
+                                <Label Text="Click to upload or drag and drop" HorizontalOptions="Center" VerticalOptions="Center" 
+                                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="Black" FontAttributes="Bold"/>
                                 <Image Source="uploadicon.png" WidthRequest="30" Margin="0,0,0,35"/>
                                 <Button x:Name="UploadButton" BackgroundColor="Transparent" />
                             </Grid>
                         </Frame>
                         <Label Text="Product Category" FontSize="25"/>
-                        <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Email}"/>
+                        <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Category}"/>
 
                         <Label Text="Color Code" FontSize="25"/>
                         <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Email}"/>
@@ -41,13 +43,16 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Label Text="Product Size" FontAttributes="Bold" FontSize="30" VerticalOptions="Center" Grid.Column="0"/>
-                            <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" Grid.Column="1" VerticalOptions="Center" Command="{Binding CloseAddItemToPOSCommand}"/>
+                            <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" Grid.Column="1" 
+                                         VerticalOptions="Center" Command="{Binding CloseAddItemToPOSCommand}"/>
                         </Grid>
 
                         <Label Text="Select Size" FontSize="25"/>
                         <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
-                            <Button Text="Small" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" HeightRequest="40" WidthRequest="85" Command="{Binding SmallSize}"/>
-                            <Button Text="Large" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" HeightRequest="40" WidthRequest="85" Command="{Binding LargeSize}"/>
+                            <Button Text="Small" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" 
+                                    HeightRequest="40" WidthRequest="85" Command="{Binding SmallSize}"/>
+                            <Button Text="Large" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" 
+                                    HeightRequest="40" WidthRequest="85" Command="{Binding LargeSize}"/>
                         </HorizontalStackLayout>
                         <Label Text="Enter Price" FontSize="25" Margin="0,25,0,0"/>
                         <Entry Placeholder="Product Price" PlaceholderColor="Black" />
@@ -64,7 +69,8 @@
                                 TextColor="Black"/>
                         </Frame>
 
-                        <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" Command="{Binding SaveProduct}" HorizontalOptions="End" Margin="0,20,0,0"/>
+                        <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
+                                Command="{Binding SaveProduct}" HorizontalOptions="End" Margin="0,20,0,0"/>
                     </VerticalStackLayout>
                 </Frame>
             </HorizontalStackLayout>
