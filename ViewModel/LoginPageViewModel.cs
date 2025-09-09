@@ -1,9 +1,8 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Pages;
 using System.Threading.Tasks;
-using System.IO;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.C_;
 
@@ -15,10 +14,15 @@ namespace Coftea_Capstone.ViewModel
 
         public LoginPageViewModel()
         {
-            _database = new Database(App.dbPath);
+            // MySQL connection (XAMPP)
+            _database = new Database(
+                host: "localhost",
+                database: "coftea_db",   // 👈 must match your phpMyAdmin database name
+                user: "root",            // default XAMPP MySQL user
+                password: ""             // default is empty (no password)
+            );
         }
 
-        // Observable properties bound to XAML
         [ObservableProperty]
         private string email;
 
@@ -28,7 +32,6 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool isAdmin;
 
-        // Login command
         [RelayCommand]
         private async Task Login()
         {
@@ -52,18 +55,18 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            // Save current user in App state
+            App.SetCurrentUser(user);
+
             if (user.IsAdmin)
             {
                 await Application.Current.MainPage.DisplayAlert("Success", "Welcome Admin!", "OK");
-                App.SetCurrentUser(user);
                 await (Application.Current.MainPage as NavigationPage)
                     .PushAsync(new AdminDashboard());
-               
             }
             else
             {
                 await Application.Current.MainPage.DisplayAlert("Success", "Welcome User!", "OK");
-                App.SetCurrentUser(user);
                 await (Application.Current.MainPage as NavigationPage)
                     .PushAsync(new EmployeeDashboard());
             }

@@ -21,8 +21,9 @@ public partial class PointOfSale : ContentPage
         // Create ViewModel
         _viewModel = new POSPageViewModel();
 
-        // Set as BindingContext
+        // Set as BindingContext    
         BindingContext = _viewModel;
+
     }
 
     protected override async void OnAppearing()

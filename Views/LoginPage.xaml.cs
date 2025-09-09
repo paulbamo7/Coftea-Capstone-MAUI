@@ -10,6 +10,6 @@ public partial class LoginPage : ContentPage
     public LoginPage()
     {
         InitializeComponent();
-        _database = new Database(App.dbPath);
+        _database = new Database();
     }
 }

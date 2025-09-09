@@ -9,18 +9,6 @@ namespace Coftea_Capstone.View;
 public partial class NavigationBar : ContentView
 {
     private UserInfoModel user;
-    public static readonly BindableProperty ParentViewModelProperty =
-        BindableProperty.Create(
-            nameof(ParentViewModel),
-            typeof(POSPageViewModel),
-            typeof(NavigationBar),
-            default(POSPageViewModel));
-
-    public POSPageViewModel ParentViewModel
-    {
-        get => (POSPageViewModel)GetValue(ParentViewModelProperty);
-        set => SetValue(ParentViewModelProperty, value);
-    }
 
     public NavigationBar()
     {
@@ -65,6 +53,6 @@ public partial class NavigationBar : ContentView
     {
         /*Navigation.PopModalAsync();
         Navigation.PushAsync(new SettingsPopUp());*/
-        ParentViewModel.SettingsPopup.ShowSettingsPopupCommand.Execute(null);
+        //ParentViewModel.SettingsPopup.ShowSettingsPopupCommand.Execute(null);
     }
 }

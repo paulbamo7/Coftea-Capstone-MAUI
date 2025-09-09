@@ -4,12 +4,12 @@
              x:Class="Coftea_Capstone.View.NavigationBar"
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
              xmlns:views="clr-namespace:Coftea_Capstone.Pages"
-             xmlns:otherViews="clr-namespace:Coftea_Capstone.View"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views"
              >
 
     <StackLayout Grid.Column="0" BackgroundColor="#F8E8D7" Padding="10">
-            <!-- Logo -->
-            <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
+        <!-- Logo -->
+        <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
 
         <VerticalStackLayout Spacing="6" Margin="0,4,0,0">
             <Button ImageSource="home.png" Background="Transparent" HeightRequest="80"
@@ -35,8 +35,8 @@
             <Button ImageSource="settings2.png"
                     Background="Transparent"
                     HeightRequest="80"
-                    Command="{Binding ParentViewModel.SettingsPopup.ShowSettingsPopupCommand}" 
-                    Clicked="SettingsButton_Clicked"/>
+                    Command="{Binding SettingsPopup.ShowSettingsPopupCommand}" 
+                    />
             <Label Text="Settings" FontAttributes="Bold" HorizontalOptions="Center"/>
         </VerticalStackLayout>
     </StackLayout>

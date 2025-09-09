@@ -44,26 +44,20 @@
                     <Frame CornerRadius="20" Padding="20" BackgroundColor="#F0F0F0" Margin="5" Grid.Column="2" Grid.RowSpan="3" >
                         <VerticalStackLayout>
                             <Label Text="Inventory Alert" FontAttributes="Bold" FontSize="24"/>
-                            <CollectionView ItemsSource="{Binding InventoryItems}">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid ColumnDefinitions="50,*,Auto" Padding="10">
-                                            <!-- Colored circle -->
-                                            <Frame WidthRequest="30" HeightRequest="30" CornerRadius="15" BackgroundColor="{Binding Color}" VerticalOptions="Center" HorizontalOptions="Center"/>
+                            <Frame CornerRadius="20" Padding="10" BackgroundColor="White" Margin="5">
+                                <VerticalStackLayout Spacing="10" Margin="0,10,0,0">
+                                    <Label Text="Espresso - Out of Stock" TextColor="Red"/>
+                                    <Label Text="Pearl - Low of Stock" TextColor="Orange"/>
+                                    <Label Text="Yakult - Low of Stock" TextColor="Orange"/>        
+                                </VerticalStackLayout>
+                            </Frame>
+                            <!-- 
+                            <CollectionView>
 
-                                            <!-- Product Name -->
-                                            <Label Text="{Binding Name}" Grid.Column="1" VerticalOptions="Center" FontSize="16" />
+                            </CollectionView>-->
+                            <Label Text="{Binding InventoryProduct}" FontSize="20" HorizontalOptions="Center" />
 
-                                            <!-- Stock Status -->
-                                            <Label Text="{Binding StockStatus}" Grid.Column="2" VerticalOptions="Center" FontSize="16"
-                       TextColor="{Binding StockStatus, Converter={StaticResource StockColorConverter}}"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-                            <Label Text="{Binding InventoryProduct}" FontSize="20" HorizontalOptions="Center" Padding="0, 20, 0, 0"/>
-
-                            <HorizontalStackLayout VerticalOptions="EndAndExpand" HorizontalOptions="Center" Spacing="10">
+                            <HorizontalStackLayout HorizontalOptions="Center" Spacing="10">
                                 <Button Text="Request Restock" CornerRadius="20" BackgroundColor="#897564" WidthRequest="150" HeightRequest="40"/>
                                 <Label Text="See More" TextColor="#000000" VerticalOptions="Center"/>
                             </HorizontalStackLayout>

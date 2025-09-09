@@ -34,11 +34,12 @@ namespace Coftea_Capstone.ViewModel
 
         public POSPageViewModel()
         {
-            _database = new Database(App.dbPath);
-            if (App.CurrentUser != null)
-            {
-                IsAdmin = App.CurrentUser.IsAdmin;
-            }
+            _database = new Database(
+               host: "localhost",
+               database: "coftea_db",   // 👈 must match your phpMyAdmin database name
+               user: "root",            // default XAMPP MySQL user
+               password: ""             // default is empty (no password)
+           );
         }
 
         public async Task InitializeAsync(string email)
@@ -52,9 +53,7 @@ namespace Coftea_Capstone.ViewModel
         public async Task LoadDataAsync()
         {
             var productList = await _database.GetProductsAsync();
-
-            Products = new ObservableCollection<POSPageModel>(productList);
-            
+            Products = new ObservableCollection<POSPageModel>(productList);       
         }
 
         [RelayCommand]
@@ -78,14 +77,6 @@ namespace Coftea_Capstone.ViewModel
         private void RemoveProduct(POSPageModel product)
         {
 
-        }
-        [RelayCommand]
-        private void AddItem()
-        {
-            if (IsAdmin)
-            {
-                IsAddItemVisible = !IsAddItemVisible;
-            }
-        }
+        }     
     }
 }

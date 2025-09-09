@@ -2,7 +2,10 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Coftea_Capstone.Pages.Settings"
-    BackgroundColor="#80000000">
+    xmlns:otherViews="clr-namespace:Coftea_Capstone.Pages"
+    BackgroundColor="#80000000"
+    x:Name="SettingsPop"
+    IsVisible="{Binding IsSettingsPopupVisible}">
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
         <Frame VerticalOptions="Center"
@@ -23,7 +26,8 @@
 
                     <!-- Row 0 -->
                     <Button Text="User Management" Grid.Row="0" Grid.Column="0" HeightRequest="120" WidthRequest="200"/>
-                    <Button Text="Add Item to POS" Grid.Row="0" Grid.Column="1" HeightRequest="120"  WidthRequest="200"/>
+                    <Button Text="Add Item to POS" Grid.Row="0" Grid.Column="1" HeightRequest="120"  WidthRequest="200"
+                            Command="{Binding OpenAddItemToPOSCommand}"/>
 
                     <!-- Row 1 -->
                     <Button Text="Add Item to Inventory" Grid.Row="1" Grid.Column="0" HeightRequest="120"  WidthRequest="200"/>

@@ -14,7 +14,13 @@ namespace Coftea_Capstone.ViewModel
         private readonly Database _database;
         public RegisterPageViewModel()
         {
-            _database = new Database(App.dbPath);
+            // MySQL connection (XAMPP)
+            _database = new Database(
+                host: "localhost",
+                database: "coftea_db",   // 👈 must match your phpMyAdmin database name
+                user: "root",            // default XAMPP MySQL user
+                password: ""             // default is empty (no password)
+            );
         }
 
         [ObservableProperty] 
@@ -33,16 +39,17 @@ namespace Coftea_Capstone.ViewModel
         private string address;
         [ObservableProperty] 
         private DateTime birthday = DateTime.Today;
-        
 
         [RelayCommand]
         private async Task Register()
         {
+            // Validation
             if (string.IsNullOrWhiteSpace(Email) ||
                 string.IsNullOrWhiteSpace(Password) ||
-                string.IsNullOrWhiteSpace(ConfirmPassword))
+                string.IsNullOrWhiteSpace(ConfirmPassword) ||
+                string.IsNullOrWhiteSpace(FirstName))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "All fields are required.", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Please fill in all required fields.", "OK");
                 return;
             }
 
@@ -52,13 +59,15 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            // Check if email already exists
             var existingUser = await _database.GetUserByEmailAsync(Email);
             if (existingUser != null)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Email already registered", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Email already registered.", "OK");
                 return;
             }
 
+            // Create user model
             var user = new UserInfoModel
             {
                 Email = Email.Trim(),
@@ -68,6 +77,7 @@ namespace Coftea_Capstone.ViewModel
                 PhoneNumber = PhoneNumber?.Trim() ?? string.Empty,
                 Address = Address?.Trim() ?? string.Empty,
                 Birthday = Birthday,
+               /* IsAdmin = false  // default new users as employees*/
             };
 
             try
@@ -75,7 +85,7 @@ namespace Coftea_Capstone.ViewModel
                 await _database.AddUserAsync(user);
                 await Application.Current.MainPage.DisplayAlert("Success", "Account created successfully!", "OK");
 
-                // Go back to login
+                // Navigate back to Login page
                 await Application.Current.MainPage.Navigation.PopAsync();
             }
             catch (Exception ex)

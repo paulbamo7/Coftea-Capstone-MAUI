@@ -10,31 +10,22 @@ namespace Coftea_Capstone.Models
 {
     public class UserInfoModel : ObservableObject
     {
-        [PrimaryKey, AutoIncrement]
+      
         public int ID { get; set; }
 
-        [Unique, NotNull]
-        public string Email { get; set; } = string.Empty;
+        public string Email { get; set; }
 
-        [NotNull]
-        public string FirstName { get; set; } = string.Empty;
+        public string FirstName { get; set; }
 
-        [NotNull]
         public string LastName { get; set; } = string.Empty;
+        public string Password { get; set; }
 
-        [NotNull]
-        public string Password { get; set; } = string.Empty;
-
-        [NotNull]
         public bool IsAdmin { get; set; }
 
-        [NotNull]
         public DateTime Birthday { get; set; }
 
-        [NotNull]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [NotNull]
         public string Address { get; set; } = string.Empty;
     }
 }

@@ -17,7 +17,7 @@
                 <VerticalStackLayout Spacing="20">
 
                     <!-- Top Bar -->
-                    <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center">
+                    <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                         <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
                         <SearchBar Placeholder="Search for something" Grid.Column="1" WidthRequest="300"/>
                         <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" />
