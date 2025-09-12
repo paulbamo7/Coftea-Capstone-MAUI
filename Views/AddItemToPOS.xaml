@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Views.AddItemToPOS"
+              x:Class="Coftea_Capstone.Views.AddItemToPOS"
              xmlns:views="clr-namespace:Coftea_Capstone.View"
              BackgroundColor="#80000000"
-             IsVisible="{Binding IsAddItemToPOSVisible}"
+             
              >
-    
+
     <!-- Add Item to POS Section -->
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
-        
+
         <!-- Background Gradient -->
         <VerticalStackLayout Grid.Column="1" Padding="30,60,0,0">
             <HorizontalStackLayout Spacing="20">
@@ -22,10 +22,11 @@
                         <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="120" WidthRequest="455" BackgroundColor="#E0E0E0" 
                                HorizontalOptions="Start" Margin="0,30,0,30">
                             <Grid>
+                                <Entry Placeholder="Enter Image" Margin="0,0,0,35"/>
                                 <Label Text="Click to upload or drag and drop" HorizontalOptions="Center" VerticalOptions="Center" 
                                        HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="Black" FontAttributes="Bold"/>
-                                <Image Source="uploadicon.png" WidthRequest="30" Margin="0,0,0,35"/>
-                                <Button x:Name="UploadButton" BackgroundColor="Transparent" />
+                                <!-- <Image Source="uploadicon.png" WidthRequest="30" Margin="0,0,0,35"/>
+                                <Button x:Name="UploadButton" BackgroundColor="Transparent" /> -->
                             </Grid>
                         </Frame>
                         <Label Text="Product Category" FontSize="25"/>
@@ -50,9 +51,11 @@
                         <Label Text="Select Size" FontSize="25"/>
                         <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
                             <Button Text="Small" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" 
-                                    HeightRequest="40" WidthRequest="85" Command="{Binding SmallSize}"/>
+                                    HeightRequest="40" WidthRequest="85" />
+                            <Entry Placeholder="Large Size" Text="{Binding LargePrice}"/>
                             <Button Text="Large" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" 
-                                    HeightRequest="40" WidthRequest="85" Command="{Binding LargeSize}"/>
+                                    HeightRequest="40" WidthRequest="85" />
+                            <Entry Placeholder="Small Size" Text="{Binding SmallPrice}"/>
                         </HorizontalStackLayout>
                         <Label Text="Enter Price" FontSize="25" Margin="0,25,0,0"/>
                         <Entry Placeholder="Product Price" PlaceholderColor="Black" />
@@ -70,7 +73,7 @@
                         </Frame>
 
                         <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
-                                Command="{Binding SaveProduct}" HorizontalOptions="End" Margin="0,20,0,0"/>
+                                Command="{Binding AddProductCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
                     </VerticalStackLayout>
                 </Frame>
             </HorizontalStackLayout>

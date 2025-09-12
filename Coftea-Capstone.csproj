@@ -41,7 +41,7 @@
 	<ItemGroup>
 		<!-- App Icon -->
 
-		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#FFFFFF"/>
+		<MauiIcon Include="Resources\AppIcon\appicon.png" Color="#FFFFFF" />
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 
@@ -83,9 +83,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  
 	  <MauiXaml Update="Views\AddItemToPOS.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  
 	  <MauiXaml Update="Views\AdminDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

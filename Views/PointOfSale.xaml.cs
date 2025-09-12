@@ -1,29 +1,39 @@
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
-using Coftea_Capstone.ViewModel;
-using Coftea_Capstone.View;
-using Microsoft.Maui.ApplicationModel.Communication;
 using Coftea_Capstone.Pages;
+using Coftea_Capstone.View;
+using Coftea_Capstone.ViewModel;
+using Microsoft.Maui.ApplicationModel.Communication;
+using System.Timers;
 
 namespace Coftea_Capstone.Views;
 
 public partial class PointOfSale : ContentPage
 {
     private readonly POSPageViewModel _viewModel;
+    private readonly System.Timers.Timer _timer;
+
     public PointOfSale()
 	{
 		InitializeComponent();
-        
-        // Initialize DB
-        var dbPath = Path.Combine(FileSystem.AppDataDirectory, "coftea.db3");
-        var database = new Database(dbPath);
-
         // Create ViewModel
         _viewModel = new POSPageViewModel();
 
         // Set as BindingContext    
         BindingContext = _viewModel;
+        _timer = new System.Timers.Timer(1000); // 1 second
+        _timer.Elapsed += OnTimedEvent;
+        _timer.AutoReset = true;
+        _timer.Enabled = true;
+    }
 
+    private void OnTimedEvent(object sender, ElapsedEventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
+            // Example: 12:45:22 PM
+        });
     }
 
     protected override async void OnAppearing()

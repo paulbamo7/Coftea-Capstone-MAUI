@@ -20,7 +20,7 @@ namespace Coftea_Capstone.ViewModel
                 database: "coftea_db",   // 👈 must match your phpMyAdmin database name
                 user: "root",            // default XAMPP MySQL user
                 password: ""             // default is empty (no password)
-            );
+            ); 
         }
 
         [ObservableProperty]
@@ -38,6 +38,7 @@ namespace Coftea_Capstone.ViewModel
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Please enter username and password", "OK");
+                ClearEntries();
                 return;
             }
 
@@ -46,12 +47,14 @@ namespace Coftea_Capstone.ViewModel
             if (user == null)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "User not found", "OK");
+                ClearEntries();
                 return;
             }
 
             if (user.Password != Password)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Incorrect password", "OK");
+                ClearEntries();
                 return;
             }
 
@@ -63,12 +66,14 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Success", "Welcome Admin!", "OK");
                 await (Application.Current.MainPage as NavigationPage)
                     .PushAsync(new AdminDashboard());
+                ClearEntries();
             }
             else
             {
                 await Application.Current.MainPage.DisplayAlert("Success", "Welcome User!", "OK");
                 await (Application.Current.MainPage as NavigationPage)
                     .PushAsync(new EmployeeDashboard());
+                ClearEntries();
             }
         }
 
@@ -76,6 +81,13 @@ namespace Coftea_Capstone.ViewModel
         private async Task GoToRegister()
         {
             await Application.Current.MainPage.Navigation.PushAsync(new RegisterPage());
+        }
+
+        [RelayCommand]
+        private void ClearEntries()
+        {
+            Email = string.Empty;
+            Password = string.Empty;
         }
     }
 }

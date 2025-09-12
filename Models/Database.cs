@@ -87,10 +87,10 @@ namespace Coftea_Capstone.C_
                 products.Add(new POSPageModel
                 {
                     ProductID = reader.GetInt32("productID"),
-                    Name = reader.GetString("name"),
+                    ProductName = reader.GetString("productName"),
                     SmallPrice = reader.GetDouble("smallPrice"),
                     LargePrice = reader.GetDouble("largePrice"),
-                    Image = reader.GetString("image") 
+                    ImageSet = reader.GetString("imageSet") 
                 });
             }
             return products;
@@ -100,28 +100,59 @@ namespace Coftea_Capstone.C_
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO users (name, largePrice, smallPrice, image) " +
-                      "VALUES (@ItemName, @SmallPrice, @LargePrice, @Image);";
+            var sql = "INSERT INTO products (productName, smallPrice, largePrice, imageSet) " +
+                      "VALUES (@ProductName, @SmallPrice, @LargePrice, @Image);";
             await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@ItemName", product.Name);
+            cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
-            cmd.Parameters.AddWithValue("@Image", product.Image);
+            cmd.Parameters.AddWithValue("@Image", product.ImageSet);
 
             return await cmd.ExecuteNonQueryAsync();
+        }
+        public async Task<POSPageModel?> GetProductByNameAsync(string name)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            var sql = "SELECT * FROM products WHERE productName = @Name LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Name", name);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new POSPageModel
+                {
+                    ProductID = reader.GetInt32("productID"),
+                    ProductName = reader.GetString("productName"),
+                    SmallPrice = Convert.ToDouble(reader["smallPrice"]),
+                    LargePrice = Convert.ToDouble(reader["largePrice"]),
+                    ImageSet = reader.GetString("imageSet")
+                };
+            }
+            return null;
         }
 
         /*public Task<int> DeleteProductAsync(POSPageModel product)
         {
             return _db.DeleteAsync(product);
-        }
+        }*/
 
         // Inventory Database
-        public Task<List<InventoryPageModel>> GetInventoryItemsAsync()
+        public async Task<int>  GetInventoryItemsAsync(InventoryPageModel inventory)
         {
-            return _db.Table<InventoryPageModel>().ToListAsync();
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "INSERT INTO products (productName, smallPrice, largePrice, imageSet) " +
+                      "VALUES (@ProductName, @SmallPrice, @LargePrice, @Image);";
+            await using var cmd = new MySqlCommand(sql, conn);
+            /*cmd.Parameters.AddWithValue("@ProductName", inventory.ProductName);
+            cmd.Parameters.AddWithValue("@SmallPrice", inventory.SmallPrice);
+            cmd.Parameters.AddWithValue("@LargePrice", inventory.LargePrice);
+            cmd.Parameters.AddWithValue("@Image", inventory.ImageSet);*/
+
+            return await cmd.ExecuteNonQueryAsync();
         }
-        public Task<int> SaveInventoryItemsAsync(InventoryPageModel inventory)
+       /* public Task<int> SaveInventoryItemsAsync(InventoryPageModel inventory)
         {
             return _db.InsertOrReplaceAsync(inventory);
         }
@@ -129,12 +160,12 @@ namespace Coftea_Capstone.C_
         {
             return _db.DeleteAsync(inventory);
         }
-
+*/
         // Sales Report
-        public Task<List<SalesReportPageModel>> RetrieveSalesData()
+        /*public Task<List<SalesReportPageModel>> RetrieveSalesData()
         {
             return _db.Table<SalesReportPageModel>().ToListAsync();
-        }*/
+        }**/
 
         // User Management
 
@@ -142,6 +173,6 @@ namespace Coftea_Capstone.C_
 
         // Cart
 
-        //*/
+        //
     }
 }
