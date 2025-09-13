@@ -1,4 +1,4 @@
-namespace Coftea_Capstone.Pages;
+namespace Coftea_Capstone.Views.Pages;
 
 public partial class RegisterPage : ContentPage
 {

@@ -1,8 +1,8 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-             x:Class="Coftea_Capstone.Pages.SalesReport" 
+             x:Class="Coftea_Capstone.Views.Pages.SalesReport" 
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" 
-             xmlns:views="clr-namespace:Coftea_Capstone.View" 
+             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages" 
              Shell.TabBarIsVisible="False" 
              BackgroundColor="#C1A892">
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">

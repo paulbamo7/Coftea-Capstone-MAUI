@@ -1,7 +1,8 @@
-﻿using MySqlConnector;
+﻿using Coftea_Capstone.Models;
+using MySqlConnector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Coftea_Capstone.Models;
+using System.Xml.Linq;
 
 namespace Coftea_Capstone.C_
 {
@@ -132,9 +133,26 @@ namespace Coftea_Capstone.C_
             return null;
         }
 
-        /*public Task<int> DeleteProductAsync(POSPageModel product)
+        /*public async Task<int> DeleteProductAsync(InventoryPageModel inventory)
         {
-            return _db.DeleteAsync(product);
+            *//*await using var conn = await GetOpenConnectionAsync();
+            var sql = "DELETE * FROM inventory WHERE itemName = @Name LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Name", inventory);
+
+            *//*await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new InventoryPageModel
+                {
+                    ProductID = reader.GetInt32("productID"),
+                    ProductName = reader.GetString("productName"),
+                    SmallPrice = Convert.ToDouble(reader["smallPrice"]),
+                    LargePrice = Convert.ToDouble(reader["largePrice"]),
+                    ImageSet = reader.GetString("imageSet")
+                };
+            }*//*
+            return null;*//*
         }*/
 
         // Inventory Database

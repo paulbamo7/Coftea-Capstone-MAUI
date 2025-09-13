@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
-using Coftea_Capstone.Pages;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.C_;
+using Coftea_Capstone.Views.Pages;
 
 namespace Coftea_Capstone.ViewModel
 {

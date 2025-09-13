@@ -1,10 +1,9 @@
-using Coftea_Capstone.Pages;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.Views;
 
-namespace Coftea_Capstone.View;
+namespace Coftea_Capstone.Views.Pages;
 
 public partial class NavigationBar : ContentView
 {

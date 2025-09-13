@@ -1,5 +1,6 @@
 ﻿using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.Views.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -11,7 +12,7 @@ namespace Coftea_Capstone.ViewModel
     {
         // Popup controller
         public SettingsPopUpViewModel SettingsPopup { get; } = new SettingsPopUpViewModel();
-        public AddItemToPOSViewModel AddItemPopup { get; } = new AddItemToPOSViewModel();
+        public AddItemToInventoryViewModel AddItemPopup { get; } = new AddItemToInventoryViewModel();
 
         private readonly Database _database;
 

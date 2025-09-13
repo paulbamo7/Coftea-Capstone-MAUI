@@ -2,7 +2,7 @@ using Coftea_Capstone;
 using Coftea_Capstone.C_;
 using SQLite;
 
-namespace Coftea_Capstone.Pages;
+namespace Coftea_Capstone.Views.Pages;
 
 public partial class LoginPage : ContentPage
 {

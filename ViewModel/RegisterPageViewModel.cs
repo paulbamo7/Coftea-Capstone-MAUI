@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.C_;
-using Coftea_Capstone.Pages;
+using Coftea_Capstone.Views.Pages;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.Maui.Controls;

@@ -1,12 +1,11 @@
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.ViewModel;
-using Coftea_Capstone.View;
-using Coftea_Capstone.Pages;
+using Coftea_Capstone.Views;
 using Microsoft.Maui.ApplicationModel.Communication;
 using Coftea_Capstone.Views;
 
-namespace Coftea_Capstone.Pages;
+namespace Coftea_Capstone.Views.Pages;
 
 public partial class EmployeeDashboard : ContentPage
 {

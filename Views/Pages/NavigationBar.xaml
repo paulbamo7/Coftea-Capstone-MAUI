@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.View.NavigationBar"
+             x:Class="Coftea_Capstone.Views.Pages.NavigationBar"
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
-             xmlns:views="clr-namespace:Coftea_Capstone.Pages"
-             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views"
+             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              >
 
     <StackLayout Grid.Column="0" BackgroundColor="#F8E8D7" Padding="10">

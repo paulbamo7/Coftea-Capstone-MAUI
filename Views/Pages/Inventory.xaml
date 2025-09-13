@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Pages.Inventory"
-             xmlns:views="clr-namespace:Coftea_Capstone.View"
+             x:Class="Coftea_Capstone.Views.Pages.Inventory"
+             xmlns:view="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              Title="Inventory">
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
         <!-- Sidebar Navigation -->
-        <views:NavigationBar Grid.Column="0"/>
+        <view:NavigationBar Grid.Column="0"/>
 
         <!-- Main Content -->
         <Grid Grid.Column="1" Padding="20" BackgroundColor="#D6BCA8"
@@ -36,13 +37,13 @@
                                 <!-- Sort By Dropdown -->
                                 <StackLayout BackgroundColor="White">
                                     <Picker Title="Sort By" WidthRequest="200">
-                                    <Picker.Items>
-                                        <x:String>Name (A-Z)</x:String>
-                                        <x:String>Name (Z-A)</x:String>
-                                        <x:String>Price (Low to High)</x:String>
-                                        <x:String>Price (High to Low)</x:String>
-                                    </Picker.Items>
-                                </Picker>
+                                        <Picker.Items>
+                                            <x:String>Name (A-Z)</x:String>
+                                            <x:String>Name (Z-A)</x:String>
+                                            <x:String>Price (Low to High)</x:String>
+                                            <x:String>Price (High to Low)</x:String>
+                                        </Picker.Items>
+                                    </Picker>
                                 </StackLayout>
 
                                 <!-- Search Bar -->
@@ -64,5 +65,16 @@
                 </VerticalStackLayout>
             </VerticalStackLayout>
         </Grid>
+        <view:Settings 
+                BindingContext="{Binding SettingsPopup}" 
+                IsVisible="{Binding IsSettingsPopupVisible, Mode=TwoWay}"
+                Grid.ColumnSpan="2" 
+                Grid.RowSpan="1" />
+
+        <otherViews:AddItemToInventory
+                BindingContext="{Binding SettingsPopup}"
+                IsVisible="{Binding IsAddItemToInventoryVisible}"
+                Grid.ColumnSpan="2" />
+
     </Grid>
 </ContentPage>

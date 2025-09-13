@@ -1,4 +1,4 @@
-namespace Coftea_Capstone.Views;
+namespace Coftea_Capstone.Views.Controls;
 
 public partial class AddItemToPOS : ContentView
 {

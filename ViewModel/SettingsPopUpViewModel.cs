@@ -9,6 +9,8 @@ namespace Coftea_Capstone.ViewModel
         private bool isSettingsPopupVisible = false;
         [ObservableProperty]
         private bool isAddItemToPOSVisible = false;
+        [ObservableProperty]
+        private bool isAddItemToInventoryVisible = false;
 
         [RelayCommand]
 
@@ -33,6 +35,19 @@ namespace Coftea_Capstone.ViewModel
         private void CloseAddItemToPOS()
         {
             IsAddItemToPOSVisible = false;
+        }
+
+        [RelayCommand]
+        private void OpenAddItemToInventory()
+        {
+            IsSettingsPopupVisible = false;
+            IsAddItemToInventoryVisible = true;
+        }
+        [RelayCommand]
+        private void CloseAddItemToInventory()
+        {
+            IsSettingsPopupVisible = false;
+            IsAddItemToInventoryVisible = false;
         }
     }
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Pages.AdminDashboard"
-             xmlns:views="clr-namespace:Coftea_Capstone.View"
+             x:Class="Coftea_Capstone.Views.Pages.AdminDashboard"
+             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              BackgroundColor="#D6BCA8">

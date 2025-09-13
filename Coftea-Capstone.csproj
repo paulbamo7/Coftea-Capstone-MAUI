@@ -71,48 +71,52 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Views\AdminDashboard.xaml.cs">
+	  <Compile Update="Views\Pages\AdminDashboard.xaml.cs">
 	    <DependentUpon>AdminDashboard.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Views\EmployeeDashboard.xaml.cs">
+	  <Compile Update="Views\Pages\EmployeeDashboard.xaml.cs">
 	    <DependentUpon>EmployeeDashboard.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Views\LoginPage.xaml.cs">
+	  <Compile Update="Views\Pages\LoginPage.xaml.cs">
 	    <DependentUpon>LoginPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
 	  
-	  <MauiXaml Update="Views\AddItemToPOS.xaml">
+	  <MauiXaml Update="Views\Controls\AddItemToInventory.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  
-	  <MauiXaml Update="Views\AdminDashboard.xaml">
+	  <MauiXaml Update="Views\Controls\AddItemToPOS.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\EmployeeDashboard.xaml">
+	  
+	  <MauiXaml Update="Views\Pages\AdminDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Inventory.xaml">
+	  <MauiXaml Update="Views\Pages\EmployeeDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\LoginPage.xaml">
+	  <MauiXaml Update="Views\Pages\Inventory.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\NavigationBar.xaml">
+	  <MauiXaml Update="Views\Pages\LoginPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\PointOfSale.xaml">
+	  <MauiXaml Update="Views\Pages\NavigationBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\RegisterPage.xaml">
+	  <MauiXaml Update="Views\Pages\PointOfSale.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\SalesReport.xaml">
+	  <MauiXaml Update="Views\Pages\RegisterPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Settings.xaml">
+	  <MauiXaml Update="Views\Pages\SalesReport.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\Pages\Settings.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

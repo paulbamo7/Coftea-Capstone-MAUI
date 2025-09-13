@@ -1,12 +1,10 @@
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
-using Coftea_Capstone.Pages;
-using Coftea_Capstone.View;
 using Coftea_Capstone.ViewModel;
 using Microsoft.Maui.ApplicationModel.Communication;
 using System.Timers;
 
-namespace Coftea_Capstone.Views;
+namespace Coftea_Capstone.Views.Pages;
 
 public partial class PointOfSale : ContentPage
 {

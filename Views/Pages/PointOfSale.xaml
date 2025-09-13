@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Views.PointOfSale"
+             x:Class="Coftea_Capstone.Views.Pages.PointOfSale"
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
-             xmlns:view="clr-namespace:Coftea_Capstone.View"
-             xmlns:views="clr-namespace:Coftea_Capstone.Views"
-             xmlns:otherViews="clr-namespace:Coftea_Capstone.Pages"
+             xmlns:view="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              Shell.NavBarIsVisible="False"      
              Shell.TabBarIsVisible="False"
              x:Name="POS"
@@ -152,13 +151,13 @@
         </VerticalStackLayout>
 
         <!-- Overlay Popup -->
-        <otherViews:Settings 
+        <view:Settings 
             BindingContext="{Binding SettingsPopup}" 
             IsVisible="{Binding IsSettingsPopupVisible, Mode=TwoWay}"
             Grid.ColumnSpan="2" 
             Grid.RowSpan="1" />
 
-        <views:AddItemToPOS
+        <otherViews:AddItemToPOS
             BindingContext="{Binding SettingsPopup}"
             IsVisible="{Binding IsAddItemToPOSVisible}"
             Grid.ColumnSpan="2" />

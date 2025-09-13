@@ -1,6 +1,6 @@
 ﻿using Coftea_Capstone.C_;
-using Coftea_Capstone.Pages;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.Views.Pages;
 
 namespace Coftea_Capstone
 {

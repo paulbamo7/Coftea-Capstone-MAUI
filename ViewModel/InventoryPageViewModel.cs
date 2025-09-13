@@ -12,11 +12,19 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class InventoryPageViewModel : ObservableObject
     {
+        public SettingsPopUpViewModel SettingsPopup { get; } = new SettingsPopUpViewModel();
+        public AddItemToPOSViewModel AddItemToInventoryPopup { get; } = new AddItemToPOSViewModel();
+
         private readonly Database _database;
-        public InventoryPageViewModel(Database database)
+        public InventoryPageViewModel()
         {
-            
-            
+            _database = new Database(
+                host: "localhost",
+                database: "coftea_db",
+                user: "root",
+                password: ""
+            );
+
         }
         [RelayCommand]
         private void AddInventoryItem(InventoryPageViewModel inventory)
