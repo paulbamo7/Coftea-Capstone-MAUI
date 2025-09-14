@@ -21,6 +21,8 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<POSPageModel> cartItems = new();
 
+        [ObservableProperty] private ObservableCollection<POSPageModel> filteredProducts = new();
+
         [ObservableProperty]
         private bool isAdmin;
 
@@ -59,7 +61,20 @@ namespace Coftea_Capstone.ViewModel
             }
             await LoadDataAsync();
         }
+        [RelayCommand]
+        private void FilterByCategory(object category)
+        {
+            string cat = category?.ToString() ?? string.Empty;
 
+            FilteredProducts.Clear();
+
+            var filtered = string.IsNullOrEmpty(cat) || cat.Equals("All", StringComparison.OrdinalIgnoreCase)
+                ? Products
+                : Products.Where(p => !string.IsNullOrEmpty(p.Category) && p.Category.Trim().Equals(cat, StringComparison.OrdinalIgnoreCase));
+
+            foreach (var p in filtered)
+                FilteredProducts.Add(p);
+        }
         public async Task LoadDataAsync()
         {
             var productList = await _database.GetProductsAsync();

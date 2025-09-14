@@ -1,4 +1,7 @@
 ﻿using Coftea_Capstone.C_;
+using Coftea_Capstone.Views.Pages;  
+using Coftea_Capstone.Views.Controls;
+using Coftea_Capstone.Views;
 using Coftea_Capstone.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
