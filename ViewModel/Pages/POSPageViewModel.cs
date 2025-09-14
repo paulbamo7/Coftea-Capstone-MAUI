@@ -38,6 +38,12 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string image;
 
+        [ObservableProperty]
+        private POSPageModel selectedProduct;
+
+        [ObservableProperty]
+        private ObservableCollection<string> availableSizes = new();
+
         public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
         {
             _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
@@ -105,7 +111,17 @@ namespace Coftea_Capstone.ViewModel
                 CartItems.Add(copy);
             }
         }
+        [RelayCommand]
+        private void SelectProduct(POSPageModel product)
+        {
+            SelectedProduct = product;
 
+            AvailableSizes.Clear();
+            if (product.HasSmall) AvailableSizes.Add("Small");
+            if (product.HasLarge) AvailableSizes.Add("Large");
+
+            SelectedProduct.SelectedSize = AvailableSizes.FirstOrDefault();
+        }
         [RelayCommand]
         private void RemoveFromCart(POSPageModel product)
         {

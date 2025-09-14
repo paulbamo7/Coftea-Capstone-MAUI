@@ -20,6 +20,10 @@ namespace Coftea_Capstone.C_
         public string ImageSet { get; set; }
         public string Category { get; set; }
 
+        public bool HasSmall { get; set; } = true;
+        public bool HasLarge { get; set; } = true;
+
+        public string SelectedSize { get; set; } // "Small" or "Large"
         /*public string MenuCategory { get; set; }*/
     }
 }
