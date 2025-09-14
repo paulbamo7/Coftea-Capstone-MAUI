@@ -18,7 +18,7 @@ namespace Coftea_Capstone.ViewModel
         public AddItemToInventoryViewModel()
         {
             _database = new Database(
-                host: "localhost",
+                host: "0.0.0.0",
                 database: "coftea_db",
                 user: "root",
                 password: ""

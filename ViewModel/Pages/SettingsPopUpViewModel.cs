@@ -1,16 +1,24 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Coftea_Capstone.Views.Pages;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Coftea_Capstone.ViewModel
 {
     public partial class SettingsPopUpViewModel : ObservableObject
     {
+
+        private readonly AddItemToPOSViewModel _addItemToPOSViewModel;
         [ObservableProperty]
         private bool isSettingsPopupVisible = false;
         [ObservableProperty]
         private bool isAddItemToPOSVisible = false;
         [ObservableProperty]
         private bool isAddItemToInventoryVisible = false;
+
+        public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel)
+        {
+            _addItemToPOSViewModel = addItemToPOSViewModel;
+        }   
 
         [RelayCommand]
 
@@ -29,14 +37,9 @@ namespace Coftea_Capstone.ViewModel
         private void OpenAddItemToPOS()
         {
             IsSettingsPopupVisible = false;
-            IsAddItemToPOSVisible = true;
+            _addItemToPOSViewModel.IsAddItemToPOSVisible = true;
         }
-        [RelayCommand]
-        private void CloseAddItemToPOS()
-        {
-            IsAddItemToPOSVisible = false;
-        }
-
+        
         [RelayCommand]
         private void OpenAddItemToInventory()
         {
@@ -48,6 +51,22 @@ namespace Coftea_Capstone.ViewModel
         {
             IsSettingsPopupVisible = false;
             IsAddItemToInventoryVisible = false;
+        }
+        [RelayCommand]
+        private async Task Logout()
+        {
+            // Clear current user
+            App.SetCurrentUser(null);
+
+            // Clear login-related preferences
+            Preferences.Set("IsLoggedIn", false);
+            Preferences.Set("IsAdmin", false);
+            Preferences.Remove("Email");
+            Preferences.Remove("Password");
+            Preferences.Remove("RememberMe");
+
+            // Navigate back to login page
+            Application.Current.MainPage = new NavigationPage(new LoginPage());
         }
     }
 }

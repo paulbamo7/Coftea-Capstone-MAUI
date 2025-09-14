@@ -13,11 +13,13 @@ namespace Coftea_Capstone.C_
        
         public int ProductID { get; set; }
         public string ProductName { get; set; }
-        public double SmallPrice { get; set; }
+        public decimal SmallPrice { get; set; }
         public int Quantity { get; set; } = 1;
-        public double LargePrice { get; set; }
+        public decimal LargePrice { get; set; }
         /*public string Status { get; set; }*/
         public string ImageSet { get; set; }
+        public string Category { get; set; }
+
         /*public string MenuCategory { get; set; }*/
     }
 }

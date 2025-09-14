@@ -1,72 +1,35 @@
-using Coftea_Capstone.C_;
-using Coftea_Capstone.Models;
 using Coftea_Capstone.ViewModel;
-using Microsoft.Maui.ApplicationModel.Communication;
-using System.Timers;
+using Coftea_Capstone.Views.Controls;
 
 namespace Coftea_Capstone.Views.Pages;
 
 public partial class PointOfSale : ContentPage
 {
-    private readonly POSPageViewModel _viewModel;
-    private readonly System.Timers.Timer _timer;
+    public POSPageViewModel POSViewModel { get; set; }
+    public SettingsPopUpViewModel SettingsPopupViewModel { get; set; }
+    public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
 
     public PointOfSale()
-	{
-		InitializeComponent();
-        // Create ViewModel
-        _viewModel = new POSPageViewModel();
-
-        // Set as BindingContext    
-        BindingContext = _viewModel;
-        _timer = new System.Timers.Timer(1000); // 1 second
-        _timer.Elapsed += OnTimedEvent;
-        _timer.AutoReset = true;
-        _timer.Enabled = true;
-    }
-
-    private void OnTimedEvent(object sender, ElapsedEventArgs e)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
-            // Example: 12:45:22 PM
-        });
+        InitializeComponent();
+        AddItemToPOSViewModel = new AddItemToPOSViewModel();
+
+        // Step 2: Pass the popup VM into Settings VM
+        SettingsPopupViewModel = new SettingsPopUpViewModel(AddItemToPOSViewModel);
+
+        // Step 3: Pass both VMs into the POS VM
+        POSViewModel = new POSPageViewModel(AddItemToPOSViewModel, SettingsPopupViewModel);
+
+        // Step 4: Set the BindingContext
+        BindingContext = POSViewModel;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.InitializeAsync(App.CurrentUser?.Email);
-        if (BindingContext is POSPageViewModel vm && App.CurrentUser != null)
-        {
-            vm.IsAdmin = App.CurrentUser.IsAdmin;
-        }   
-        await _viewModel.LoadDataAsync();
-    }
-
-    private void HomeButton_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void POSButton_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void InventoryButton_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void SalesReportButton_Clicked(object sender, EventArgs e)
-    {
-
-    }
-
-    private void SettingsButton_Clicked(object sender, EventArgs e)
-    {
-
+        // Reset popup visibility on appearing
+        POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
+        POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false; 
+        await POSViewModel.LoadDataAsync();
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Views.Controls.AddItemToPOS"
+             x:Class="Coftea_Capstone.Views.Controls.ConnectPOSItemToInventory"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              BackgroundColor="#80000000"
              IsVisible="{Binding IsAddItemToPOSVisible}">
@@ -30,11 +30,11 @@
                         </Frame>
                         <Label Text="Product Category" FontSize="25"/>
                         <Picker Title="Select Category" 
-                                ItemsSource="{Binding Categories}" 
+                                ItemsSource="{Binding Category}" 
                                 SelectedItem="{Binding SelectedCategory}"
                                 FontSize="14"
                                 WidthRequest="200"
-                                HorizontalOptions="Start"/> 
+                                HorizontalOptions="Start"/>
 
                         <Label Text="Color Code" FontSize="25"/>
                         <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black"/>
@@ -63,8 +63,8 @@
                         <Entry Placeholder="Enter Large Price"
                                Keyboard="Numeric"
                                Text="{Binding LargePrice}"
-                               PlaceholderColor="Black" /> 
-                        
+                               PlaceholderColor="Black" />
+
                         <Label Text="Description (Optional)" FontSize="25" Margin="0,25,0,0"/>
                         <Frame BackgroundColor="#FFFFFF" 
                                Margin="0,10,0,0"
@@ -77,12 +77,11 @@
                                 BackgroundColor="Transparent"
                                 TextColor="Black"/>
                         </Frame>
-                        <HorizontalStackLayout HorizontalOptions="End" Spacing="15">
-                            <Button Text="Save" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
+
+                        <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
                                 Command="{Binding AddProductCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
                         <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
                                 Command="{Binding ConnectPOSToInventoryCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
-                        </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Frame>
             </HorizontalStackLayout>

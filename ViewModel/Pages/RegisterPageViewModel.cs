@@ -16,10 +16,10 @@ namespace Coftea_Capstone.ViewModel
         {
             // MySQL connection (XAMPP)
             _database = new Database(
-                host: "localhost",
-                database: "coftea_db",   // 👈 must match your phpMyAdmin database name
-                user: "root",            // default XAMPP MySQL user
-                password: ""             // default is empty (no password)
+               host: "0.0.0.0",
+                database: "coftea_db",
+                user: "root",
+                password: ""
             );
         }
 

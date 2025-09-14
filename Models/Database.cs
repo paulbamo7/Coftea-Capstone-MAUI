@@ -89,8 +89,8 @@ namespace Coftea_Capstone.C_
                 {
                     ProductID = reader.GetInt32("productID"),
                     ProductName = reader.GetString("productName"),
-                    SmallPrice = reader.GetDouble("smallPrice"),
-                    LargePrice = reader.GetDouble("largePrice"),
+                    SmallPrice = reader.GetDecimal("smallPrice"),
+                    LargePrice = reader.GetDecimal("largePrice"),
                     ImageSet = reader.GetString("imageSet") 
                 });
             }
@@ -101,12 +101,13 @@ namespace Coftea_Capstone.C_
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO products (productName, smallPrice, largePrice, imageSet) " +
-                      "VALUES (@ProductName, @SmallPrice, @LargePrice, @Image);";
+            var sql = "INSERT INTO products (productName, smallPrice, largePrice, category, imageSet) " +
+                      "VALUES (@ProductName, @SmallPrice, @LargePrice, @Category ,@Image);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
+            cmd.Parameters.AddWithValue("@Category", product.Category);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
 
             return await cmd.ExecuteNonQueryAsync();
@@ -125,8 +126,8 @@ namespace Coftea_Capstone.C_
                 {
                     ProductID = reader.GetInt32("productID"),
                     ProductName = reader.GetString("productName"),
-                    SmallPrice = Convert.ToDouble(reader["smallPrice"]),
-                    LargePrice = Convert.ToDouble(reader["largePrice"]),
+                    SmallPrice = reader.GetDecimal("smallPrice"),
+                    LargePrice = reader.GetDecimal("largePrice"),
                     ImageSet = reader.GetString("imageSet")
                 };
             }
@@ -156,20 +157,20 @@ namespace Coftea_Capstone.C_
         }*/
 
         // Inventory Database
-        public async Task<int>  GetInventoryItemsAsync(InventoryPageModel inventory)
+       /* public async Task<int>  GetInventoryItemsAsync(InventoryPageModel inventory)
         {
             await using var conn = await GetOpenConnectionAsync();
 
             var sql = "INSERT INTO products (productName, smallPrice, largePrice, imageSet) " +
                       "VALUES (@ProductName, @SmallPrice, @LargePrice, @Image);";
             await using var cmd = new MySqlCommand(sql, conn);
-            /*cmd.Parameters.AddWithValue("@ProductName", inventory.ProductName);
+            *//*cmd.Parameters.AddWithValue("@ProductName", inventory.ProductName);
             cmd.Parameters.AddWithValue("@SmallPrice", inventory.SmallPrice);
             cmd.Parameters.AddWithValue("@LargePrice", inventory.LargePrice);
-            cmd.Parameters.AddWithValue("@Image", inventory.ImageSet);*/
+            cmd.Parameters.AddWithValue("@Image", inventory.ImageSet);*//*
 
             return await cmd.ExecuteNonQueryAsync();
-        }
+        }*/
        /* public Task<int> SaveInventoryItemsAsync(InventoryPageModel inventory)
         {
             return _db.InsertOrReplaceAsync(inventory);

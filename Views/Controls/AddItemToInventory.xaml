@@ -15,8 +15,8 @@
                 <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7">
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Inventory Details" FontAttributes="Bold" FontSize="30" Padding="0,0,0,25"/>
-                        <Label Text="Product Name" FontSize="25"/>
-                        <Entry Placeholder="Product Name" PlaceholderColor="Black" Text="{Binding ProductName}"/>
+                        <Label Text="Stock Name" FontSize="25"/>
+                        <Entry Placeholder="Stock Name" PlaceholderColor="Black" Text="{Binding ProductName}"/>
 
                         <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="120" WidthRequest="455" BackgroundColor="#E0E0E0" 
                                HorizontalOptions="Start" Margin="0,30,0,30">
@@ -29,36 +29,7 @@
                             </Grid>
                         </Frame>
                         <Label Text="Product Category" FontSize="25"/>
-                        <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Category}"/>
-
-                        <Label Text="Color Code" FontSize="25"/>
-                        <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Email}"/>
-                    </VerticalStackLayout>
-                </Frame>
-                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7">
-                    <VerticalStackLayout>
-                        <Grid Margin="0,0,0,25">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Label Text="Product Size" FontAttributes="Bold" FontSize="30" VerticalOptions="Center" Grid.Column="0"/>
-                            <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" Grid.Column="1" 
-                                         VerticalOptions="Center" Command="{Binding CloseAddItemToInventoryCommand}"/>
-                        </Grid>
-
-                        <Label Text="Select Size" FontSize="25"/>
-                        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
-                            <Button Text="Small" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" 
-                                    HeightRequest="40" WidthRequest="85" />
-                            <Entry Placeholder="Large Size" Text="{Binding LargePrice}"/>
-                            <Button Text="Large" TextColor="Black" FontAttributes="Bold" CornerRadius="25" BackgroundColor="White" 
-                                    HeightRequest="40" WidthRequest="85" />
-                            <Entry Placeholder="Small Size" Text="{Binding SmallPrice}"/>
-                        </HorizontalStackLayout>
-                        <Label Text="Enter Price" FontSize="25" Margin="0,25,0,0"/>
-                        <Entry Placeholder="Product Price" PlaceholderColor="Black" />
-                        <Label Text="Description (Optional)" FontSize="25" Margin="0,25,0,0"/>
+                        <Entry Placeholder="Stock Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Category}"/>
                         <Frame BackgroundColor="#FFFFFF" 
                                Margin="0,10,0,0"
                                CornerRadius="10" 
@@ -70,9 +41,39 @@
                                 BackgroundColor="Transparent"
                                 TextColor="Black"/>
                         </Frame>
+                    </VerticalStackLayout>
+                </Frame>
+                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7">
+                    <VerticalStackLayout>
+                        <Grid Margin="0,0,0,25">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Label Text="Unit Of Measurement (UoM)" FontAttributes="Bold" FontSize="30" VerticalOptions="Center" Grid.Column="0"/>
+                            
 
-                        <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
-                                Command="{Binding AddProductCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
+                            <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" Grid.Column="1" 
+                                         VerticalOptions="Center" Command="{Binding CloseAddItemToInventoryCommand}"/>
+                        </Grid>
+                        <Label Text="Stock Quantity Level" FontSize="25"/>
+                        
+                        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                            <Label Text="Minimum Quantity Level" FontSize="25"/>
+                            <Label Text="(Show alerts if met)" FontSize="15"/>
+
+                        </HorizontalStackLayout>
+                        <Entry Placeholder="Quantity" Text="{Binding LargePrice}" WidthRequest="200" HorizontalOptions="Start"/>
+
+                        <Label Text="Unit of Measurement (UoM)" FontSize="25"/>
+                        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
+                            <Entry Placeholder="Quantity" Text="{Binding LargePrice}" WidthRequest="200"/>
+
+                            <Entry Placeholder="UoM" Text="{Binding SmallPrice}" WidthRequest="200"/>
+                        </HorizontalStackLayout>
+
+                        <Button Text="Add Item" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
+                                Command="{Binding AddItemCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
                     </VerticalStackLayout>
                 </Frame>
             </HorizontalStackLayout>

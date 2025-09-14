@@ -92,6 +92,14 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  
+	  <MauiXaml Update="Views\Controls\ConfirmPOSProduct.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  
+	  <MauiXaml Update="Views\Controls\ConnectPOSItemToInventory.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  
 	  <MauiXaml Update="Views\Pages\AdminDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

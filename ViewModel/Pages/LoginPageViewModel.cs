@@ -11,16 +11,23 @@ namespace Coftea_Capstone.ViewModel
     public partial class LoginPageViewModel : ObservableObject
     {
         private readonly Database _database;
+        [ObservableProperty] private bool rememberMe;
 
         public LoginPageViewModel()
         {
             // MySQL connection (XAMPP)
             _database = new Database(
-                host: "localhost",
-                database: "coftea_db",   // 👈 must match your phpMyAdmin database name
-                user: "root",            // default XAMPP MySQL user
-                password: ""             // default is empty (no password)
+                host: "0.0.0.0",
+                database: "coftea_db",
+                user: "root",
+                password: ""         
             ); 
+            if (Preferences.ContainsKey("RememberMe") && Preferences.Get("RememberMe", false))
+            {
+                Email = Preferences.Get("Email", string.Empty);
+                Password = Preferences.Get("Password", string.Empty);
+                RememberMe = true;
+            }
         }
 
         [ObservableProperty]
@@ -35,6 +42,12 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task Login()
         {
+            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+            {
+                await Application.Current.MainPage.DisplayAlert("Connection Error", "No internet connection detected. Please check your connection.", "OK");
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Please enter username and password", "OK");
@@ -57,9 +70,22 @@ namespace Coftea_Capstone.ViewModel
                 ClearEntries();
                 return;
             }
-
+            if (RememberMe)
+            {
+                Preferences.Set("RememberMe", true);
+                Preferences.Set("Email", Email);
+                Preferences.Set("Password", Password); // ⚠️ Plaintext, better use token or hash
+            }
+            else
+            {
+                Preferences.Remove("RememberMe");
+                Preferences.Remove("Email");
+                Preferences.Remove("Password");
+            }
             // Save current user in App state
             App.SetCurrentUser(user);
+            Preferences.Set("IsLoggedIn", true);
+            Preferences.Set("IsAdmin", user.IsAdmin);
 
             if (user.IsAdmin)
             {
@@ -86,8 +112,15 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void ClearEntries()
         {
-            Email = string.Empty;
-            Password = string.Empty;
+            if (!RememberMe)
+            {
+                Email = string.Empty;
+                Password = string.Empty;
+            }
+            else
+            {
+                Password = string.Empty;
+            }
         }
     }
 }

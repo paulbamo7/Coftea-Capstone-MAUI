@@ -27,7 +27,6 @@ public partial class NavigationBar : ContentView
         {
             Navigation.PushAsync(new EmployeeDashboard());
         }
-        
     }
 
     private void POSButton_Clicked(object sender, EventArgs e)

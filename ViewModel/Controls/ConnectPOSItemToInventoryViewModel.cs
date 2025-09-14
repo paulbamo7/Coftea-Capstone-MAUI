@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Coftea_Capstone.ViewModel
+namespace Coftea_Capstone.ViewModel.Controls
 {
-    internal class SalesReportPageViewModel
+    public partial class ConnectPOSItemToInventoryViewModel
     {
+
     }
 }

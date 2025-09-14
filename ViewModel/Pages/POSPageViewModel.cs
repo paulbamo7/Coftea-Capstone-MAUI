@@ -10,9 +10,8 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class POSPageViewModel : ObservableObject
     {
-        // Popup controller
-        public SettingsPopUpViewModel SettingsPopup { get; } = new SettingsPopUpViewModel();
-        public AddItemToInventoryViewModel AddItemPopup { get; } = new AddItemToInventoryViewModel();
+        public SettingsPopUpViewModel SettingsPopup { get; set; }
+        public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }    
 
         private readonly Database _database;
 
@@ -25,11 +24,8 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool isAdmin;
 
-        
-
         [ObservableProperty]
         private string productName;
-
 
         [ObservableProperty]
         private double smallprice;
@@ -39,24 +35,21 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private string image;
-       
-        public POSPageViewModel()
+
+        public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
         {
-            _database = new Database(
-                host: "localhost",
-                database: "coftea_db",
-                user: "root",
-                password: ""
-            );
-            
+            _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+            SettingsPopup = settingsPopupViewModel;
+            AddItemToPOSViewModel = addItemToPOSViewModel;
+            // Subscribe to product added event
+            AddItemToPOSViewModel.ProductAdded += OnProductAdded;
         }
 
         private async void OnProductAdded(POSPageModel newProduct)
         {
-            Products.Add(newProduct);   // update UI immediately
-            await LoadDataAsync();      // sync with DB
-
-        }     
+            Products.Add(newProduct); // Update UI immediately
+            await LoadDataAsync();   // Sync with DB
+        }
 
         public async Task InitializeAsync(string email)
         {
@@ -64,7 +57,6 @@ namespace Coftea_Capstone.ViewModel
             {
                 IsAdmin = App.CurrentUser.IsAdmin;
             }
-
             await LoadDataAsync();
         }
 
@@ -78,7 +70,6 @@ namespace Coftea_Capstone.ViewModel
         private void AddToCart(POSPageModel product)
         {
             if (product == null) return;
-
             var existing = CartItems.FirstOrDefault(p => p.ProductID == product.ProductID);
             if (existing != null)
             {
@@ -98,7 +89,6 @@ namespace Coftea_Capstone.ViewModel
                 };
                 CartItems.Add(copy);
             }
-
         }
 
         [RelayCommand]
@@ -112,8 +102,10 @@ namespace Coftea_Capstone.ViewModel
         private void EditProduct(POSPageModel product)
         {
             if (product == null) return;
-
-            // Example: open "AddItemToPOS" popup pre-filled
+            AddItemToPOSViewModel.ProductName = product.ProductName;
+            AddItemToPOSViewModel.SmallPrice = (decimal)product.SmallPrice;
+            AddItemToPOSViewModel.LargePrice = (decimal)product.LargePrice;
+            AddItemToPOSViewModel.ImagePath = product.ImageSet;
             SettingsPopup.OpenAddItemToPOSCommand.Execute(null);
         }
 
@@ -121,11 +113,7 @@ namespace Coftea_Capstone.ViewModel
         private void RemoveProduct(POSPageModel product)
         {
             if (product == null) return;
-
-            // Example: remove from Products
             Products.Remove(product);
-
-            // TODO: Call _database.RemoveProductAsync(product.ProductID);
         }
     }
 }
