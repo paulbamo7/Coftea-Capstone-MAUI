@@ -4,6 +4,10 @@ using Coftea_Capstone.Views.Controls;
 using Coftea_Capstone.Views;
 using Coftea_Capstone.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Maui.Storage;
+using Microsoft.Maui.Controls;
+using System.IO;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Linq;
@@ -17,6 +21,11 @@ namespace Coftea_Capstone.ViewModel
     {
         public ConnectPOSItemToInventoryViewModel ConnectPOSToinventory { get; set; }
 
+        [ObservableProperty]
+        private string selectedImagePath;
+
+        [ObservableProperty]
+        private ImageSource selectedImageSource;
         [ObservableProperty]
         private bool isConnectPOSToInventoryVisible = false;
 
@@ -73,7 +82,31 @@ namespace Coftea_Capstone.ViewModel
         {
             if (string.IsNullOrWhiteSpace(ProductName))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Product Name is required", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Product name is required.", "OK");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(SelectedCategory))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please select a category.", "OK");
+                return;
+            }
+
+            if (SmallPrice <= 0)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Small price must be greater than 0.", "OK");
+                return;
+            }
+
+            if (LargePrice <= 0)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Large price must be greater than 0.", "OK");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ImagePath))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please select an image.", "OK");
                 return;
             }
 
@@ -124,6 +157,32 @@ namespace Coftea_Capstone.ViewModel
         {
             
             IsAddItemToPOSVisible = true;
+        }
+
+        [RelayCommand]
+        public async Task PickImageAsync()
+        {
+            try
+            {
+                var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Select an image",
+                    FileTypes = FilePickerFileType.Images
+                });
+
+                if (result != null)
+                {
+                    // Save path to your model property for DB if needed
+                    ImagePath = result.FullPath;
+
+                    // Save ImageSource for immediate UI binding in the popup
+                    SelectedImageSource = ImageSource.FromFile(result.FullPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                await App.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
+            }
         }
     }
 }

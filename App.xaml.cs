@@ -9,60 +9,32 @@ namespace Coftea_Capstone
     public partial class App : Application
     {
         public static UserInfoModel CurrentUser { get; private set; }
-
+        public SettingsPopUpViewModel SettingsPopup { get; private set; }
+        public AddItemToPOSViewModel AddItemPopup { get; private set; }
         public App()
         {
             InitializeComponent();
 
-            // Restore session
+            /*SettingsPopup = new SettingsPopUpViewModel();*/
+            AddItemPopup = new AddItemToPOSViewModel();
+
+            // Start at login page wrapped in NavigationPage
             bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
+            bool isAdmin = Preferences.Get("IsAdmin", false);
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
             if (isLoggedIn)
             {
-                string email = Preferences.Get("Email", string.Empty);
-                bool isAdmin = Preferences.Get("IsAdmin", false);
-
-                CurrentUser = new UserInfoModel
-                {
-                    Email = email,
-                    IsAdmin = isAdmin
-                };
-
                 if (isAdmin)
-                {
                     MainPage = new NavigationPage(new AdminDashboard());
-                }
                 else
-                {
                     MainPage = new NavigationPage(new EmployeeDashboard());
-                }
             }
             else
             {
                 MainPage = new NavigationPage(new LoginPage());
-            }
-        }
-
-        public static void SetCurrentUser(UserInfoModel user)
-        {
-            CurrentUser = user;
-        }
-
-        protected override void OnStart()
-        {
-            Connectivity.ConnectivityChanged += (s, e) =>
-            {
-                if (e.NetworkAccess != NetworkAccess.Internet)
-                {
-                    MainThread.BeginInvokeOnMainThread(async () =>
-                    {
-                        await Application.Current.MainPage.DisplayAlert(
-                            "Network Lost",
-                            "You are offline. Some features may not work.",
-                            "OK"
-                        );
-                    });
-                }
-            };
+            }   
         }
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -90,6 +62,9 @@ namespace Coftea_Capstone
                 await App.Current.MainPage.DisplayAlert("Error", message, "OK");
             });
         }
-
+        public static void SetCurrentUser(UserInfoModel user)
+        {
+            CurrentUser = user;
+        }
     }
 }

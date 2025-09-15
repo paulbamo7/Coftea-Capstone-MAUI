@@ -1,0 +1,70 @@
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.ManagePOSOptions"
+    BackgroundColor="#80000000"
+    x:Name="PopupRoot"
+    IsVisible="{Binding IsPOSManagementPopupVisible}">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
+        <!-- Popup Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="20"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="450"
+               HeightRequest="350"
+               HasShadow="True">
+
+            <VerticalStackLayout Spacing="25">
+                <!-- Title -->
+                
+                <Label Text="Manage POS Items"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+
+                <!-- Action Buttons -->
+                <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
+                    <Button Text="Add Item"
+                            WidthRequest="200"
+                            HeightRequest="50"
+                            FontSize="16"
+                            Command="{Binding AddItemCommand}"
+                            BackgroundColor="#A57C5C"
+                            TextColor="White"
+                            CornerRadius="25" />
+
+                    <Button Text="Edit Item"
+                            WidthRequest="200"
+                            HeightRequest="50"
+                            FontSize="16"
+                            Command="{Binding EditItemCommand}"
+                            BackgroundColor="#897564"
+                            TextColor="White"
+                            CornerRadius="25" />
+
+                    <Button Text="Delete Item"
+                            WidthRequest="200"
+                            HeightRequest="50"
+                            FontSize="16"
+                            Command="{Binding DeleteItemCommand}"
+                            BackgroundColor="#5B4F45"
+                            TextColor="White"
+                            CornerRadius="25" />
+                </VerticalStackLayout>
+
+                <!-- Close Button -->
+                <Button Text="Close"
+                        WidthRequest="100"
+                        HeightRequest="40"
+                        FontSize="14"
+                        BackgroundColor="Red"
+                        TextColor="White"
+                        HorizontalOptions="Center"
+                        Command="{Binding ClosePOSManagementPopupCommand}" />
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentView>

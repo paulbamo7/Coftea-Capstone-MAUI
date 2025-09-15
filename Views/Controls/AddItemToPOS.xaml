@@ -18,14 +18,11 @@
                         <Label Text="Product Name" FontSize="25"/>
                         <Entry Placeholder="Product Name" PlaceholderColor="Black" Text="{Binding ProductName}"/>
 
-                        <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="120" WidthRequest="455" BackgroundColor="#E0E0E0" 
+                        <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="150" WidthRequest="455" BackgroundColor="#E0E0E0"
                                HorizontalOptions="Start" Margin="0,30,0,30">
                             <Grid>
-                                <Entry Placeholder="Enter Image" Margin="0,0,0,35" Text="{Binding ImagePath}"/>
-                                <Label Text="Click to upload or drag and drop" HorizontalOptions="Center" VerticalOptions="Center" 
-                                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="Black" FontAttributes="Bold"/>
-                                <!-- <Image Source="uploadicon.png" WidthRequest="30" Margin="0,0,0,35"/>
-                                <Button x:Name="UploadButton" BackgroundColor="Transparent" /> -->
+                                <Image Source="{Binding SelectedImageSource}" Aspect="AspectFill" />
+                                <Button Text="Click to upload" BackgroundColor="Transparent" Command="{Binding PickImageCommand}" />
                             </Grid>
                         </Frame>
                         <Label Text="Product Category" FontSize="25"/>

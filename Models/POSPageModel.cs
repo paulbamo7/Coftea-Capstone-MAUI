@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.C_
 {
@@ -10,6 +11,8 @@ namespace Coftea_Capstone.C_
         public decimal SmallPrice { get; set; }
         public decimal LargePrice { get; set; }
         public string ImageSet { get; set; }
+        public ImageSource ImageSource =>
+        string.IsNullOrWhiteSpace(ImageSet) ? "placeholder.png" : ImageSource.FromFile(ImageSet);
         public string Category { get; set; }
 
         public bool HasSmall { get; set; } = true;

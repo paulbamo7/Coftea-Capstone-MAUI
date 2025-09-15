@@ -10,16 +10,14 @@ namespace Coftea_Capstone.Models
 {
     public class InventoryPageModel : ObservableObject
     {
-        [PrimaryKey, AutoIncrement]
         public int itemID { get; set; }
 
-        [NotNull]
-        public string itemName { get; set; } = string.Empty;
+        public string itemName { get; set; }
 
-        [NotNull]
-        public string itemQuantity { get; set; } = string.Empty;
-
-        [NotNull]
-        public string itemCategory { get; set; } = string.Empty;
+        public double itemQuantity { get; set; } 
+        public string itemCategory { get; set; }
+        public string ImageSet { get; set; }
+        public ImageSource ImageSource =>
+        string.IsNullOrWhiteSpace(ImageSet) ? "placeholder.png" : ImageSource.FromFile(ImageSet);
     }
 }

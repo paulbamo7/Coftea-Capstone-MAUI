@@ -91,7 +91,7 @@ namespace Coftea_Capstone.C_
                     ProductName = reader.GetString("productName"),
                     SmallPrice = reader.GetDecimal("smallPrice"),
                     LargePrice = reader.GetDecimal("largePrice"),
-                    ImageSet = reader.GetString("imageSet"),
+                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     Category = reader.GetString("category")
                 });
             }

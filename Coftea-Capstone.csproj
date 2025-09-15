@@ -103,6 +103,10 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  
+	  <MauiXaml Update="Views\Controls\ManagePOSOptions.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  
 	  <MauiXaml Update="Views\Controls\NoInternetPopUp.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

@@ -27,6 +27,7 @@
                     <!-- Row 0 -->
                     <Button Text="User Management" Grid.Row="0" Grid.Column="0" HeightRequest="120" WidthRequest="200"/>
 
+               
                     <Button Text="Add Item to POS" Grid.Row="0" Grid.Column="1" HeightRequest="120"  WidthRequest="200"
                             Command="{Binding OpenAddItemToPOSCommand}"/>
 

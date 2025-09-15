@@ -53,20 +53,17 @@ namespace Coftea_Capstone.ViewModel
             IsAddItemToInventoryVisible = false;
         }
         [RelayCommand]
-        private async Task Logout()
+        private void Logout()
         {
-            // Clear current user
             App.SetCurrentUser(null);
-
-            // Clear login-related preferences
             Preferences.Set("IsLoggedIn", false);
             Preferences.Set("IsAdmin", false);
             Preferences.Remove("Email");
             Preferences.Remove("Password");
             Preferences.Remove("RememberMe");
 
-            // Navigate back to login page
             Application.Current.MainPage = new NavigationPage(new LoginPage());
         }
+
     }
 }
