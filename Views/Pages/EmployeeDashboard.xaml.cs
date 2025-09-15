@@ -20,8 +20,7 @@ public partial class EmployeeDashboard : ContentPage
     }
     private void PointOfSaleButton_Clicked(object sender, EventArgs e)
     {
-        Navigation.PopModalAsync();
-        Navigation.PushModalAsync(new PointOfSale());
+       
     }
     private void InventoryButton_Clicked(object sender, EventArgs e)
     {

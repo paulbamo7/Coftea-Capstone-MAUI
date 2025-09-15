@@ -12,9 +12,6 @@ namespace Coftea_Capstone.ViewModel
     {
         private readonly Database _database;
 
-        // Form fields
-     
-
         public AddItemToInventoryViewModel()
         {
             _database = new Database(

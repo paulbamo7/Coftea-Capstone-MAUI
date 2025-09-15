@@ -12,6 +12,7 @@ namespace Coftea_Capstone
 {
     public partial class App : Application
     {
+
         public static UserInfoModel CurrentUser { get; private set; }
 
         // Shared ViewModels

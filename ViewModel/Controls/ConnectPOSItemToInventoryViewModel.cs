@@ -46,7 +46,6 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void ConfirmPreview()
         {
-            // Save the item to POS or proceed to database
             IsPreviewVisible = false;
             ConfirmPreviewRequested?.Invoke();
         }

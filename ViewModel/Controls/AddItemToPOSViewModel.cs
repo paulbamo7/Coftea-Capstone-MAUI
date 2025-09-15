@@ -57,25 +57,23 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string imagePath;
 
-        // Event to notify POSPageViewModel
         public event Action<POSPageModel> ProductAdded;
 
         public AddItemToPOSViewModel()
         {
             _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
-            // Initialize all popups as hidden
+
             IsAddItemToPOSVisible = false;
             IsConnectPOSToInventoryVisible = false;
 
-            // Initialize ConnectPOS VM
             ConnectPOSToInventoryVM = new ConnectPOSItemToInventoryViewModel();
             ConnectPOSToInventoryVM.ReturnRequested += () =>
             {
-                IsAddItemToPOSVisible = true;  // reopen AddItem popup
+                IsAddItemToPOSVisible = true; 
             };
             ConnectPOSToInventoryVM.ConfirmPreviewRequested += async () =>
             {
-                await AddProduct(); // Calls your existing AddProduct method
+                await AddProduct(); 
             };
         }
 
@@ -146,17 +144,13 @@ namespace Coftea_Capstone.ViewModel
                 {
                     await Application.Current.MainPage.DisplayAlert("Success", "Product added successfully!", "OK");
 
-                    // Reset fields
                     ProductName = string.Empty;
                     SmallPrice = 0;
                     LargePrice = 0;
                     SelectedCategory = string.Empty;
                     ImagePath = string.Empty;
-
-                    // Close popup
                     IsAddItemToPOSVisible = false;
 
-                    // Notify POSPageViewModel
                     ProductAdded?.Invoke(newProduct);
                 }
             }
@@ -168,8 +162,8 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void OpenConnectPOSToInventory()
         {
-            IsAddItemToPOSVisible = false;           // close AddItem popup
-            IsConnectPOSToInventoryVisible = true;  // open ConnectPOS popup
+            IsAddItemToPOSVisible = false;          
+            IsConnectPOSToInventoryVisible = true;
         }
 
         [RelayCommand]
@@ -185,10 +179,9 @@ namespace Coftea_Capstone.ViewModel
 
                 if (result != null)
                 {
-                    // Save path to your model property for DB if needed
                     ImagePath = result.FullPath;
 
-                    // Save ImageSource for immediate UI binding in the popup
+   
                     SelectedImageSource = ImageSource.FromFile(result.FullPath);
                 }
             }

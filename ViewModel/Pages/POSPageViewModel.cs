@@ -57,7 +57,6 @@ namespace Coftea_Capstone.ViewModel
             SettingsPopup = settingsPopupViewModel;
             AddItemToPOSViewModel = addItemToPOSViewModel;
 
-            // Subscribe to product added event
             AddItemToPOSViewModel.ProductAdded += OnProductAdded;
             AddItemToPOSViewModel.ConnectPOSToInventoryVM.ReturnRequested += () =>
             {
@@ -67,9 +66,9 @@ namespace Coftea_Capstone.ViewModel
 
         private async void OnProductAdded(POSPageModel newProduct)
         {
-            Products.Add(newProduct); // Update UI immediately
-            FilteredProducts.Add(newProduct); // Add to filtered list too
-            await LoadDataAsync();   // Sync with DB
+            Products.Add(newProduct); 
+            FilteredProducts.Add(newProduct); 
+            await LoadDataAsync();  
         }
 
         public async Task InitializeAsync()
@@ -146,7 +145,7 @@ namespace Coftea_Capstone.ViewModel
                     ProductName = product.ProductName,
                     SmallPrice = product.SmallPrice,
                     LargePrice = product.LargePrice,
-                    ImageSet = product.ImageSet, // keep the file path
+                    ImageSet = product.ImageSet,
                     SmallQuantity = product.SmallQuantity,
                     LargeQuantity = product.LargeQuantity
                 };

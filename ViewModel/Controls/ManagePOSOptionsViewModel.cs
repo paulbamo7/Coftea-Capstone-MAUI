@@ -12,7 +12,7 @@ namespace Coftea_Capstone.ViewModel
 
         public ManagePOSOptionsViewModel()
         {
-            // You can initialize services or other ViewModels here if needed
+
         }
 
         [RelayCommand]
