@@ -1,5 +1,7 @@
 ﻿using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
+using Microsoft.Maui.Networking;
+
 using Coftea_Capstone.Views.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -22,6 +24,12 @@ namespace Coftea_Capstone.ViewModel
         private ObservableCollection<POSPageModel> cartItems = new();
 
         [ObservableProperty] private ObservableCollection<POSPageModel> filteredProducts = new();
+        public bool IsCartVisible => CartItems.Any();
+
+        partial void OnCartItemsChanged(ObservableCollection<POSPageModel> value)
+        {
+            OnPropertyChanged(nameof(IsCartVisible));
+        }
 
         [ObservableProperty]
         private bool isAdmin;
@@ -37,6 +45,14 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private string image;
+        [ObservableProperty]
+        private bool isLoading;
+
+        [ObservableProperty]
+        private string statusMessage;
+
+        [ObservableProperty]
+        private bool hasError;
 
         [ObservableProperty]
         private POSPageModel selectedProduct;
@@ -83,22 +99,61 @@ namespace Coftea_Capstone.ViewModel
         }
         public async Task LoadDataAsync()
         {
-            var productList = await _database.GetProductsAsync();
-            Products = new ObservableCollection<POSPageModel>(productList);
+            try
+            {
+                IsLoading = true;
+                StatusMessage = "Loading products...";
+                HasError = false;
+
+                // ✅ Check internet first
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                {
+                    HasError = true;
+                    StatusMessage = "No internet connection. Please check your network.";
+                    return;
+                }
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8)); // 8s timeout
+
+                var productList = await _database.GetProductsAsync().WaitAsync(cts.Token);
+
+                Products = new ObservableCollection<POSPageModel>(productList);
+                StatusMessage = Products.Any() ? "Products loaded successfully." : "No products found.";
+            }
+            catch (TimeoutException)
+            {
+                HasError = true;
+                StatusMessage = "Loading is taking too long. Please try again.";
+            }
+            catch (Exception ex)
+            {
+                HasError = true;
+                StatusMessage = $"Failed to load products: {ex.Message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         [RelayCommand]
         private void AddToCart(POSPageModel product)
         {
             if (product == null) return;
+
+            // Check if product already exists in cart
             var existing = CartItems.FirstOrDefault(p => p.ProductID == product.ProductID);
             if (existing != null)
             {
-                existing.Quantity++;
+                // Add the current selection quantities to the existing cart item
+                existing.SmallQuantity += product.SmallQuantity;
+                existing.LargeQuantity += product.LargeQuantity;
+
                 OnPropertyChanged(nameof(CartItems));
             }
             else
             {
+                // Create a copy to add to the cart
                 var copy = new POSPageModel
                 {
                     ProductID = product.ProductID,
@@ -106,11 +161,17 @@ namespace Coftea_Capstone.ViewModel
                     SmallPrice = product.SmallPrice,
                     LargePrice = product.LargePrice,
                     ImageSet = product.ImageSet,
-                    Quantity = 1
+                    SmallQuantity = product.SmallQuantity,
+                    LargeQuantity = product.LargeQuantity
                 };
                 CartItems.Add(copy);
             }
+
+            // Reset selection quantities after adding to cart
+            product.SmallQuantity = 0;
+            product.LargeQuantity = 0;
         }
+
         [RelayCommand]
         private void SelectProduct(POSPageModel product)
         {
@@ -120,13 +181,8 @@ namespace Coftea_Capstone.ViewModel
             if (product.HasSmall) AvailableSizes.Add("Small");
             if (product.HasLarge) AvailableSizes.Add("Large");
 
-            SelectedProduct.SelectedSize = AvailableSizes.FirstOrDefault();
-        }
-        [RelayCommand]
-        private void RemoveFromCart(POSPageModel product)
-        {
-            if (product != null && CartItems.Contains(product))
-                CartItems.Remove(product);
+            if (SelectedProduct.SmallQuantity == 0) SelectedProduct.SmallQuantity = 0;
+            if (SelectedProduct.LargeQuantity == 0) SelectedProduct.LargeQuantity = 0;
         }
 
         [RelayCommand]
@@ -141,10 +197,44 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void RemoveProduct(POSPageModel product)
+        private void RemoveFromCart(POSPageModel product)
         {
             if (product == null) return;
-            Products.Remove(product);
+
+            var itemInCart = CartItems.FirstOrDefault(p => p.ProductID == product.ProductID);
+            if (itemInCart != null)
+            {
+                CartItems.Remove(itemInCart);
+            }
+
+            // Clear selected product so UI hides the details
+            if (SelectedProduct?.ProductID == product.ProductID)
+                SelectedProduct = null;
         }
+
+        [RelayCommand]
+        private void IncreaseSmallQty()
+        {
+            if (SelectedProduct != null) SelectedProduct.SmallQuantity++;
+        }
+
+        [RelayCommand]
+        private void DecreaseSmallQty()
+        {
+            if (SelectedProduct != null && SelectedProduct.SmallQuantity > 0) SelectedProduct.SmallQuantity--;
+        }
+
+        [RelayCommand]
+        private void IncreaseLargeQty()
+        {
+            if (SelectedProduct != null) SelectedProduct.LargeQuantity++;
+        }
+
+        [RelayCommand]
+        private void DecreaseLargeQty()
+        {
+            if (SelectedProduct != null && SelectedProduct.LargeQuantity > 0) SelectedProduct.LargeQuantity--;
+        }
+
     }
 }

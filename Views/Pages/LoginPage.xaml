@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Views.Pages.LoginPage"
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              NavigationPage.HasNavigationBar="False"
              Shell.TabBarIsVisible="False"
              Shell.NavBarIsVisible="False">
@@ -110,5 +111,6 @@
                 </VerticalStackLayout>
             </Frame>
         </ScrollView>
+        <otherViews:NoInternetPopUp x:Name="RetryPopup" IsVisible="False" />
     </Grid>
 </ContentPage>

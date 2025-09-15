@@ -17,7 +17,7 @@ public partial class NavigationBar : ContentView
 
     private void HomeButton_Clicked(object sender, EventArgs e)
     {
-        Navigation.PopModalAsync();
+        Navigation.PopAsync();
        
         if (user.IsAdmin)
         {
@@ -31,19 +31,19 @@ public partial class NavigationBar : ContentView
 
     private void POSButton_Clicked(object sender, EventArgs e)
     {
-        Navigation.PopModalAsync();
+        Navigation.PopAsync();
         Navigation.PushAsync(new PointOfSale());
     }
 
     private void InventoryButton_Clicked(object sender, EventArgs e)
     {
-        Navigation.PopModalAsync();
+        Navigation.PopAsync();
         Navigation.PushAsync(new Inventory());
     }
 
     private void SalesReportButton_Clicked(object sender, EventArgs e)
     {
-        Navigation.PopModalAsync();
+        Navigation.PopAsync();
         Navigation.PushAsync(new SalesReport());
     }
 

@@ -24,12 +24,26 @@ public partial class PointOfSale : ContentPage
         BindingContext = POSViewModel;
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
+{
+    base.OnAppearing();
+    Task.Run(async () =>
     {
-        base.OnAppearing();
-        // Reset popup visibility on appearing
-        POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
-        POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false; 
-        await POSViewModel.LoadDataAsync();
-    }
+        try
+        {
+            // Reset popup visibility
+            POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
+            POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
+
+            await POSViewModel.LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await DisplayAlert("POS Error", ex.Message, "OK");
+            });
+        }
+    });
+}
 }

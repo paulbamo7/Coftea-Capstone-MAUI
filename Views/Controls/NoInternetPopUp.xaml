@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.NoInternetPopUp"
+    IsVisible="False"
+    BackgroundColor="#80000000">
+
+    <Frame 
+        BackgroundColor="White"
+        Padding="20"
+        CornerRadius="12"
+        VerticalOptions="Center"
+        HorizontalOptions="Center">
+
+        <VerticalStackLayout Spacing="15">
+            <Label Text="No Internet Connection"
+                   FontSize="18"
+                   HorizontalOptions="Center" />
+
+            <Button Text="Retry"
+                    Command="{Binding RetryCommand}" />
+        </VerticalStackLayout>
+    </Frame>
+</ContentView>

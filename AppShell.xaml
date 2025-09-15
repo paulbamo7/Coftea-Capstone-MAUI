@@ -5,10 +5,9 @@
     x:Class="Coftea_Capstone.AppShell"
     Shell.NavBarIsVisible="False"
     Shell.TabBarIsVisible="False"
+    xmlns:views="clr-namespace:Coftea_Capstone.Views.Controls"
     Shell.BackgroundColor="Transparent"
     NavigationPage.HasNavigationBar="False"
     >
-
- 
 
 </Shell>
