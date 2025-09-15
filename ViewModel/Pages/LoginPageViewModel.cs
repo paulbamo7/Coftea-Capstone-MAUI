@@ -4,8 +4,10 @@ using Coftea_Capstone.Models;
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Views.Pages;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
 using Coftea_Capstone.Services;
 using System.Threading.Tasks;
+using System;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -13,24 +15,13 @@ namespace Coftea_Capstone.ViewModel
     {
         private readonly Database _database;
 
-        // ────────────────────────────────
-        // Observable Properties
-        // ────────────────────────────────
         [ObservableProperty] private string email;
         [ObservableProperty] private string password;
         [ObservableProperty] private bool rememberMe;
-        [ObservableProperty] private bool isAdmin;
-        [ObservableProperty]
-        private bool isRetryPopupVisible;
+        [ObservableProperty] private bool isRetryPopupVisible;
 
-
-
-        // ────────────────────────────────
-        // Constructor
-        // ────────────────────────────────
         public LoginPageViewModel()
         {
-            // MySQL connection (XAMPP)
             _database = new Database(
                 host: "0.0.0.0",
                 database: "coftea_db",
@@ -46,139 +37,88 @@ namespace Coftea_Capstone.ViewModel
                 Password = Preferences.Get("Password", string.Empty);
                 RememberMe = true;
             }
-            else
-            {
-                RememberMe = false;
-            }
         }
 
         [RelayCommand]
         private async Task Login()
         {
+            // Check internet
             if (!await NetworkService.EnsureInternetAsync())
-            {
-                return;
-            }
-
-            // Check internet connection
-            if (!NetworkService.HasInternetConnection())
             {
                 ShowRetryPopupCommand.Execute(null);
                 return;
             }
 
-            // Validate fields
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
-                await Application.Current.MainPage.DisplayAlert(
-                    "Error",
-                    "Please enter username and password",
-                    "OK"
-                );
+                await Application.Current.MainPage.DisplayAlert("Error", "Please enter email and password", "OK");
                 ClearEntries();
                 return;
             }
 
             try
             {
-                // ────────────────────────────────
-                // Fetch user (may throw MySqlException)
-                // ────────────────────────────────
-                var user = await _database.GetUserByEmailAsync(Email);
-
+                var user = await _database.GetUserByEmailAsync(Email.Trim());
                 if (user == null)
                 {
-                    await Application.Current.MainPage.DisplayAlert(
-                        "Error",
-                        "User not found",
-                        "OK"
-                    );
+                    await Application.Current.MainPage.DisplayAlert("Error", "User not found", "OK");
                     ClearEntries();
                     return;
                 }
 
                 if (user.Password != Password)
                 {
-                    await Application.Current.MainPage.DisplayAlert(
-                        "Error",
-                        "Incorrect password",
-                        "OK"
-                    );
+                    await Application.Current.MainPage.DisplayAlert("Error", "Incorrect password", "OK");
                     ClearEntries();
                     return;
                 }
 
-                // Save current user in App state
+                // Set current user
                 App.SetCurrentUser(user);
 
                 // Save preferences
+                Preferences.Set("IsLoggedIn", true);
+                Preferences.Set("IsAdmin", user.IsAdmin);
                 if (RememberMe)
                 {
                     Preferences.Set("RememberMe", true);
                     Preferences.Set("Email", Email);
                     Preferences.Set("Password", Password);
-                    Preferences.Set("IsLoggedIn", true);
-                    Preferences.Set("IsAdmin", user.IsAdmin);
                 }
                 else
                 {
                     Preferences.Set("RememberMe", false);
                     Preferences.Remove("Email");
                     Preferences.Remove("Password");
-                    Preferences.Remove("IsLoggedIn");
-                    Preferences.Remove("IsAdmin");
                 }
 
-                // Redirect to dashboard
-                if (user.IsAdmin)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Success", "Welcome Admin!", "OK");
-                    await (Application.Current.MainPage as NavigationPage)
-                        .PushAsync(new AdminDashboard());
-                }
-                else
-                {
-                    await Application.Current.MainPage.DisplayAlert("Success", "Welcome User!", "OK");
-                    await (Application.Current.MainPage as NavigationPage)
-                        .PushAsync(new EmployeeDashboard());
-                }
+                // Navigate to dashboard (replace stack to avoid brief LoginPage)
+                var mainPage = new NavigationPage(user.IsAdmin ? new AdminDashboard() : new EmployeeDashboard());
+                Application.Current.MainPage = mainPage;
 
                 ClearEntries();
             }
             catch (MySqlConnector.MySqlException ex)
             {
-                // Handle MySQL errors (e.g., server down, timeout, wrong host)
                 await Application.Current.MainPage.DisplayAlert(
                     "Database Error",
                     $"Unable to connect to database. ({ex.Message})",
                     "Retry"
                 );
-
-                // Show your retry popup
                 ShowRetryPopupCommand.Execute(null);
             }
             catch (Exception ex)
             {
-                // Fallback for other unexpected errors
-                await Application.Current.MainPage.DisplayAlert(
-                    "Error",
-                    $"Something went wrong: {ex.Message}",
-                    "OK"
-                );
+                await Application.Current.MainPage.DisplayAlert("Error", $"Something went wrong: {ex.Message}", "OK");
             }
         }
 
         [RelayCommand]
-        private void ShowRetryPopup()
-        {
-            IsRetryPopupVisible = true;
-        }
+        private void ShowRetryPopup() => IsRetryPopupVisible = true;
 
         [RelayCommand]
-        private void HideRetryPopup()
-        {
-            IsRetryPopupVisible = false;
-        }
+        private void HideRetryPopup() => IsRetryPopupVisible = false;
+
         [RelayCommand]
         private async Task GoToRegister()
         {

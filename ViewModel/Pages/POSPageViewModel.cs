@@ -16,6 +16,7 @@ namespace Coftea_Capstone.ViewModel
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
 
+
         private readonly Database _database;
 
         [ObservableProperty]
@@ -58,6 +59,10 @@ namespace Coftea_Capstone.ViewModel
 
             // Subscribe to product added event
             AddItemToPOSViewModel.ProductAdded += OnProductAdded;
+            AddItemToPOSViewModel.ConnectPOSToInventoryVM.ReturnRequested += () =>
+            {
+                AddItemToPOSViewModel.IsAddItemToPOSVisible = true;
+            };
         }
 
         private async void OnProductAdded(POSPageModel newProduct)

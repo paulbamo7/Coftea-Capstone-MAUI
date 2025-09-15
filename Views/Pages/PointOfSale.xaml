@@ -27,7 +27,7 @@
             <!-- Top Bar -->
             <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
                 <Label Text="Point Of Sale" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
-                <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="18" FontAttributes="Bold" TextColor="Black" />
+                <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="20" FontAttributes="Bold"/>
                 <SearchBar Placeholder="Search for something" Grid.Column="2" WidthRequest="250" HorizontalOptions="FillAndExpand"/>
                 <ImageButton Source="notification.png" Grid.Column="3" WidthRequest="35" HeightRequest="28" Command="{Binding SettingsPopup.ShowSettingsPopupCommand}" />
                 <ImageButton Source="usericon.png" Grid.Column="4" WidthRequest="35" HeightRequest="35"/>
@@ -94,47 +94,51 @@
                 <!-- Cart -->
                 <Frame Grid.Column="1" CornerRadius="20" BackgroundColor="White" Margin="0,25,0,0"
                        VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
-                    <ScrollView>
-                        <VerticalStackLayout Padding="15" Spacing="15" IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}">
-
-                            <!-- Product Image -->
+                    <Grid>
+                        <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10">
                             <Frame CornerRadius="20" Padding="0" HeightRequest="150" WidthRequest="150" HorizontalOptions="Center">
-                                <Image Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill"/>
+                                <!-- Bind to computed ImageSource property -->
+                                <Image Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill" />
                             </Frame>
+    
+                            <Label Text="{Binding SelectedProduct.ProductName, StringFormat='Product Name: {0}'}"
+                                   FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" />
+                            <Label Text="Addons:" FontAttributes="Bold" FontSize="20" HorizontalOptions="Start" />
+                            <!-- Addons -->                         
 
-                            <!-- Product Name -->
-                            <Label Text="{Binding SelectedProduct.ProductName}" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center"/>
+                            <Label Text="Select Size:" FontSize="20" FontAttributes="Bold" Margin="0,25,0,0"/>
 
-                            <!-- Addons -->
-
-                            <!-- Size Selection -->
-                            <Label Text="Select Size:" FontSize="16" FontAttributes="Bold"/>
-                            <HorizontalStackLayout Spacing="15">
-                                <RadioButton Content="Medium - ₱59" GroupName="SizeGroup" Value="Medium" IsChecked="{Binding SelectedProduct.SelectedSize, ConverterParameter=Medium}" />
-                                <RadioButton Content="Large - ₱69" GroupName="SizeGroup" Value="Large" IsChecked="{Binding SelectedProduct.SelectedSize, ConverterParameter=Large}" />
+                            <!-- Small Size -->
+                            <HorizontalStackLayout Spacing="10" VerticalOptions="Center" Margin="25,0,0,0">
+                                <Label Text="Small:" VerticalOptions="Center"/>
+                                <Button Text="-" Command="{Binding DecreaseSmallQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
+                                <Label Text="{Binding SelectedProduct.SmallQuantity}" WidthRequest="30" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Center" HorizontalOptions="Center" FontSize="16" TextColor="Black"/>
+                                <Button Text="+" Command="{Binding IncreaseSmallQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
                             </HorizontalStackLayout>
 
-                            <!-- Customer Name -->
-                            <Label Text="Customer Name:" FontSize="16" FontAttributes="Bold"/>
-                            <Entry Text="{Binding CustomerName}" Placeholder="Enter name"/>
-
-                            <!-- Quantity Selector -->
-                            <Label Text="Drinks Qty:" FontSize="16" FontAttributes="Bold"/>
-                            <HorizontalStackLayout Spacing="10">
-                                <Button Text="-" Command="{Binding DecreaseQuantityCommand}" WidthRequest="40" HeightRequest="40"/>
-                                <Label Text="{Binding SelectedProduct.Quantity}" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" WidthRequest="40"/>
-                                <Button Text="+" Command="{Binding IncreaseQuantityCommand}" WidthRequest="40" HeightRequest="40"/>
+                            <!-- Large Size -->
+                            <HorizontalStackLayout Spacing="10" Margin="25,0,0,0">
+                                <Label Text="Large:" VerticalOptions="Center"/>
+                                <Button Text="-" Command="{Binding DecreaseLargeQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
+                                <Label Text="{Binding SelectedProduct.LargeQuantity}" WidthRequest="30" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Center" HorizontalOptions="Center" FontSize="16" TextColor="Black"/>
+                                <Button Text="+" Command="{Binding IncreaseLargeQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
                             </HorizontalStackLayout>
 
-                            <!-- Total Price -->
-                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                                <Label Text="Total:" FontSize="18" FontAttributes="Bold"/>
-                                <Label Text="{Binding SelectedProduct.TotalPrice, StringFormat='₱ {0:F2}'}" FontSize="18" FontAttributes="Bold"/>
+                            <!-- Price Labels -->
+                            <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                                <Label Text="{Binding SelectedProduct.SmallQuantity, StringFormat='Small: {0} pcs'}"/>
+                                <Label Text="{Binding SelectedProduct.LargeQuantity, StringFormat='Large: {0} pcs'}"/>
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label Text="Total:" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
+                                <Label Text="{Binding SelectedProduct.TotalPrice, StringFormat='₱ {0:F2}'}" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
                             </HorizontalStackLayout>
 
                             <!-- Action Buttons -->
-                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                                <Button Text="Cancel Order" Command="{Binding RemoveFromCartCommand}" CommandParameter="{Binding SelectedProduct}" TextColor="White" WidthRequest="130" HeightRequest="50">
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" Margin="0,15,0,0">
+                                <Button Text="Cancel Order" Command="{Binding RemoveFromCartCommand}" TextColor="White" FontSize="16" 
+                                        CommandParameter="{Binding SelectedProduct}" WidthRequest="130" HeightRequest="50"
+                                        HorizontalOptions="FillAndExpand">
                                     <Button.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                             <GradientStop Color="#A57C5C" Offset="0.0" />
@@ -143,7 +147,8 @@
                                     </Button.Background>
                                     <Button.CornerRadius>25</Button.CornerRadius>
                                 </Button>
-                                <Button Text="Add Order" Command="{Binding AddToCartCommand}" WidthRequest="130" FontAttributes="Bold" TextColor="White" HeightRequest="50">
+                                <Button Text="Add Order" Command="{Binding AddToCartCommand}" WidthRequest="130" FontAttributes="Bold"
+                                        FontSize="16" TextColor="White" HeightRequest="50" HorizontalOptions="FillAndExpand">
                                     <Button.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                             <GradientStop Color="#A57C5C" Offset="0.0" />
@@ -153,15 +158,16 @@
                                     <Button.CornerRadius>25</Button.CornerRadius>
                                 </Button>
                             </HorizontalStackLayout>
-
                         </VerticalStackLayout>
-                    </ScrollView>
+                    </Grid>
                 </Frame>
-
             </Grid>
         </Grid>
         <!-- Popups -->
         <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2"/>
+        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel}" Grid.Column="2"/>
+        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2"/>
+
     </Grid>
 </ContentPage>

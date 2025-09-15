@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Views.Controls.AddItemToPOS"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              BackgroundColor="#80000000"
              IsVisible="{Binding IsAddItemToPOSVisible}">
 
@@ -22,7 +23,7 @@
                                HorizontalOptions="Start" Margin="0,30,0,30">
                             <Grid>
                                 <Image Source="{Binding SelectedImageSource}" Aspect="AspectFill" />
-                                <Button Text="Click to upload" BackgroundColor="Transparent" Command="{Binding PickImageCommand}" />
+                                <Button Text="Click to upload" TextColor="Black" BackgroundColor="Transparent" Command="{Binding PickImageCommand}" />
                             </Grid>
                         </Frame>
                         <Label Text="Product Category" FontSize="25"/>
@@ -78,7 +79,7 @@
                             <Button Text="Save" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
                                 Command="{Binding AddProductCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
                         <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
-                                Command="{Binding ConnectPOSToInventoryCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
+                                Command="{Binding OpenConnectPOSToInventoryCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Frame>

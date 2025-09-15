@@ -63,7 +63,7 @@
                             </Border>
                             <!-- Checkbox for T&C -->
                             <HorizontalStackLayout>
-                                <CheckBox />
+                                <CheckBox IsChecked="{Binding IsTermsAccepted}"/>
                                 <Label Text="I agree to the " VerticalOptions="Center" />
                                 <Label Text="Terms and Conditions" TextColor="Blue" VerticalOptions="Center"/>
                             </HorizontalStackLayout>

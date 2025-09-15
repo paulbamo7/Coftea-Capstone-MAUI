@@ -4,77 +4,91 @@
              x:Class="Coftea_Capstone.Views.Pages.Inventory"
              xmlns:view="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
-             Title="Inventory">
+             Title="Inventory"
+             BackgroundColor="#D6BCA8">
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
         <!-- Sidebar Navigation -->
         <view:NavigationBar Grid.Column="0"/>
 
         <!-- Main Content -->
-        <Grid Grid.Column="1" Padding="20" BackgroundColor="#D6BCA8"
-              RowDefinitions="Auto,*,Auto">
+        <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto,*">
 
-            <VerticalStackLayout Grid.Column="1" Padding="20">
-                <VerticalStackLayout Spacing="20">
+            <VerticalStackLayout Padding="0" Spacing="20">
 
-                    <!-- Top Bar -->
-                    <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
-                        <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
-                        <SearchBar Placeholder="Search for something" Grid.Column="1" WidthRequest="300"/>
-                        <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" />
-                        <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
-                    </Grid>
-                    <VerticalStackLayout BackgroundColor="#7E6D5F" Padding="20" Spacing="15">
+                <!-- Top Bar -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
+                    <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
+                    <ImageButton Source="notification.png" Grid.Column="2" WidthRequest="30" HeightRequest="30"/>
+                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                </Grid>
+
+                <!-- Brownish Frame with Controls and CollectionView -->
+                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="20" HasShadow="False">
+
+                    <VerticalStackLayout Spacing="15">
 
                         <!-- Top Controls: Category Buttons, Sort By, Search -->
-                        <Frame Padding="15" CornerRadius="15" BackgroundColor="#7E6D5F">
-                            <HorizontalStackLayout Spacing="15" VerticalOptions="Center">
-                                <!-- Category Buttons -->
-                                <Button Text="Addons" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="150" HeightRequest="40" CornerRadius="7"/>
-                                <Button Text="Ingredients" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="150" HeightRequest="40" CornerRadius="7"/>
-                                <Button Text="Supplies" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="150" HeightRequest="40" CornerRadius="7"/>
+                        <HorizontalStackLayout Spacing="15" VerticalOptions="Center">
 
-                                <!-- Sort By Dropdown -->
-                                <StackLayout BackgroundColor="White">
-                                    <Picker Title="Sort By" WidthRequest="200">
-                                        <Picker.Items>
-                                            <x:String>Name (A-Z)</x:String>
-                                            <x:String>Name (Z-A)</x:String>
-                                            <x:String>Price (Low to High)</x:String>
-                                            <x:String>Price (High to Low)</x:String>
-                                        </Picker.Items>
-                                    </Picker>
-                                </StackLayout>
+                            <!-- Category Buttons -->
+                            <Button Text="Addons" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
+                            <Button Text="Ingredients" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
+                            <Button Text="Supplies" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
 
-                                <!-- Search Bar -->
-                                <SearchBar Placeholder="Search for something" WidthRequest="300"/>
-                            </HorizontalStackLayout>
-                        </Frame>
+                            <!-- Sort By Picker -->
+                            <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="180" HeightRequest="40">
+                                <Picker Title="Sort By" VerticalOptions="Center" >
+                                    <Picker.Items>
+                                        <x:String>Name (A-Z)</x:String>
+                                        <x:String>Name (Z-A)</x:String>
+                                        <x:String>Price (Low to High)</x:String>
+                                        <x:String>Price (High to Low)</x:String>
+                                    </Picker.Items>
+                                </Picker>
+                            </Frame>
 
-                        <!-- Header Row -->
-                        <Grid ColumnDefinitions="1*, 1*, 2*" BackgroundColor="#DAAB97" Padding="15" HeightRequest="50" Margin="0,15,0,0">
-                            <Label Text="Item" FontSize="15" FontAttributes="Bold" Grid.Column="0" VerticalOptions="Center" HorizontalOptions="Center"/>
-                            <Label Text="Category" FontSize="15" FontAttributes="Bold" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
-                            <Label Text="Stocks" FontSize="15" FontAttributes="Bold" Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center"/>
-                        </Grid>
-                        <HorizontalStackLayout Spacing="20">
+                            <!-- Search Bar -->
+                            <SearchBar Placeholder="Search for something" WidthRequest="250" HeightRequest="40" BackgroundColor="White"/>
+                        </HorizontalStackLayout>
+
+                        <!-- Inventory CollectionView -->
+                        <CollectionView x:Name="InventoryCollectionView" ItemsLayout="VerticalList" BackgroundColor="Transparent" Margin="0,10,0,0">
+                            <CollectionView.Header>
+                                <!-- Header Row -->
+                                <Grid ColumnDefinitions="1*, 1*, 2*" BackgroundColor="#DAAB97" Padding="15">
+                                    <Label Text="Name" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                    <Label Text="Category" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1"/>
+                                    <Label Text="Stocks" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2"/>
+                                </Grid>
+                            </CollectionView.Header>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame Padding="10" Margin="0,5,0,5" CornerRadius="10" BackgroundColor="White">
+                                        <Grid ColumnDefinitions="2*, 1*, 1*" VerticalOptions="Center">
+                                            <!-- Name -->
+                                            <Label Text="{Binding ItemName}" Grid.Column="0" VerticalOptions="Center"/>
+                                            <!-- Category -->
+                                            <Label Text="{Binding Category}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                            <!-- Stocks -->
+                                            <Label Text="{Binding Stocks}" Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Edit / Add Buttons -->
+                        <HorizontalStackLayout Spacing="20" HorizontalOptions="End">
                             <Button Text="Edit" TextColor="Black" FontAttributes="Bold" WidthRequest="80" BackgroundColor="#FFDD02"/>
                             <Button Text="Add" TextColor="Black" FontAttributes="Bold" WidthRequest="80" BackgroundColor="#07AE37"/>
                         </HorizontalStackLayout>
+
                     </VerticalStackLayout>
-                </VerticalStackLayout>
+
+                </Frame>
+
             </VerticalStackLayout>
         </Grid>
-        <view:Settings 
-                BindingContext="{Binding SettingsPopup}" 
-                IsVisible="{Binding IsSettingsPopupVisible, Mode=TwoWay}"
-                Grid.ColumnSpan="2" 
-                Grid.RowSpan="1" />
-
-        <otherViews:AddItemToInventory
-                BindingContext="{Binding SettingsPopup}"
-                IsVisible="{Binding IsAddItemToInventoryVisible}"
-                Grid.ColumnSpan="2" />
-
     </Grid>
 </ContentPage>

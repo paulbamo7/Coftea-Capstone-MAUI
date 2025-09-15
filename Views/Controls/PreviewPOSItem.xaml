@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.PreviewPOSItem"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsPreviewVisible}">
+
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <Frame BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               Padding="20"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               WidthRequest="500"
+               HeightRequest="600">
+
+            <VerticalStackLayout Spacing="15">
+                <!-- Header -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Label Text="Preview Product" FontAttributes="Bold" FontSize="24" Grid.Column="0"/>
+                    <ImageButton Source="close.png"
+                                 WidthRequest="25" HeightRequest="25"
+                                 Grid.Column="1"
+                                 Command="{Binding ClosePreviewCommand}"/>
+                </Grid>
+
+                <!-- Product Image -->
+                <Frame BackgroundColor="White" HeightRequest="150" CornerRadius="10" HasShadow="False">
+                    <Image Source="{Binding SelectedImageSource}" Aspect="AspectFill"/>
+                </Frame>
+
+                <!-- Product Info -->
+                <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="22"/>
+                <Label Text="Category:" FontAttributes="Bold"/>
+                <Label Text="{Binding SelectedCategory}" FontSize="18"/>
+
+                <HorizontalStackLayout Spacing="20">
+                    <VerticalStackLayout>
+                        <Label Text="Small Price" FontAttributes="Bold"/>
+                        <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout>
+                        <Label Text="Large Price" FontAttributes="Bold"/>
+                        <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+
+                <Label Text="Description" FontAttributes="Bold"/>
+                <ScrollView HeightRequest="80">
+                    <Label Text="{Binding ProductDescription}" FontSize="16"/>
+                </ScrollView>
+
+                <!-- Buttons -->
+                <HorizontalStackLayout HorizontalOptions="End" Spacing="20">
+                    <Button Text="Edit" BackgroundColor="#D3D3D3" TextColor="Black"
+                            Command="{Binding ClosePreviewCommand}"/>
+                    <Button Text="Confirm" BackgroundColor="#E6DE9D" TextColor="Black"
+                            Command="{Binding ConfirmPreviewCommand}"/>
+                </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentView>

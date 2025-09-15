@@ -1,5 +1,5 @@
 ﻿using Coftea_Capstone.C_;
-using Coftea_Capstone.Views.Pages;  
+using Coftea_Capstone.Views.Pages;
 using Coftea_Capstone.Views.Controls;
 using Coftea_Capstone.Views;
 using Coftea_Capstone.Models;
@@ -19,7 +19,7 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class AddItemToPOSViewModel : ObservableObject
     {
-        public ConnectPOSItemToInventoryViewModel ConnectPOSToinventory { get; set; }
+        public ConnectPOSItemToInventoryViewModel ConnectPOSToInventoryVM { get; set; }
 
         [ObservableProperty]
         private string selectedImagePath;
@@ -63,7 +63,20 @@ namespace Coftea_Capstone.ViewModel
         public AddItemToPOSViewModel()
         {
             _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+            // Initialize all popups as hidden
             IsAddItemToPOSVisible = false;
+            IsConnectPOSToInventoryVisible = false;
+
+            // Initialize ConnectPOS VM
+            ConnectPOSToInventoryVM = new ConnectPOSItemToInventoryViewModel();
+            ConnectPOSToInventoryVM.ReturnRequested += () =>
+            {
+                IsAddItemToPOSVisible = true;  // reopen AddItem popup
+            };
+            ConnectPOSToInventoryVM.ConfirmPreviewRequested += async () =>
+            {
+                await AddProduct(); // Calls your existing AddProduct method
+            };
         }
 
         [RelayCommand]
@@ -155,8 +168,8 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void OpenConnectPOSToInventory()
         {
-            
-            IsAddItemToPOSVisible = true;
+            IsAddItemToPOSVisible = false;           // close AddItem popup
+            IsConnectPOSToInventoryVisible = true;  // open ConnectPOS popup
         }
 
         [RelayCommand]

@@ -1,10 +1,13 @@
 using Coftea_Capstone.ViewModel;
-using Coftea_Capstone.Views.Controls;
+using Microsoft.Maui.Dispatching;
+
+
 
 namespace Coftea_Capstone.Views.Pages;
 
 public partial class PointOfSale : ContentPage
 {
+    private IDispatcherTimer _timer;
     public POSPageViewModel POSViewModel { get; set; }
     public SettingsPopUpViewModel SettingsPopupViewModel { get; set; }
     public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
@@ -19,31 +22,47 @@ public partial class PointOfSale : ContentPage
 
         // Step 3: Pass both VMs into the POS VM
         POSViewModel = new POSPageViewModel(AddItemToPOSViewModel, SettingsPopupViewModel);
+        StartTimer();
 
         // Step 4: Set the BindingContext
         BindingContext = POSViewModel;
     }
-
-    protected override void OnAppearing()
-{
-    base.OnAppearing();
-    Task.Run(async () =>
+    private void StartTimer()
     {
-        try
-        {
-            // Reset popup visibility
-            POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
-            POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
+        // Set initial time
+        TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
 
-            await POSViewModel.LoadDataAsync();
-        }
-        catch (Exception ex)
+        // Create timer
+        _timer = Dispatcher.CreateTimer();
+        _timer.Interval = TimeSpan.FromSeconds(1);
+        _timer.Tick += (s, e) =>
         {
-            MainThread.BeginInvokeOnMainThread(async () =>
+            TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
+        };
+        _timer.Start();
+    }
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        Task.Run(async () =>
+        {
+            try
             {
-                await DisplayAlert("POS Error", ex.Message, "OK");
-            });
-        }
-    });
-}
+
+                POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
+                POSViewModel.AddItemToPOSViewModel.IsConnectPOSToInventoryVisible = false;
+                POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
+
+
+                await POSViewModel.LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await DisplayAlert("POS Error", ex.Message, "OK");
+                });
+            }
+        });
+    }
 }
