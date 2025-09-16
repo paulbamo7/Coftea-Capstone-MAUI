@@ -166,8 +166,7 @@
         <!-- Popups -->
         <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2"/>
-        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel}" Grid.Column="2"/>
-        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2"/>
+        
 
     </Grid>
 </ContentPage>

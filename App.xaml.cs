@@ -33,6 +33,15 @@ namespace Coftea_Capstone
 
                 if (isLoggedIn)
                 {
+                    // Hydrate a minimal CurrentUser so navigation works after auto-login
+                    if (CurrentUser == null)
+                    {
+                        SetCurrentUser(new UserInfoModel
+                        {
+                            IsAdmin = isAdmin,
+                            Email = Preferences.Get("Email", string.Empty)
+                        });
+                    }
                     NavigateToDashboard(isAdmin);
                 }
                 else

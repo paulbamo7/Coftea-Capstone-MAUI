@@ -86,10 +86,11 @@ namespace Coftea_Capstone.ViewModel
             LargePrice = 0;
             SelectedCategory = string.Empty;
             ImagePath = string.Empty;
+            SelectedImageSource = null;
         }
 
         [RelayCommand]
-        private async Task AddProduct()
+        public async Task AddProduct()
         {
             if (string.IsNullOrWhiteSpace(ProductName))
             {
@@ -149,6 +150,7 @@ namespace Coftea_Capstone.ViewModel
                     LargePrice = 0;
                     SelectedCategory = string.Empty;
                     ImagePath = string.Empty;
+                    SelectedImageSource = null;
                     IsAddItemToPOSVisible = false;
 
                     ProductAdded?.Invoke(newProduct);
@@ -162,8 +164,18 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void OpenConnectPOSToInventory()
         {
-            IsAddItemToPOSVisible = false;          
-            IsConnectPOSToInventoryVisible = true;
+            // Keep parent view visible and show the popup from the child VM
+            IsAddItemToPOSVisible = true;
+            // Populate preview data on child VM
+            ConnectPOSToInventoryVM.ProductName = ProductName;
+            ConnectPOSToInventoryVM.SelectedCategory = SelectedCategory;
+            ConnectPOSToInventoryVM.SmallPrice = SmallPrice;
+            ConnectPOSToInventoryVM.LargePrice = LargePrice;
+            ConnectPOSToInventoryVM.SelectedImageSource = SelectedImageSource;
+            // If you later add description on parent, propagate here as well
+            // ConnectPOSToInventoryVM.ProductDescription = ProductDescription;
+
+            ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = true;
         }
 
         [RelayCommand]

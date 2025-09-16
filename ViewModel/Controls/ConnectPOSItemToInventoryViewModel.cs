@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using Coftea_Capstone.ViewModel.Controls;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -15,6 +16,14 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private bool isPreviewVisible;
 
         public ObservableCollection<Ingredient> Ingredients { get; set; } = new();
+
+        // Preview-bound properties (populated from parent VM)
+        [ObservableProperty] private ImageSource selectedImageSource;
+        [ObservableProperty] private string productName;
+        [ObservableProperty] private string selectedCategory;
+        [ObservableProperty] private decimal smallPrice;
+        [ObservableProperty] private decimal largePrice;
+        [ObservableProperty] private string productDescription;
 
         // Event to notify AddItem popup
         public event Action ReturnRequested;
@@ -46,6 +55,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void ConfirmPreview()
         {
+            IsConnectPOSToInventoryVisible = false; // close overlay
             IsPreviewVisible = false;
             ConfirmPreviewRequested?.Invoke();
         }
@@ -53,6 +63,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             public string Name { get; set; }
             public int Amount { get; set; }
+            public bool Selected { get; set; }
         }
     }
 }

@@ -48,7 +48,7 @@ public partial class PointOfSale : ContentPage
         try
         {
             POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
-            POSViewModel.AddItemToPOSViewModel.IsConnectPOSToInventoryVisible = false;
+           
             POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
 
             await POSViewModel.LoadDataAsync();

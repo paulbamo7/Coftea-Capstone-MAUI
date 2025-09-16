@@ -53,9 +53,6 @@
                     </VerticalStackLayout>
                 </Frame>
 
-
-
-
                 <!-- Right Frame: Product Preview -->
                 <Frame BackgroundColor="#F8E8D7" CornerRadius="20" WidthRequest="500" HeightRequest="600" Padding="20">
                     <VerticalStackLayout Spacing="15">
@@ -67,14 +64,12 @@
 
                             <Label Text="PREVIEW" FontSize="24" FontAttributes="Bold" VerticalOptions="Center" Grid.Column="0"/>
                             <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" Grid.Column="1" 
-                         VerticalOptions="Center"
-                         Command="{Binding ClosePreviewCommand}"
-                         BackgroundColor="Transparent"/>
+                                         VerticalOptions="Center" Command="{Binding CloseConnectPOSToInventoryCommand}"/>
                         </Grid>
 
                         <!-- Product Image -->
                         <Frame BackgroundColor="White" HeightRequest="150" CornerRadius="10" HasShadow="False">
-                            <Image Source="{Binding SelectedImageSource}" Aspect="AspectFill"/>
+                            <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit"/>
                         </Frame>
 
                         <!-- Product Preview -->
@@ -101,15 +96,15 @@
                         </ScrollView>
 
                         <HorizontalStackLayout HorizontalOptions="End" Spacing="20" >
-                            <Button Text="Edit" BackgroundColor="#D3D3D3" TextColor="Black"
+                            <Button Text="Close" Grid.Column="1" 
+                                    VerticalOptions="Center" Command="{Binding CloseConnectPOSToInventoryCommand}"/>
+                            <Button Text="Return" BackgroundColor="#D3D3D3" TextColor="Black"
                     Command="{Binding ReturnToAddItemToPOSCommand}"/>
                             <Button Text="Confirm" BackgroundColor="#E6DE9D" TextColor="Black"
                     Command="{Binding ConfirmPreviewCommand}"/>
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                 </Frame>
-
-
 
             </HorizontalStackLayout>
         </VerticalStackLayout>
