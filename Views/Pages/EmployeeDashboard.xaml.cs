@@ -12,6 +12,9 @@ public partial class EmployeeDashboard : ContentPage
 	public EmployeeDashboard()
 	{
 		InitializeComponent();
+		
+		// Use shared SettingsPopup from App directly
+		BindingContext = ((App)Application.Current).SettingsPopup;
 	}
 
     private void HomeButton_Clicked(object sender, EventArgs e)

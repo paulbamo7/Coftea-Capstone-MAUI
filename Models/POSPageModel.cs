@@ -14,6 +14,8 @@ namespace Coftea_Capstone.C_
         public ImageSource ImageSource =>
         string.IsNullOrWhiteSpace(ImageSet) ? "placeholder.png" : ImageSource.FromFile(ImageSet);
         public string Category { get; set; }
+        public string Subcategory { get; set; }
+        public string ProductDescription { get; set; }
 
         public bool HasSmall { get; set; } = true;
         public bool HasLarge { get; set; } = true;

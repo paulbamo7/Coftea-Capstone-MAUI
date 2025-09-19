@@ -5,16 +5,25 @@
 
     BackgroundColor="#80000000"
     x:Name="SettingsPop"
-    IsVisible="{Binding IsSettingsPopupVisible}">
+    IsVisible="{Binding IsSettingsPopupVisible}"
+    InputTransparent="False">
 
-    <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseSettingsPopupCommand}" />
+        </Grid.GestureRecognizers>
+        
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
                Padding="20"
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
                WidthRequest="550"
-               HeightRequest="450">
+               HeightRequest="450"
+               InputTransparent="False">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnFrameTapped" />
+            </Frame.GestureRecognizers>
             <VerticalStackLayout Spacing="15">
                 <Label Text="Settings"
                        FontSize="22"
@@ -28,12 +37,12 @@
                     <Button Text="User Management" Grid.Row="0" Grid.Column="0" HeightRequest="120" WidthRequest="200"/>
 
                
-                    <Button Text="Add Item to POS" Grid.Row="0" Grid.Column="1" HeightRequest="120"  WidthRequest="200"
-                            Command="{Binding OpenAddItemToPOSCommand}"/>
+                    <Button Text="Manage POS Menu" Grid.Row="0" Grid.Column="1" HeightRequest="120"  WidthRequest="200"
+                            Command="{Binding OpenManagePOSOptionsCommand}"/>
 
                     <!-- Row 1 -->
-                    <Button Text="Add Item to Inventory" Grid.Row="1" Grid.Column="0" HeightRequest="120"  WidthRequest="200"
-                            Command="{Binding OpenAddItemToInventoryCommand}"/>
+                    <Button Text="Manage Inventory Items" Grid.Row="1" Grid.Column="0" HeightRequest="120"  WidthRequest="200"
+                            Command="{Binding OpenManageInventoryOptionsCommand}"/>
 
                     <Button Text="Log Out" Grid.Row="1" Grid.Column="1" HeightRequest="120"  WidthRequest="200"
                             Command="{Binding LogoutCommand}"/>

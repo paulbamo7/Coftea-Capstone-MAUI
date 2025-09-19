@@ -3,11 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Views.Controls.AddItemToInventory"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
-             BackgroundColor="#80000000"           
-             >
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsAddItemToInventoryVisible}"
+             InputTransparent="False">
 
-    <!-- Add Item to POS Section -->
-    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+    <!-- Add Item to Inventory Section -->
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*" InputTransparent="False">
 
         <!-- Background Gradient -->
         <VerticalStackLayout Grid.Column="1" Padding="30,60,0,0">
@@ -16,20 +17,20 @@
                     <VerticalStackLayout Spacing="5">
                         <Label Text="Inventory Details" FontAttributes="Bold" FontSize="30" Padding="0,0,0,25"/>
                         <Label Text="Stock Name" FontSize="25"/>
-                        <Entry Placeholder="Stock Name" PlaceholderColor="Black" Text="{Binding ProductName}"/>
+                        <Entry Placeholder="Stock Name" PlaceholderColor="Black" Text="{Binding ItemName}"/>
 
                         <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="120" WidthRequest="455" BackgroundColor="#E0E0E0" 
                                HorizontalOptions="Start" Margin="0,30,0,30">
                             <Grid>
-                                <Entry Placeholder="Enter Image" Margin="0,0,0,35"/>
-                                <Label Text="Click to upload or drag and drop" HorizontalOptions="Center" VerticalOptions="Center" 
-                                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="Black" FontAttributes="Bold"/>
-                                <!-- <Image Source="uploadicon.png" WidthRequest="30" Margin="0,0,0,35"/>
-                                <Button x:Name="UploadButton" BackgroundColor="Transparent" /> -->
+                                <Button BackgroundColor="Transparent" Command="{Binding PickImageCommand}" />
+                                <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit" />
+                                <Label Text="Click to upload image" HorizontalOptions="Center" VerticalOptions="Center" 
+                                       HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="Black" FontAttributes="Bold"
+                                       IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}"/>
                             </Grid>
                         </Frame>
                         <Label Text="Product Category" FontSize="25"/>
-                        <Entry Placeholder="Stock Category" Keyboard="Email" PlaceholderColor="Black" Text="{Binding Category}"/>
+                        <Entry Placeholder="Stock Category" PlaceholderColor="Black" Text="{Binding ItemCategory}"/>
                         <Frame BackgroundColor="#FFFFFF" 
                                Margin="0,10,0,0"
                                CornerRadius="10" 
@@ -37,7 +38,7 @@
                                HasShadow="False">
                             <Editor Placeholder="Enter product description..." 
                                 HeightRequest="150" 
-                                Text="{Binding ProductDescription}" 
+                                Text="{Binding ItemDescription}" 
                                 BackgroundColor="Transparent"
                                 TextColor="Black"/>
                         </Frame>
@@ -51,25 +52,42 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Label Text="Unit Of Measurement (UoM)" FontAttributes="Bold" FontSize="30" VerticalOptions="Center" Grid.Column="0"/>
-                            
-
                             <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" Grid.Column="1" 
                                          VerticalOptions="Center" Command="{Binding CloseAddItemToInventoryCommand}"/>
                         </Grid>
-                        <Label Text="Stock Quantity Level" FontSize="25"/>
-                        
-                        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+
+                        <Label Text="Minimum Quantity Level" FontSize="25"/>
+                        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
                             <Label Text="Minimum Quantity Level" FontSize="25"/>
                             <Label Text="(Show alerts if met)" FontSize="15"/>
-
                         </HorizontalStackLayout>
-                        <Entry Placeholder="Quantity" Text="{Binding LargePrice}" WidthRequest="200" HorizontalOptions="Start"/>
+                        <Entry Placeholder="Minimum Quantity" Text="{Binding MinimumQuantity}" Keyboard="Numeric" WidthRequest="200" HorizontalOptions="Start"/>
 
-                        <Label Text="Unit of Measurement (UoM)" FontSize="25"/>
+                        <Label Text="Minimum UoM Level" FontSize="25" Margin="0,25,0,0"/>
                         <HorizontalStackLayout Spacing="20" HorizontalOptions="Center" Margin="0,15,0,0">
-                            <Entry Placeholder="Quantity" Text="{Binding LargePrice}" WidthRequest="200"/>
+                            <Label Text="Minimum UoM Level" FontSize="25"/>
+                            <Label Text="(Show alerts if met)" FontSize="15"/>
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="10" Margin="0,10,0,0">
+                            <Entry Placeholder="Quantity" Text="{Binding MinimumUoMQuantity}" Keyboard="Numeric" WidthRequest="200"/>
+                            <Picker Title="Select UoM" 
+                                    ItemsSource="{Binding UoMOptions}" 
+                                    SelectedItem="{Binding SelectedMinimumUoM}"
+                                    FontSize="14"
+                                    WidthRequest="200"/>
+                        </HorizontalStackLayout>
 
-                            <Entry Placeholder="UoM" Text="{Binding SmallPrice}" WidthRequest="200"/>
+                        <Label Text="Stock Quantity" FontSize="25" Margin="0,25,0,0"/>
+                        <Entry Placeholder="Current Stock Quantity" Text="{Binding ItemQuantity}" Keyboard="Numeric" WidthRequest="200" HorizontalOptions="Start" Margin="0,10,0,0"/>
+
+                        <Label Text="Unit of Measurement (UoM)" FontSize="25" Margin="0,25,0,0"/>
+                        <HorizontalStackLayout Spacing="10" Margin="0,10,0,0">
+                            <Entry Placeholder="Quantity" Text="{Binding UoMQuantity}" Keyboard="Numeric" WidthRequest="200"/>
+                            <Picker Title="Select UoM" 
+                                    ItemsSource="{Binding UoMOptions}" 
+                                    SelectedItem="{Binding SelectedUoM}"
+                                    FontSize="14"
+                                    WidthRequest="200"/>
                         </HorizontalStackLayout>
 
                         <Button Text="Add Item" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 

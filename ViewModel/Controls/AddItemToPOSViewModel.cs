@@ -42,6 +42,32 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedCategory;
 
+        public ObservableCollection<string> FruitSodaSubcategories { get; } = new ObservableCollection<string>
+        {
+            "Fruit",
+            "Soda"
+        };
+
+        [ObservableProperty]
+        private string selectedSubcategory;
+
+        public bool IsFruitSodaSubcategoryVisible => string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase);
+
+        public string EffectiveCategory =>
+            string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase)
+                ? (string.IsNullOrWhiteSpace(SelectedSubcategory) ? null : SelectedSubcategory)
+                : SelectedCategory;
+
+        partial void OnSelectedCategoryChanged(string value)
+        {
+            // Notify visibility change for subcategory UI
+            OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
+
+            // Reset subcategory when leaving Fruit/Soda
+            if (!string.Equals(value, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                SelectedSubcategory = null;
+        }
+
         [ObservableProperty]
         private bool isAddItemToPOSVisible;
 
@@ -57,7 +83,17 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string imagePath;
 
+        [ObservableProperty]
+        private string productDescription;
+
+        [ObservableProperty]
+        private bool isEditMode = false;
+
+        [ObservableProperty]
+        private int editingProductId;
+
         public event Action<POSPageModel> ProductAdded;
+        public event Action<POSPageModel> ProductUpdated;
 
         public AddItemToPOSViewModel()
         {
@@ -81,12 +117,43 @@ namespace Coftea_Capstone.ViewModel
         private void CloseAddItemToPOS()
         {
             IsAddItemToPOSVisible = false;
+            IsEditMode = false;
             ProductName = string.Empty;
             SmallPrice = 0;
             LargePrice = 0;
             SelectedCategory = string.Empty;
+            SelectedSubcategory = null;
             ImagePath = string.Empty;
             SelectedImageSource = null;
+            ProductDescription = string.Empty;
+            EditingProductId = 0;
+        }
+
+        public void SetEditMode(POSPageModel product)
+        {
+            IsEditMode = true;
+            EditingProductId = product.ProductID;
+            ProductName = product.ProductName;
+            SmallPrice = product.SmallPrice;
+            LargePrice = product.LargePrice;
+            ImagePath = product.ImageSet;
+            SelectedImageSource = !string.IsNullOrEmpty(product.ImageSet) ? ImageSource.FromFile(product.ImageSet) : null;
+            ProductDescription = product.ProductDescription ?? string.Empty;
+            
+            // Set category and subcategory based on the product's data
+            if (!string.IsNullOrEmpty(product.Category))
+            {
+                if (product.Category == "Fruit" || product.Category == "Soda")
+                {
+                    SelectedCategory = "Fruit/Soda";
+                    SelectedSubcategory = product.Category;
+                }
+                else
+                {
+                    SelectedCategory = product.Category;
+                    SelectedSubcategory = null;
+                }
+            }
         }
 
         [RelayCommand]
@@ -101,6 +168,12 @@ namespace Coftea_Capstone.ViewModel
             if (string.IsNullOrWhiteSpace(SelectedCategory))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Please select a category.", "OK");
+                return;
+            }
+
+            if (string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(SelectedSubcategory))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please select a subcategory (Fruit or Soda).", "OK");
                 return;
             }
 
@@ -122,44 +195,70 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            var newProduct = new POSPageModel
+            var product = new POSPageModel
             {
                 ProductName = ProductName,
                 SmallPrice = SmallPrice,
                 LargePrice = LargePrice,
                 Category = SelectedCategory,
-                ImageSet = ImagePath
+                Subcategory = EffectiveCategory,
+                ImageSet = ImagePath,
+                ProductDescription = ProductDescription
             };
 
             try
             {
-                var existingProducts = await _database.GetProductsAsync();
-                if (existingProducts.Any(p => p.ProductName == ProductName))
+                if (IsEditMode)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Product already exists!", "OK");
-                    return;
+                    // Update existing product
+                    product.ProductID = EditingProductId;
+                    int rowsAffected = await _database.UpdateProductAsync(product);
+                    if (rowsAffected > 0)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Success", "Product updated successfully!", "OK");
+                        ResetForm();
+                        ProductUpdated?.Invoke(product);
+                    }
                 }
-
-                int rowsAffected = await _database.SaveProductAsync(newProduct);
-                if (rowsAffected > 0)
+                else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Success", "Product added successfully!", "OK");
+                    // Add new product
+                    var existingProducts = await _database.GetProductsAsync();
+                    if (existingProducts.Any(p => p.ProductName == ProductName))
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Error", "Product already exists!", "OK");
+                        return;
+                    }
 
-                    ProductName = string.Empty;
-                    SmallPrice = 0;
-                    LargePrice = 0;
-                    SelectedCategory = string.Empty;
-                    ImagePath = string.Empty;
-                    SelectedImageSource = null;
-                    IsAddItemToPOSVisible = false;
-
-                    ProductAdded?.Invoke(newProduct);
+                    int rowsAffected = await _database.SaveProductAsync(product);
+                    if (rowsAffected > 0)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Success", "Product added successfully!", "OK");
+                        ResetForm();
+                        ProductAdded?.Invoke(product);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to add product: {ex.Message}", "OK");
+                string action = IsEditMode ? "update" : "add";
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to {action} product: {ex.Message}", "OK");
             }
+        }
+
+        private void ResetForm()
+        {
+            ProductName = string.Empty;
+            SmallPrice = 0;
+            LargePrice = 0;
+            SelectedCategory = string.Empty;
+            SelectedSubcategory = null;
+            ImagePath = string.Empty;
+            SelectedImageSource = null;
+            ProductDescription = string.Empty;
+            IsAddItemToPOSVisible = false;
+            IsEditMode = false;
+            EditingProductId = 0;
         }
         [RelayCommand]
         private void OpenConnectPOSToInventory()
@@ -168,12 +267,12 @@ namespace Coftea_Capstone.ViewModel
             IsAddItemToPOSVisible = true;
             // Populate preview data on child VM
             ConnectPOSToInventoryVM.ProductName = ProductName;
-            ConnectPOSToInventoryVM.SelectedCategory = SelectedCategory;
+            ConnectPOSToInventoryVM.SelectedCategory = EffectiveCategory;
             ConnectPOSToInventoryVM.SmallPrice = SmallPrice;
             ConnectPOSToInventoryVM.LargePrice = LargePrice;
             ConnectPOSToInventoryVM.SelectedImageSource = SelectedImageSource;
-            // If you later add description on parent, propagate here as well
-            // ConnectPOSToInventoryVM.ProductDescription = ProductDescription;
+            // Propagate description to child VM
+            ConnectPOSToInventoryVM.ProductDescription = ProductDescription;
 
             ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = true;
         }

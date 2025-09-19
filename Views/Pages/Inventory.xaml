@@ -19,7 +19,7 @@
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                     <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
-                    <ImageButton Source="notification.png" Grid.Column="2" WidthRequest="30" HeightRequest="30"/>
+                    <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" Command="{Binding ShowSettingsPopupCommand}"/>
                     <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
                 </Grid>
 
@@ -90,5 +90,16 @@
 
             </VerticalStackLayout>
         </Grid>
+        
+        <!-- Settings Popup -->
+        <view:Settings BindingContext="{Binding .}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage POS Options Popup -->
+        <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage Inventory Options Popup -->
+        <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
     </Grid>
 </ContentPage>

@@ -10,14 +10,21 @@ namespace Coftea_Capstone.ViewModel
     public partial class SettingsPopUpViewModel : ObservableObject
     {
         private readonly AddItemToPOSViewModel _addItemToPOSViewModel;
+        private readonly ManagePOSOptionsViewModel _managePOSOptionsViewModel;
+        private readonly ManageInventoryOptionsViewModel _manageInventoryOptionsViewModel;
 
         [ObservableProperty] private bool isSettingsPopupVisible = false;
         [ObservableProperty] private bool isAddItemToPOSVisible = false;
         [ObservableProperty] private bool isAddItemToInventoryVisible = false;
 
-        public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel)
+        public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
+        public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
+
+        public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel, ManagePOSOptionsViewModel managePOSOptionsViewModel, ManageInventoryOptionsViewModel manageInventoryOptionsViewModel)
         {
             _addItemToPOSViewModel = addItemToPOSViewModel;
+            _managePOSOptionsViewModel = managePOSOptionsViewModel;
+            _manageInventoryOptionsViewModel = manageInventoryOptionsViewModel;
         }
 
         [RelayCommand]
@@ -34,10 +41,24 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
+        private void OpenManageInventoryOptions()
+        {
+            IsSettingsPopupVisible = false;
+            _manageInventoryOptionsViewModel.IsInventoryManagementPopupVisible = true;
+        }
+
+        [RelayCommand]
         private void OpenAddItemToInventory()
         {
             IsSettingsPopupVisible = false;
             IsAddItemToInventoryVisible = true;
+        }
+
+        [RelayCommand]
+        private void OpenManagePOSOptions()
+        {
+            IsSettingsPopupVisible = false;
+            _managePOSOptionsViewModel.IsPOSManagementPopupVisible = true;
         }
 
         [RelayCommand]

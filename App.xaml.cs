@@ -19,6 +19,9 @@ namespace Coftea_Capstone
         public AddItemToPOSViewModel AddItemPopup { get; private set; }
         public SettingsPopUpViewModel SettingsPopup { get; private set; }
         public POSPageViewModel POSVM { get; private set; }
+        public ManagePOSOptionsViewModel ManagePOSPopup { get; private set; }
+        public ManageInventoryOptionsViewModel ManageInventoryPopup { get; private set; }
+        public AddItemToInventoryViewModel AddItemToInventoryPopup { get; private set; }
 
         public App()
         {
@@ -29,9 +32,11 @@ namespace Coftea_Capstone
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
+                bool rememberMe = Preferences.Get("RememberMe", false);
                 bool isAdmin = Preferences.Get("IsAdmin", false);
 
-                if (isLoggedIn)
+                // Only auto-login if both IsLoggedIn and RememberMe are true
+                if (isLoggedIn && rememberMe)
                 {
                     // Hydrate a minimal CurrentUser so navigation works after auto-login
                     if (CurrentUser == null)
@@ -46,6 +51,12 @@ namespace Coftea_Capstone
                 }
                 else
                 {
+                    // Clear login state if Remember Me is not checked
+                    if (isLoggedIn && !rememberMe)
+                    {
+                        Preferences.Set("IsLoggedIn", false);
+                        Preferences.Set("IsAdmin", false);
+                    }
                     MainPage = new NavigationPage(new LoginPage());
                 }
             });
@@ -57,7 +68,11 @@ namespace Coftea_Capstone
         private void InitializeViewModels()
         {
             AddItemPopup = new AddItemToPOSViewModel();
-            SettingsPopup = new SettingsPopUpViewModel(AddItemPopup);
+            var editProductPopup = new EditProductPopupViewModel(AddItemPopup);
+            ManagePOSPopup = new ManagePOSOptionsViewModel(AddItemPopup, editProductPopup);
+            AddItemToInventoryPopup = new AddItemToInventoryViewModel();
+            ManageInventoryPopup = new ManageInventoryOptionsViewModel(AddItemToInventoryPopup);
+            SettingsPopup = new SettingsPopUpViewModel(AddItemPopup, ManagePOSPopup, ManageInventoryPopup);
             POSVM = new POSPageViewModel(AddItemPopup, SettingsPopup);
         }
 

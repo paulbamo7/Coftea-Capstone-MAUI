@@ -36,7 +36,7 @@
             <Button ImageSource="settings2.png"
                     Background="Transparent"
                     HeightRequest="80"
-                    Command="{Binding SettingsPopup.ShowSettingsPopupCommand}" />
+                    Clicked="SettingsButton_Clicked" />
             <Label Text="Settings" FontAttributes="Bold" HorizontalOptions="Center"/>
         </VerticalStackLayout>
     </StackLayout>

@@ -1,5 +1,6 @@
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Views.Pages;
+using Coftea_Capstone.Services;
 using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.Views.Pages;
@@ -68,8 +69,7 @@ public partial class NavigationBar : ContentView
 
     private void SettingsButton_Clicked(object sender, EventArgs e)
     {
-        // Open your settings popup (if you have MVVM command binding)
-        // For example:
-        // (BindingContext as YourViewModel)?.SettingsPopup.ShowSettingsPopupCommand.Execute(null);
+        // Use global settings service to show popup
+        GlobalSettingsService.ShowSettings();
     }
 }

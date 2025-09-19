@@ -29,6 +29,17 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<POSPageModel> filteredProducts = new();
 
+        [ObservableProperty]
+        private string selectedMainCategory;
+
+        [ObservableProperty]
+        private string selectedSubcategory;
+
+        public bool IsFruitSodaSubcategoryVisible => string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase);
+
+        partial void OnSelectedMainCategoryChanged(string value)
+            => OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
+
         public bool IsCartVisible => CartItems.Any();
 
         partial void OnCartItemsChanged(ObservableCollection<POSPageModel> value)
@@ -59,6 +70,7 @@ namespace Coftea_Capstone.ViewModel
             AddItemToPOSViewModel = addItemToPOSViewModel;
 
             AddItemToPOSViewModel.ProductAdded += OnProductAdded;
+            AddItemToPOSViewModel.ProductUpdated += OnProductUpdated;
             AddItemToPOSViewModel.ConnectPOSToInventoryVM.ReturnRequested += () =>
             {
                 AddItemToPOSViewModel.IsAddItemToPOSVisible = true;
@@ -72,6 +84,26 @@ namespace Coftea_Capstone.ViewModel
             await LoadDataAsync();  
         }
 
+        private async void OnProductUpdated(POSPageModel updatedProduct)
+        {
+            // Find and update the existing product in the collections
+            var existingProduct = Products.FirstOrDefault(p => p.ProductID == updatedProduct.ProductID);
+            if (existingProduct != null)
+            {
+                var index = Products.IndexOf(existingProduct);
+                Products[index] = updatedProduct;
+            }
+
+            var existingFilteredProduct = FilteredProducts.FirstOrDefault(p => p.ProductID == updatedProduct.ProductID);
+            if (existingFilteredProduct != null)
+            {
+                var index = FilteredProducts.IndexOf(existingFilteredProduct);
+                FilteredProducts[index] = updatedProduct;
+            }
+
+            await LoadDataAsync();
+        }
+
         public async Task InitializeAsync()
         {
             if (App.CurrentUser != null)
@@ -83,16 +115,68 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void FilterByCategory(object category)
         {
-            string cat = category?.ToString() ?? string.Empty;
+            SelectedMainCategory = category?.ToString() ?? string.Empty;
+
+            // Reset subcategory when switching main category (unless still Fruit/Soda)
+            if (!string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                SelectedSubcategory = null;
+
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        private void FilterBySubcategory(object subcategory)
+        {
+            SelectedSubcategory = subcategory?.ToString() ?? string.Empty;
+            ApplyFilters();
+        }
+
+        private void ApplyFilters()
+        {
+            IEnumerable<POSPageModel> filteredSequence = Products;
+
+            // Main category filtering
+            if (!string.IsNullOrWhiteSpace(SelectedMainCategory) &&
+                !string.Equals(SelectedMainCategory, "All", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Include items categorized under Fruit/Soda via either Subcategory or Category
+                    filteredSequence = filteredSequence.Where(p =>
+                        (
+                            !string.IsNullOrWhiteSpace(p.Subcategory) &&
+                            (p.Subcategory.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
+                             p.Subcategory.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase))
+                        )
+                        ||
+                        (
+                            !string.IsNullOrWhiteSpace(p.Category) &&
+                            (p.Category.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
+                             p.Category.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase) ||
+                             p.Category.Trim().Equals("Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                        ));
+
+                    // Optional subcategory refinement
+                    if (!string.IsNullOrWhiteSpace(SelectedSubcategory))
+                    {
+                        filteredSequence = filteredSequence.Where(p =>
+                            (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
+                            || (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
+                        );
+                    }
+                }
+                else
+                {
+                    filteredSequence = filteredSequence.Where(p =>
+                        (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
+                        || (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
+                    );
+                }
+            }
 
             FilteredProducts.Clear();
-
-            var filtered = string.IsNullOrEmpty(cat) || cat.Equals("All", StringComparison.OrdinalIgnoreCase)
-                ? Products
-                : Products.Where(p => !string.IsNullOrEmpty(p.Category) && p.Category.Trim().Equals(cat, StringComparison.OrdinalIgnoreCase));
-
-            foreach (var p in filtered)
-                FilteredProducts.Add(p);
+            foreach (var product in filteredSequence)
+                FilteredProducts.Add(product);
         }
 
         public async Task LoadDataAsync()
@@ -173,11 +257,7 @@ namespace Coftea_Capstone.ViewModel
         {
             if (product == null) return;
 
-            AddItemToPOSViewModel.ProductName = product.ProductName;
-            AddItemToPOSViewModel.SmallPrice = (decimal)product.SmallPrice;
-            AddItemToPOSViewModel.LargePrice = (decimal)product.LargePrice;
-            AddItemToPOSViewModel.ImagePath = product.ImageSet;
-
+            AddItemToPOSViewModel.SetEditMode(product);
             SettingsPopup.OpenAddItemToPOSCommand.Execute(null);
         }
 

@@ -77,19 +77,16 @@ namespace Coftea_Capstone.ViewModel
                 App.SetCurrentUser(user);
 
                 // Save preferences
+                Preferences.Set("IsLoggedIn", true);
                 Preferences.Set("IsAdmin", user.IsAdmin);
                 if (RememberMe)
                 {
-                    // Persist login across app restarts
-                    Preferences.Set("IsLoggedIn", true);
                     Preferences.Set("RememberMe", true);
                     Preferences.Set("Email", Email);
                     Preferences.Set("Password", Password);
                 }
                 else
                 {
-                    // Do NOT keep user logged in after restart
-                    Preferences.Set("IsLoggedIn", false);
                     Preferences.Set("RememberMe", false);
                     Preferences.Remove("Email");
                     Preferences.Remove("Password");

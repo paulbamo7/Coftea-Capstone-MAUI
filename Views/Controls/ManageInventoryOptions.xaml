@@ -1,18 +1,12 @@
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
-    x:Class="Coftea_Capstone.Views.Controls.ManagePOSOptions"
+    x:Class="Coftea_Capstone.Views.Controls.ManageInventoryOptions"
     BackgroundColor="#80000000"
     x:Name="PopupRoot"
-    IsVisible="{Binding IsPOSManagementPopupVisible}"
-    InputTransparent="False">
+    IsVisible="{Binding IsInventoryManagementPopupVisible}">
 
-    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
-        <Grid.GestureRecognizers>
-            <TapGestureRecognizer Command="{Binding ClosePOSManagementPopupCommand}" />
-        </Grid.GestureRecognizers>
-        
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
         <!-- Popup Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
@@ -21,20 +15,19 @@
                CornerRadius="20"
                WidthRequest="450"
                HeightRequest="350"
-               HasShadow="True"
-               InputTransparent="False">
+               HasShadow="True">
 
             <VerticalStackLayout Spacing="25">
                 <!-- Title -->
-                
-                <Label Text="Manage POS Menu"
+
+                <Label Text="Manage Inventory Items"
                        FontSize="22"
                        FontAttributes="Bold"
                        HorizontalOptions="Center" />
 
                 <!-- Action Buttons -->
                 <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
-                    <Button Text="Add Menu"
+                    <Button Text="Add Item"
                             WidthRequest="200"
                             HeightRequest="50"
                             FontSize="16"
@@ -43,7 +36,7 @@
                             TextColor="White"
                             CornerRadius="25" />
 
-                    <Button Text="Edit Menu"
+                    <Button Text="Edit Item"
                             WidthRequest="200"
                             HeightRequest="50"
                             FontSize="16"
@@ -51,7 +44,7 @@
                             BackgroundColor="#897564"
                             TextColor="White"
                             CornerRadius="25" />
-                    
+
                 </VerticalStackLayout>
 
                 <!-- Close Button -->
@@ -62,7 +55,7 @@
                         BackgroundColor="Red"
                         TextColor="White"
                         HorizontalOptions="Center"
-                        Command="{Binding ClosePOSManagementPopupCommand}" />
+                        Command="{Binding CloseInventoryManagementPopupCommand}" />
             </VerticalStackLayout>
         </Frame>
     </Grid>

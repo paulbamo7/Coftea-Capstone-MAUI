@@ -2,12 +2,41 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              x:Class="Coftea_Capstone.Views.Pages.SalesReport" 
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" 
-             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages" 
+             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls" 
              Shell.TabBarIsVisible="False" 
              BackgroundColor="#C1A892">
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
 
         <!-- Sidebar Navigation -->
         <views:NavigationBar Grid.Column="0" />
+        
+        <!-- Main Content -->
+        <VerticalStackLayout Grid.Column="1" Padding="20">
+            <VerticalStackLayout Spacing="20">
+                <!-- Top Bar -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
+                    <Label Text="Sales Report" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
+                    <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" Command="{Binding ShowSettingsPopupCommand}"/>
+                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                </Grid>
+                
+                <!-- Sales Report Content -->
+                <Frame BackgroundColor="White" CornerRadius="15" Padding="20">
+                    <Label Text="Sales Report Content Coming Soon..." FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Frame>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+        
+        <!-- Settings Popup -->
+        <views:Settings BindingContext="{Binding .}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage POS Options Popup -->
+        <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage Inventory Options Popup -->
+        <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
     </Grid>
 </ContentPage>

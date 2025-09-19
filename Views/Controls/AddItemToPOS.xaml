@@ -5,10 +5,11 @@
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              BackgroundColor="#80000000"
-             IsVisible="{Binding IsAddItemToPOSVisible}">
+             IsVisible="{Binding IsAddItemToPOSVisible}"
+             InputTransparent="False">
 
     <!-- Add Item to POS Section -->
-    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*" InputTransparent="False">
 
         <!-- Background Gradient -->
         <VerticalStackLayout Grid.Column="1" Padding="30,60,0,0">
@@ -34,6 +35,21 @@
                                 FontSize="14"
                                 WidthRequest="200"
                                 HorizontalOptions="Start"/> 
+
+                        <Grid IsVisible="{Binding IsFruitSodaSubcategoryVisible}" Margin="0,10,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Label Text="Subcategory" FontSize="25" Grid.Row="0"/>
+                            <Picker Title="Select Subcategory"
+                                    ItemsSource="{Binding FruitSodaSubcategories}"
+                                    SelectedItem="{Binding SelectedSubcategory}"
+                                    FontSize="14"
+                                    WidthRequest="200"
+                                    Grid.Row="1"
+                                    HorizontalOptions="Start"/>
+                        </Grid>
 
                         <Label Text="Color Code" FontSize="25"/>
                         <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black"/>

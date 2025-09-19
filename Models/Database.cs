@@ -92,7 +92,9 @@ namespace Coftea_Capstone.C_
                     SmallPrice = reader.GetDecimal("smallPrice"),
                     LargePrice = reader.GetDecimal("largePrice"),
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
-                    Category = reader.GetString("category")
+                    Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
+                    Subcategory = reader.IsDBNull(reader.GetOrdinal("subcategory")) ? null : reader.GetString("subcategory"),
+                    ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
                 });
             }
             return products;
@@ -102,14 +104,16 @@ namespace Coftea_Capstone.C_
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO products (productName, smallPrice, largePrice, category, imageSet) " +
-                      "VALUES (@ProductName, @SmallPrice, @LargePrice, @Category ,@Image);";
+            var sql = "INSERT INTO products (productName, smallPrice, largePrice, category, subcategory, imageSet, description) " +
+                      "VALUES (@ProductName, @SmallPrice, @LargePrice, @Category, @Subcategory, @Image, @Description);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
+            cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
+            cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
 
             return await cmd.ExecuteNonQueryAsync();
         }
@@ -129,10 +133,119 @@ namespace Coftea_Capstone.C_
                     ProductName = reader.GetString("productName"),
                     SmallPrice = reader.GetDecimal("smallPrice"),
                     LargePrice = reader.GetDecimal("largePrice"),
-                    ImageSet = reader.GetString("imageSet")
+                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+                    Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
+                    Subcategory = reader.IsDBNull(reader.GetOrdinal("subcategory")) ? null : reader.GetString("subcategory"),
+                    ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
                 };
             }
             return null;
+        }
+
+        public async Task<int> UpdateProductAsync(POSPageModel product)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "UPDATE products SET productName = @ProductName, smallPrice = @SmallPrice, largePrice = @LargePrice, " +
+                      "category = @Category, subcategory = @Subcategory, imageSet = @Image, description = @Description WHERE productID = @ProductID;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ProductID", product.ProductID);
+            cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
+            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
+            cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
+            cmd.Parameters.AddWithValue("@Category", product.Category);
+            cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Image", product.ImageSet);
+            cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> DeleteProductAsync(int productId)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "DELETE FROM products WHERE productID = @ProductID;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ProductID", productId);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Inventory Database Methods
+        public async Task<List<InventoryPageModel>> GetInventoryItemsAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "SELECT * FROM inventory;";
+            await using var cmd = new MySqlCommand(sql, conn);
+
+            var inventoryItems = new List<InventoryPageModel>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                inventoryItems.Add(new InventoryPageModel
+                {
+                    itemID = reader.GetInt32("itemID"),
+                    itemName = reader.GetString("itemName"),
+                    itemQuantity = reader.GetDouble("itemQuantity"),
+                    itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
+                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+                    itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
+                    unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
+                });
+            }
+            return inventoryItems;
+        }
+
+        public async Task<int> SaveInventoryItemAsync(InventoryPageModel inventory)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity) " +
+                      "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity);";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
+            cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
+            cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
+            cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
+            cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> UpdateInventoryItemAsync(InventoryPageModel inventory)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "UPDATE inventory SET itemName = @ItemName, itemQuantity = @ItemQuantity, itemCategory = @ItemCategory, " +
+                      "imageSet = @ImageSet, itemDescription = @ItemDescription, unitOfMeasurement = @UnitOfMeasurement, " +
+                      "minimumQuantity = @MinimumQuantity WHERE itemID = @ItemID;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ItemID", inventory.itemID);
+            cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
+            cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
+            cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
+            cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
+            cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> DeleteInventoryItemAsync(int itemId)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ItemID", itemId);
+
+            return await cmd.ExecuteNonQueryAsync();
         }
 
         /*public async Task<int> DeleteProductAsync(InventoryPageModel inventory)

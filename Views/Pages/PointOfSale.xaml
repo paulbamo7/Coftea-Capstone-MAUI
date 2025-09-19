@@ -51,6 +51,17 @@
                 </HorizontalStackLayout>
             </ScrollView>
 
+            <!-- Subcategories for Fruit/Soda -->
+            <HorizontalStackLayout Grid.Row="1" Margin="0,65,0,0" HorizontalOptions="Center" Spacing="10"
+                                   IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
+                <Button Text="Fruit" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        BackgroundColor="#C9B29F" WidthRequest="100" HeightRequest="36"
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit"/>
+                <Button Text="Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        BackgroundColor="#C9B29F" WidthRequest="100" HeightRequest="36"
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda"/>
+            </HorizontalStackLayout>
+
             <!-- Products + Cart -->
             <Grid ColumnDefinitions="3*,2*" RowDefinitions="*" ColumnSpacing="15" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" Grid.Row="2">
                 <VerticalStackLayout Grid.ColumnSpan="2" HorizontalOptions="Center" VerticalOptions="Start">
@@ -67,7 +78,7 @@
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="#D9D9D9" CornerRadius="20" Margin="10" Padding="5" VerticalOptions="Fill" HorizontalOptions="Fill">
+                                <Frame BackgroundColor="#D9C3B0" CornerRadius="20" Margin="10" Padding="5" VerticalOptions="Fill" HorizontalOptions="Fill">
                                     <Frame.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" CommandParameter="{Binding .}" />
                                     </Frame.GestureRecognizers>
@@ -165,7 +176,11 @@
         </Grid>
         <!-- Popups -->
         <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:ManagePOSOptions BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM}" Grid.ColumnSpan="2"/>
+        <otherViews:ManageInventoryOptions BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToInventory BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
+        <otherViews:EditProductPopup BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         
 
     </Grid>
