@@ -15,15 +15,34 @@ public partial class PointOfSale : ContentPage
     {
         InitializeComponent();
 
-        // Use the shared POSVM from App
-        POSViewModel = ((App)Application.Current).POSVM;
+        try
+        {
+            // Use the shared POSVM from App
+            POSViewModel = ((App)Application.Current).POSVM;
 
+            if (POSViewModel == null)
+            {
+                throw new InvalidOperationException("POSViewModel is not initialized");
+            }
 
-        // Set BindingContext
-        BindingContext = POSViewModel;
+            // Set BindingContext
+            BindingContext = POSViewModel;
 
-        // Start timer
-        StartTimer();
+            // Set RetryConnectionPopup binding context
+            RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
+
+            // Start timer
+            StartTimer();
+        }
+        catch (Exception ex)
+        {
+            // Show error and navigate back
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await DisplayAlert("POS Error", $"Failed to initialize POS page: {ex.Message}", "OK");
+                await Navigation.PopAsync();
+            });
+        }
     }
 
     private void StartTimer()
@@ -47,9 +66,18 @@ public partial class PointOfSale : ContentPage
 
         try
         {
-            POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
+            if (POSViewModel == null)
+            {
+                await DisplayAlert("POS Error", "POSViewModel is not available", "OK");
+                await Navigation.PopAsync();
+                return;
+            }
+
+            if (POSViewModel.AddItemToPOSViewModel != null)
+                POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
            
-            POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
+            if (POSViewModel.SettingsPopup != null)
+                POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
 
             await POSViewModel.LoadDataAsync();
         }
@@ -57,7 +85,8 @@ public partial class PointOfSale : ContentPage
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                await DisplayAlert("POS Error", ex.Message, "OK");
+                await DisplayAlert("POS Error", $"Failed to load POS data: {ex.Message}", "OK");
+                await Navigation.PopAsync();
             });
         }
     }
@@ -72,4 +101,5 @@ public partial class PointOfSale : ContentPage
             _timer.Tick -= null; 
         }
     }
+
 }

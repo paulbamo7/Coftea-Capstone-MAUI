@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.RetryConnectionPopup"
+    x:Name="RetryConnectionPopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsRetryPopupVisible}"
+    InputTransparent="False">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseRetryPopupCommand}" />
+        </Grid.GestureRecognizers>
+        
+        <!-- Popup Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="0"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="400"
+               HeightRequest="250"
+               HasShadow="True"
+               InputTransparent="False">
+
+            <VerticalStackLayout Spacing="20" HorizontalOptions="Fill" Padding="30">
+                <!-- Error Icon -->
+                <Image Source="warning.png" 
+                       HeightRequest="50" 
+                       WidthRequest="50" 
+                       HorizontalOptions="Center" />
+                
+                <!-- Title -->
+                <Label Text="Connection Error" 
+                       FontSize="20" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       TextColor="#8B4513" />
+                
+                <!-- Error Message -->
+                <Label Text="{Binding ErrorMessage}" 
+                       FontSize="14" 
+                       HorizontalOptions="Center" 
+                       HorizontalTextAlignment="Center"
+                       TextColor="#654321"
+                       LineBreakMode="WordWrap" />
+                
+                <!-- Loading Indicator -->
+                <ActivityIndicator IsRunning="{Binding IsRetrying}" 
+                                   IsVisible="{Binding IsRetrying}"
+                                   Color="#8B4513"
+                                   HorizontalOptions="Center" />
+                
+                <!-- Buttons -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,10,0,0">
+                    <Button Grid.Column="0"
+                            Text="Cancel"
+                            BackgroundColor="#D2691E"
+                            TextColor="White"
+                            CornerRadius="10"
+                            HeightRequest="40"
+                            Command="{Binding CancelRetryCommand}"
+                            IsEnabled="{Binding IsRetrying, Converter={StaticResource InvertBoolConverter}}" />
+                    
+                    <Button Grid.Column="1"
+                            Text="Retry"
+                            BackgroundColor="#8B4513"
+                            TextColor="White"
+                            CornerRadius="10"
+                            HeightRequest="40"
+                            Command="{Binding RetryConnectionCommand}"
+                            IsEnabled="{Binding IsRetrying, Converter={StaticResource InvertBoolConverter}}" />
+                </Grid>
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentView>

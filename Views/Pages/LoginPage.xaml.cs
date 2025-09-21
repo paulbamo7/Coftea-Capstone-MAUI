@@ -11,5 +11,8 @@ public partial class LoginPage : ContentPage
     {
         InitializeComponent();
         _database = new Database();
+        
+        // Set RetryConnectionPopup binding context
+        RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
     }
 }

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.CartPopup"
+    x:Name="CartPopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsCartVisible}"
+    InputTransparent="False">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseCartCommand}" />
+        </Grid.GestureRecognizers>
+        
+        <!-- Cart Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="0"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="950"
+               HeightRequest="600"
+               HasShadow="True"
+               InputTransparent="False">
+
+            <Grid RowDefinitions="Auto, *, Auto">
+                <!-- Header -->
+                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Grid.Column="0" 
+                               Text="Cart" 
+                               FontSize="24" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               TextColor="White" />
+                        <Button Grid.Column="1"
+                                Text="×"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                BackgroundColor="Transparent"
+                                TextColor="White"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                Padding="0"
+                                VerticalOptions="Center"
+                                Command="{Binding CloseCartCommand}" />
+                    </Grid>
+                </Grid>
+
+                <!-- Cart Items Table -->
+                <Grid Grid.Row="1" Padding="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Fixed Table Header -->
+                    <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="10" Margin="0,0,0,10">
+                        <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto, Auto">
+                            <Label Grid.Column="0" Text="Image" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="1" Text="Drink Details" FontAttributes="Bold" FontSize="14" TextColor="Black" />
+                            <Label Grid.Column="2" Text="Add-ons" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="150" />
+                            <Label Grid.Column="3" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" />
+                            <Label Grid.Column="4" Text="Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="50" />
+                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                        </Grid>
+                    </Grid>
+
+                    <!-- Scrollable Cart Items -->
+                    <ScrollView Grid.Row="1">
+                        <CollectionView ItemsSource="{Binding CartItems}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid BackgroundColor="White" Padding="10" Margin="0,0,0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Product Image -->
+                                        <Frame Grid.Column="0" 
+                                               CornerRadius="10" 
+                                               Padding="5" 
+                                               BackgroundColor="#F0F0F0"
+                                               WidthRequest="60" 
+                                               HeightRequest="60">
+                                            <Image Source="{Binding ImageSource}" 
+                                                   Aspect="AspectFill" 
+                                                   HorizontalOptions="Fill" 
+                                                   VerticalOptions="Fill" />
+                                        </Frame>
+
+                                        <!-- Drink Details -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2" Padding="10,0">
+                                            <Label Text="{Binding ProductName, StringFormat='Drink: {0}'}" 
+                                                   FontSize="12" 
+                                                   TextColor="Black" />
+                                            <Label Text="Customer Name: Sanchez" 
+                                                   FontSize="12" 
+                                                   TextColor="Gray" />
+                                            <Label Text="Sugar Level: 100%" 
+                                                   FontSize="12" 
+                                                   TextColor="Gray" />
+                                        </VerticalStackLayout>
+
+                                        <!-- Add-ons -->
+                                        <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="5,0">
+                                            <Label Text="Expresso - P5" FontSize="11" TextColor="Black" />
+                                            <Label Text="Pearl - P5" FontSize="11" TextColor="Black" />
+                                            <Label Text="Nata - P10" FontSize="11" TextColor="Black" />
+                                        </VerticalStackLayout>
+
+                                        <!-- Size -->
+                                        <Label Grid.Column="3" 
+                                               Text="Large" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Quantity -->
+                                        <Label Grid.Column="4" 
+                                               Text="{Binding LargeQuantity}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Cost -->
+                                        <Label Grid.Column="5" 
+                                               Text="{Binding LargePrice, StringFormat='P{0:F0}'}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Edit Button -->
+                                        <Button Grid.Column="6" 
+                                                Text="Edit" 
+                                                FontSize="12" 
+                                                BackgroundColor="#4CAF50" 
+                                                TextColor="White" 
+                                                CornerRadius="15"
+                                                WidthRequest="60" 
+                                                HeightRequest="30"
+                                                Command="{Binding BindingContext.EditCartItemCommand, Source={x:Reference CartPopupView}}" 
+                                                CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </ScrollView>
+                </Grid>
+
+                <!-- Footer with Pagination and Checkout -->
+                <Grid Grid.Row="2" BackgroundColor="#E8D5C4" Padding="20,15">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <!-- Pagination -->
+                        <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
+                            <Button Text="1" 
+                                    FontSize="14" 
+                                    BackgroundColor="#5B4F45" 
+                                    TextColor="White" 
+                                    WidthRequest="30" 
+                                    HeightRequest="30" 
+                                    CornerRadius="15" />
+                            <Button Text="2" 
+                                    FontSize="14" 
+                                    BackgroundColor="LightGray" 
+                                    TextColor="Black" 
+                                    WidthRequest="30" 
+                                    HeightRequest="30" 
+                                    CornerRadius="15" />
+                            <Button Text="3" 
+                                    FontSize="14" 
+                                    BackgroundColor="LightGray" 
+                                    TextColor="Black" 
+                                    WidthRequest="30" 
+                                    HeightRequest="30" 
+                                    CornerRadius="15" />
+                            <Button Text="4" 
+                                    FontSize="14" 
+                                    BackgroundColor="LightGray" 
+                                    TextColor="Black" 
+                                    WidthRequest="30" 
+                                    HeightRequest="30" 
+                                    CornerRadius="15" />
+                            <Button Text="5" 
+                                    FontSize="14" 
+                                    BackgroundColor="LightGray" 
+                                    TextColor="Black" 
+                                    WidthRequest="30" 
+                                    HeightRequest="30" 
+                                    CornerRadius="15" />
+                        </HorizontalStackLayout>
+
+                        <!-- Checkout Button -->
+                        <Button Grid.Column="1" 
+                                Text="Check Out" 
+                                FontSize="16" 
+                                FontAttributes="Bold"
+                                BackgroundColor="#5B4F45" 
+                                TextColor="White" 
+                                CornerRadius="20"
+                                WidthRequest="120" 
+                                HeightRequest="40"
+                                Command="{Binding CheckoutCommand}" />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>

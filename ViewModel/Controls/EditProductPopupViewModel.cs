@@ -1,5 +1,6 @@
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.ViewModel.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -11,6 +12,7 @@ namespace Coftea_Capstone.ViewModel
     {
         private readonly Database _database;
         private readonly AddItemToPOSViewModel _addItemToPOSViewModel;
+        public NotificationPopupViewModel NotificationPopup { get; set; }
 
         [ObservableProperty]
         private bool isEditProductPopupVisible = false;
@@ -37,6 +39,7 @@ namespace Coftea_Capstone.ViewModel
         {
             _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
             _addItemToPOSViewModel = addItemToPOSViewModel;
+            NotificationPopup = ((App)Application.Current).NotificationPopup;
         }
 
         [RelayCommand]
@@ -125,13 +128,11 @@ namespace Coftea_Capstone.ViewModel
                     int rowsAffected = await _database.DeleteProductAsync(product.ProductID);
                     if (rowsAffected > 0)
                     {
-                        await Application.Current.MainPage.DisplayAlert("Success", "Product deleted successfully!", "OK");
+                        NotificationPopup.ShowNotification("Product deleted successfully!", "Success");
                         
                         // Remove from collections
                         AllProducts.Remove(product);
                         Products.Remove(product);
-                        
-                        StatusMessage = $"Product deleted. {Products.Count} products remaining.";
                     }
                     else
                     {

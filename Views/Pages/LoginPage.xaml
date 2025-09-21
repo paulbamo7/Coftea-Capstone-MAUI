@@ -102,15 +102,23 @@
                             HorizontalOptions="Center"
                             Command="{Binding LoginCommand}" />
 
-                    <!-- Admin Login -->
-                    <Label Text="Admin Login"
+                    <!-- Forgot Password -->
+                    <Label Text="Forgot Password?"
                            FontAttributes="Bold"
                            HorizontalOptions="Center"
                            FontSize="12"
-                           Padding="10,5,10,0" />
+                           Padding="10,5,10,0"
+                           TextColor="Black">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ForgotPasswordCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
                 </VerticalStackLayout>
             </Frame>
         </ScrollView>
-        <otherViews:NoInternetPopUp x:Name="RetryPopup" IsVisible="False" />
+        <!-- Retry Connection Popup -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" />
+        <!-- Password Reset Popup -->
+        <otherViews:PasswordResetPopup BindingContext="{Binding PasswordResetPopup}" />
     </Grid>
 </ContentPage>

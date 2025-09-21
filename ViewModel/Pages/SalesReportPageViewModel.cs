@@ -1,11 +1,10 @@
-﻿using Coftea_Capstone.C_;
+using Coftea_Capstone.C_;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Models;
@@ -13,16 +12,15 @@ using Microsoft.Maui.Networking;
 
 namespace Coftea_Capstone.ViewModel
 {
-    public partial class InventoryPageViewModel : ObservableObject
+    public partial class SalesReportPageViewModel : ObservableObject
     {
-        public AddItemToPOSViewModel AddItemToInventoryPopup { get; } = new AddItemToPOSViewModel();
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
 
         private readonly Database _database;
 
         [ObservableProperty]
-        private ObservableCollection<InventoryPageModel> inventoryItems = new();
+        private ObservableCollection<SalesReportPageModel> salesReports = new();
 
         [ObservableProperty]
         private bool isLoading;
@@ -33,7 +31,7 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool hasError;
 
-        public InventoryPageViewModel(SettingsPopUpViewModel settingsPopup)
+        public SalesReportPageViewModel(SettingsPopUpViewModel settingsPopup)
         {
             _database = new Database(
                 host: "192.168.1.4",
@@ -48,6 +46,7 @@ namespace Coftea_Capstone.ViewModel
         {
             return ((App)Application.Current).RetryConnectionPopup;
         }
+
         public async Task InitializeAsync()
         {
             await LoadDataAsync();
@@ -58,7 +57,7 @@ namespace Coftea_Capstone.ViewModel
             try
             {
                 IsLoading = true;
-                StatusMessage = "Loading inventory items...";
+                StatusMessage = "Loading sales reports...";
                 HasError = false;
 
                 if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
@@ -69,38 +68,31 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                var inventoryList = await _database.GetInventoryItemsAsync();
-                InventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
+                // TODO: Implement GetSalesReportsAsync in Database class
+                // var salesReportList = await _database.GetSalesReportsAsync();
+                // SalesReports = new ObservableCollection<SalesReportPageModel>(salesReportList);
 
-                StatusMessage = InventoryItems.Any() ? "Inventory items loaded successfully." : "No inventory items found.";
+                // For now, create some dummy data
+                var dummyReports = new List<SalesReportPageModel>
+                {
+                    new SalesReportPageModel { ReportID = 1, OrderItemID = 1, ReportDate = DateTime.Now.AddDays(-1), TotalOrder = 150 },
+                    new SalesReportPageModel { ReportID = 2, OrderItemID = 2, ReportDate = DateTime.Now.AddDays(-2), TotalOrder = 200 },
+                    new SalesReportPageModel { ReportID = 3, OrderItemID = 3, ReportDate = DateTime.Now.AddDays(-3), TotalOrder = 175 }
+                };
+                SalesReports = new ObservableCollection<SalesReportPageModel>(dummyReports);
+
+                StatusMessage = SalesReports.Any() ? "Sales reports loaded successfully." : "No sales reports found.";
             }
             catch (Exception ex)
             {
                 HasError = true;
-                StatusMessage = $"Failed to load inventory items: {ex.Message}";
-                GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load inventory items: {ex.Message}");
+                StatusMessage = $"Failed to load sales reports: {ex.Message}";
+                GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load sales reports: {ex.Message}");
             }
             finally
             {
                 IsLoading = false;
             }
         }
-
-        [RelayCommand]
-        private void AddInventoryItem(InventoryPageViewModel inventory)
-        {
-
-        }
-        [RelayCommand]
-        private void EditInventoryItem(InventoryPageViewModel inventory)
-        {
-
-        }
-        [RelayCommand]
-        private void RemoveInventoryItem(InventoryPageViewModel inventory)
-        {
-
-        }   
-        
     }
 }

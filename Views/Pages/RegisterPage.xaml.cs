@@ -5,6 +5,9 @@ public partial class RegisterPage : ContentPage
 	public RegisterPage()
 	{
 		InitializeComponent();
+		
+		// Set RetryConnectionPopup binding context
+		RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
 	}
     private void RegisterBtn_Clicked(object sender, EventArgs e)
     {

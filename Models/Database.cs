@@ -15,9 +15,12 @@ namespace Coftea_Capstone.C_
                         string user = "root",
                         string password = "")
         {
+            // Use localhost for Windows, 10.0.2.2 for Android emulator
+            var server = DeviceInfo.Platform == DevicePlatform.Android ? "10.0.2.2" : "localhost";
+            
             _db = new MySqlConnectionStringBuilder
             {
-                Server = "10.0.2.2",
+                Server = server,
                 Port = 3306,
                 Database = "coftea_db",
                 UserID = "root",
@@ -301,6 +304,67 @@ namespace Coftea_Capstone.C_
         }**/
 
         // User Management
+        public async Task<string> RequestPasswordResetAsync(string email)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            // Check if user exists
+            var sql = "SELECT * FROM users WHERE email = @Email LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+            {
+                return null; // User not found
+            }
+
+            // Generate reset token
+            var resetToken = Guid.NewGuid().ToString();
+            var resetExpiry = DateTime.Now.AddHours(1); // Token expires in 1 hour
+
+            reader.Close();
+
+
+            // Update user with reset token
+            var updateSql = "UPDATE users SET reset_token = @ResetToken, reset_expiry = @ResetExpiry WHERE email = @Email;";
+            await using var updateCmd = new MySqlCommand(updateSql, conn);
+            updateCmd.Parameters.AddWithValue("@ResetToken", resetToken);
+            updateCmd.Parameters.AddWithValue("@ResetExpiry", resetExpiry);
+            updateCmd.Parameters.AddWithValue("@Email", email);
+
+            int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
+            return rowsAffected > 0 ? resetToken : null;
+        }
+    
+
+        public async Task<bool> ResetPasswordAsync(string email, string newPassword, string resetToken)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            // Verify token and expiry
+            var sql = "SELECT * FROM users WHERE email = @Email AND reset_token = @ResetToken AND reset_expiry > NOW() LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+            cmd.Parameters.AddWithValue("@ResetToken", resetToken);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+            {
+                return false; // Invalid or expired token
+            }
+
+            reader.Close();
+
+            // Update password and clear reset token
+            var updateSql = "UPDATE users SET password = @NewPassword, reset_token = NULL, reset_expiry = NULL WHERE email = @Email;";
+            await using var updateCmd = new MySqlCommand(updateSql, conn);
+            updateCmd.Parameters.AddWithValue("@NewPassword", newPassword);
+            updateCmd.Parameters.AddWithValue("@Email", email);
+
+            int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
+            return rowsAffected > 0;
+        }
 
         // Notification
 

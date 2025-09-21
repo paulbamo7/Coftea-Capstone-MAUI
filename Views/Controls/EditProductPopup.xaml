@@ -62,13 +62,6 @@
                                          VerticalOptions="Center" 
                                          HorizontalOptions="Center" />
                         
-                        <!-- Status Message -->
-                        <Label Text="{Binding StatusMessage}" 
-                               TextColor="{Binding HasError, Converter={StaticResource NullToBoolConverter}}" 
-                               FontSize="14" 
-                               HorizontalOptions="Center" 
-                               VerticalOptions="Center"
-                               IsVisible="{Binding StatusMessage, Converter={StaticResource NullToBoolConverter}}" />
 
                         <!-- Products Collection -->
                         <CollectionView ItemsSource="{Binding Products}"

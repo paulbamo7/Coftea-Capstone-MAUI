@@ -6,6 +6,7 @@ using Coftea_Capstone.Views.Pages;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using Coftea_Capstone.Services;
+using Coftea_Capstone.ViewModel.Controls;
 using System.Threading.Tasks;
 using System;
 
@@ -14,11 +15,14 @@ namespace Coftea_Capstone.ViewModel
     public partial class LoginPageViewModel : ObservableObject
     {
         private readonly Database _database;
+        private readonly EmailService _emailService;
 
         [ObservableProperty] private string email;
         [ObservableProperty] private string password;
         [ObservableProperty] private bool rememberMe;
-        [ObservableProperty] private bool isRetryPopupVisible;
+        
+        public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
+        public PasswordResetPopupViewModel PasswordResetPopup { get; set; }
 
         public LoginPageViewModel()
         {
@@ -28,6 +32,8 @@ namespace Coftea_Capstone.ViewModel
                 user: "root",
                 password: ""
             );
+            _emailService = new EmailService();
+            PasswordResetPopup = ((App)Application.Current).PasswordResetPopup;
 
             // Load saved "Remember Me" preferences
             bool savedRememberMe = Preferences.Get("RememberMe", false);
@@ -39,16 +45,14 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
+        {
+            return ((App)Application.Current).RetryConnectionPopup;
+        }
+
         [RelayCommand]
         private async Task Login()
         {
-            // Check internet
-            if (!await NetworkService.EnsureInternetAsync())
-            {
-                ShowRetryPopupCommand.Execute(null);
-                return;
-            }
-
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Please enter email and password", "OK");
@@ -58,6 +62,13 @@ namespace Coftea_Capstone.ViewModel
 
             try
             {
+                // Check internet connection
+                if (!NetworkService.HasInternetConnection())
+                {
+                    GetRetryConnectionPopup().ShowRetryPopup(Login, "No internet connection detected. Please check your network settings and try again.");
+                    return;
+                }
+
                 var user = await _database.GetUserByEmailAsync(Email.Trim());
                 if (user == null)
                 {
@@ -100,12 +111,7 @@ namespace Coftea_Capstone.ViewModel
             }
             catch (MySqlConnector.MySqlException ex)
             {
-                await Application.Current.MainPage.DisplayAlert(
-                    "Database Error",
-                    $"Unable to connect to database. ({ex.Message})",
-                    "Retry"
-                );
-                ShowRetryPopupCommand.Execute(null);
+                GetRetryConnectionPopup().ShowRetryPopup(Login, $"Database connection failed: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -113,16 +119,17 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        [RelayCommand]
-        private void ShowRetryPopup() => IsRetryPopupVisible = true;
-
-        [RelayCommand]
-        private void HideRetryPopup() => IsRetryPopupVisible = false;
 
         [RelayCommand]
         private async Task GoToRegister()
         {
             await Application.Current.MainPage.Navigation.PushAsync(new RegisterPage());
+        }
+
+        [RelayCommand]
+        private async Task ForgotPassword()
+        {
+            await Application.Current.MainPage.Navigation.PushAsync(new ForgotPasswordPage());
         }
 
         [RelayCommand]

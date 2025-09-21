@@ -2,14 +2,16 @@ using Coftea_Capstone.ViewModel;
 
 namespace Coftea_Capstone.Views.Pages;
 
-public partial class Inventory : ContentPage
+public partial class ForgotPasswordPage : ContentPage
 {
-    public Inventory()
-	{
-		InitializeComponent();
+    public ForgotPasswordPage()
+    {
+        InitializeComponent();
+    }
 
-        // Use shared SettingsPopup from App directly
-        BindingContext = ((App)Application.Current).SettingsPopup;
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
         
         // Set RetryConnectionPopup binding context
         RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;

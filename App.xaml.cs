@@ -3,6 +3,7 @@ using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Views.Pages;
 using Coftea_Capstone.ViewModel;
+using Coftea_Capstone.ViewModel.Controls;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using System;
@@ -22,6 +23,9 @@ namespace Coftea_Capstone
         public ManagePOSOptionsViewModel ManagePOSPopup { get; private set; }
         public ManageInventoryOptionsViewModel ManageInventoryPopup { get; private set; }
         public AddItemToInventoryViewModel AddItemToInventoryPopup { get; private set; }
+        public RetryConnectionPopupViewModel RetryConnectionPopup { get; private set; }
+        public NotificationPopupViewModel NotificationPopup { get; private set; }
+        public PasswordResetPopupViewModel PasswordResetPopup { get; private set; }
 
         public App()
         {
@@ -74,6 +78,9 @@ namespace Coftea_Capstone
             ManageInventoryPopup = new ManageInventoryOptionsViewModel(AddItemToInventoryPopup);
             SettingsPopup = new SettingsPopUpViewModel(AddItemPopup, ManagePOSPopup, ManageInventoryPopup);
             POSVM = new POSPageViewModel(AddItemPopup, SettingsPopup);
+            RetryConnectionPopup = new RetryConnectionPopupViewModel();
+            NotificationPopup = new NotificationPopupViewModel();
+            PasswordResetPopup = new PasswordResetPopupViewModel();
         }
 
         private void NavigateToDashboard(bool isAdmin)

@@ -11,8 +11,26 @@ namespace Coftea_Capstone.C_
         public decimal SmallPrice { get; set; }
         public decimal LargePrice { get; set; }
         public string ImageSet { get; set; }
-        public ImageSource ImageSource =>
-        string.IsNullOrWhiteSpace(ImageSet) ? "placeholder.png" : ImageSource.FromFile(ImageSet);
+        public ImageSource ImageSource
+        {
+            get
+            {
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(ImageSet))
+                        return ImageSource.FromFile("placeholder.png");
+                    
+                    if (ImageSet.StartsWith("http"))
+                        return ImageSource.FromUri(new Uri(ImageSet));
+                    
+                    return ImageSource.FromFile(ImageSet);
+                }
+                catch
+                {
+                    return ImageSource.FromFile("placeholder.png");
+                }
+            }
+        }
         public string Category { get; set; }
         public string Subcategory { get; set; }
         public string ProductDescription { get; set; }

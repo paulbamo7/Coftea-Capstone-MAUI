@@ -105,11 +105,11 @@ namespace Coftea_Capstone.ViewModel
             ConnectPOSToInventoryVM = new ConnectPOSItemToInventoryViewModel();
             ConnectPOSToInventoryVM.ReturnRequested += () =>
             {
-                IsAddItemToPOSVisible = true; 
+                IsAddItemToPOSVisible = true;
             };
             ConnectPOSToInventoryVM.ConfirmPreviewRequested += async () =>
             {
-                await AddProduct(); 
+                await AddProduct();
             };
         }
 
@@ -139,7 +139,7 @@ namespace Coftea_Capstone.ViewModel
             ImagePath = product.ImageSet;
             SelectedImageSource = !string.IsNullOrEmpty(product.ImageSet) ? ImageSource.FromFile(product.ImageSet) : null;
             ProductDescription = product.ProductDescription ?? string.Empty;
-            
+
             // Set category and subcategory based on the product's data
             if (!string.IsNullOrEmpty(product.Category))
             {
@@ -292,7 +292,7 @@ namespace Coftea_Capstone.ViewModel
                 {
                     ImagePath = result.FullPath;
 
-   
+
                     SelectedImageSource = ImageSource.FromFile(result.FullPath);
                 }
             }

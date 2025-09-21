@@ -16,6 +16,10 @@ namespace Coftea_Capstone.ViewModel
     {
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
+        public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
+        public NotificationPopupViewModel NotificationPopup { get; set; }
+        public CartPopupViewModel CartPopup { get; set; }
+        public HistoryPopupViewModel HistoryPopup { get; set; }
 
 
         private readonly Database _database;
@@ -68,6 +72,10 @@ namespace Coftea_Capstone.ViewModel
             _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
             SettingsPopup = settingsPopupViewModel;
             AddItemToPOSViewModel = addItemToPOSViewModel;
+            NotificationPopup = ((App)Application.Current).NotificationPopup;
+            RetryConnectionPopup = ((App)Application.Current).RetryConnectionPopup;
+            CartPopup = new CartPopupViewModel();
+            HistoryPopup = new HistoryPopupViewModel();
 
             AddItemToPOSViewModel.ProductAdded += OnProductAdded;
             AddItemToPOSViewModel.ProductUpdated += OnProductUpdated;
@@ -75,6 +83,11 @@ namespace Coftea_Capstone.ViewModel
             {
                 AddItemToPOSViewModel.IsAddItemToPOSVisible = true;
             };
+        }
+
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
+        {
+            return ((App)Application.Current).RetryConnectionPopup;
         }
 
         private async void OnProductAdded(POSPageModel newProduct)
@@ -191,6 +204,11 @@ namespace Coftea_Capstone.ViewModel
                 {
                     HasError = true;
                     StatusMessage = "No internet connection. Please check your network.";
+                    var retryPopup = GetRetryConnectionPopup();
+                    if (retryPopup != null)
+                    {
+                        retryPopup.ShowRetryPopup(LoadDataAsync, "No internet connection detected. Please check your network settings and try again.");
+                    }
                     return;
                 }
 
@@ -198,12 +216,30 @@ namespace Coftea_Capstone.ViewModel
                 Products = new ObservableCollection<POSPageModel>(productList);
                 FilteredProducts = new ObservableCollection<POSPageModel>(productList);
 
-                StatusMessage = Products.Any() ? "Products loaded successfully." : "No products found.";
+                if (Products.Any())
+                {
+                    StatusMessage = "Products loaded successfully!";
+                }
+                else
+                {
+                    StatusMessage = "No products found. Please add some products to the database.";
+                    // Create some sample products for testing if database is empty
+                    await CreateSampleProducts();
+                }
             }
             catch (Exception ex)
             {
                 HasError = true;
                 StatusMessage = $"Failed to load products: {ex.Message}";
+                
+                // Create sample products as fallback
+                await CreateSampleProducts();
+                
+                var retryPopup = GetRetryConnectionPopup();
+                if (retryPopup != null)
+                {
+                    retryPopup.ShowRetryPopup(LoadDataAsync, $"Failed to load products: {ex.Message}");
+                }
             }
             finally
             {
@@ -211,10 +247,64 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private async Task CreateSampleProducts()
+        {
+            // Create sample products for testing when database is not available
+            var sampleProducts = new List<POSPageModel>
+            {
+                new POSPageModel
+                {
+                    ProductID = 1,
+                    ProductName = "Cappuccino",
+                    SmallPrice = 120.00m,
+                    LargePrice = 150.00m,
+                    Category = "Coffee",
+                    ImageSet = "drink.png"
+                },
+                new POSPageModel
+                {
+                    ProductID = 2,
+                    ProductName = "Latte",
+                    SmallPrice = 130.00m,
+                    LargePrice = 160.00m,
+                    Category = "Coffee",
+                    ImageSet = "drink.png"
+                },
+                new POSPageModel
+                {
+                    ProductID = 3,
+                    ProductName = "Chocolate Frappe",
+                    SmallPrice = 140.00m,
+                    LargePrice = 170.00m,
+                    Category = "Frappe",
+                    ImageSet = "drink.png"
+                }
+            };
+
+            Products = new ObservableCollection<POSPageModel>(sampleProducts);
+            FilteredProducts = new ObservableCollection<POSPageModel>(sampleProducts);
+            StatusMessage = "Using sample products (Database connection failed)";
+        }
+
         [RelayCommand]
         private void AddToCart(POSPageModel product)
         {
-            if (product == null) return;
+            if (product == null) 
+            {
+                System.Diagnostics.Debug.WriteLine("AddToCart: product is null");
+                return;
+            }
+
+            // Check if there are any items to add (at least one quantity > 0)
+            if (product.SmallQuantity <= 0 && product.LargeQuantity <= 0)
+            {
+                // Show notification that no items were selected
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ShowNotification("Please select at least one item to add to cart.", "No Items Selected");
+                }
+                return;
+            }
 
             var existing = CartItems.FirstOrDefault(p => p.ProductID == product.ProductID);
             if (existing != null)
@@ -240,11 +330,18 @@ namespace Coftea_Capstone.ViewModel
             // Reset selection quantities
             product.SmallQuantity = 0;
             product.LargeQuantity = 0;
+
+            // Show success notification
+            if (NotificationPopup != null)
+            {
+                NotificationPopup.ShowNotification("Item(s) added to cart successfully!", "Added to Cart");
+            }
         }
 
         [RelayCommand]
         private void SelectProduct(POSPageModel product)
         {
+            System.Diagnostics.Debug.WriteLine($"SelectProduct called with product: {product?.ProductName ?? "null"}");
             SelectedProduct = product;
 
             AvailableSizes.Clear();
@@ -274,15 +371,96 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void IncreaseSmallQty() => SelectedProduct.SmallQuantity++;
+        private void IncreaseSmallQty() 
+        { 
+            if (SelectedProduct != null) 
+                SelectedProduct.SmallQuantity++; 
+        }
 
         [RelayCommand]
-        private void DecreaseSmallQty() { if (SelectedProduct.SmallQuantity > 0) SelectedProduct.SmallQuantity--; }
+        private void DecreaseSmallQty() 
+        { 
+            if (SelectedProduct != null && SelectedProduct.SmallQuantity > 0) 
+                SelectedProduct.SmallQuantity--; 
+        }
 
         [RelayCommand]
-        private void IncreaseLargeQty() => SelectedProduct.LargeQuantity++;
+        private void IncreaseLargeQty() 
+        { 
+            if (SelectedProduct != null) 
+                SelectedProduct.LargeQuantity++; 
+        }
 
         [RelayCommand]
-        private void DecreaseLargeQty() { if (SelectedProduct.LargeQuantity > 0) SelectedProduct.LargeQuantity--; }
+        private void DecreaseLargeQty() 
+        { 
+            if (SelectedProduct != null && SelectedProduct.LargeQuantity > 0) 
+                SelectedProduct.LargeQuantity--; 
+        }
+
+        [RelayCommand]
+        private void ShowCart()
+        {
+            CartPopup.ShowCart(CartItems);
+        }
+
+        [RelayCommand]
+        private void ShowHistory()
+        {
+            System.Diagnostics.Debug.WriteLine("ShowHistory command called");
+            
+            // Create sample transaction data for testing
+            var sampleTransactions = new ObservableCollection<TransactionHistoryModel>
+            {
+                new TransactionHistoryModel
+                {
+                    TransactionId = 1,
+                    DrinkName = "Cappuccino",
+                    Size = "Large",
+                    Quantity = 2,
+                    Price = 150.00m,
+                    AddOns = "Extra Shot, Oat Milk",
+                    CustomerName = "John Doe",
+                    PaymentMethod = "Cash",
+                    Status = "Completed",
+                    TransactionDate = DateTime.Now.AddHours(-2)
+                },
+                new TransactionHistoryModel
+                {
+                    TransactionId = 2,
+                    DrinkName = "Latte",
+                    Size = "Small",
+                    Quantity = 1,
+                    Price = 130.00m,
+                    AddOns = "Vanilla Syrup",
+                    CustomerName = "Jane Smith",
+                    PaymentMethod = "Card",
+                    Status = "Completed",
+                    TransactionDate = DateTime.Now.AddHours(-1)
+                },
+                new TransactionHistoryModel
+                {
+                    TransactionId = 3,
+                    DrinkName = "Chocolate Frappe",
+                    Size = "Large",
+                    Quantity = 1,
+                    Price = 170.00m,
+                    AddOns = "Whipped Cream",
+                    CustomerName = "Mike Johnson",
+                    PaymentMethod = "Cash",
+                    Status = "Completed",
+                    TransactionDate = DateTime.Now.AddMinutes(-30)
+                }
+            };
+            
+            HistoryPopup.ShowHistory(sampleTransactions);
+            System.Diagnostics.Debug.WriteLine($"HistoryPopup.IsHistoryVisible: {HistoryPopup.IsHistoryVisible}");
+        }
+
+        [RelayCommand]
+        private void Cart()
+        {
+            ShowCart();
+        }
     }
 }

@@ -4,8 +4,14 @@
              x:Class="Coftea_Capstone.Views.Pages.Inventory"
              xmlns:view="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              Title="Inventory"
              BackgroundColor="#D6BCA8">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
         <!-- Sidebar Navigation -->
@@ -52,8 +58,19 @@
                             <SearchBar Placeholder="Search for something" WidthRequest="250" HeightRequest="40" BackgroundColor="White"/>
                         </HorizontalStackLayout>
 
+                        <!-- Loading Indicator -->
+                        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Start" IsVisible="{Binding IsLoading}">
+                            <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
+                            <Label Text="{Binding StatusMessage}" TextColor="{Binding HasError}" FontSize="14" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+
                         <!-- Inventory CollectionView -->
-                        <CollectionView x:Name="InventoryCollectionView" ItemsLayout="VerticalList" BackgroundColor="Transparent" Margin="0,10,0,0">
+                        <CollectionView x:Name="InventoryCollectionView" 
+                                       ItemsSource="{Binding InventoryItems}"
+                                       ItemsLayout="VerticalList" 
+                                       BackgroundColor="Transparent" 
+                                       Margin="0,10,0,0"
+                                       IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
                             <CollectionView.Header>
                                 <!-- Header Row -->
                                 <Grid ColumnDefinitions="1*, 1*, 2*" BackgroundColor="#DAAB97" Padding="15">
@@ -67,11 +84,11 @@
                                     <Frame Padding="10" Margin="0,5,0,5" CornerRadius="10" BackgroundColor="White">
                                         <Grid ColumnDefinitions="2*, 1*, 1*" VerticalOptions="Center">
                                             <!-- Name -->
-                                            <Label Text="{Binding ItemName}" Grid.Column="0" VerticalOptions="Center"/>
+                                            <Label Text="{Binding itemName}" Grid.Column="0" VerticalOptions="Center"/>
                                             <!-- Category -->
-                                            <Label Text="{Binding Category}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                            <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
                                             <!-- Stocks -->
-                                            <Label Text="{Binding Stocks}" Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                            <Label Text="{Binding itemQuantity, StringFormat='{0:F1}'}" Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center"/>
                                         </Grid>
                                     </Frame>
                                 </DataTemplate>
@@ -101,5 +118,8 @@
         <!-- Manage Inventory Options Popup -->
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
+        
+        <!-- Retry Connection Popup -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
     </Grid>
 </ContentPage>

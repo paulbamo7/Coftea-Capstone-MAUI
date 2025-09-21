@@ -2,6 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Views.Pages;
+using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Services;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.Maui.Controls;
@@ -13,6 +15,7 @@ namespace Coftea_Capstone.ViewModel
     public partial class RegisterPageViewModel : ObservableObject
     {
         private readonly Database _database;
+        public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
 
         public RegisterPageViewModel()
         {
@@ -22,6 +25,11 @@ namespace Coftea_Capstone.ViewModel
                user: "root",
                password: ""
             );
+        }
+
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
+        {
+            return ((App)Application.Current).RetryConnectionPopup;
         }
 
         [ObservableProperty] private bool isTermsAccepted;
@@ -113,34 +121,45 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Error", "You must accept the Terms and Conditions to register.", "OK");
                 return;
             }
-            // Check if email already exists
-            var existingUser = await _database.GetUserByEmailAsync(Email);
-            if (existingUser != null)
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered.", "OK");
-                return;
-            }
-
-            // Create user model
-            var user = new UserInfoModel
-            {
-                Email = Email.Trim(),
-                Password = Password,
-                FirstName = FirstName.Trim(),
-                LastName = LastName.Trim(),
-                PhoneNumber = PhoneNumber.Trim(),
-                Address = Address.Trim(),
-                Birthday = Birthday,
-                // IsAdmin = false // default new users as employees
-            };
-
             try
             {
+                // Check internet connection
+                if (!NetworkService.HasInternetConnection())
+                {
+                    GetRetryConnectionPopup().ShowRetryPopup(Register, "No internet connection detected. Please check your network settings and try again.");
+                    return;
+                }
+
+                // Check if email already exists
+                var existingUser = await _database.GetUserByEmailAsync(Email);
+                if (existingUser != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered.", "OK");
+                    return;
+                }
+
+                // Create user model
+                var user = new UserInfoModel
+                {
+                    Email = Email.Trim(),
+                    Password = Password,
+                    FirstName = FirstName.Trim(),
+                    LastName = LastName.Trim(),
+                    PhoneNumber = PhoneNumber.Trim(),
+                    Address = Address.Trim(),
+                    Birthday = Birthday,
+                    // IsAdmin = false // default new users as employees
+                };
+
                 await _database.AddUserAsync(user);
                 await Application.Current.MainPage.DisplayAlert("Success", "Account created successfully!", "OK");
 
                 // Navigate back to Login page
                 await Application.Current.MainPage.Navigation.PopAsync();
+            }
+            catch (MySqlConnector.MySqlException ex)
+            {
+                GetRetryConnectionPopup().ShowRetryPopup(Register, $"Database connection failed: {ex.Message}");
             }
             catch (Exception ex)
             {

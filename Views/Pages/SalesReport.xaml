@@ -4,8 +4,14 @@
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" 
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls" 
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              Shell.TabBarIsVisible="False" 
              BackgroundColor="#C1A892">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
 
         <!-- Sidebar Navigation -->
@@ -21,9 +27,36 @@
                     <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
                 </Grid>
                 
+                <!-- Loading Indicator -->
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Start" IsVisible="{Binding IsLoading}">
+                    <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
+                    <Label Text="{Binding StatusMessage}" TextColor="{Binding HasError}" FontSize="14" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+
                 <!-- Sales Report Content -->
-                <Frame BackgroundColor="White" CornerRadius="15" Padding="20">
-                    <Label Text="Sales Report Content Coming Soon..." FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Frame BackgroundColor="White" CornerRadius="15" Padding="20" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                    <CollectionView ItemsSource="{Binding SalesReports}" BackgroundColor="Transparent">
+                        <CollectionView.Header>
+                            <Grid ColumnDefinitions="1*, 1*, 1*, 1*" BackgroundColor="#DAAB97" Padding="15">
+                                <Label Text="Report ID" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                <Label Text="Order Item ID" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1"/>
+                                <Label Text="Date" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2"/>
+                                <Label Text="Total Orders" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="3"/>
+                            </Grid>
+                        </CollectionView.Header>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame Padding="10" Margin="0,5,0,5" CornerRadius="10" BackgroundColor="White">
+                                    <Grid ColumnDefinitions="1*, 1*, 1*, 1*" VerticalOptions="Center">
+                                        <Label Text="{Binding ReportID}" Grid.Column="0" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding OrderItemID}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding ReportDate, StringFormat='{0:MM/dd/yyyy}'}" Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding TotalOrder}" Grid.Column="3" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                 </Frame>
             </VerticalStackLayout>
         </VerticalStackLayout>
@@ -38,5 +71,8 @@
         <!-- Manage Inventory Options Popup -->
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
+        
+        <!-- Retry Connection Popup -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
     </Grid>
 </ContentPage>

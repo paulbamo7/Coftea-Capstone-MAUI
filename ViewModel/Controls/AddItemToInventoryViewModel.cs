@@ -70,6 +70,20 @@ namespace Coftea_Capstone.ViewModel
             "Pounds (lbs)"
         };
 
+        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>
+        {
+            "Coffee Beans",
+            "Milk & Dairy",
+            "Syrups & Flavors",
+            "Tea Leaves",
+            "Fruits & Vegetables",
+            "Baking Supplies",
+            "Paper Products",
+            "Cleaning Supplies",
+            "Equipment",
+            "Other"
+        };
+
         public AddItemToInventoryViewModel()
         {
             _database = new Database(
@@ -166,6 +180,13 @@ namespace Coftea_Capstone.ViewModel
             {
                 await App.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
             }
+        }
+
+        [RelayCommand]
+        private void ClearImage()
+        {
+            ImagePath = string.Empty;
+            SelectedImageSource = null;
         }
 
         private void ResetForm()
