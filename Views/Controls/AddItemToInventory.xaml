@@ -61,66 +61,68 @@
 
                 <!-- Right Column -->
                 <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7" CornerRadius="20">
-                    <VerticalStackLayout Spacing="7" Padding="20">
-                        <Grid Margin="0,0,0,20">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Label Text="Measurement Details" FontAttributes="Bold" FontSize="28" VerticalOptions="Center" Grid.Column="0" TextColor="Black"/>
-                            <ImageButton Source="close.png" WidthRequest="25" HeightRequest="25" Grid.Column="1" 
+                    <ScrollView>
+                        <VerticalStackLayout Spacing="7" Padding="20">
+                            <Grid Margin="0,0,0,20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="Measurement Details" FontAttributes="Bold" FontSize="28" VerticalOptions="Center" Grid.Column="0" TextColor="Black"/>
+                                <ImageButton Source="close.png" WidthRequest="25" HeightRequest="25" Grid.Column="1" 
                                          VerticalOptions="Center" Command="{Binding CloseAddItemToInventoryCommand}"/>
-                        </Grid>
-                        <VerticalStackLayout HorizontalOptions="Center">
-                            <HorizontalStackLayout Spacing="20">
-                                <Label Text="STOCK QUANTITY" FontSize="18" FontAttributes="Bold" TextColor="#8B4513"/>
-                                <Label Text="UNIT OF MEASUREMENT (UoM)" FontSize="18" FontAttributes="Bold" TextColor="#8B4513"/>
-                            </HorizontalStackLayout>
+                            </Grid>
+                            <VerticalStackLayout HorizontalOptions="Center">
+                                <HorizontalStackLayout Spacing="20">
+                                    <Label Text="STOCK QUANTITY" FontSize="18" FontAttributes="Bold" TextColor="#8B4513"/>
+                                    <Label Text="UNIT OF MEASUREMENT (UoM)" FontSize="18" FontAttributes="Bold" TextColor="#8B4513"/>
+                                </HorizontalStackLayout>
 
-                        </VerticalStackLayout>
-                        <VerticalStackLayout>
-                            <HorizontalStackLayout Spacing="20">
-                                <Entry Placeholder="Enter current stock quantity" Text="{Binding UoMQuantity}" Keyboard="Numeric" 
+                            </VerticalStackLayout>
+                            <VerticalStackLayout>
+                                <HorizontalStackLayout Spacing="20">
+                                    <Entry Placeholder="Enter current stock quantity" Text="{Binding UoMQuantity}" Keyboard="Numeric" 
                                        TextColor="Black" FontSize="16" WidthRequest="150"/>
-                                <Picker Title="Select UoM" ItemsSource="{Binding UoMOptions}" SelectedItem="{Binding SelectedUoM}"
+                                    <Picker Title="Select UoM" ItemsSource="{Binding UoMOptions}" SelectedItem="{Binding SelectedUoM}"
                                         FontSize="16" WidthRequest="255"
 
                                         TextColor="Black"/>
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
-                        
-                        <HorizontalStackLayout>
-                            <Label Text="MINIMUM QUANTITY LEVEL" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,5"/>
-                            <Label Text="(Show alerts if met)" FontSize="14" TextColor="#666666" Margin="20,20,0,0"/>
-                        </HorizontalStackLayout>
-                        <Entry Placeholder="Enter minimum quantity" Text="{Binding MinimumQuantity}" Keyboard="Numeric" 
-                               TextColor="Black" FontSize="16"/>
-                        
-                        <Label Text="MINIMUM UoM Level" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,5"/>
-                        <HorizontalStackLayout Spacing="10">
-                            <Entry Placeholder="Quantity" Text="{Binding MinimumUoMQuantity}" Keyboard="Numeric" 
-                                   TextColor="Black" FontSize="16" WidthRequest="200"/>
-                            <Picker Title="Select UoM" ItemsSource="{Binding UoMOptions}" SelectedItem="{Binding SelectedMinimumUoM}" FontSize="16"
-                                    TextColor="Black" WidthRequest="200"/>
-                        </HorizontalStackLayout>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
 
-                        <Label Text="DESCRIPTION (OPTIONAL)" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,10"/>
-                        <Frame BackgroundColor="White" 
+                            <HorizontalStackLayout>
+                                <Label Text="MINIMUM QUANTITY LEVEL" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,5"/>
+                                <Label Text="(Show alerts if met)" FontSize="14" TextColor="#666666" Margin="20,20,0,0"/>
+                            </HorizontalStackLayout>
+                            <Entry Placeholder="Enter minimum quantity" Text="{Binding MinimumQuantity}" Keyboard="Numeric" 
+                               TextColor="Black" FontSize="16"/>
+
+                            <Label Text="MINIMUM UoM Level" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,5"/>
+                            <HorizontalStackLayout Spacing="10">
+                                <Entry Placeholder="Quantity" Text="{Binding MinimumUoMQuantity}" Keyboard="Numeric" 
+                                   TextColor="Black" FontSize="16" WidthRequest="200"/>
+                                <Picker Title="Select UoM" ItemsSource="{Binding UoMOptions}" SelectedItem="{Binding SelectedMinimumUoM}" FontSize="16"
+                                    TextColor="Black" WidthRequest="200"/>
+                            </HorizontalStackLayout>
+
+                            <Label Text="DESCRIPTION (OPTIONAL)" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,10"/>
+                            <Frame BackgroundColor="White" 
                                CornerRadius="10" 
                                Padding="15"
                                HasShadow="False">
-                            <Editor Placeholder="Enter item description..." 
+                                <Editor Placeholder="Enter item description..." 
                                 HeightRequest="120" 
                                 Text="{Binding ItemDescription}" 
                                 BackgroundColor="Transparent"
                                 TextColor="Black"
                                 FontSize="16"/>
-                        </Frame>
+                            </Frame>
 
-                        <Button Text="Add Item" WidthRequest="150" BackgroundColor="#FFD700" TextColor="Black" 
+                            <Button Text="Add Item" WidthRequest="150" BackgroundColor="#FFD700" TextColor="Black" 
                                 Command="{Binding AddItemCommand}" HorizontalOptions="End" Margin="0,20,0,0"
                                 FontSize="16" FontAttributes="Bold" CornerRadius="25"/>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </ScrollView>
                 </Frame>
             </HorizontalStackLayout>
         </VerticalStackLayout>

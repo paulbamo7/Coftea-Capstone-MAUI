@@ -11,13 +11,33 @@
         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
             <HorizontalStackLayout Spacing="20">
                 <!-- Left Frame: Ingredients / Addons -->
-                <Frame BackgroundColor="#D8C4B6" CornerRadius="20" WidthRequest="500" HeightRequest="600" Padding="20">
+                <Frame BackgroundColor="#D8C4B6" CornerRadius="20" WidthRequest="700" HeightRequest="700" Padding="20">
                     <VerticalStackLayout Spacing="15">
 
                         <!-- Top Frame: Selected Inventory / Addons -->
-                        <Frame BackgroundColor="#EAEAEA" CornerRadius="10" Padding="10" HasShadow="False" HeightRequest="200">
-                            <VerticalStackLayout>
+                        <Frame BackgroundColor="#EAEAEA" CornerRadius="10" Padding="10" HasShadow="False" HeightRequest="250">
+                            <VerticalStackLayout Spacing="10">
                                 <Label Text="SELECTED INVENTORY ITEMS" FontAttributes="Bold" FontSize="20"/>
+                                <!-- Category buttons and controls -->
+                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                                    <Button Text="Addons" Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons"/>
+                                    <Button Text="Ingredients" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
+                                    <Button Text="Supplies" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
+                                    <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="150" HeightRequest="36">
+                                        <Picker Title="Sort By" SelectedItem="{Binding SelectedSort}">
+                                            <Picker.Items>
+                                                <x:String>Name (A-Z)</x:String>
+                                                <x:String>Name (Z-A)</x:String>
+                                                <x:String>Quantity (Low to High)</x:String>
+                                                <x:String>Quantity (High to Low)</x:String>
+                                            </Picker.Items>
+                                        </Picker>
+                                    </Frame>
+                                    <SearchBar Placeholder="Search" WidthRequest="200" Text="{Binding SearchText}"/>
+                                    <Button Text="Select All" Command="{Binding SelectAllVisibleCommand}"/>
+                                </HorizontalStackLayout>
+
+                                <!-- Selected items preview -->
                                 <ScrollView>
                                     <StackLayout BindableLayout.ItemsSource="{Binding Ingredients}">
                                         <BindableLayout.ItemTemplate>
@@ -30,23 +50,52 @@
                             </VerticalStackLayout>
                         </Frame>
 
-                        <!-- Bottom Frame: Addons Measurement -->
+                        <!-- Bottom Frame: Select from Inventory -->
                         <Frame BackgroundColor="White" CornerRadius="10" Padding="10" HasShadow="False" HeightRequest="400">
                             <VerticalStackLayout Spacing="10">
-                                <Label Text="ADDONS MEASUREMENT" FontAttributes="Bold" FontSize="20"/>
-                                <ScrollView>
-                                    <StackLayout BindableLayout.ItemsSource="{Binding Ingredients}">
-                                        <BindableLayout.ItemTemplate>
-                                            <DataTemplate>
-                                                <!-- Only show selected items -->
-                                                <HorizontalStackLayout Spacing="10" IsVisible="{Binding Selected}">
-                                                    <Label Text="{Binding Name}" FontSize="18" VerticalOptions="Center"/>
-                                                    <Label Text="{Binding Amount, StringFormat='Qty: {0}'}" FontSize="18" VerticalOptions="Center"/>
+                                <Label Text="SELECT FROM INVENTORY" FontAttributes="Bold" FontSize="20"/>
+                                <!-- Header -->
+                                <Grid ColumnDefinitions="2*,1*,2*" BackgroundColor="#DAAB97" Padding="10,6">
+                                    <Label Grid.Column="0" Text="ITEMS" HorizontalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="CATEGORY" HorizontalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="STOCKS" HorizontalOptions="Center"/>
+                                </Grid>
+
+                                <CollectionView ItemsSource="{Binding InventoryItems}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="Auto,2*,1*,Auto,Auto" Padding="10,6">
+                                                <Grid.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.ToggleSelectCommand}" CommandParameter="{Binding .}"/>
+                                                </Grid.GestureRecognizers>
+                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}"/>
+                                                <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                                    <Frame WidthRequest="30" HeightRequest="30" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
+                                                        <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
+                                                    </Frame>
+                                                    <Label Text="{Binding itemName}"/>
                                                 </HorizontalStackLayout>
-                                            </DataTemplate>
-                                        </BindableLayout.ItemTemplate>
-                                    </StackLayout>
-                                </ScrollView>
+                                                <Label Grid.Column="2" Text="{Binding itemCategory}" HorizontalOptions="Start"/>
+                                                <VerticalStackLayout Grid.Column="3" Spacing="4">
+                                                    <HorizontalStackLayout Spacing="4" HorizontalOptions="Start">
+                                                        <Label Text="{Binding StockDisplay}" FontSize="12"/>
+                                                        <Label Text="{Binding MinimumDisplay}" FontSize="11" TextColor="#666"/>
+                                                    </HorizontalStackLayout>
+                                                    <Grid HeightRequest="8">
+                                                        <BoxView Color="#FF3B30" CornerRadius="4"/>
+                                                        <ProgressBar Progress="{Binding StockProgress}" ProgressColor="#34C759" BackgroundColor="Transparent" HeightRequest="8"/>
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                                <!-- Amount + Unit selectors for deduction -->
+                                                <HorizontalStackLayout Grid.Column="4" Spacing="6" VerticalOptions="Center">
+                                                    <Entry WidthRequest="60" Keyboard="Numeric" Placeholder="Qty"
+                                                           Text="{Binding InputAmount}"/>
+                                                    <Picker WidthRequest="80" SelectedItem="{Binding InputUnit}" ItemsSource="{Binding AllowedUnits}"/>
+                                                </HorizontalStackLayout>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
                             </VerticalStackLayout>
                         </Frame>
 
@@ -54,7 +103,7 @@
                 </Frame>
 
                 <!-- Right Frame: Product Preview -->
-                <Frame BackgroundColor="#F8E8D7" CornerRadius="20" WidthRequest="500" HeightRequest="600" Padding="20">
+                <Frame BackgroundColor="#F8E8D7" CornerRadius="20" WidthRequest="320" HeightRequest="700" Padding="20">
                     <VerticalStackLayout Spacing="15">
                         <Grid Margin="0,0,0,15">
                             <Grid.ColumnDefinitions>

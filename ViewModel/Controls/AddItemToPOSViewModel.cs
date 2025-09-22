@@ -195,6 +195,13 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            // Validate inventory sufficiency for selected ingredients
+            var inventoryOk = await ValidateInventorySufficiencyAsync();
+            if (!inventoryOk)
+            {
+                return;
+            }
+
             var product = new POSPageModel
             {
                 ProductName = ProductName,
@@ -216,6 +223,7 @@ namespace Coftea_Capstone.ViewModel
                     if (rowsAffected > 0)
                     {
                         await Application.Current.MainPage.DisplayAlert("Success", "Product updated successfully!", "OK");
+                        await DeductSelectedIngredientsAsync();
                         ResetForm();
                         ProductUpdated?.Invoke(product);
                     }
@@ -234,6 +242,7 @@ namespace Coftea_Capstone.ViewModel
                     if (rowsAffected > 0)
                     {
                         await Application.Current.MainPage.DisplayAlert("Success", "Product added successfully!", "OK");
+                        await DeductSelectedIngredientsAsync();
                         ResetForm();
                         ProductAdded?.Invoke(product);
                     }
@@ -244,6 +253,102 @@ namespace Coftea_Capstone.ViewModel
                 string action = IsEditMode ? "update" : "add";
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to {action} product: {ex.Message}", "OK");
             }
+        }
+
+        private async Task<bool> ValidateInventorySufficiencyAsync()
+        {
+            var selected = ConnectPOSToInventoryVM?.InventoryItems?.Where(i => i.IsSelected).ToList();
+            if (selected == null || selected.Count == 0) return true; // nothing to validate
+
+            List<string> issues = new();
+            foreach (var it in selected)
+            {
+                // Convert requested amount to the inventory unit
+                var fromUnit = (it.InputUnit ?? string.Empty).Trim();
+                var toUnit = (it.unitOfMeasurement ?? string.Empty).Trim();
+                var amountRequested = ConvertUnits(it.InputAmount > 0 ? it.InputAmount : 1, fromUnit, toUnit);
+
+                if (amountRequested <= 0)
+                {
+                    issues.Add($"{it.itemName}: incompatible unit ({fromUnit} → {toUnit}).");
+                    continue;
+                }
+
+                if (amountRequested > it.itemQuantity)
+                {
+                    issues.Add($"{it.itemName}: needs {amountRequested} {toUnit}, only {it.itemQuantity} left.");
+                }
+            }
+
+            if (issues.Count > 0)
+            {
+                string msg = "Insufficient inventory:\n" + string.Join("\n", issues);
+                await Application.Current.MainPage.DisplayAlert("Out of stock", msg, "OK");
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task DeductSelectedIngredientsAsync()
+        {
+            if (ConnectPOSToInventoryVM?.Ingredients == null || ConnectPOSToInventoryVM.Ingredients.Count == 0)
+                return;
+
+            // Prefer per-item input from InventoryItems if available, fallback to Ingredients list
+            var selected = ConnectPOSToInventoryVM.InventoryItems.Where(i => i.IsSelected);
+            var pairs = selected.Select(i => (
+                name: i.itemName,
+                amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement)
+            ));
+
+            try
+            {
+                await _database.DeductInventoryAsync(pairs);
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Warning", $"Product saved but failed to deduct inventory: {ex.Message}", "OK");
+            }
+        }
+
+        private static double ConvertUnits(double amount, string fromUnit, string toUnit)
+        {
+            if (string.IsNullOrWhiteSpace(toUnit)) return amount; // no target unit, pass-through
+            fromUnit = (fromUnit ?? string.Empty).Trim().ToLowerInvariant();
+            toUnit = (toUnit ?? string.Empty).Trim().ToLowerInvariant();
+
+            // Mass conversions
+            if ((fromUnit == "kg" || fromUnit == "g") && (toUnit == "kg" || toUnit == "g"))
+            {
+                return fromUnit == toUnit
+                    ? amount
+                    : (fromUnit == "kg" && toUnit == "g") ? amount * 1000
+                    : (fromUnit == "g" && toUnit == "kg") ? amount / 1000
+                    : amount;
+            }
+
+            // Volume conversions
+            if ((fromUnit == "l" || fromUnit == "ml") && (toUnit == "l" || toUnit == "ml"))
+            {
+                return fromUnit == toUnit
+                    ? amount
+                    : (fromUnit == "l" && toUnit == "ml") ? amount * 1000
+                    : (fromUnit == "ml" && toUnit == "l") ? amount / 1000
+                    : amount;
+            }
+
+            // Count
+            if ((fromUnit == "pcs" || string.IsNullOrEmpty(fromUnit)) && toUnit == "pcs")
+            {
+                return amount;
+            }
+
+            // If from is empty, assume already in inventory unit
+            if (string.IsNullOrWhiteSpace(fromUnit)) return amount;
+
+            // Unknown or mismatched units → block deduction by returning 0
+            return 0;
         }
 
         private void ResetForm()
@@ -274,6 +379,8 @@ namespace Coftea_Capstone.ViewModel
             // Propagate description to child VM
             ConnectPOSToInventoryVM.ProductDescription = ProductDescription;
 
+            // Load inventory list then show
+            _ = ConnectPOSToInventoryVM.LoadInventoryAsync();
             ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = true;
         }
 

@@ -1,0 +1,53 @@
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.EditInventoryPopup"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsEditInventoryPopupVisible}">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="20"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="600"
+               HeightRequest="500">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Edit Inventory Items" FontAttributes="Bold" FontSize="22" HorizontalOptions="Center"/>
+
+                <!-- Category Filters like Inventory page -->
+                <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                    <Button Text="All" WidthRequest="100" Command="{Binding FilterByCategoryCommand}" CommandParameter="All"/>
+                    <Button Text="Addons" WidthRequest="100" Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons"/>
+                    <Button Text="Ingredients" WidthRequest="120" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
+                    <Button Text="Supplies" WidthRequest="100" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
+                </HorizontalStackLayout>
+
+                <CollectionView ItemsSource="{Binding Items}" HeightRequest="320">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="10" Margin="0,6" CornerRadius="10" BackgroundColor="White">
+                                <Grid ColumnDefinitions="2*, Auto, Auto" ColumnSpacing="10">
+                                    <HorizontalStackLayout Grid.Column="0" Spacing="10">
+                                        <Image Source="{Binding ImageSource}" WidthRequest="40" HeightRequest="40"/>
+                                        <VerticalStackLayout>
+                                            <Label Text="{Binding itemName}" FontAttributes="Bold"/>
+                                            <Label Text="{Binding itemCategory}" FontSize="12" TextColor="#666"/>
+                                        </VerticalStackLayout>
+                                    </HorizontalStackLayout>
+                                    <Button Grid.Column="1" Text="Edit" WidthRequest="80" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.EditItemCommand}" CommandParameter="{Binding}"/>
+                                    <Button Grid.Column="2" Text="Delete" WidthRequest="80" BackgroundColor="Red" TextColor="White" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.DeleteItemCommand}" CommandParameter="{Binding}"/>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Button Text="Close" WidthRequest="100" HorizontalOptions="Center" Command="{Binding CloseEditInventoryPopupCommand}"/>
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentView>
+
+

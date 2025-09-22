@@ -9,15 +9,18 @@ namespace Coftea_Capstone.ViewModel
     public partial class ManageInventoryOptionsViewModel : ObservableObject
     {
         private readonly AddItemToInventoryViewModel _addItemToInventoryViewModel;
+        private readonly EditInventoryPopupViewModel _editInventoryPopupViewModel;
 
         [ObservableProperty]
         private bool isInventoryManagementPopupVisible;
 
         public AddItemToInventoryViewModel AddItemToInventoryVM => _addItemToInventoryViewModel;
+        public EditInventoryPopupViewModel EditInventoryPopupVM => _editInventoryPopupViewModel;
 
-        public ManageInventoryOptionsViewModel(AddItemToInventoryViewModel addItemToInventoryViewModel)
+        public ManageInventoryOptionsViewModel(AddItemToInventoryViewModel addItemToInventoryViewModel, EditInventoryPopupViewModel editInventoryPopupViewModel)
         {
             _addItemToInventoryViewModel = addItemToInventoryViewModel;
+            _editInventoryPopupViewModel = editInventoryPopupViewModel;
         }
 
         [RelayCommand]
@@ -34,8 +37,7 @@ namespace Coftea_Capstone.ViewModel
         private async Task EditItem()
         {
             IsInventoryManagementPopupVisible = false;
-            // TODO: Implement edit inventory items functionality
-            await Application.Current.MainPage.DisplayAlert("Info", "Edit functionality will be implemented soon.", "OK");
+            await _editInventoryPopupViewModel.ShowEditInventoryPopup();
         }
 
         [RelayCommand]

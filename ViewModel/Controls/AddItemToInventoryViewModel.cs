@@ -16,6 +16,7 @@ namespace Coftea_Capstone.ViewModel
     public partial class AddItemToInventoryViewModel : ObservableObject
     {
         private readonly Database _database;
+        private int? _editingItemId;
 
         [ObservableProperty]
         private bool isAddItemToInventoryVisible = false;
@@ -94,6 +95,11 @@ namespace Coftea_Capstone.ViewModel
             );
         }
 
+        public void BeginEdit(int itemId)
+        {
+            _editingItemId = itemId;
+        }
+
         [RelayCommand]
         private void CloseAddItemToInventory()
         {
@@ -141,16 +147,29 @@ namespace Coftea_Capstone.ViewModel
 
             try
             {
-                int rowsAffected = await _database.SaveInventoryItemAsync(inventoryItem);
-                if (rowsAffected > 0)
+                int rowsAffected;
+                if (_editingItemId.HasValue)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Success", "Inventory item added successfully!", "OK");
-                    ResetForm();
-                    IsAddItemToInventoryVisible = false;
+                    inventoryItem.itemID = _editingItemId.Value;
+                    rowsAffected = await _database.UpdateInventoryItemAsync(inventoryItem);
                 }
                 else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to add inventory item.", "OK");
+                    rowsAffected = await _database.SaveInventoryItemAsync(inventoryItem);
+                }
+                if (rowsAffected > 0)
+                {
+                    var msg = _editingItemId.HasValue ? "Inventory item updated successfully!" : "Inventory item added successfully!";
+                    await Application.Current.MainPage.DisplayAlert("Success", msg, "OK");
+                    // Notify listeners (e.g., Inventory page) to refresh
+                    MessagingCenter.Send(this, "InventoryChanged");
+                    ResetForm();
+                    IsAddItemToInventoryVisible = false;
+                    _editingItemId = null;
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to save inventory item.", "OK");
                 }
             }
             catch (Exception ex)

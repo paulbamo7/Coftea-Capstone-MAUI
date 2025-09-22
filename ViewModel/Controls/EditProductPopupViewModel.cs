@@ -121,28 +121,29 @@ namespace Coftea_Capstone.ViewModel
                 $"Are you sure you want to delete '{product.ProductName}'?", 
                 "Yes", "No");
 
-            if (confirm)
+            if (!confirm) return;
+
+            try
             {
-                try
+                int rowsAffected = await _database.DeleteProductAsync(product.ProductID);
+
+                // Double-check deletion even if rowsAffected is 0 (edge cases with triggers/permissions)
+                var check = await _database.GetProductByIdAsync(product.ProductID);
+                bool stillExists = check != null;
+
+                if (rowsAffected > 0 || !stillExists)
                 {
-                    int rowsAffected = await _database.DeleteProductAsync(product.ProductID);
-                    if (rowsAffected > 0)
-                    {
-                        NotificationPopup.ShowNotification("Product deleted successfully!", "Success");
-                        
-                        // Remove from collections
-                        AllProducts.Remove(product);
-                        Products.Remove(product);
-                    }
-                    else
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Error", "Failed to delete product.", "OK");
-                    }
+                    NotificationPopup.ShowNotification("Product deleted successfully!", "Success");
+                    AllProducts.Remove(product);
+                    Products.Remove(product);
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", $"Failed to delete product: {ex.Message}", "OK");
-                }
+
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to delete product.", "OK");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to delete product: {ex.Message}", "OK");
             }
         }
 

@@ -22,6 +22,7 @@ namespace Coftea_Capstone
         public POSPageViewModel POSVM { get; private set; }
         public ManagePOSOptionsViewModel ManagePOSPopup { get; private set; }
         public ManageInventoryOptionsViewModel ManageInventoryPopup { get; private set; }
+        public EditInventoryPopupViewModel EditInventoryPopup { get; private set; }
         public AddItemToInventoryViewModel AddItemToInventoryPopup { get; private set; }
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; private set; }
         public NotificationPopupViewModel NotificationPopup { get; private set; }
@@ -75,7 +76,8 @@ namespace Coftea_Capstone
             var editProductPopup = new EditProductPopupViewModel(AddItemPopup);
             ManagePOSPopup = new ManagePOSOptionsViewModel(AddItemPopup, editProductPopup);
             AddItemToInventoryPopup = new AddItemToInventoryViewModel();
-            ManageInventoryPopup = new ManageInventoryOptionsViewModel(AddItemToInventoryPopup);
+            EditInventoryPopup = new EditInventoryPopupViewModel(AddItemToInventoryPopup);
+            ManageInventoryPopup = new ManageInventoryOptionsViewModel(AddItemToInventoryPopup, EditInventoryPopup);
             SettingsPopup = new SettingsPopUpViewModel(AddItemPopup, ManagePOSPopup, ManageInventoryPopup);
             POSVM = new POSPageViewModel(AddItemPopup, SettingsPopup);
             RetryConnectionPopup = new RetryConnectionPopupViewModel();

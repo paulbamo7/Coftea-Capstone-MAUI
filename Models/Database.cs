@@ -145,6 +145,31 @@ namespace Coftea_Capstone.C_
             return null;
         }
 
+        public async Task<POSPageModel?> GetProductByIdAsync(int productId)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            var sql = "SELECT * FROM products WHERE productID = @Id LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Id", productId);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new POSPageModel
+                {
+                    ProductID = reader.GetInt32("productID"),
+                    ProductName = reader.GetString("productName"),
+                    SmallPrice = reader.GetDecimal("smallPrice"),
+                    LargePrice = reader.GetDecimal("largePrice"),
+                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+                    Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
+                    Subcategory = reader.IsDBNull(reader.GetOrdinal("subcategory")) ? null : reader.GetString("subcategory"),
+                    ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
+                };
+            }
+            return null;
+        }
+
         public async Task<int> UpdateProductAsync(POSPageModel product)
         {
             await using var conn = await GetOpenConnectionAsync();
@@ -200,6 +225,34 @@ namespace Coftea_Capstone.C_
                 });
             }
             return inventoryItems;
+        }
+
+        // Deduct inventory quantities by item name and amount
+        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            int totalAffected = 0;
+            try
+            {
+                foreach (var (name, amount) in deductions)
+                {
+                    var updateSql = "UPDATE inventory SET itemQuantity = GREATEST(itemQuantity - @Amount, 0) WHERE itemName = @Name;";
+                    await using var updateCmd = new MySqlCommand(updateSql, conn, (MySqlTransaction)tx);
+                    updateCmd.Parameters.AddWithValue("@Amount", amount);
+                    updateCmd.Parameters.AddWithValue("@Name", name);
+                    totalAffected += await updateCmd.ExecuteNonQueryAsync();
+                }
+
+                await tx.CommitAsync();
+                return totalAffected;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<int> SaveInventoryItemAsync(InventoryPageModel inventory)
