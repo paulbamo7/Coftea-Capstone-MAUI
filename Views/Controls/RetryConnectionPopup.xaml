@@ -20,16 +20,16 @@
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
                WidthRequest="400"
-               HeightRequest="250"
+               HeightRequest="200"
                HasShadow="True"
                InputTransparent="False">
 
             <VerticalStackLayout Spacing="20" HorizontalOptions="Fill" Padding="30">
                 <!-- Error Icon -->
-                <Image Source="warning.png" 
+                <!--<Image Source="warning.png" 
                        HeightRequest="50" 
                        WidthRequest="50" 
-                       HorizontalOptions="Center" />
+                       HorizontalOptions="Center" />-->
                 
                 <!-- Title -->
                 <Label Text="Connection Error" 

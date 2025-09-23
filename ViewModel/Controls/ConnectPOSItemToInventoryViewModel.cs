@@ -19,6 +19,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         public event Action ConfirmPreviewRequested;
         [ObservableProperty] private bool isConnectPOSToInventoryVisible;
         [ObservableProperty] private bool isPreviewVisible;
+        [ObservableProperty] private bool isInputIngredientsVisible;
 
         public ObservableCollection<Ingredient> Ingredients { get; set; } = new();
         public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
@@ -66,10 +67,28 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void ConfirmPreview()
         {
-            IsConnectPOSToInventoryVisible = false; // close overlay
+            // finalize and close any overlays
+            IsConnectPOSToInventoryVisible = false;
+            IsInputIngredientsVisible = false;
             IsPreviewVisible = false;
             ConfirmPreviewRequested?.Invoke();
         }
+
+        [RelayCommand]
+        private void OpenInputIngredients()
+        {
+            IsConnectPOSToInventoryVisible = false;
+            IsPreviewVisible = false;
+            IsInputIngredientsVisible = true;
+        }
+
+        [RelayCommand]
+        private void BackToInventorySelection()
+        {
+            IsInputIngredientsVisible = false;
+            IsConnectPOSToInventoryVisible = true;
+        }
+
 
         [RelayCommand]
         private async Task OpenInventorySelection()

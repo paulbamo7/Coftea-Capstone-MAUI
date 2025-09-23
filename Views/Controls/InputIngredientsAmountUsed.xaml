@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.InputIngredientsAmountUsed"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsInputIngredientsVisible}">
+
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
+            <HorizontalStackLayout Spacing="20">
+                <!-- Left: Inputs -->
+                <Frame BackgroundColor="#D8C4B6" CornerRadius="20" WidthRequest="900" HeightRequest="700" Padding="20">
+                    <VerticalStackLayout Spacing="15">
+                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,10">
+                            <Label Text="INGREDIENTS TO ITEM" FontAttributes="Bold" FontSize="26" Grid.Column="0" VerticalOptions="Center"/>
+                            <Button Text="Small" Grid.Column="1" WidthRequest="90" HeightRequest="36" CornerRadius="10" BackgroundColor="#E6DECC"/>
+                            <Button Text="Medium" Grid.Column="2" WidthRequest="90" HeightRequest="36" CornerRadius="10" BackgroundColor="#E6DECC"/>
+                            <Button Text="Large" Grid.Column="3" WidthRequest="90" HeightRequest="36" CornerRadius="10" BackgroundColor="#E6DECC"/>
+                        </Grid>
+
+                        <Label Text="INGREDIENTS LIST" FontAttributes="Bold" FontSize="18"/>
+
+                        <!-- Inputs per selected inventory item -->
+                        <CollectionView ItemsSource="{Binding InventoryItems}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="2*,Auto,Auto" Padding="10" Margin="0,6" BackgroundColor="#FFFFFF">
+                                        <Grid.IsVisible>
+                                            <Binding Path="IsSelected"/>
+                                        </Grid.IsVisible>
+                                        <!-- Item name -->
+                                        <Label Grid.Row="0" Grid.ColumnSpan="4" Text="{Binding itemName}" FontAttributes="Bold" FontSize="16"/>
+
+                                        <!-- Amount input -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Spacing="2">
+                                            <Label Text="AMOUNT" FontSize="12" TextColor="#666"/>
+                                            <Entry Placeholder="0" Keyboard="Numeric" Text="{Binding InputAmount}" WidthRequest="160"/>
+                                        </VerticalStackLayout>
+
+                                        <!-- Unit picker -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2" Margin="10,0,0,0">
+                                            <Label Text="UNIT OF MEASUREMENT (DEFAULT)" FontSize="12" TextColor="#666"/>
+                                            <Picker WidthRequest="120" SelectedItem="{Binding InputUnit}" ItemsSource="{Binding AllowedUnits}"/>
+                                        </VerticalStackLayout>
+
+                                        <!-- Current stock quick view -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="2" Spacing="2" Margin="20,0,0,0">
+                                            <Label Text="AVAILABLE" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding StockDisplay}" FontSize="14"/>
+                                        </VerticalStackLayout>
+
+                                        <!-- Min level -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="3" Spacing="2" Margin="20,0,0,0">
+                                            <Label Text="MIN" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding MinimumDisplay}" FontSize="14"/>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <HorizontalStackLayout HorizontalOptions="End" Spacing="12">
+                            <Button Text="Back" BackgroundColor="#D3D3D3" TextColor="Black" WidthRequest="120" Command="{Binding BackToInventorySelectionCommand}"/>
+                            <Button Text="Preview" BackgroundColor="#E6DE9D" TextColor="Black" WidthRequest="120" Command="{Binding ShowPreviewCommand}"/>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Right: Preview (smaller) -->
+                <Frame BackgroundColor="#F8E8D7" CornerRadius="20" WidthRequest="320" HeightRequest="700" Padding="20" IsVisible="{Binding IsPreviewVisible}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="PREVIEW" FontSize="24" FontAttributes="Bold"/>
+                        <Frame BackgroundColor="White" HeightRequest="150" CornerRadius="10" HasShadow="False">
+                            <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit"/>
+                        </Frame>
+                        <Label Text="{Binding ProductName, StringFormat='Name: {0}'}" FontAttributes="Bold" FontSize="22"/>
+                        <HorizontalStackLayout VerticalOptions="Center" Spacing="12"> 
+                            <Label Text="Category:" FontAttributes="Bold" FontSize="18"/>
+                            <Label Text="{Binding SelectedCategory}" FontAttributes="Bold" FontSize="18"/>
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="20">
+                            <VerticalStackLayout>
+                                <Label Text="Small Price" FontAttributes="Bold"/>
+                                <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout>
+                                <Label Text="Large Price" FontAttributes="Bold"/>
+                                <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+                        <Label Text="Description" FontAttributes="Bold"/>
+                        <ScrollView HeightRequest="80">
+                            <Label Text="{Binding ProductDescription}" FontSize="16"/>
+                        </ScrollView>
+                        <Button Text="Add Item" BackgroundColor="#E6DE9D" TextColor="Black" WidthRequest="120" Command="{Binding ConfirmPreviewCommand}"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

@@ -304,58 +304,6 @@ namespace Coftea_Capstone.C_
             return await cmd.ExecuteNonQueryAsync();
         }
 
-        /*public async Task<int> DeleteProductAsync(InventoryPageModel inventory)
-        {
-            *//*await using var conn = await GetOpenConnectionAsync();
-            var sql = "DELETE * FROM inventory WHERE itemName = @Name LIMIT 1;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Name", inventory);
-
-            *//*await using var reader = await cmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
-            {
-                return new InventoryPageModel
-                {
-                    ProductID = reader.GetInt32("productID"),
-                    ProductName = reader.GetString("productName"),
-                    SmallPrice = Convert.ToDouble(reader["smallPrice"]),
-                    LargePrice = Convert.ToDouble(reader["largePrice"]),
-                    ImageSet = reader.GetString("imageSet")
-                };
-            }*//*
-            return null;*//*
-        }*/
-
-        // Inventory Database
-       /* public async Task<int>  GetInventoryItemsAsync(InventoryPageModel inventory)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "INSERT INTO products (productName, smallPrice, largePrice, imageSet) " +
-                      "VALUES (@ProductName, @SmallPrice, @LargePrice, @Image);";
-            await using var cmd = new MySqlCommand(sql, conn);
-            *//*cmd.Parameters.AddWithValue("@ProductName", inventory.ProductName);
-            cmd.Parameters.AddWithValue("@SmallPrice", inventory.SmallPrice);
-            cmd.Parameters.AddWithValue("@LargePrice", inventory.LargePrice);
-            cmd.Parameters.AddWithValue("@Image", inventory.ImageSet);*//*
-
-            return await cmd.ExecuteNonQueryAsync();
-        }*/
-       /* public Task<int> SaveInventoryItemsAsync(InventoryPageModel inventory)
-        {
-            return _db.InsertOrReplaceAsync(inventory);
-        }
-        public Task<int> DeleteInventoryItemAsync(InventoryPageModel inventory)
-        {
-            return _db.DeleteAsync(inventory);
-        }
-*/
-        // Sales Report
-        /*public Task<List<SalesReportPageModel>> RetrieveSalesData()
-        {
-            return _db.Table<SalesReportPageModel>().ToListAsync();
-        }**/
-
         // User Management
         public async Task<string> RequestPasswordResetAsync(string email)
         {

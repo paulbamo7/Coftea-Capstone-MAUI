@@ -12,8 +12,6 @@ namespace Coftea_Capstone.Models
         [PrimaryKey, AutoIncrement]
         public int ID { get; set; }
 
-
-
         [Unique, NotNull]
         public string Email { get; set; } = string.Empty;
 

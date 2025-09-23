@@ -105,6 +105,10 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  
+	  <MauiXaml Update="Views\Controls\InputIngredientsAmountUsed.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  
 	  <MauiXaml Update="Views\Controls\ManageInventoryOptions.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
