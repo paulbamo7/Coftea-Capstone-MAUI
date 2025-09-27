@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             x:Class="Coftea_Capstone.Views.Controls.AddAddonsToItem"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsAddAddonsVisible}">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+            <converters:CupItemOpacityConverter x:Key="CupItemOpacityConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
+            <HorizontalStackLayout Spacing="20">
+                <!-- Left Frame: Addon Selection -->
+                <Frame BackgroundColor="#D8C4B6" CornerRadius="20" WidthRequest="900" HeightRequest="700" Padding="20">
+                    <VerticalStackLayout Spacing="15">
+
+                        <!-- Header -->
+                        <Frame BackgroundColor="White" CornerRadius="10" Padding="10" HasShadow="False" HeightRequest="650">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="SELECT ADDONS" FontAttributes="Bold" FontSize="20"/>
+                                
+                                <!-- Category buttons and controls (centered) -->
+                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center" HorizontalOptions="Center">
+                                    <Button Text="Addons" Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons"/>
+                                    <Button Text="Ingredients" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
+                                    <Button Text="Supplies" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
+                                    <Button Text="Refresh" BackgroundColor="#D3D3D3" TextColor="Black" Command="{Binding RefreshInventoryCommand}"/>
+                                    <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="150" HeightRequest="36">
+                                        <Picker Title="Sort By" SelectedItem="{Binding SelectedSort}">
+                                            <Picker.Items>
+                                                <x:String>Name (A-Z)</x:String>
+                                                <x:String>Name (Z-A)</x:String>
+                                                <x:String>Quantity (Low to High)</x:String>
+                                                <x:String>Quantity (High to Low)</x:String>
+                                            </Picker.Items>
+                                        </Picker>
+                                    </Frame>
+                                    <SearchBar Placeholder="Search" WidthRequest="200" Text="{Binding SearchText}"/>
+                                    <Button Text="Select All" Command="{Binding SelectAllAddonsCommand}"/>
+                                </HorizontalStackLayout>
+
+                                <Label Text="SELECT FROM INVENTORY" FontAttributes="Bold" FontSize="20"/>
+                                <!-- Header -->
+                                <Grid ColumnDefinitions="2*,1*,2*" BackgroundColor="#DAAB97" Padding="10,6">
+                                    <Label Grid.Column="0" Text="ITEMS" HorizontalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="CATEGORY" HorizontalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="STOCKS" HorizontalOptions="Center"/>
+                                </Grid>
+
+                                <CollectionView ItemsSource="{Binding InventoryItems}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="Auto,2*,1*,2*" Padding="10,6">
+                                                <Grid.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.ToggleAddonSelectCommand}" CommandParameter="{Binding .}"/>
+                                                </Grid.GestureRecognizers>
+                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" 
+                                                          IsEnabled="{Binding IsCupItem, Converter={StaticResource InvertBoolConverter}}"
+                                                          Opacity="{Binding IsCupItem, Converter={StaticResource CupItemOpacityConverter}}"/>
+                                                <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                                    <Frame WidthRequest="30" HeightRequest="30" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
+                                                        <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
+                                                    </Frame>
+                                                    <HorizontalStackLayout Spacing="4">
+                                                        <Label Text="{Binding itemName}"/>
+                                                        <Label Text="(Auto)" FontSize="12" TextColor="#666666" 
+                                                               IsVisible="{Binding IsCupItem}"/>
+                                                    </HorizontalStackLayout>
+                                                </HorizontalStackLayout>
+                                                <Label Grid.Column="2" Text="{Binding itemCategory}" HorizontalOptions="Center"/>
+                                                <VerticalStackLayout Grid.Column="3" Spacing="4" HorizontalOptions="Center">
+                                                    <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                                                        <Label Text="{Binding StockDisplay}" FontSize="12"/>
+                                                        <Label Text="{Binding MinimumDisplay}" FontSize="11" TextColor="#666"/>
+                                                    </HorizontalStackLayout>
+                                                    <Grid HeightRequest="8">
+                                                        <BoxView Color="#FF3B30" CornerRadius="4"/>
+                                                        <ProgressBar Progress="{Binding StockProgress}" ProgressColor="#34C759" BackgroundColor="Transparent" HeightRequest="8"/>
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                                
+                                <!-- Footer actions -->
+                                <HorizontalStackLayout HorizontalOptions="End" Spacing="20" Margin="0,10,0,0">
+                                    <Button Text="Close" Command="{Binding CloseAddAddonsCommand}"/>
+                                    <Button Text="Add Selected" BackgroundColor="#E6DE9D" TextColor="Black" Command="{Binding AddSelectedAddonsCommand}"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

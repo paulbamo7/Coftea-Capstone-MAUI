@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Pages.LoginPage"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             NavigationPage.HasNavigationBar="False"
+             Shell.TabBarIsVisible="False"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.BindingContext>
+        <vm:LoginPageViewModel />
+    </ContentPage.BindingContext>
+
+    <!-- Background Gradient -->
+    <ContentPage.Background>
+        <LinearGradientBrush>
+            <GradientStop Color="#C1A892" Offset="0.25" />
+            <GradientStop Color="#5B4F45" Offset="0.85" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <!-- Grid that adapts -->
+    <Grid RowDefinitions="*,Auto,*"
+          ColumnDefinitions="*"
+          Padding="20">
+
+        <ScrollView Grid.Row="1"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center">
+
+            <Frame BackgroundColor="#C0BBB6"
+                   CornerRadius="15"
+                   Padding="25"
+                   HasShadow="False"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   WidthRequest="{OnPlatform Default=350, Android=350, iOS=350, WinUI=420}"  
+                   MinimumWidthRequest="420"
+                   MaximumWidthRequest="500"
+                   MinimumHeightRequest="650"
+                   MaximumHeightRequest="700">
+
+                <VerticalStackLayout Spacing="15"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="FillAndExpand">
+
+                    <!-- Logo -->
+                    <Image Source="coftea_logo.png"
+                           HeightRequest="200"
+                           MaximumWidthRequest="300"
+                           HorizontalOptions="Center" />
+
+                    <!-- Email -->
+                    <Label Text="Email:"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Start" />
+                    <Entry Text="{Binding Email}"
+                           Placeholder="Enter Email"
+                           PlaceholderColor="White"
+                           BackgroundColor="Transparent"
+                           HeightRequest="40" />
+
+                    <!-- Password -->
+                    <Label Text="Enter Password:"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Start" />
+                    <Grid>
+                        <Entry x:Name="LoginPasswordEntry"
+                               Text="{Binding Password}"
+                               Placeholder="Enter Password"
+                               PlaceholderColor="White"
+                               IsPassword="True"
+                               BackgroundColor="Transparent"
+                               HeightRequest="40" />
+                        <Button Text="Show"
+                                Padding="10,0"
+                                BackgroundColor="Transparent"
+                                HorizontalOptions="End"
+                                VerticalOptions="Center"
+                                Clicked="OnToggleLoginPasswordVisibility" />
+                    </Grid>
+
+                    <!-- Remember Me -->
+                    <HorizontalStackLayout Spacing="8"
+                                           VerticalOptions="Center">
+                        <CheckBox IsChecked="{Binding RememberMe}" />
+                        <Label Text="Remember Me"
+                               TextColor="White"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <!-- Register -->
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Label Text="No Account? Register Now!"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"
+                               FontSize="12"
+                               TextColor="Black"
+                               Padding="5">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </VerticalStackLayout>
+
+                    <!-- Login Button -->
+                    <Button Text="Login"
+                            BackgroundColor="#5B4F45"
+                            TextColor="White"
+                            CornerRadius="10"
+                            HeightRequest="45"
+                            HorizontalOptions="Center"
+                            Command="{Binding LoginCommand}" />
+
+                    <!-- Forgot Password -->
+                    <Label Text="Forgot Password?"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           FontSize="12"
+                           Padding="10,5,10,0"
+                           TextColor="Black">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ForgotPasswordCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </VerticalStackLayout>
+            </Frame>
+        </ScrollView>
+        <!-- Retry Connection Popup -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" />
+        <!-- Password Reset Popup -->
+        <otherViews:PasswordResetPopup BindingContext="{Binding PasswordResetPopup}" />
+    </Grid>
+</ContentPage>

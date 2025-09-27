@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.PendingUsersPopup"
+             x:Name="PendingUsersPopupView"
+             BackgroundColor="Transparent"
+             IsVisible="{Binding IsPendingUsersPopupVisible, FallbackValue=False}">
+
+    <!-- Popup Content -->
+    <Frame Grid.Row="0" Grid.Column="0" 
+           BackgroundColor="White" 
+           CornerRadius="15" 
+           Padding="0"
+           Margin="50"
+           HorizontalOptions="Center" 
+           VerticalOptions="Center"
+           WidthRequest="600"
+           HeightRequest="500">
+        
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Grid Grid.Row="0" BackgroundColor="#BDAEA2" Padding="20,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <Label Grid.Column="0" 
+                       Text="Pending User Requests" 
+                       FontSize="20" 
+                       FontAttributes="Bold" 
+                       TextColor="Black"
+                       VerticalOptions="Center"/>
+                
+                <ImageButton Grid.Column="1" 
+                             Source="close.png" 
+                             WidthRequest="25" 
+                             HeightRequest="25"
+                             BackgroundColor="Transparent"
+                             Command="{Binding ClosePendingUsersPopupCommand}"/>
+            </Grid>
+
+            <!-- Content -->
+            <ScrollView Grid.Row="1" Padding="20">
+                <CollectionView ItemsSource="{Binding PendingRegistrations}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="#F5F5F5" 
+                                   CornerRadius="10" 
+                                   Padding="15" 
+                                   Margin="0,5">
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" RowSpacing="5">
+                                    <!-- User Basic Info -->
+                                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                                        <Label FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               TextColor="Black">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="Name: {0} {1}">
+                                                    <Binding Path="FirstName"/>
+                                                    <Binding Path="LastName"/>
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                        <Label Text="{Binding Email, StringFormat='Email: {0}'}" 
+                                               FontSize="14" 
+                                               TextColor="Gray"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- Registration Details -->
+                                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,5,0,0">
+                                        <Label Text="{Binding PhoneNumber, StringFormat='Phone: {0}'}" 
+                                               FontSize="12" 
+                                               TextColor="DarkGray"/>
+                                        <Label Text="{Binding Address, StringFormat='Address: {0}'}" 
+                                               FontSize="12" 
+                                               TextColor="DarkGray"/>
+                                        <Label Text="{Binding Birthday, StringFormat='Birthday: {0:MMM dd, yyyy}'}" 
+                                               FontSize="12" 
+                                               TextColor="DarkGray"/>
+                                        <Label Text="{Binding RegistrationDate, StringFormat='Registered: {0:MMM dd, yyyy HH:mm}'}" 
+                                               FontSize="12" 
+                                               TextColor="DarkGray"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- Action Buttons -->
+                                    <Button Grid.Row="2" Grid.Column="1" 
+                                            Text="Accept" 
+                                            BackgroundColor="#4CAF50" 
+                                            TextColor="White"
+                                            CornerRadius="8"
+                                            Padding="20,8"
+                                            Command="{Binding Source={x:Reference PendingUsersPopupView}, Path=BindingContext.ApproveUserCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    
+                                    <Button Grid.Row="2" Grid.Column="2" 
+                                            Text="Reject" 
+                                            BackgroundColor="#F44336" 
+                                            TextColor="White"
+                                            CornerRadius="8"
+                                            Padding="20,8"
+                                            Command="{Binding Source={x:Reference PendingUsersPopupView}, Path=BindingContext.RejectUserCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    
+                    <CollectionView.EmptyView>
+                        <Grid Padding="40" HorizontalOptions="Center">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="No pending requests" 
+                                       FontSize="16" 
+                                       TextColor="Gray" 
+                                       HorizontalOptions="Center"/>
+                                <Label Text="All user requests have been processed" 
+                                       FontSize="14" 
+                                       TextColor="LightGray" 
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+            </ScrollView>
+
+            <!-- Footer -->
+            <Grid Grid.Row="2" BackgroundColor="#F0F0F0" Padding="20,15">
+                <Button Text="Close" 
+                        BackgroundColor="#BDAEA2" 
+                        TextColor="Black"
+                        CornerRadius="8"
+                        Padding="30,10"
+                        HorizontalOptions="End"
+                        Command="{Binding ClosePendingUsersPopupCommand}"/>
+            </Grid>
+        </Grid>
+    </Frame>
+</ContentView>

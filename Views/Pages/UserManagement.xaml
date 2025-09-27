@@ -1,0 +1,88 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Pages.UserManagement"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
+             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+             BackgroundColor="#D6BCA8">
+
+    <ContentPage.BindingContext>
+        <vm:UserManagementPageViewModel />
+    </ContentPage.BindingContext>
+
+
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+        <!-- Sidebar Navigation -->
+        <views:NavigationBar Grid.Column="0"/>
+
+        <!-- Main Content -->
+        <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto,*">
+
+            <VerticalStackLayout Padding="0" Spacing="20">
+
+                <!-- Top Bar -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
+                    <Label Text="User Management" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
+                    <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" Command="{Binding SettingsPopup.ShowSettingsPopupCommand}"/>
+                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                </Grid>
+
+                <VerticalStackLayout Padding="20" Spacing="16">
+
+ 
+                    <!-- Search & Sort -->
+                    <Grid ColumnDefinitions="*, Auto,Auto" ColumnSpacing="10">
+                        <Label Text="{Binding Users.Count, StringFormat='Users: {0}'}"
+                               FontSize="20"
+                               FontAttributes="Bold"/>
+                        <Entry Placeholder="Search" Text="{Binding SearchText}" WidthRequest="250" HorizontalOptions="Center"/>
+                        <Button Text="Sort By" Command="{Binding SortByCommand}" WidthRequest="100" HorizontalOptions="End"/>
+                    </Grid>
+
+                    <!-- Users Table -->
+                    <Frame BackgroundColor="White" CornerRadius="10" Padding="0" HasShadow="True">
+                        <VerticalStackLayout Spacing="0">
+
+                            <!-- Table Header -->
+                            <Grid ColumnDefinitions="2*,3*,2*,2*" BackgroundColor="#D2B892" Padding="10">
+                                <Label Text="Username" FontAttributes="Bold" FontSize="18"/>
+                                <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="18"/>
+                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="18"/>
+                                <Label Text="Date Added" Grid.Column="3" FontAttributes="Bold" FontSize="18"/>
+                            </Grid>
+
+                            <!-- Users List -->
+                            <CollectionView ItemsSource="{Binding Users}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="2*,3*,2*,2*" Padding="10" RowSpacing="0">
+                                            <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center"/>
+
+                                            <HorizontalStackLayout Grid.Column="1" Spacing="6">
+                                                <Button Text="Edit Inventory" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
+                                            IsVisible="{Binding CanEditInventory}"/>
+                                                <Button Text="Edit POS" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
+                                            IsVisible="{Binding CanEditPOS}"/>
+                                                <Button Text="Edit Balance Sheet" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
+                                            IsVisible="{Binding CanEditBalanceSheet}"/>
+                                            </HorizontalStackLayout>
+
+                                            <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center"/>
+                                            <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                            <!-- Action Buttons -->
+                            <HorizontalStackLayout HorizontalOptions="End" Padding="10" Spacing="10">
+                                <Button Text="Add User" BackgroundColor="#D0B08A" TextColor="Black" Command="{Binding AddUserCommand}" WidthRequest="120"/>
+                                <Button Text="Delete User" BackgroundColor="#B24D4D" TextColor="White" Command="{Binding DeleteUserCommand}" WidthRequest="120"/>
+                            </HorizontalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Frame>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

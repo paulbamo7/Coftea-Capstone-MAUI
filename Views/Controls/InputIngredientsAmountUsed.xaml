@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Coftea_Capstone.Views.Controls"
+             x:Class="Coftea_Capstone.Views.Controls.InputIngredientsAmountUsed"
+             x:Name="Root"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsInputIngredientsVisible}">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter" xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"/>
+            <heightConv:SelectedCountToHeightConverter x:Key="SelectedCountToHeightConverter"
+                                                       xmlns:heightConv="clr-namespace:Coftea_Capstone.ViewModel.Others"
+                                                       CompactHeight="240" ExpandedHeight="480"/>
+            <converters:SizeButtonConverter x:Key="SizeButtonConverter" xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"/>
+            <converters:SizeButtonTextConverter x:Key="SizeButtonTextConverter" xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
+            <HorizontalStackLayout Spacing="20">
+                <!-- Left: Inputs -->
+                <Frame BackgroundColor="#D8C4B6" CornerRadius="20" WidthRequest="900" HeightRequest="600" Padding="30" IsVisible="{Binding IsPreviewVisible, Converter={StaticResource InvertBoolConverter}}">
+                    <Grid RowDefinitions="*,Auto">
+                        <!-- Scrollable content -->
+                        <ScrollView Grid.Row="0" VerticalOptions="FillAndExpand">
+                            <VerticalStackLayout Spacing="10">
+                                <!-- Size header -->
+                                <Label Text="SIZE" FontAttributes="Bold" FontSize="34" HorizontalOptions="Center"/>
+                                <Label Text="Cup items are automatically added when you select a size" FontSize="14" TextColor="#666666" HorizontalOptions="Center" Margin="0,0,0,10"/>
+                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="24">
+                                    <Button Text="Small" WidthRequest="120" HeightRequest="48" CornerRadius="16" 
+                                            BackgroundColor="{Binding SelectedSize, Converter={StaticResource SizeButtonConverter}, ConverterParameter=Small}" 
+                                            TextColor="{Binding SelectedSize, Converter={StaticResource SizeButtonTextConverter}, ConverterParameter=Small}"
+                                            Command="{Binding SetSizeCommand}" CommandParameter="Small"/>
+                                    <Button Text="Medium" WidthRequest="120" HeightRequest="48" CornerRadius="16" 
+                                            BackgroundColor="{Binding SelectedSize, Converter={StaticResource SizeButtonConverter}, ConverterParameter=Medium}" 
+                                            TextColor="{Binding SelectedSize, Converter={StaticResource SizeButtonTextConverter}, ConverterParameter=Medium}"
+                                            Command="{Binding SetSizeCommand}" CommandParameter="Medium"/>
+                                    <Button Text="Large" WidthRequest="120" HeightRequest="48" CornerRadius="16" 
+                                            BackgroundColor="{Binding SelectedSize, Converter={StaticResource SizeButtonConverter}, ConverterParameter=Large}" 
+                                            TextColor="{Binding SelectedSize, Converter={StaticResource SizeButtonTextConverter}, ConverterParameter=Large}"
+                                            Command="{Binding SetSizeCommand}" CommandParameter="Large"/>
+                                </HorizontalStackLayout>
+                                <Grid BackgroundColor="Brown" Padding="20">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Label Grid.Row="0" Text="INGREDIENTS USED PER SERVING" FontAttributes="Bold" FontSize="28" HorizontalOptions="Center"/>
+
+                                    <!-- Table area -->
+                                    <CollectionView Grid.Row="1" ItemsSource="{Binding InventoryItems}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto,Auto" Padding="12" Margin="0,2" BackgroundColor="#FFFFFF" ColumnSpacing="20">
+                                        <Grid.IsVisible>
+                                            <Binding Path="IsSelected"/>
+                                        </Grid.IsVisible>
+                                        <!-- Item name -->
+                                        <Label Grid.Row="0" Grid.ColumnSpan="3" Text="{Binding itemName}" FontAttributes="Bold" FontSize="20"/>
+
+                                        <!-- Amount input (shows one entry based on selected size) -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Spacing="4">
+                                            <Label Text="AMOUNT" FontSize="12" TextColor="#666"/>
+                                            <Entry Placeholder="0" Keyboard="Numeric" WidthRequest="320" Text="{Binding InputAmountSmall}" IsVisible="False">
+                                                <Entry.Triggers>
+                                                    <DataTrigger TargetType="Entry" Value="Small" 
+                                                                Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedSize}">
+                                                        <Setter Property="IsVisible" Value="True"/>
+                                                    </DataTrigger>
+                                                </Entry.Triggers>
+                                            </Entry>
+                                            <Entry Placeholder="0" Keyboard="Numeric" WidthRequest="320" Text="{Binding InputAmountMedium}" IsVisible="False">
+                                                <Entry.Triggers>
+                                                    <DataTrigger TargetType="Entry" Value="Medium" 
+                                                                Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedSize}">
+                                                        <Setter Property="IsVisible" Value="True"/>
+                                                    </DataTrigger>
+                                                </Entry.Triggers>
+                                            </Entry>
+                                            <Entry Placeholder="0" Keyboard="Numeric" WidthRequest="320" Text="{Binding InputAmountLarge}" IsVisible="False">
+                                                <Entry.Triggers>
+                                                    <DataTrigger TargetType="Entry" Value="Large" 
+                                                                Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedSize}">
+                                                        <Setter Property="IsVisible" Value="True"/>
+                                                    </DataTrigger>
+                                                </Entry.Triggers>
+                                            </Entry>
+                                        </VerticalStackLayout>
+
+                                        <!-- Unit picker bound to active size -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="4" Margin="20,0,0,0">
+                                            <Label Text="UNIT OF MEASUREMENT (DEFAULT)" FontSize="12" TextColor="#666"/>
+                                            <!-- Small -->
+                                            <Picker WidthRequest="160" ItemsSource="{Binding AllowedUnits}" SelectedItem="{Binding InputUnitSmall}" IsVisible="False">
+                                                <Picker.Triggers>
+                                                    <DataTrigger TargetType="Picker" Value="Small" 
+                                                                 Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedSize}">
+                                                        <Setter Property="IsVisible" Value="True"/>
+                                                    </DataTrigger>
+                                                </Picker.Triggers>
+                                            </Picker>
+                                            <!-- Medium -->
+                                            <Picker WidthRequest="160" ItemsSource="{Binding AllowedUnits}" SelectedItem="{Binding InputUnitMedium}" IsVisible="False">
+                                                <Picker.Triggers>
+                                                    <DataTrigger TargetType="Picker" Value="Medium" 
+                                                                 Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedSize}">
+                                                        <Setter Property="IsVisible" Value="True"/>
+                                                    </DataTrigger>
+                                                </Picker.Triggers>
+                                            </Picker>
+                                            <!-- Large -->
+                                            <Picker WidthRequest="160" ItemsSource="{Binding AllowedUnits}" SelectedItem="{Binding InputUnitLarge}" IsVisible="False">
+                                                <Picker.Triggers>
+                                                    <DataTrigger TargetType="Picker" Value="Large" 
+                                                                 Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedSize}">
+                                                        <Setter Property="IsVisible" Value="True"/>
+                                                    </DataTrigger>
+                                                </Picker.Triggers>
+                                            </Picker>
+                                            
+                                        </VerticalStackLayout>
+                                        <!-- Current stock quick view -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="2" Spacing="2" Margin="20,0,0,0">
+                                            <Label Text="AVAILABLE" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding StockDisplay}" FontSize="14" LineBreakMode="NoWrap"/>
+                                        </VerticalStackLayout>
+                                        <!-- Min level -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="3" Spacing="2" Margin="10,0,0,0">
+                                            <Label Text="MIN" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding MinimumDisplay}" FontSize="14" LineBreakMode="NoWrap"/>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </ScrollView>
+
+                        <!-- Fixed buttons below scrollable content -->
+                        <HorizontalStackLayout Grid.Row="1" HorizontalOptions="End" Spacing="12">
+                            <Button Text="Back" BackgroundColor="#D3D3D3" TextColor="Black" WidthRequest="120" Command="{Binding BackToInventorySelectionCommand}"/>
+                            <Button Text="Preview" BackgroundColor="#E6DE9D" TextColor="Black" WidthRequest="120" Command="{Binding ShowPreviewCommand}"/>
+                        </HorizontalStackLayout>
+                    </Grid>
+                </Frame>
+
+                <!-- Right: Preview (smaller) -->
+                <controls:PreviewPOSItem />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

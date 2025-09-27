@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             xmlns:controls="clr-namespace:Coftea_Capstone.Views.Controls"
+             x:Class="Coftea_Capstone.Views.Controls.PreviewPOSItem"
+             x:Name="Root"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsPreviewVisible}">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <Frame BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               Padding="20"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               WidthRequest="500"
+               HeightRequest="600">
+            <ScrollView>
+                <VerticalStackLayout Spacing="15">
+                    <!-- Header -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Label Text="Preview Product" FontAttributes="Bold" FontSize="24" Grid.Column="0"/>
+                        <ImageButton Source="close.png"
+                                 WidthRequest="25" HeightRequest="25"
+                                 Grid.Column="1"
+                                 Command="{Binding ClosePreviewCommand}"/>
+                    </Grid>
+
+                    <!-- Product Image -->
+                    <Frame BackgroundColor="White" HeightRequest="150" CornerRadius="10" HasShadow="False">
+                        <Image Source="{Binding SelectedImageSource}" Aspect="AspectFill"/>
+                    </Frame>
+
+
+                    <!-- Product Info -->
+                    <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="22"/>
+                    <Label Text="Add-ons Used" FontAttributes="Bold"/>
+                    <CollectionView ItemsSource="{Binding SelectedAddons}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="8" Margin="0,4">
+                                    <Label Grid.Column="0" Text="{Binding Name}"/>
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="3">
+                                        <Label Text="₱"/>
+                                        <Entry Placeholder="0.00" Keyboard="Numeric" WidthRequest="80" Text="{Binding Price}"/>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Label Text="Category:" FontAttributes="Bold"/>
+                    <Label Text="{Binding SelectedCategory}" FontSize="18"/>
+
+                    <HorizontalStackLayout Spacing="20">
+                        <VerticalStackLayout>
+                            <Label Text="Small Price" FontAttributes="Bold"/>
+                            <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout>
+                            <Label Text="Large Price" FontAttributes="Bold"/>
+                            <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+
+                    <Label Text="Description" FontAttributes="Bold"/>
+                    <ScrollView HeightRequest="80">
+                        <Label Text="{Binding ProductDescription}" FontSize="16"/>
+                    </ScrollView>
+                    <!-- Buttons -->
+                    <HorizontalStackLayout HorizontalOptions="End" Spacing="20">
+                        <Button Text="Close" BackgroundColor="#D3D3D3" TextColor="Black"
+                            Command="{Binding ClosePreviewCommand}"/>
+                        <Button Text="Add Addons" BackgroundColor="#A57C5C" TextColor="White"
+                            Command="{Binding AddAddonsCommand}"/>
+                        <Button Text="Confirm" BackgroundColor="#E6DE9D" TextColor="Black"
+                            Command="{Binding ConfirmPreviewCommand}"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Frame>
+        
+        <!-- Add Addons Control -->
+        <controls:AddAddonsToItem x:Name="AddAddonsControl" BindingContext="{Binding .}" />
+    </Grid>
+</ContentView>

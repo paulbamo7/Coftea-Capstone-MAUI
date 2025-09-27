@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Pages.Inventory"
+             xmlns:view="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             Title="Inventory"
+             BackgroundColor="#D6BCA8">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+        <!-- Sidebar Navigation -->
+        <view:NavigationBar Grid.Column="0"/>
+
+        <!-- Main Content -->
+        <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto,*">
+
+            <VerticalStackLayout Padding="0" Spacing="20">
+
+                <!-- Top Bar -->
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
+                    <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
+                    <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" Command="{Binding SettingsPopup.ShowSettingsPopupCommand}"/>
+                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                </Grid>
+
+                <!-- Brownish Frame with Controls and CollectionView -->
+                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="20" HasShadow="False" HeightRequest="600">
+
+                    <ScrollView>
+                        <VerticalStackLayout Spacing="15">
+
+                            <!-- Top Controls: Category Buttons, Sort By, Search -->
+                            <HorizontalStackLayout Spacing="15" VerticalOptions="Center">
+
+                                <!-- Category Buttons -->
+                                <Button Text="Addons" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
+                                <Button Text="Ingredients" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
+                                <Button Text="Supplies" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
+
+                                <!-- Sort By Picker -->
+                                <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="180" HeightRequest="40">
+                                    <Picker Title="Sort By" VerticalOptions="Center">
+                                        <Picker.Items>
+                                            <x:String>Name (A-Z)</x:String>
+                                            <x:String>Name (Z-A)</x:String>
+                                            <x:String>Price (Low to High)</x:String>
+                                            <x:String>Price (High to Low)</x:String>
+                                        </Picker.Items>
+                                    </Picker>
+                                </Frame>
+
+                                <!-- Search Bar -->
+                                <SearchBar Placeholder="Search for something" WidthRequest="250" HeightRequest="40" BackgroundColor="White"/>
+                            </HorizontalStackLayout>
+
+                            <!-- Loading Indicator -->
+                            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Start" IsVisible="{Binding IsLoading}">
+                                <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
+                                <Label Text="{Binding StatusMessage}" TextColor="{Binding HasError}" FontSize="14" HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+
+                            <!-- Inventory CollectionView -->
+                            <CollectionView x:Name="InventoryCollectionView" 
+                                       ItemsSource="{Binding InventoryItems}"
+                                       ItemsLayout="VerticalList" 
+                                       BackgroundColor="Transparent" 
+                                       Margin="0,10,0,0"
+                                       IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                                <CollectionView.Header>
+                                    <!-- Header Row -->
+                                    <Frame BackgroundColor="White" Padding="10">
+                                        <Grid ColumnDefinitions="2*, 1*, 2*"  >
+                                            <Label Text="ITEMS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start"/>
+                                            <Label Text="CATEGORY" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1"/>
+                                            <Label Text="STOCKS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2"/>
+                                        </Grid>
+                                    </Frame>
+
+                                </CollectionView.Header>
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Frame Padding="10" Margin="0,6,0,6" CornerRadius="10" BackgroundColor="White">
+                                            <Grid ColumnDefinitions="2*, 1*, 2*" VerticalOptions="Center" ColumnSpacing="10">
+                                                <!-- Items: image + name -->
+                                                <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                                                    <Frame WidthRequest="50" HeightRequest="50" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
+                                                        <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
+                                                    </Frame>
+                                                    <Label Text="{Binding itemName}" FontSize="16" VerticalOptions="Center"/>
+                                                </HorizontalStackLayout>
+
+                                                <!-- Category -->
+                                                <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
+
+                                                <!-- Stocks: progress bar only -->
+                                                <VerticalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                                                    <!-- Custom progress bar -->
+                                                    <Grid HeightRequest="20" VerticalOptions="Center">
+                                                        <!-- Background (always full width) -->
+                                                        <BoxView Color="#E0E0E0" CornerRadius="10"/>
+
+                                                        <!-- Green progress bar (shows current stock level) -->
+                                                        <BoxView Color="#34C759" CornerRadius="10" HorizontalOptions="Start"
+                                                                 WidthRequest="{Binding StockProgressWidth}" />
+
+                                                        <!-- Text overlay -->
+                                                        <Label Text="{Binding StockText}" 
+                                                               FontSize="12" 
+                                                               TextColor="Black" 
+                                                               HorizontalOptions="Center" 
+                                                               VerticalOptions="Center"/>
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Frame>
+            </VerticalStackLayout>
+        </Grid>
+        
+        <!-- Settings Popup -->
+        <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage POS Options Popup -->
+        <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage Inventory Options Popup -->
+        <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
+        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
+        
+        <!-- Retry Connection Popup -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
+    </Grid>
+</ContentPage>

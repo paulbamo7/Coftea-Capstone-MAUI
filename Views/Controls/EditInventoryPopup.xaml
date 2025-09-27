@@ -1,0 +1,143 @@
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+    x:Class="Coftea_Capstone.Views.Controls.EditInventoryPopup"
+    x:Name="EditInventoryPopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsEditInventoryPopupVisible}"
+    InputTransparent="False">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseEditInventoryPopupCommand}" />
+        </Grid.GestureRecognizers>
+        
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="30"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="800"
+               HeightRequest="600"
+               HasShadow="True"
+               InputTransparent="False">
+            <VerticalStackLayout Spacing="20" InputTransparent="False">
+                <!-- Header -->
+                <Grid ColumnDefinitions="*, Auto">
+                    <Label Text="Edit Inventory Items" 
+                           FontAttributes="Bold" 
+                           FontSize="28" 
+                           TextColor="#8B4513"
+                           VerticalOptions="Center"/>
+                    <ImageButton Grid.Column="1" 
+                                 Source="close.png" 
+                                 WidthRequest="25" 
+                                 HeightRequest="25"
+                                 BackgroundColor="Transparent"
+                                 Command="{Binding CloseEditInventoryPopupCommand}"/>
+                </Grid>
+
+                <!-- Category Filters -->
+                <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                    <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="100" HeightRequest="40">
+                        <Button Text="All" BackgroundColor="Transparent" TextColor="Black" FontAttributes="Bold" Padding="0"
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="All"/>
+                    </Frame>
+                    <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="100" HeightRequest="40">
+                        <Button Text="Addons" BackgroundColor="Transparent" TextColor="Black" FontAttributes="Bold" Padding="0"
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons"/>
+                    </Frame>
+                    <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="120" HeightRequest="40">
+                        <Button Text="Ingredients" BackgroundColor="Transparent" TextColor="Black" FontAttributes="Bold" Padding="0" 
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
+                    </Frame>
+                    <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="100" HeightRequest="40">
+                        <Button Text="Supplies" BackgroundColor="Transparent" TextColor="Black" FontAttributes="Bold" Padding="0"
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
+                    </Frame>
+                </HorizontalStackLayout>
+
+                <!-- Loading Indicator -->
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Start" IsVisible="{Binding IsLoading}">
+                    <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
+                    <Label Text="{Binding StatusMessage}" FontSize="14" HorizontalOptions="Center" />
+                </VerticalStackLayout>
+
+                <!-- Items List -->
+                <CollectionView ItemsSource="{Binding Items}" 
+                                HeightRequest="400" 
+                                SelectionMode="None"
+                                IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                    <CollectionView.Header>
+                        <!-- Header Row -->
+                        <Frame BackgroundColor="White" Padding="10">
+                            <Grid ColumnDefinitions="2*, 1*, 1*, 1*">
+                                <Label Text="ITEM" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start"/>
+                                <Label Text="CATEGORY" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1"/>
+                                <Label Text="STOCK" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2"/>
+                                <Label Text="ACTIONS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="3"/>
+                            </Grid>
+                        </Frame>
+                    </CollectionView.Header>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="10" Margin="0,6,0,6" CornerRadius="10" BackgroundColor="White">
+                                <Grid ColumnDefinitions="2*, 1*, 1*, 1*" VerticalOptions="Center" ColumnSpacing="10">
+                                    <!-- Item: image + name -->
+                                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                                        <Frame WidthRequest="50" HeightRequest="50" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
+                                            <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
+                                        </Frame>
+                                        <Label Text="{Binding itemName}" FontSize="16" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+
+                                    <!-- Category -->
+                                    <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
+
+                                    <!-- Stock -->
+                                    <Label Text="{Binding StockDisplay}" Grid.Column="2" VerticalOptions="Center" HorizontalOptions="Center"/>
+
+                                    <!-- Actions -->
+                                    <HorizontalStackLayout Grid.Column="3" Spacing="10" HorizontalOptions="Center">
+                                        <Button Text="Edit" 
+                                                WidthRequest="60" 
+                                                HeightRequest="30"
+                                                BackgroundColor="#FFD700" 
+                                                Padding="0"
+                                                TextColor="Black" 
+                                                FontSize="12"
+                                                Command="{Binding Source={x:Reference EditInventoryPopupView}, Path=BindingContext.EditItemCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                        <Button Text="Delete" 
+                                                WidthRequest="60" 
+                                                HeightRequest="30"
+                                                BackgroundColor="#B24D4D" 
+                                                Padding="0"
+                                                TextColor="White" 
+                                                FontSize="12"
+                                                Command="{Binding Source={x:Reference EditInventoryPopupView}, Path=BindingContext.DeleteItemCommand}" 
+                                                CommandParameter="{Binding}"/>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <Grid Padding="40" HorizontalOptions="Center">
+                            <Label Text="No items found" FontSize="16" TextColor="Gray" HorizontalOptions="Center"/>
+                        </Grid>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentView>
+
+

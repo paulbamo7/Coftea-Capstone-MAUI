@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             x:Class="Coftea_Capstone.Views.Controls.DeleteUserPopup"
+             x:Name="DeleteUserPopupView"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsDeleteUserPopupVisible, FallbackValue=False}"
+             InputTransparent="False">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseDeleteUserPopupCommand}" />
+        </Grid.GestureRecognizers>
+        
+        <!-- Popup Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="30"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="450"
+               HeightRequest="300"
+               HasShadow="True"
+               InputTransparent="False">
+
+            <VerticalStackLayout Spacing="20" HorizontalOptions="Fill">
+                <!-- Title -->
+                <Label Text="Delete User" 
+                       FontSize="24" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center" 
+                       TextColor="#8B4513" />
+                
+                <!-- Warning Message -->
+                <Frame BackgroundColor="#FFE4E1" 
+                       CornerRadius="10" 
+                       Padding="15"
+                       BorderColor="#FF6B6B">
+                    <Label Text="Are you sure you want to delete this user?" 
+                           FontSize="16" 
+                           TextColor="#8B4513"
+                           HorizontalTextAlignment="Center"
+                           LineBreakMode="WordWrap" />
+                </Frame>
+
+                <!-- User Info -->
+                <Frame BackgroundColor="White" 
+                       CornerRadius="10" 
+                       Padding="15">
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="{Binding SelectedUser.Username, StringFormat='Username: {0}'}" 
+                               FontSize="14" 
+                               TextColor="#8B4513" />
+                        <Label Text="{Binding SelectedUser.Email, StringFormat='Email: {0}'}" 
+                               FontSize="14" 
+                               TextColor="#8B4513" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Warning Text -->
+                <Label Text="This action cannot be undone. All user data will be permanently deleted." 
+                       FontSize="12" 
+                       TextColor="#A52A2A"
+                       HorizontalTextAlignment="Center"
+                       LineBreakMode="WordWrap" />
+
+                <!-- Loading Indicator -->
+                <ActivityIndicator IsRunning="{Binding IsDeleting}" 
+                                   IsVisible="{Binding IsDeleting}"
+                                   Color="#8B4513"
+                                   HorizontalOptions="Center" />
+
+                <!-- Buttons -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,10,0,0">
+                    <Button Grid.Column="0"
+                            Text="Cancel"
+                            BackgroundColor="#D0B08A"
+                            TextColor="Black"
+                            CornerRadius="10"
+                            HeightRequest="45"
+                            Command="{Binding CloseDeleteUserPopupCommand}"
+                            IsEnabled="{Binding IsDeleting, Converter={StaticResource InvertBoolConverter}}" />
+                    
+                    <Button Grid.Column="1"
+                            Text="Delete"
+                            BackgroundColor="#B24D4D"
+                            TextColor="White"
+                            CornerRadius="10"
+                            HeightRequest="45"
+                            Command="{Binding ConfirmDeleteUserCommand}"
+                            IsEnabled="{Binding IsDeleting, Converter={StaticResource InvertBoolConverter}}" />
+                </Grid>
+            </VerticalStackLayout>
+        </Frame>
+    </Grid>
+</ContentView>

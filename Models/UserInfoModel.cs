@@ -37,5 +37,7 @@ namespace Coftea_Capstone.C_
 
         [NotNull]
         public string Address { get; set; } = string.Empty;
+
+        public string Status { get; set; } = "pending"; // pending, approved, rejected
     }
 }
