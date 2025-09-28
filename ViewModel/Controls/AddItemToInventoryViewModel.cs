@@ -22,9 +22,6 @@ namespace Coftea_Capstone.ViewModel
         private bool isAddItemToInventoryVisible = false;
 
         [ObservableProperty]
-        private bool isEditMode = false;
-
-        [ObservableProperty]
         private string itemName = string.Empty;
 
         [ObservableProperty]
@@ -63,15 +60,6 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedUoM;
 
-        partial void OnSelectedUoMChanged(string value)
-        {
-            // Auto-set minimum UoM to "Pieces (pcs)" when pieces is selected
-            if (value == "Pieces (pcs)")
-            {
-                SelectedMinimumUoM = "Pieces (pcs)";
-            }
-        }
-
         [ObservableProperty]
         private string imagePath = string.Empty;
 
@@ -93,7 +81,6 @@ namespace Coftea_Capstone.ViewModel
             "Powdered",
             "Fruit Series",
             "Sinkers & etc.",
-            "Supplies",
             "Others"
         };
 
@@ -113,16 +100,12 @@ namespace Coftea_Capstone.ViewModel
             // Pieces-only: only quantity field is shown
             IsPiecesOnlyCategory = value == "Others" || value == "Other";
             // UoM-only categories: show only UoM fields (e.g., Syrups, Powdered, etc.)
-            IsUoMOnlyCategory = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc." || value == "Supplies";
+            IsUoMOnlyCategory = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc.";
             // Backward compatibility flag for existing bindings using Syrups
             IsSyrupsCategory = value == "Syrups";
-            
-            // Auto-set quantity to 1 for cup sizes in Supplies category
-            if (value == "Supplies" && IsCupSize(ItemName))
-            {
-                UoMQuantity = 1;
-                MinimumQuantity = 1;
-            }
+
+            // Update allowed UoM options based on category
+            UpdateUoMOptionsForCategory(value);
 
             if (IsPiecesOnlyCategory)
             {
@@ -139,53 +122,63 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        partial void OnItemNameChanged(string value)
+        private void UpdateUoMOptionsForCategory(string category)
         {
-            // Auto-set quantity to 1 for cup sizes when name changes
-            if (ItemCategory == "Supplies" && IsCupSize(value))
-            {
-                UoMQuantity = 1;
-                MinimumQuantity = 1;
-            }
-        }
+            var cat = category?.Trim() ?? string.Empty;
+            // Define allowed sets
+            var liquid = new[] { "Liters (L)", "Milliliters (ml)" };
+            var weight = new[] { "Kilograms (kg)", "Grams (g)" };
+            var pieces = new[] { "Pieces (pcs)" };
 
-        private bool IsCupSize(string itemName)
-        {
-            if (string.IsNullOrWhiteSpace(itemName)) return false;
-            var lowerName = itemName.ToLower();
-            return lowerName.Contains("cup") || lowerName.Contains("small") || lowerName.Contains("medium") || lowerName.Contains("large");
+            IEnumerable<string> allowed;
+            if (cat == "Syrups" || cat == "Fruit Series")
+            {
+                allowed = liquid;
+            }
+            else if (cat == "Powdered" || cat == "Sinkers & etc.")
+            {
+                allowed = weight;
+            }
+            else if (IsPiecesOnlyCategory)
+            {
+                allowed = pieces;
+            }
+            else
+            {
+                // default to all
+                allowed = new[] { "Pieces (pcs)", "Kilograms (kg)", "Grams (g)", "Liters (L)", "Milliliters (ml)" };
+            }
+
+            // Refresh collection only if changed
+            var newList = allowed.ToList();
+            bool different = UoMOptions.Count != newList.Count || UoMOptions.Where((t, i) => t != newList[i]).Any();
+            if (different)
+            {
+                UoMOptions.Clear();
+                foreach (var u in newList) UoMOptions.Add(u);
+            }
+
+            // Coerce selections to valid values
+            if (!UoMOptions.Contains(SelectedUoM))
+            {
+                SelectedUoM = UoMOptions.FirstOrDefault();
+            }
+            if (!UoMOptions.Contains(SelectedMinimumUoM))
+            {
+                SelectedMinimumUoM = UoMOptions.FirstOrDefault();
+            }
         }
 
         public void BeginEdit(int itemId)
         {
             _editingItemId = itemId;
-            IsEditMode = true;
         }
-
-        public string PageTitle => IsEditMode ? "Edit Item in Inventory" : "Add Item To Inventory";
-        public string ButtonText => IsEditMode ? "Update Item" : "Add Item";
 
         [RelayCommand]
         private void CloseAddItemToInventory()
         {
             IsAddItemToInventoryVisible = false;
             ResetForm();
-        }
-
-        private void ResetForm()
-        {
-            ItemName = string.Empty;
-            ItemCategory = string.Empty;
-            ItemDescription = string.Empty;
-            UoMQuantity = 0;
-            MinimumQuantity = 0;
-            MinimumUoMQuantity = 0;
-            SelectedUoM = string.Empty;
-            SelectedMinimumUoM = string.Empty;
-            ImagePath = string.Empty;
-            SelectedImageSource = null;
-            _editingItemId = null;
-            IsEditMode = false;
         }
 
         [RelayCommand]
@@ -311,6 +304,21 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void ClearImage()
         {
+            ImagePath = string.Empty;
+            SelectedImageSource = null;
+        }
+
+        private void ResetForm()
+        {
+            ItemName = string.Empty;
+            ItemCategory = string.Empty;
+            ItemDescription = string.Empty;
+            ItemQuantity = 0;
+            UoMQuantity = 0;
+            MinimumQuantity = 0;
+            MinimumUoMQuantity = 0;
+            SelectedUoM = null;
+            SelectedMinimumUoM = null;
             ImagePath = string.Empty;
             SelectedImageSource = null;
         }

@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Coftea_Capstone.C_
+using Coftea_Capstone.C_;
+
+namespace Coftea_Capstone.Models
 {
     public class Database
     {
@@ -35,217 +37,6 @@ namespace Coftea_Capstone.C_
             await conn.OpenAsync();
             return conn;
         }
-
-        public async Task InitializeDatabaseAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            // Create users table
-            var createUsersTable = @"
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    firstName VARCHAR(255) NOT NULL,
-                    lastName VARCHAR(255) NOT NULL,
-                    email VARCHAR(255) UNIQUE NOT NULL,
-                    password VARCHAR(255) NOT NULL,
-                    phoneNumber VARCHAR(20),
-                    birthday DATE,
-                    address TEXT,
-                    status VARCHAR(20) DEFAULT 'pending',
-                    isAdmin BOOLEAN DEFAULT FALSE,
-                    reset_token VARCHAR(255),
-                    reset_expiry DATETIME,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                );";
-
-            // Create pending_registrations table
-            var createPendingRegistrationsTable = @"
-                CREATE TABLE IF NOT EXISTS pending_registrations (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    email VARCHAR(255) NOT NULL,
-                    password VARCHAR(255) NOT NULL,
-                    firstName VARCHAR(255) NOT NULL,
-                    lastName VARCHAR(255) NOT NULL,
-                    phoneNumber VARCHAR(20),
-                    address TEXT,
-                    birthday DATE,
-                    registrationDate DATETIME DEFAULT CURRENT_TIMESTAMP
-                );";
-
-            // Create products table
-            var createProductsTable = @"
-                CREATE TABLE IF NOT EXISTS products (
-                    productID INT AUTO_INCREMENT PRIMARY KEY,
-                    productName VARCHAR(255) NOT NULL,
-                    smallPrice DECIMAL(10,2) NOT NULL,
-                    mediumPrice DECIMAL(10,2) NOT NULL,
-                    largePrice DECIMAL(10,2) NOT NULL,
-                    category VARCHAR(100),
-                    subcategory VARCHAR(100),
-                    imageSet VARCHAR(255),
-                    description TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                );";
-
-            // Create inventory table
-            var createInventoryTable = @"
-                CREATE TABLE IF NOT EXISTS inventory (
-                    itemID INT AUTO_INCREMENT PRIMARY KEY,
-                    itemName VARCHAR(255) NOT NULL,
-                    itemQuantity DECIMAL(10,2) DEFAULT 0,
-                    itemCategory VARCHAR(100),
-                    imageSet VARCHAR(255),
-                    itemDescription TEXT,
-                    unitOfMeasurement VARCHAR(50),
-                    minimumQuantity DECIMAL(10,2) DEFAULT 0,
-                    maximumStockLevel DECIMAL(10,2) DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-                );";
-
-            // Create transaction_history table
-            var createTransactionHistoryTable = @"
-                CREATE TABLE IF NOT EXISTS transaction_history (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    transactionId INT,
-                    drinkName VARCHAR(255) NOT NULL,
-                    quantity INT NOT NULL,
-                    size VARCHAR(50),
-                    addOns TEXT,
-                    price DECIMAL(10,2) NOT NULL,
-                    vat DECIMAL(10,2) DEFAULT 0,
-                    total DECIMAL(10,2) NOT NULL,
-                    transactionDate DATETIME NOT NULL,
-                    customerName VARCHAR(255),
-                    paymentMethod VARCHAR(50),
-                    status VARCHAR(50) DEFAULT 'completed',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );";
-
-            // Create product_ingredients table
-            var createProductIngredientsTable = @"
-                CREATE TABLE IF NOT EXISTS product_ingredients (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    productID INT NOT NULL,
-                    itemID INT NOT NULL,
-                    amount DECIMAL(10,2) NOT NULL,
-                    unit VARCHAR(50),
-                    role VARCHAR(50) DEFAULT 'ingredient',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
-                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
-                );";
-
-            // Execute all table creation commands
-            await using var cmd1 = new MySqlCommand(createUsersTable, conn);
-            await cmd1.ExecuteNonQueryAsync();
-
-            await using var cmd2 = new MySqlCommand(createPendingRegistrationsTable, conn);
-            await cmd2.ExecuteNonQueryAsync();
-
-            await using var cmd3 = new MySqlCommand(createProductsTable, conn);
-            await cmd3.ExecuteNonQueryAsync();
-
-            await using var cmd4 = new MySqlCommand(createInventoryTable, conn);
-            await cmd4.ExecuteNonQueryAsync();
-
-            await using var cmd5 = new MySqlCommand(createTransactionHistoryTable, conn);
-            await cmd5.ExecuteNonQueryAsync();
-
-            await using var cmd6 = new MySqlCommand(createProductIngredientsTable, conn);
-            await cmd6.ExecuteNonQueryAsync();
-
-            // Add maximumStockLevel column to existing inventory table if it doesn't exist
-            await AddMaximumStockLevelColumnAsync(conn);
-            
-            // Fix any items where maximumStockLevel is 0 or less than current quantity
-            await FixMaximumStockLevelsAsync(conn);
-
-            // Add default cup sizes to inventory
-            await AddDefaultCupSizesAsync(conn);
-        }
-
-        private async Task AddMaximumStockLevelColumnAsync(MySqlConnection conn)
-        {
-            try
-            {
-                // Check if maximumStockLevel column exists
-                var checkColumnSql = @"
-                    SELECT COUNT(*) 
-                    FROM INFORMATION_SCHEMA.COLUMNS 
-                    WHERE TABLE_SCHEMA = DATABASE() 
-                    AND TABLE_NAME = 'inventory' 
-                    AND COLUMN_NAME = 'maximumStockLevel'";
-                
-                await using var checkCmd = new MySqlCommand(checkColumnSql, conn);
-                var columnExists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync()) > 0;
-
-                if (!columnExists)
-                {
-                    // Add the column
-                    var addColumnSql = "ALTER TABLE inventory ADD COLUMN maximumStockLevel DECIMAL(10,2) DEFAULT 0;";
-                    await using var addCmd = new MySqlCommand(addColumnSql, conn);
-                    await addCmd.ExecuteNonQueryAsync();
-
-                    // Initialize maximumStockLevel with current itemQuantity for existing items
-                    var updateSql = "UPDATE inventory SET maximumStockLevel = itemQuantity WHERE maximumStockLevel = 0;";
-                    await using var updateCmd = new MySqlCommand(updateSql, conn);
-                    await updateCmd.ExecuteNonQueryAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't fail the initialization
-                System.Diagnostics.Debug.WriteLine($"Error adding maximumStockLevel column: {ex.Message}");
-            }
-        }
-
-        private async Task FixMaximumStockLevelsAsync(MySqlConnection conn)
-        {
-            try
-            {
-                // Fix items where maximumStockLevel is 0 or less than current quantity
-                var fixSql = "UPDATE inventory SET maximumStockLevel = itemQuantity WHERE maximumStockLevel = 0 OR maximumStockLevel < itemQuantity;";
-                await using var fixCmd = new MySqlCommand(fixSql, conn);
-                await fixCmd.ExecuteNonQueryAsync();
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't fail the initialization
-                System.Diagnostics.Debug.WriteLine($"Error fixing maximumStockLevels: {ex.Message}");
-            }
-        }
-
-        private async Task AddDefaultCupSizesAsync(MySqlConnection conn)
-        {
-            // Check if cup sizes already exist
-            var checkSql = "SELECT COUNT(*) FROM inventory WHERE itemName IN ('Small Cup', 'Medium Cup', 'Large Cup');";
-            await using var checkCmd = new MySqlCommand(checkSql, conn);
-            var count = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
-
-            if (count == 0)
-            {
-                // Insert Small Cup
-                var smallCupSql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity) " +
-                                 "VALUES ('Small Cup', 1, 'Supplies', 'cup_small.png', 'Small size cup for beverages', 'pcs', 1);";
-                await using var smallCupCmd = new MySqlCommand(smallCupSql, conn);
-                await smallCupCmd.ExecuteNonQueryAsync();
-
-                // Insert Medium Cup
-                var mediumCupSql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity) " +
-                                  "VALUES ('Medium Cup', 1, 'Supplies', 'cup_medium.png', 'Medium size cup for beverages', 'pcs', 1);";
-                await using var mediumCupCmd = new MySqlCommand(mediumCupSql, conn);
-                await mediumCupCmd.ExecuteNonQueryAsync();
-
-                // Insert Large Cup
-                var largeCupSql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity) " +
-                                 "VALUES ('Large Cup', 1, 'Supplies', 'cup_large.png', 'Large size cup for beverages', 'pcs', 1);";
-                await using var largeCupCmd = new MySqlCommand(largeCupSql, conn);
-                await largeCupCmd.ExecuteNonQueryAsync();
-            }
-        }
         public async Task<UserInfoModel> GetUserByEmailAsync(string email)
         {
             await using var conn = await GetOpenConnectionAsync();
@@ -267,8 +58,8 @@ namespace Coftea_Capstone.C_
                     Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
                     PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                     Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
-                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "pending" : reader.GetString("status"),
-                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin")
+                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
+                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status")
                 };
             }
             return null;
@@ -284,195 +75,11 @@ namespace Coftea_Capstone.C_
             cmd.Parameters.AddWithValue("@Id", userId);
             return await cmd.ExecuteNonQueryAsync();
         }
-
-        public async Task<int> UpdateUserStatusAsync(int userId, string status)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "UPDATE users SET status = @Status WHERE id = @Id;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Status", status);
-            cmd.Parameters.AddWithValue("@Id", userId);
-            return await cmd.ExecuteNonQueryAsync();
-        }
-
-        public async Task<List<UserInfoModel>> GetPendingUsersAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, status, isAdmin FROM users WHERE status = 'pending' ORDER BY id ASC;";
-            await using var cmd = new MySqlCommand(sql, conn);
-
-            var users = new List<UserInfoModel>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                var user = new UserInfoModel
-                {
-                    ID = reader.GetInt32("id"),
-                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
-                    Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
-                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
-                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
-                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
-                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "pending" : reader.GetString("status"),
-                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin")
-                };
-                users.Add(user);
-            }
-            return users;
-        }
-
-        public async Task<int> UpdateExistingUsersToApprovedAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "UPDATE users SET status = 'approved' WHERE status IS NULL OR status = '';";
-            await using var cmd = new MySqlCommand(sql, conn);
-
-            return await cmd.ExecuteNonQueryAsync();
-        }
-
-        // Pending Registrations Methods
-        public async Task<int> AddPendingRegistrationAsync(PendingRegistrationModel registration)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "INSERT INTO pending_registrations (email, password, firstName, lastName, phoneNumber, address, birthday, registrationDate) " +
-                      "VALUES (@Email, @Password, @FirstName, @LastName, @PhoneNumber, @Address, @Birthday, @RegistrationDate);";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Email", registration.Email);
-            cmd.Parameters.AddWithValue("@Password", registration.Password);
-            cmd.Parameters.AddWithValue("@FirstName", registration.FirstName);
-            cmd.Parameters.AddWithValue("@LastName", registration.LastName);
-            cmd.Parameters.AddWithValue("@PhoneNumber", registration.PhoneNumber);
-            cmd.Parameters.AddWithValue("@Address", registration.Address);
-            cmd.Parameters.AddWithValue("@Birthday", registration.Birthday.ToString("yyyy-MM-dd"));
-            cmd.Parameters.AddWithValue("@RegistrationDate", registration.RegistrationDate.ToString("yyyy-MM-dd HH:mm:ss"));
-
-            return await cmd.ExecuteNonQueryAsync();
-        }
-
-        public async Task<List<PendingRegistrationModel>> GetPendingRegistrationsAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "SELECT * FROM pending_registrations ORDER BY registrationDate ASC;";
-            await using var cmd = new MySqlCommand(sql, conn);
-
-            var registrations = new List<PendingRegistrationModel>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                var registration = new PendingRegistrationModel
-                {
-                    ID = reader.GetInt32("id"),
-                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
-                    Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
-                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
-                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
-                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
-                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
-                    RegistrationDate = reader.IsDBNull(reader.GetOrdinal("registrationDate")) ? DateTime.Now : reader.GetDateTime("registrationDate")
-                };
-                registrations.Add(registration);
-            }
-            return registrations;
-        }
-
-        public async Task<int> ApprovePendingRegistrationAsync(int registrationId)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-            await using var tx = await conn.BeginTransactionAsync();
-
-            try
-            {
-                // Get the pending registration
-                var getSql = "SELECT * FROM pending_registrations WHERE id = @Id;";
-                await using var getCmd = new MySqlCommand(getSql, conn, (MySqlTransaction)tx);
-                getCmd.Parameters.AddWithValue("@Id", registrationId);
-
-                PendingRegistrationModel registration = null;
-                await using var reader = await getCmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    registration = new PendingRegistrationModel
-                    {
-                        ID = reader.GetInt32("id"),
-                        Email = reader.GetString("email"),
-                        Password = reader.GetString("password"),
-                        FirstName = reader.GetString("firstName"),
-                        LastName = reader.GetString("lastName"),
-                        PhoneNumber = reader.GetString("phoneNumber"),
-                        Address = reader.GetString("address"),
-                        Birthday = reader.GetDateTime("birthday"),
-                        RegistrationDate = reader.GetDateTime("registrationDate")
-                    };
-                }
-                await reader.CloseAsync();
-
-                if (registration == null)
-                {
-                    await tx.RollbackAsync();
-                    return 0;
-                }
-
-                // Check if this will be the first user (admin)
-                var checkUsersSql = "SELECT COUNT(*) FROM users;";
-                await using var checkUsersCmd = new MySqlCommand(checkUsersSql, conn, (MySqlTransaction)tx);
-                var userCount = Convert.ToInt32(await checkUsersCmd.ExecuteScalarAsync());
-                bool isFirstUser = userCount == 0;
-
-                // Add to users table
-                var addUserSql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, birthday, address, status, isAdmin) " +
-                                "VALUES (@FirstName, @LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, @Status, @IsAdmin);";
-                await using var addUserCmd = new MySqlCommand(addUserSql, conn, (MySqlTransaction)tx);
-                addUserCmd.Parameters.AddWithValue("@FirstName", registration.FirstName);
-                addUserCmd.Parameters.AddWithValue("@LastName", registration.LastName);
-                addUserCmd.Parameters.AddWithValue("@Email", registration.Email);
-                addUserCmd.Parameters.AddWithValue("@Password", registration.Password);
-                addUserCmd.Parameters.AddWithValue("@PhoneNumber", registration.PhoneNumber);
-                addUserCmd.Parameters.AddWithValue("@Birthday", registration.Birthday.ToString("yyyy-MM-dd"));
-                addUserCmd.Parameters.AddWithValue("@Address", registration.Address);
-                addUserCmd.Parameters.AddWithValue("@Status", "approved");
-                addUserCmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
-
-                await addUserCmd.ExecuteNonQueryAsync();
-
-                // Remove from pending registrations
-                var deleteSql = "DELETE FROM pending_registrations WHERE id = @Id;";
-                await using var deleteCmd = new MySqlCommand(deleteSql, conn, (MySqlTransaction)tx);
-                deleteCmd.Parameters.AddWithValue("@Id", registrationId);
-                await deleteCmd.ExecuteNonQueryAsync();
-
-                await tx.CommitAsync();
-                return 1;
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
-        }
-
-        public async Task<int> RejectPendingRegistrationAsync(int registrationId)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "DELETE FROM pending_registrations WHERE id = @Id;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Id", registrationId);
-
-            return await cmd.ExecuteNonQueryAsync();
-        }
         public async Task<List<UserInfoModel>> GetAllUsersAsync()
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, status, isAdmin FROM users ORDER BY id ASC;";
+            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status FROM users ORDER BY id ASC;";
             await using var cmd = new MySqlCommand(sql, conn);
 
             var users = new List<UserInfoModel>();
@@ -489,19 +96,33 @@ namespace Coftea_Capstone.C_
                     Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
                     PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                     Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
-                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "pending" : reader.GetString("status"),
-                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin")
+                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
+                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status")
                 };
                 users.Add(user);
             }
             return users;
         }
+        public async Task<bool> IsFirstUserAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            
+            var sql = "SELECT COUNT(*) FROM users;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            var userCount = await cmd.ExecuteScalarAsync();
+            
+            return Convert.ToInt32(userCount) == 0;
+        }
+
         public async Task<int> AddUserAsync(UserInfoModel user)
         {
             await using var conn = await GetOpenConnectionAsync();
 
+            // Check if this is the first user
+            bool isFirstUser = await IsFirstUserAsync();
+            
             var sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, birthday, address, status, isAdmin) " +
-                      "VALUES (@FirstName,@LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, @Status, @IsAdmin);";
+                      "VALUES (@FirstName,@LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, 'approved', @IsAdmin);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@FirstName", user.FirstName);
             cmd.Parameters.AddWithValue("@LastName", user.LastName);
@@ -510,21 +131,9 @@ namespace Coftea_Capstone.C_
             cmd.Parameters.AddWithValue("@Birthday", user.Birthday.ToString("yyyy-MM-dd"));
             cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
             cmd.Parameters.AddWithValue("@Address", user.Address);
-            cmd.Parameters.AddWithValue("@Status", user.Status ?? "pending");
-            cmd.Parameters.AddWithValue("@IsAdmin", user.IsAdmin);
+            cmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
 
             return await cmd.ExecuteNonQueryAsync();
-        }
-
-        public async Task<bool> HasAnyUsersAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "SELECT COUNT(*) FROM users;";
-            await using var cmd = new MySqlCommand(sql, conn);
-
-            var result = await cmd.ExecuteScalarAsync();
-            return result != null && Convert.ToInt32(result) > 0;
         }
 
         // POS Database
@@ -694,7 +303,6 @@ namespace Coftea_Capstone.C_
                     ProductID = reader.GetInt32("productID"),
                     ProductName = reader.GetString("productName"),
                     SmallPrice = reader.GetDecimal("smallPrice"),
-                    MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
                     LargePrice = reader.GetDecimal("largePrice"),
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
@@ -720,7 +328,6 @@ namespace Coftea_Capstone.C_
                     ProductID = reader.GetInt32("productID"),
                     ProductName = reader.GetString("productName"),
                     SmallPrice = reader.GetDecimal("smallPrice"),
-                    MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
                     LargePrice = reader.GetDecimal("largePrice"),
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
@@ -783,8 +390,7 @@ namespace Coftea_Capstone.C_
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
-                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    maximumStockLevel = reader.IsDBNull(reader.GetOrdinal("maximumStockLevel")) ? 0 : reader.GetDouble("maximumStockLevel")
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
                 });
             }
             return inventoryItems;
@@ -810,8 +416,7 @@ namespace Coftea_Capstone.C_
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
-                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    maximumStockLevel = reader.IsDBNull(reader.GetOrdinal("maximumStockLevel")) ? 0 : reader.GetDouble("maximumStockLevel")
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
                 };
             }
             return null;
@@ -845,162 +450,12 @@ namespace Coftea_Capstone.C_
             }
         }
 
-        // Transaction History Methods
-        public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "INSERT INTO transaction_history (drinkName, quantity, size, addOns, price, vat, total, transactionDate, customerName, paymentMethod, status) " +
-                      "VALUES (@DrinkName, @Quantity, @Size, @AddOns, @Price, @Vat, @Total, @TransactionDate, @CustomerName, @PaymentMethod, @Status);";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@DrinkName", transaction.DrinkName);
-            cmd.Parameters.AddWithValue("@Quantity", transaction.Quantity);
-            cmd.Parameters.AddWithValue("@Size", transaction.Size);
-            cmd.Parameters.AddWithValue("@AddOns", transaction.AddOns);
-            cmd.Parameters.AddWithValue("@Price", transaction.Price);
-            cmd.Parameters.AddWithValue("@Vat", transaction.Vat);
-            cmd.Parameters.AddWithValue("@Total", transaction.Total);
-            cmd.Parameters.AddWithValue("@TransactionDate", transaction.TransactionDate);
-            cmd.Parameters.AddWithValue("@CustomerName", transaction.CustomerName);
-            cmd.Parameters.AddWithValue("@PaymentMethod", transaction.PaymentMethod);
-            cmd.Parameters.AddWithValue("@Status", transaction.Status);
-
-            await cmd.ExecuteNonQueryAsync();
-            return (int)cmd.LastInsertedId;
-        }
-
-        public async Task<List<TransactionHistoryModel>> GetTransactionsByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "SELECT * FROM transaction_history WHERE transactionDate >= @StartDate AND transactionDate <= @EndDate ORDER BY transactionDate DESC;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-            cmd.Parameters.AddWithValue("@EndDate", endDate);
-
-            var transactions = new List<TransactionHistoryModel>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                transactions.Add(new TransactionHistoryModel
-                {
-                    TransactionId = reader.GetInt32("id"),
-                    DrinkName = reader.GetString("drinkName"),
-                    Quantity = reader.GetInt32("quantity"),
-                    Size = reader.GetString("size"),
-                    AddOns = reader.GetString("addOns"),
-                    Price = reader.GetDecimal("price"),
-                    Vat = reader.GetDecimal("vat"),
-                    Total = reader.GetDecimal("total"),
-                    TransactionDate = reader.GetDateTime("transactionDate"),
-                    CustomerName = reader.GetString("customerName"),
-                    PaymentMethod = reader.GetString("paymentMethod"),
-                    Status = reader.GetString("status")
-                });
-            }
-
-            return transactions;
-        }
-
-        public async Task<List<TransactionHistoryModel>> GetTransactionsByCategoryAsync(string category, DateTime startDate, DateTime endDate)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = @"SELECT th.* FROM transaction_history th 
-                       JOIN products p ON th.drinkName = p.productName 
-                       WHERE p.category = @Category 
-                       AND th.transactionDate >= @StartDate 
-                       AND th.transactionDate <= @EndDate 
-                       ORDER BY th.transactionDate DESC;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Category", category);
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-            cmd.Parameters.AddWithValue("@EndDate", endDate);
-
-            var transactions = new List<TransactionHistoryModel>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                transactions.Add(new TransactionHistoryModel
-                {
-                    TransactionId = reader.GetInt32("id"),
-                    DrinkName = reader.GetString("drinkName"),
-                    Quantity = reader.GetInt32("quantity"),
-                    Size = reader.GetString("size"),
-                    AddOns = reader.GetString("addOns"),
-                    Price = reader.GetDecimal("price"),
-                    Vat = reader.GetDecimal("vat"),
-                    Total = reader.GetDecimal("total"),
-                    TransactionDate = reader.GetDateTime("transactionDate"),
-                    CustomerName = reader.GetString("customerName"),
-                    PaymentMethod = reader.GetString("paymentMethod"),
-                    Status = reader.GetString("status")
-                });
-            }
-
-            return transactions;
-        }
-
-        public async Task<decimal> GetTotalSalesByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "SELECT COALESCE(SUM(total), 0) FROM transaction_history WHERE transactionDate >= @StartDate AND transactionDate <= @EndDate;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-            cmd.Parameters.AddWithValue("@EndDate", endDate);
-
-            var result = await cmd.ExecuteScalarAsync();
-            return result != null ? Convert.ToDecimal(result) : 0;
-        }
-
-        public async Task<int> GetTotalOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "SELECT COUNT(DISTINCT transactionId) FROM transaction_history WHERE transactionDate >= @StartDate AND transactionDate <= @EndDate;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-            cmd.Parameters.AddWithValue("@EndDate", endDate);
-
-            var result = await cmd.ExecuteScalarAsync();
-            return result != null ? Convert.ToInt32(result) : 0;
-        }
-
-        public async Task<Dictionary<string, int>> GetTopProductsByDateRangeAsync(DateTime startDate, DateTime endDate, int limit = 10)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = @"SELECT drinkName, SUM(quantity) as totalQuantity 
-                       FROM transaction_history 
-                       WHERE transactionDate >= @StartDate AND transactionDate <= @EndDate 
-                       GROUP BY drinkName 
-                       ORDER BY totalQuantity DESC 
-                       LIMIT @Limit;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-            cmd.Parameters.AddWithValue("@EndDate", endDate);
-            cmd.Parameters.AddWithValue("@Limit", limit);
-
-            var topProducts = new Dictionary<string, int>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                topProducts[reader.GetString("drinkName")] = reader.GetInt32("totalQuantity");
-            }
-
-            return topProducts;
-        }
-
         public async Task<int> SaveInventoryItemAsync(InventoryPageModel inventory)
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            // Set maximumStockLevel to itemQuantity for new items
-            var maxStockLevel = Math.Max(inventory.maximumStockLevel, inventory.itemQuantity);
-
-            var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity, maximumStockLevel) " +
-                      "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity, @MaximumStockLevel);";
+            var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity) " +
+                      "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
             cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
@@ -1009,9 +464,120 @@ namespace Coftea_Capstone.C_
             cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
-            cmd.Parameters.AddWithValue("@MaximumStockLevel", maxStockLevel);
 
             return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            try
+            {
+                // Insert into transactions table
+                var transactionSql = "INSERT INTO transactions (userID, total, transactionDate, status) VALUES (@UserID, @Total, @TransactionDate, @Status);";
+                await using var transactionCmd = new MySqlCommand(transactionSql, conn, (MySqlTransaction)tx);
+                transactionCmd.Parameters.AddWithValue("@UserID", 1); // Default user ID for now
+                transactionCmd.Parameters.AddWithValue("@Total", transaction.Total);
+                transactionCmd.Parameters.AddWithValue("@TransactionDate", transaction.TransactionDate);
+                transactionCmd.Parameters.AddWithValue("@Status", transaction.Status);
+
+                await transactionCmd.ExecuteNonQueryAsync();
+                int transactionId = (int)transactionCmd.LastInsertedId;
+
+                // Insert into transaction_items table
+                var itemSql = "INSERT INTO transaction_items (transactionID, productID, productName, quantity, price, size) VALUES (@TransactionID, @ProductID, @ProductName, @Quantity, @Price, @Size);";
+                await using var itemCmd = new MySqlCommand(itemSql, conn, (MySqlTransaction)tx);
+                itemCmd.Parameters.AddWithValue("@TransactionID", transactionId);
+                itemCmd.Parameters.AddWithValue("@ProductID", 1); // Default product ID for now
+                itemCmd.Parameters.AddWithValue("@ProductName", transaction.DrinkName);
+                itemCmd.Parameters.AddWithValue("@Quantity", transaction.Quantity);
+                itemCmd.Parameters.AddWithValue("@Price", transaction.Price);
+                itemCmd.Parameters.AddWithValue("@Size", transaction.Size ?? "");
+
+                await itemCmd.ExecuteNonQueryAsync();
+
+                await tx.CommitAsync();
+                return transactionId;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<List<TransactionHistoryModel>> GetTransactionsByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = @"SELECT t.transactionID, t.total, t.transactionDate, t.status,
+                        ti.productName, ti.quantity, ti.price, ti.size
+                        FROM transactions t
+                        LEFT JOIN transaction_items ti ON t.transactionID = ti.transactionID
+                        WHERE t.transactionDate >= @StartDate AND t.transactionDate <= @EndDate
+                        ORDER BY t.transactionDate DESC";
+
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@StartDate", startDate);
+            cmd.Parameters.AddWithValue("@EndDate", endDate);
+
+            var transactions = new List<TransactionHistoryModel>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var transaction = new TransactionHistoryModel
+                {
+                    TransactionId = reader.GetInt32("transactionID"),
+                    Total = reader.GetDecimal("total"),
+                    TransactionDate = reader.GetDateTime("transactionDate"),
+                    Status = reader.GetString("status")
+                };
+
+                if (!reader.IsDBNull(reader.GetOrdinal("productName")))
+                {
+                    transaction.DrinkName = reader.GetString("productName");
+                    transaction.Quantity = reader.GetInt32("quantity");
+                    transaction.Price = reader.GetDecimal("price");
+                    transaction.Size = reader.IsDBNull(reader.GetOrdinal("size")) ? "" : reader.GetString("size");
+                }
+
+                transactions.Add(transaction);
+            }
+
+            return transactions;
+        }
+
+        public async Task<Dictionary<string, int>> GetTopProductsByDateRangeAsync(DateTime startDate, DateTime endDate, int limit = 10)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = @"SELECT ti.productName, SUM(ti.quantity) as totalQuantity
+                        FROM transactions t
+                        JOIN transaction_items ti ON t.transactionID = ti.transactionID
+                        WHERE t.transactionDate >= @StartDate AND t.transactionDate <= @EndDate
+                        GROUP BY ti.productName
+                        ORDER BY totalQuantity DESC
+                        LIMIT @Limit";
+
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@StartDate", startDate);
+            cmd.Parameters.AddWithValue("@EndDate", endDate);
+            cmd.Parameters.AddWithValue("@Limit", limit);
+
+            var results = new Dictionary<string, int>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var productName = reader.GetString("productName");
+                var quantity = reader.GetInt32("totalQuantity");
+                results[productName] = quantity;
+            }
+
+            return results;
         }
 
         public async Task<int> UpdateInventoryItemAsync(InventoryPageModel inventory)
@@ -1020,7 +586,7 @@ namespace Coftea_Capstone.C_
 
             var sql = "UPDATE inventory SET itemName = @ItemName, itemQuantity = @ItemQuantity, itemCategory = @ItemCategory, " +
                       "imageSet = @ImageSet, itemDescription = @ItemDescription, unitOfMeasurement = @UnitOfMeasurement, " +
-                      "minimumQuantity = @MinimumQuantity, maximumStockLevel = @MaximumStockLevel WHERE itemID = @ItemID;";
+                      "minimumQuantity = @MinimumQuantity WHERE itemID = @ItemID;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemID", inventory.itemID);
             cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
@@ -1030,7 +596,6 @@ namespace Coftea_Capstone.C_
             cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
-            cmd.Parameters.AddWithValue("@MaximumStockLevel", inventory.maximumStockLevel);
 
             return await cmd.ExecuteNonQueryAsync();
         }
@@ -1042,22 +607,6 @@ namespace Coftea_Capstone.C_
             var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemID", itemId);
-
-            return await cmd.ExecuteNonQueryAsync();
-        }
-
-        public async Task<int> UpdateInventoryQuantityAsync(int itemId, double newQuantity)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            // Update quantity and maximum stock level if new quantity is higher
-            var sql = @"UPDATE inventory 
-                       SET itemQuantity = @NewQuantity, 
-                           maximumStockLevel = GREATEST(maximumStockLevel, @NewQuantity)
-                       WHERE itemID = @ItemID;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@ItemID", itemId);
-            cmd.Parameters.AddWithValue("@NewQuantity", newQuantity);
 
             return await cmd.ExecuteNonQueryAsync();
         }
@@ -1123,6 +672,306 @@ namespace Coftea_Capstone.C_
 
             int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
             return rowsAffected > 0;
+        }
+
+        // Database initialization
+        public async Task InitializeDatabaseAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            
+            // Create tables if they don't exist
+            var createTablesSql = @"
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    firstName VARCHAR(100),
+                    lastName VARCHAR(100),
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    password VARCHAR(255) NOT NULL,
+                    phoneNumber VARCHAR(20),
+                    birthday DATE,
+                    address TEXT,
+                    status VARCHAR(50) DEFAULT 'approved',
+                    isAdmin BOOLEAN DEFAULT FALSE,
+                    reset_token VARCHAR(255),
+                    reset_expiry DATETIME,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS products (
+                    productID INT AUTO_INCREMENT PRIMARY KEY,
+                    productName VARCHAR(255) NOT NULL,
+                    smallPrice DECIMAL(10,2) NOT NULL,
+                    mediumPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
+                    largePrice DECIMAL(10,2) NOT NULL,
+                    category VARCHAR(100),
+                    subcategory VARCHAR(100),
+                    imageSet VARCHAR(255),
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS inventory (
+                    itemID INT AUTO_INCREMENT PRIMARY KEY,
+                    itemName VARCHAR(255) NOT NULL,
+                    itemQuantity DECIMAL(10,2) NOT NULL DEFAULT 0,
+                    itemCategory VARCHAR(100),
+                    imageSet VARCHAR(255),
+                    itemDescription TEXT,
+                    unitOfMeasurement VARCHAR(50),
+                    minimumQuantity DECIMAL(10,2) DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS product_ingredients (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    productID INT NOT NULL,
+                    itemID INT NOT NULL,
+                    amount DECIMAL(10,2) NOT NULL,
+                    unit VARCHAR(50),
+                    role VARCHAR(50) DEFAULT 'ingredient',
+                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
+                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
+                );
+                
+                CREATE TABLE IF NOT EXISTS transactions (
+                    transactionID INT AUTO_INCREMENT PRIMARY KEY,
+                    userID INT,
+                    total DECIMAL(10,2) NOT NULL,
+                    transactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    status VARCHAR(50) DEFAULT 'completed',
+                    FOREIGN KEY (userID) REFERENCES users(id)
+                );
+                
+                CREATE TABLE IF NOT EXISTS transaction_items (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    transactionID INT NOT NULL,
+                    productID INT NOT NULL,
+                    productName VARCHAR(255) NOT NULL,
+                    quantity INT NOT NULL,
+                    price DECIMAL(10,2) NOT NULL,
+                    size VARCHAR(20),
+                    FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
+                    FOREIGN KEY (productID) REFERENCES products(productID)
+                );
+                
+                CREATE TABLE IF NOT EXISTS pending_registrations (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL,
+                    password VARCHAR(255) NOT NULL,
+                    firstName VARCHAR(100),
+                    lastName VARCHAR(100),
+                    phoneNumber VARCHAR(20),
+                    address TEXT,
+                    birthday DATE,
+                    registrationDate DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+            ";
+            
+            await using var cmd = new MySqlCommand(createTablesSql, conn);
+            await cmd.ExecuteNonQueryAsync();
+
+            // Add status column to existing users table if it doesn't exist
+            var alterTableSql = @"
+                ALTER TABLE users 
+                ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'approved';
+            ";
+            await using var alterCmd = new MySqlCommand(alterTableSql, conn);
+            await alterCmd.ExecuteNonQueryAsync();
+
+            // Seed default cups and straws if not present
+            var seedSql = @"
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Small Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Small Cup') LIMIT 1;
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Medium Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Medium Cup') LIMIT 1;
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Large Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Large Cup') LIMIT 1;
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Straw' AS itemName, 200 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 50 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Straw') LIMIT 1;
+            ";
+            await using var seedCmd = new MySqlCommand(seedSql, conn);
+            await seedCmd.ExecuteNonQueryAsync();
+        }
+        
+        // Update existing users to approved status
+        public async Task UpdateExistingUsersToApprovedAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            
+            // This method can be used to update user statuses or other initialization tasks
+            // For now, it's a placeholder for future user management features
+            var sql = "SELECT COUNT(*) FROM users;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            var userCount = await cmd.ExecuteScalarAsync();
+            
+            System.Diagnostics.Debug.WriteLine($"Database initialized with {userCount} users.");
+        }
+        
+
+        // User Pending Requests
+        public async Task<int> AddPendingUserRequestAsync(UserPendingRequest request)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "INSERT INTO pending_registrations (email, password, firstName, lastName, phoneNumber, address, birthday, registrationDate) " +
+                      "VALUES (@Email, @Password, @FirstName, @LastName, @PhoneNumber, @Address, @Birthday, @RegistrationDate);";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Email", request.Email);
+            cmd.Parameters.AddWithValue("@Password", request.Password);
+            cmd.Parameters.AddWithValue("@FirstName", request.FirstName);
+            cmd.Parameters.AddWithValue("@LastName", request.LastName);
+            cmd.Parameters.AddWithValue("@PhoneNumber", request.PhoneNumber);
+            cmd.Parameters.AddWithValue("@Address", request.Address);
+            cmd.Parameters.AddWithValue("@Birthday", request.Birthday.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@RegistrationDate", request.RequestDate);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<List<UserPendingRequest>> GetPendingUserRequestsAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "SELECT * FROM pending_registrations ORDER BY registrationDate ASC;";
+            await using var cmd = new MySqlCommand(sql, conn);
+
+            var requests = new List<UserPendingRequest>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                requests.Add(new UserPendingRequest
+                {
+                    ID = reader.GetInt32("id"),
+                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
+                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
+                    Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
+                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
+                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
+                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
+                    RequestDate = reader.IsDBNull(reader.GetOrdinal("registrationDate")) ? DateTime.MinValue : reader.GetDateTime("registrationDate"),
+                    Status = "pending" // Default status since it's not stored in database
+                });
+            }
+            return requests;
+        }
+
+        public async Task<int> ApprovePendingRegistrationAsync(int requestId)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            try
+            {
+                // Get the pending registration
+                var getSql = "SELECT * FROM pending_registrations WHERE id = @Id;";
+                await using var getCmd = new MySqlCommand(getSql, conn, (MySqlTransaction)tx);
+                getCmd.Parameters.AddWithValue("@Id", requestId);
+
+                UserPendingRequest registration = null;
+                await using var reader = await getCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    registration = new UserPendingRequest
+                    {
+                        ID = reader.GetInt32("id"),
+                        Email = reader.GetString("email"),
+                        Password = reader.GetString("password"),
+                        FirstName = reader.GetString("firstName"),
+                        LastName = reader.GetString("lastName"),
+                        PhoneNumber = reader.GetString("phoneNumber"),
+                        Address = reader.GetString("address"),
+                        Birthday = reader.GetDateTime("birthday"),
+                        RequestDate = reader.GetDateTime("registrationDate")
+                    };
+                }
+                await reader.CloseAsync();
+
+                if (registration == null)
+                {
+                    await tx.RollbackAsync();
+                    return 0;
+                }
+
+                // Check if this will be the first user (admin)
+                var checkUsersSql = "SELECT COUNT(*) FROM users;";
+                await using var checkUsersCmd = new MySqlCommand(checkUsersSql, conn, (MySqlTransaction)tx);
+                var userCount = Convert.ToInt32(await checkUsersCmd.ExecuteScalarAsync());
+                bool isFirstUser = userCount == 0;
+
+                // Add to users table
+                var addUserSql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, birthday, address, status, isAdmin) " +
+                                "VALUES (@FirstName, @LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, @Status, @IsAdmin);";
+                await using var addUserCmd = new MySqlCommand(addUserSql, conn, (MySqlTransaction)tx);
+                addUserCmd.Parameters.AddWithValue("@FirstName", registration.FirstName);
+                addUserCmd.Parameters.AddWithValue("@LastName", registration.LastName);
+                addUserCmd.Parameters.AddWithValue("@Email", registration.Email);
+                addUserCmd.Parameters.AddWithValue("@Password", registration.Password);
+                addUserCmd.Parameters.AddWithValue("@PhoneNumber", registration.PhoneNumber);
+                addUserCmd.Parameters.AddWithValue("@Birthday", registration.Birthday.ToString("yyyy-MM-dd"));
+                addUserCmd.Parameters.AddWithValue("@Address", registration.Address);
+                addUserCmd.Parameters.AddWithValue("@Status", "approved");
+                addUserCmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
+
+                await addUserCmd.ExecuteNonQueryAsync();
+
+                // Remove from pending registrations
+                var deleteSql = "DELETE FROM pending_registrations WHERE id = @Id;";
+                await using var deleteCmd = new MySqlCommand(deleteSql, conn, (MySqlTransaction)tx);
+                deleteCmd.Parameters.AddWithValue("@Id", requestId);
+                await deleteCmd.ExecuteNonQueryAsync();
+
+                await tx.CommitAsync();
+                return 1;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<int> RejectPendingRegistrationAsync(int requestId)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "DELETE FROM pending_registrations WHERE id = @RequestId;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@RequestId", requestId);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<List<UserPendingRequest>> GetPendingRegistrationsAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "SELECT * FROM pending_registrations ORDER BY registrationDate ASC;";
+            await using var cmd = new MySqlCommand(sql, conn);
+
+            var requests = new List<UserPendingRequest>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                requests.Add(new UserPendingRequest
+                {
+                    ID = reader.GetInt32("id"),
+                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
+                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
+                    Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
+                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
+                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
+                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
+                    RequestDate = reader.IsDBNull(reader.GetOrdinal("registrationDate")) ? DateTime.MinValue : reader.GetDateTime("registrationDate"),
+                    Status = "pending" // Default status since it's not stored in database
+                });
+            }
+            return requests;
         }
 
         // Notification

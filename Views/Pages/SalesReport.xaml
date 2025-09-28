@@ -1,255 +1,208 @@
-    <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
-                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-                 x:Class="Coftea_Capstone.Views.Pages.SalesReport" 
-                 xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" 
-                 xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
-                 xmlns:charts="clr-namespace:Coftea_Capstone.Views.Controls"
-                 xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls" 
-                 xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
-                 Shell.TabBarIsVisible="False" 
-                 BackgroundColor="#C1A892">
-        <ContentPage.Resources>
-            <ResourceDictionary>
-                <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
-                <converters:CategoryButtonConverter x:Key="CategoryButtonConverter"/>
-                <converters:CategoryTextConverter x:Key="CategoryTextConverter"/>
-                <converters:DateRangeButtonConverter x:Key="DateRangeButtonConverter"/>
-                <converters:DateRangeTextConverter x:Key="DateRangeTextConverter"/>
-            </ResourceDictionary>
-        </ContentPage.Resources>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             x:Class="Coftea_Capstone.Views.Pages.SalesReport" 
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" 
+             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:charts="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls" 
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             Shell.TabBarIsVisible="False" 
+             BackgroundColor="#C1A892">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
 
-        <Grid ColumnDefinitions="200, *" RowDefinitions="*">
-
-            <!-- Sidebar Navigation -->
-            <views:NavigationBar Grid.Column="0" />
-
-            <!-- Main Content -->
-            <ScrollView Grid.Column="1">
-                <VerticalStackLayout Padding="20" Spacing="16">
-                <!-- Top Bar -->
-                <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
-                    <Label Text="Point Of Sale" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
-                    <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="20" FontAttributes="Bold"/>
-                    <SearchBar Placeholder="Search for something" Grid.Column="2" WidthRequest="250" HorizontalOptions="FillAndExpand"/>
-                    <ImageButton Source="notification.png" Grid.Column="3" WidthRequest="35" HeightRequest="28" />
-                    <ImageButton Source="settings.png" Grid.Column="4" WidthRequest="35" HeightRequest="35" Command="{Binding SettingsPopup.ShowSettingsPopupCommand}" />
-                    <ImageButton Source="usericon.png" Grid.Column="5" WidthRequest="35" HeightRequest="35"/>
+        <!-- Sidebar Navigation -->
+        <views:NavigationBar Grid.Column="0" />
+        
+        <!-- Main Content -->
+        <ScrollView Grid.Column="1">
+            <VerticalStackLayout Padding="20" Spacing="16">
+                <!-- Top Bar with category chips -->
+                <Grid ColumnDefinitions="*,Auto,Auto" VerticalOptions="Center" ColumnSpacing="16">
+                    <VerticalStackLayout>
+                        <Label Text="Welcome back, Admin" FontSize="20"/>
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Text="Overview" Padding="12,8" Command="{Binding SelectCategoryCommand}" CommandParameter="Overview"/>
+                            <Button Text="Americano" Padding="12,8" Command="{Binding SelectCategoryCommand}" CommandParameter="Americano"/>
+                            <Button Text="Cafe Latte" Padding="12,8" Command="{Binding SelectCategoryCommand}" CommandParameter="Cafe Latte"/>
+                            <Button Text="Fruit and Soda Mix" Padding="12,8" Command="{Binding SelectCategoryCommand}" CommandParameter="Fruit and Soda Mix"/>
+                            <Button Text="Frappe" Padding="12,8" Command="{Binding SelectCategoryCommand}" CommandParameter="Frappe"/>
+                            <Button Text="Milktea" Padding="12,8" Command="{Binding SelectCategoryCommand}" CommandParameter="Milktea"/>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                    <ImageButton Source="settings.png" Grid.Column="1" WidthRequest="30" HeightRequest="30" Command="{Binding Source={x:Static Application.Current}, Path=SettingsPopup.ShowSettingsPopupCommand}"/>
+                    <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40"/>
                 </Grid>
 
-
-
-                <!-- Filters + KPIs Combined -->
-                <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="16" HasShadow="True">
-                    <VerticalStackLayout Spacing="16">
-                        <!-- Welcome Message and Date -->
-                        <Frame BackgroundColor="Transparent" HasShadow="False" Padding="15">
-                            <VerticalStackLayout>
-                                <Label Text="Welcome back, Admin" FontSize="16" TextColor="#8B4513"/>
-                                <Label Text="{Binding CurrentDateTime, StringFormat='As of Today {0:MMMM dd, yyyy, h:mm:ss tt}'}" FontSize="14" TextColor="#8B4513"/>
-                                <HorizontalStackLayout Spacing="8" HorizontalOptions="Center" Padding="0,15,0,0">
-                                    <Button Text="Overview" Padding="16,8" CornerRadius="20" 
-                                            BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryButtonConverter}, ConverterParameter=Overview}"
-                                            TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextConverter}, ConverterParameter=Overview}"
-                                            Command="{Binding SelectCategoryCommand}" CommandParameter="Overview"/>
-                                    <Button Text="Frappe" Padding="16,8" CornerRadius="20"
-                                            BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryButtonConverter}, ConverterParameter=Frappe}"
-                                            TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextConverter}, ConverterParameter=Frappe}"
-                                            Command="{Binding SelectCategoryCommand}" CommandParameter="Frappe"/>
-                                    <Button Text="Fruit/Soda" Padding="16,8" CornerRadius="20"
-                                            BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryButtonConverter}, ConverterParameter=Fruit/Soda}"
-                                            TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextConverter}, ConverterParameter=Fruit/Soda}"
-                                            Command="{Binding SelectCategoryCommand}" CommandParameter="Fruit/Soda"/>
-                                    <Button Text="Milktea" Padding="16,8" CornerRadius="20"
-                                            BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryButtonConverter}, ConverterParameter=Milktea}"
-                                            TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextConverter}, ConverterParameter=Milktea}"
-                                            Command="{Binding SelectCategoryCommand}" CommandParameter="Milktea"/>
-                                    <Button Text="Coffee" Padding="16,8" CornerRadius="20"
-                                            BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryButtonConverter}, ConverterParameter=Coffee}"
-                                            TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextConverter}, ConverterParameter=Coffee}"
-                                            Command="{Binding SelectCategoryCommand}" CommandParameter="Coffee"/>
-                                </HorizontalStackLayout>
-                            </VerticalStackLayout>
-                        </Frame>
-                        <!-- Category Filter Buttons -->
-                       
-                        <!-- Date Range Filter Buttons -->
-                        <HorizontalStackLayout Spacing="8" HorizontalOptions="Start">
-                            <Button Text="Today" Padding="16,8" CornerRadius="20"
-                    BackgroundColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeButtonConverter}, ConverterParameter=Today}"
-                    TextColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeTextConverter}, ConverterParameter=Today}"
-                    Command="{Binding SelectDateRangeCommand}" CommandParameter="Today"/>
-                            <Button Text="Yesterday" Padding="16,8" CornerRadius="20"
-                    BackgroundColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeButtonConverter}, ConverterParameter=Yesterday}"
-                    TextColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeTextConverter}, ConverterParameter=Yesterday}"
-                    Command="{Binding SelectDateRangeCommand}" CommandParameter="Yesterday"/>
-                            <Button Text="7 Days" Padding="16,8" CornerRadius="20"
-                    BackgroundColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeButtonConverter}, ConverterParameter='7 Days'}"
-                    TextColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeTextConverter}, ConverterParameter='7 Days'}"
-                    Command="{Binding SelectDateRangeCommand}" CommandParameter="7 Days"/>
-                            <Button Text="14 Days" Padding="16,8" CornerRadius="20"
-                    BackgroundColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeButtonConverter}, ConverterParameter='14 Days'}"
-                    TextColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeTextConverter}, ConverterParameter='14 Days'}"
-                    Command="{Binding SelectDateRangeCommand}" CommandParameter="14 Days"/>
-                            <Button Text="30 Days" Padding="16,8" CornerRadius="20"
-                    BackgroundColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeButtonConverter}, ConverterParameter='30 Days'}"
-                    TextColor="{Binding SelectedDateRange, Converter={StaticResource DateRangeTextConverter}, ConverterParameter='30 Days'}"
-                    Command="{Binding SelectDateRangeCommand}" CommandParameter="30 Days"/>
-                        </HorizontalStackLayout>
-
-                        <!-- KPIs Row -->
-                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
-                            <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="16" HasShadow="False">
-                                <VerticalStackLayout>
-                                    <Label Text="Active Days" FontAttributes="Bold" FontSize="12" TextColor="#8B4513"/>
-                                    <Label Text="{Binding ActiveDays}" FontSize="24" FontAttributes="Bold" TextColor="#8B4513"/>
-                                </VerticalStackLayout>
-                            </Frame>
-                            <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="16" HasShadow="False" Grid.Column="1">
-                                <VerticalStackLayout>
-                                    <Label Text="Overall Most Bought Today" FontAttributes="Bold" FontSize="12" TextColor="#8B4513"/>
-                                    <Label Text="{Binding MostBoughtToday}" FontSize="24" FontAttributes="Bold" TextColor="#8B4513"/>
-                                </VerticalStackLayout>
-                            </Frame>
-                            <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="16" HasShadow="False" Grid.Column="2">
-                                <VerticalStackLayout>
-                                    <Label Text="Trending Today" FontAttributes="Bold" FontSize="12" TextColor="#8B4513"/>
-                                    <Label Text="{Binding TrendingToday}" FontSize="24" FontAttributes="Bold" TextColor="#8B4513"/>
-                                </VerticalStackLayout>
-                            </Frame>
-                            <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="16" HasShadow="False" Grid.Column="3">
-                                <VerticalStackLayout>
-                                    <Label Text="Total Sales Today" FontAttributes="Bold" FontSize="12" TextColor="#8B4513"/>
-                                    <Label Text="{Binding TotalSalesToday, StringFormat='P {0}'}" FontSize="24" FontAttributes="Bold" TextColor="#8B4513"/>
-                                </VerticalStackLayout>
-                            </Frame>
-                        </Grid>
-                    </VerticalStackLayout>
-                </Frame>
-
-
-                <!-- Total Orders of Milktea Today Chart -->
-                    <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="16" HasShadow="True">
+                <!-- KPIs Row -->
+                <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="12">
+                    <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="12">
                         <VerticalStackLayout>
-                            <Label Text="Total Orders of Milktea Today" FontAttributes="Bold" FontSize="16" TextColor="#8B4513"/>
-                            <CollectionView ItemsSource="{Binding MilkteaOrdersToday}" HeightRequest="60" Margin="0,10,0,0">
-                                <CollectionView.ItemsLayout>
-                                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
-                                </CollectionView.ItemsLayout>
+                            <Label Text="Active Days" FontAttributes="Bold"/>
+                            <Label Text="{Binding ActiveDays}" FontSize="24"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="12" Grid.Column="1">
+                        <VerticalStackLayout>
+                            <Label Text="Overall Most Bought Today" FontAttributes="Bold"/>
+                            <Label Text="{Binding MostBoughtToday}" FontSize="24"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="12" Grid.Column="2">
+                        <VerticalStackLayout>
+                            <Label Text="Trending Today" FontAttributes="Bold"/>
+                            <Label Text="{Binding TrendingToday}" FontSize="24"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    <Frame BackgroundColor="#F5E6D8" CornerRadius="12" Padding="12" Grid.Column="3">
+                        <VerticalStackLayout>
+                            <Label Text="Total Sales Today" FontAttributes="Bold"/>
+                            <Label Text="{Binding TotalSalesToday, StringFormat='P {0}'}" FontSize="24"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+
+                <!-- Orders Cards -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="12" IsVisible="{Binding ShowCoffee}">
+                        <Frame.Triggers>
+                            <DataTrigger TargetType="Frame" Binding="{Binding ShowMilktea}" Value="False">
+                                <Setter Property="Grid.ColumnSpan" Value="2" />
+                            </DataTrigger>
+                        </Frame.Triggers>
+                        <VerticalStackLayout>
+                            <Label Text="Total Orders Today" FontAttributes="Bold"/>
+                            <Label Text="{Binding TotalOrdersToday}" FontSize="24"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                    <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="12" Grid.Column="1" IsVisible="{Binding ShowMilktea}">
+                        <Frame.Triggers>
+                            <DataTrigger TargetType="Frame" Binding="{Binding ShowCoffee}" Value="False">
+                                <Setter Property="Grid.ColumnSpan" Value="2" />
+                                <Setter Property="Grid.Column" Value="0" />
+                            </DataTrigger>
+                        </Frame.Triggers>
+                        <VerticalStackLayout>
+                            <Label Text="Total Orders This Week" FontAttributes="Bold"/>
+                            <Label Text="{Binding TotalOrdersThisWeek}" FontSize="24"/>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+
+                <!-- Top Today Panels with charts -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="12" IsVisible="{Binding ShowCoffee}">
+                        <Frame.Triggers>
+                            <DataTrigger TargetType="Frame" Binding="{Binding ShowMilktea}" Value="False">
+                                <Setter Property="Grid.ColumnSpan" Value="2" />
+                            </DataTrigger>
+                        </Frame.Triggers>
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                            <Label Text="Top 3 Popular Coffee Today" FontAttributes="Bold"/>
+                            <Label Text="{Binding TopCoffeeTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1"/>
+                            <GraphicsView x:Name="CoffeePie" HeightRequest="180" Grid.Row="1" Grid.ColumnSpan="2"/>
+                            <CollectionView ItemsSource="{Binding TopCoffeeToday}" HeightRequest="100" Grid.Row="2" Grid.ColumnSpan="2">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <Frame BackgroundColor="{Binding Color}" CornerRadius="20" Padding="12,6" HasShadow="False">
-                                            <Label Text="{Binding Count}" FontSize="12" FontAttributes="Bold" 
-                                                   TextColor="{Binding TextColor}" HorizontalOptions="Center"/>
-                                        </Frame>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Name}"/>
+                                            <Label Text="{Binding Count}" Grid.Column="1"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </Frame>
+                    <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="12" Grid.Column="1" IsVisible="{Binding ShowMilktea}">
+                        <Frame.Triggers>
+                            <DataTrigger TargetType="Frame" Binding="{Binding ShowCoffee}" Value="False">
+                                <Setter Property="Grid.ColumnSpan" Value="2" />
+                                <Setter Property="Grid.Column" Value="0" />
+                            </DataTrigger>
+                        </Frame.Triggers>
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                            <Label Text="Top 3 Popular Milktea Today" FontAttributes="Bold"/>
+                            <Label Text="{Binding TopMilkteaTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1"/>
+                            <GraphicsView x:Name="MilkTeaPie" HeightRequest="180" Grid.Row="1" Grid.ColumnSpan="2"/>
+                            <CollectionView ItemsSource="{Binding TopMilkteaToday}" HeightRequest="100" Grid.Row="2" Grid.ColumnSpan="2">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Name}"/>
+                                            <Label Text="{Binding Count}" Grid.Column="1"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Grid>
+                    </Frame>
+                </Grid>
+
+                <!-- Weekly Trends with bar charts -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="12" IsVisible="{Binding ShowCoffee}">
+                        <Frame.Triggers>
+                            <DataTrigger TargetType="Frame" Binding="{Binding ShowMilktea}" Value="False">
+                                <Setter Property="Grid.ColumnSpan" Value="2" />
+                            </DataTrigger>
+                        </Frame.Triggers>
+                        <VerticalStackLayout>
+                            <Label Text="Top Coffee Trends Weekly" FontAttributes="Bold"/>
+                            <GraphicsView x:Name="CoffeeBar" HeightRequest="180"/>
+                            <CollectionView ItemsSource="{Binding TopCoffeeWeekly}" HeightRequest="100">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Name}"/>
+                                            <Label Text="{Binding Count}" Grid.Column="1"/>
+                                        </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </VerticalStackLayout>
                     </Frame>
-
-                    <!-- Popular Items Section -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                        <!-- Top 3 Popular Coffee Today -->
-                        <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="16" HasShadow="True">
-                            <VerticalStackLayout>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <Label Text="Top 3 Popular Coffee Today" FontAttributes="Bold" FontSize="14" TextColor="#8B4513"/>
-                                    <Label Text="{Binding CoffeeOrdersToday, StringFormat='{0} Orders'}" FontSize="12" TextColor="#8B4513" Grid.Column="1"/>
-                                </Grid>
-                                <GraphicsView x:Name="CoffeePieChart" HeightRequest="120" Margin="0,10,0,0"/>
-                                <CollectionView ItemsSource="{Binding PopularCoffeeToday}" HeightRequest="80" Margin="0,10,0,0">
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Frame BackgroundColor="{Binding Color}" CornerRadius="10" Padding="8,4" HasShadow="False" WidthRequest="12" HeightRequest="12"/>
-                                                <Label Text="{Binding Name, StringFormat='{0} ({1})'}" FontSize="12" TextColor="#8B4513"/>
-                                            </HorizontalStackLayout>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                            </VerticalStackLayout>
-                        </Frame>
-
-                        <!-- Top 3 Popular Milktea Today -->
-                        <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="16" HasShadow="True" Grid.Column="1">
-                            <VerticalStackLayout>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <Label Text="Top 3 Popular Milktea Today" FontAttributes="Bold" FontSize="14" TextColor="#8B4513"/>
-                                    <Label Text="{Binding MilkteaOrdersToday, StringFormat='{0} Orders'}" FontSize="12" TextColor="#8B4513" Grid.Column="1"/>
-                                </Grid>
-                                <GraphicsView x:Name="MilkteaDonutChart" HeightRequest="120" Margin="0,10,0,0"/>
-                                <CollectionView ItemsSource="{Binding PopularMilkteaToday}" HeightRequest="80" Margin="0,10,0,0">
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Frame BackgroundColor="{Binding Color}" CornerRadius="10" Padding="8,4" HasShadow="False" WidthRequest="12" HeightRequest="12"/>
-                                                <Label Text="{Binding Name, StringFormat='{0} ({1})'}" FontSize="12" TextColor="#8B4513"/>
-                                            </HorizontalStackLayout>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                            </VerticalStackLayout>
-                        </Frame>
-                    </Grid>
-
-                    <!-- Weekly Trends Section -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                        <!-- Top Coffee Trends Weekly -->
-                        <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="16" HasShadow="True">
-                            <VerticalStackLayout>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <Label Text="Top Coffee Trends Weekly" FontAttributes="Bold" FontSize="14" TextColor="#8B4513"/>
-                                    <Label Text="{Binding CoffeeOrdersWeekly, StringFormat='{0} Orders'}" FontSize="12" TextColor="#8B4513" Grid.Column="1"/>
-                                </Grid>
-                                <GraphicsView x:Name="CoffeeWeeklyBarChart" HeightRequest="120" Margin="0,10,0,0"/>
-                                <CollectionView ItemsSource="{Binding CoffeeTrendsWeekly}" HeightRequest="80" Margin="0,10,0,0">
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Frame BackgroundColor="{Binding Color}" CornerRadius="10" Padding="8,4" HasShadow="False" WidthRequest="12" HeightRequest="12"/>
-                                                <Label Text="{Binding Name, StringFormat='{0} ({1})'}" FontSize="12" TextColor="#8B4513"/>
-                                            </HorizontalStackLayout>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                            </VerticalStackLayout>
-                        </Frame>
-
-                        <!-- Top Milktea Trends Weekly -->
-                        <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="16" HasShadow="True" Grid.Column="1">
-                            <VerticalStackLayout>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <Label Text="Top Milktea Trends Weekly" FontAttributes="Bold" FontSize="14" TextColor="#8B4513"/>
-                                    <Label Text="{Binding MilkteaOrdersWeekly, StringFormat='{0} Orders'}" FontSize="12" TextColor="#8B4513" Grid.Column="1"/>
-                                </Grid>
-                                <GraphicsView x:Name="MilkteaWeeklyBarChart" HeightRequest="120" Margin="0,10,0,0"/>
-                                <CollectionView ItemsSource="{Binding MilkteaTrendsWeekly}" HeightRequest="80" Margin="0,10,0,0">
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Frame BackgroundColor="{Binding Color}" CornerRadius="10" Padding="8,4" HasShadow="False" WidthRequest="12" HeightRequest="12"/>
-                                                <Label Text="{Binding Name, StringFormat='{0} ({1})'}" FontSize="12" TextColor="#8B4513"/>
-                                            </HorizontalStackLayout>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                            </VerticalStackLayout>
-                        </Frame>
-                    </Grid>
+                    <Frame BackgroundColor="#FFFFFF" CornerRadius="12" Padding="12" Grid.Column="1" IsVisible="{Binding ShowMilktea}">
+                        <Frame.Triggers>
+                            <DataTrigger TargetType="Frame" Binding="{Binding ShowCoffee}" Value="False">
+                                <Setter Property="Grid.ColumnSpan" Value="2" />
+                                <Setter Property="Grid.Column" Value="0" />
+                            </DataTrigger>
+                        </Frame.Triggers>
+                        <VerticalStackLayout>
+                            <Label Text="Top Milktea Trends Weekly" FontAttributes="Bold"/>
+                            <GraphicsView x:Name="MilkTeaBar" HeightRequest="180"/>
+                            <CollectionView ItemsSource="{Binding TopMilkteaWeekly}" HeightRequest="100">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding Name}"/>
+                                            <Label Text="{Binding Count}" Grid.Column="1"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
             </VerticalStackLayout>
         </ScrollView>
-            <!-- Settings Popup (shared) -->
-            <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
-
-            <!-- Manage POS Options Popup -->
-            <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
-            <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
-
-            <!-- Manage Inventory Options Popup -->
-            <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
-            <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
-
-            <!-- Retry Connection Popup -->
-            <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
-        </Grid>
-    </ContentPage>
+        
+        <!-- Settings Popup (shared) -->
+        <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage POS Options Popup -->
+        <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
+        
+        <!-- Manage Inventory Options Popup -->
+        <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
+        
+        <!-- Retry Connection Popup -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
+    </Grid>
+</ContentPage>

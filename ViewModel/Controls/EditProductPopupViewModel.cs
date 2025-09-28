@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -14,9 +13,6 @@ namespace Coftea_Capstone.ViewModel
         private readonly Database _database;
         private readonly AddItemToPOSViewModel _addItemToPOSViewModel;
         public NotificationPopupViewModel NotificationPopup { get; set; }
-
-        // Event for notifying when a product is deleted
-        public event Action<POSPageModel> ProductDeleted;
 
         [ObservableProperty]
         private bool isEditProductPopupVisible = false;
@@ -43,16 +39,7 @@ namespace Coftea_Capstone.ViewModel
         {
             _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
             _addItemToPOSViewModel = addItemToPOSViewModel;
-            
-            // Safely get NotificationPopup with null check
-            try
-            {
-                NotificationPopup = ((App)Application.Current)?.NotificationPopup;
-            }
-            catch
-            {
-                NotificationPopup = null;
-            }
+            NotificationPopup = ((App)Application.Current).NotificationPopup;
         }
 
         [RelayCommand]
@@ -127,17 +114,7 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task DeleteProduct(POSPageModel product)
         {
-            if (product == null) 
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Product is null. Cannot delete.", "OK");
-                return;
-            }
-
-            if (Application.Current?.MainPage == null)
-            {
-                System.Diagnostics.Debug.WriteLine("Application.Current or MainPage is null");
-                return;
-            }
+            if (product == null) return;
 
             bool confirm = await Application.Current.MainPage.DisplayAlert(
                 "Confirm Delete", 
@@ -156,19 +133,9 @@ namespace Coftea_Capstone.ViewModel
 
                 if (rowsAffected > 0 || !stillExists)
                 {
-                    if (NotificationPopup != null)
-                    {
-                        NotificationPopup.ShowNotification("Product deleted successfully!", "Success");
-                    }
-                    else
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Success", "Product deleted successfully!", "OK");
-                    }
+                    NotificationPopup.ShowNotification("Product deleted successfully!", "Success");
                     AllProducts.Remove(product);
                     Products.Remove(product);
-                    
-                    // Notify that a product was deleted
-                    ProductDeleted?.Invoke(product);
                     return;
                 }
 
@@ -176,7 +143,6 @@ namespace Coftea_Capstone.ViewModel
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"DeleteProduct error: {ex}");
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to delete product: {ex.Message}", "OK");
             }
         }

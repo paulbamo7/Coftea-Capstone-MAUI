@@ -44,6 +44,12 @@ public partial class NavigationBar : ContentView
     {
         if (App.CurrentUser == null) return;
 
+        if (!(App.CurrentUser?.IsAdmin ?? false))
+        {
+            await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only admins can access Inventory.", "OK");
+            return;
+        }
+
         var nav = Application.Current.MainPage as NavigationPage;
         if (nav == null) return;
 
@@ -54,6 +60,12 @@ public partial class NavigationBar : ContentView
     private async void SalesReportButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return;
+
+        if (!(App.CurrentUser?.IsAdmin ?? false))
+        {
+            await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only admins can access Sales Reports.", "OK");
+            return;
+        }
 
         var nav = Application.Current.MainPage as NavigationPage;
         if (nav == null) return;

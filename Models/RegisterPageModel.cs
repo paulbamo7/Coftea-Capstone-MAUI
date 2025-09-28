@@ -7,12 +7,10 @@ using System.Threading.Tasks;
 
 namespace Coftea_Capstone.Models
 {
-    internal class RegisterPageModel
+    public class RegisterPageModel
     {
         [PrimaryKey, AutoIncrement]
         public int ID { get; set; }
-
-
 
         [Unique, NotNull]
         public string Email { get; set; } = string.Empty;

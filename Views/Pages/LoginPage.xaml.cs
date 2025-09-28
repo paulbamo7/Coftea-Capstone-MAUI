@@ -1,5 +1,7 @@
 using Coftea_Capstone;
 using Coftea_Capstone.C_;
+using Coftea_Capstone.Models;
+using Coftea_Capstone.Views.Controls;
 using SQLite;
 
 namespace Coftea_Capstone.Views.Pages;

@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Pages.HistoryPage"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
+             xmlns:view="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             Shell.NavBarIsVisible="False"      
+             Shell.TabBarIsVisible="False"
+             BackgroundColor="#D6BCA8">
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <converters:FilterButtonConverter x:Key="FilterButtonConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+        <!-- Sidebar Navigation -->
+        <view:NavigationBar Grid.Column="0" />
+
+        <!-- Main Content -->
+        <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto, Auto, *">
+            
+            <!-- Top Bar -->
+            <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
+                <Label Text="Transaction History" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
+                <Button Text="Refresh" Command="{Binding RefreshHistoryCommand}" BackgroundColor="#5B4F45" TextColor="White" CornerRadius="15" WidthRequest="100" HeightRequest="40"/>
+                <Button Text="Export" Command="{Binding ExportHistoryCommand}" BackgroundColor="#A57C5C" TextColor="White" CornerRadius="15" WidthRequest="100" HeightRequest="40"/>
+                <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="35" HeightRequest="35"/>
+            </Grid>
+
+            <!-- Filter Buttons -->
+            <ScrollView Orientation="Horizontal" Grid.Row="1" Margin="0,15,0,0">
+                <HorizontalStackLayout Spacing="10">
+                    <Button Text="Today" 
+                            Command="{Binding FilterByTimePeriodCommand}" 
+                            CommandParameter="Today"
+                            FontAttributes="Bold" 
+                            FontFamily="Roboto" 
+                            FontSize="14" 
+                            WidthRequest="100" 
+                            HeightRequest="40">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="LightGray" />
+                                <Setter Property="TextColor" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Today}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Text="Yesterday" 
+                            Command="{Binding FilterByTimePeriodCommand}" 
+                            CommandParameter="Yesterday"
+                            FontAttributes="Bold" 
+                            FontFamily="Roboto" 
+                            FontSize="14" 
+                            WidthRequest="100" 
+                            HeightRequest="40">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="LightGray" />
+                                <Setter Property="TextColor" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Yesterday}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Text="3 Days Ago" 
+                            Command="{Binding FilterByTimePeriodCommand}" 
+                            CommandParameter="3 Days Ago"
+                            FontAttributes="Bold" 
+                            FontFamily="Roboto" 
+                            FontSize="14" 
+                            WidthRequest="100" 
+                            HeightRequest="40">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="LightGray" />
+                                <Setter Property="TextColor" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=3 Days Ago}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Text="1 Week Ago" 
+                            Command="{Binding FilterByTimePeriodCommand}" 
+                            CommandParameter="1 Week Ago"
+                            FontAttributes="Bold" 
+                            FontFamily="Roboto" 
+                            FontSize="14" 
+                            WidthRequest="100" 
+                            HeightRequest="40">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="LightGray" />
+                                <Setter Property="TextColor" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Week Ago}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Text="2 Weeks Ago" 
+                            Command="{Binding FilterByTimePeriodCommand}" 
+                            CommandParameter="2 Weeks Ago"
+                            FontAttributes="Bold" 
+                            FontFamily="Roboto" 
+                            FontSize="14" 
+                            WidthRequest="100" 
+                            HeightRequest="40">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="LightGray" />
+                                <Setter Property="TextColor" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=2 Weeks Ago}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Text="1 Month Ago" 
+                            Command="{Binding FilterByTimePeriodCommand}" 
+                            CommandParameter="1 Month Ago"
+                            FontAttributes="Bold" 
+                            FontFamily="Roboto" 
+                            FontSize="14" 
+                            WidthRequest="100" 
+                            HeightRequest="40">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="LightGray" />
+                                <Setter Property="TextColor" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Month Ago}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Text="All Time" 
+                            Command="{Binding FilterByTimePeriodCommand}" 
+                            CommandParameter="All Time"
+                            FontAttributes="Bold" 
+                            FontFamily="Roboto" 
+                            FontSize="14" 
+                            WidthRequest="100" 
+                            HeightRequest="40">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="LightGray" />
+                                <Setter Property="TextColor" Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=All Time}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <!-- Transaction History Table -->
+            <Border Grid.Row="2" StrokeShape="RoundRectangle 20" BackgroundColor="White" Margin="0,15,0,0" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                <Grid RowDefinitions="Auto, *, Auto">
+                    
+                    <!-- Fixed Table Header -->
+                    <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,10" Margin="0,0,0,0">
+                        <Grid ColumnDefinitions="Auto, *, Auto, Auto, Auto, Auto, Auto, Auto, Auto">
+                            <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="40" HorizontalOptions="Center"/>
+                            <Label Grid.Column="1" Text="Drink Name" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Start"/>
+                            <Label Grid.Column="2" Text="Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="50" HorizontalOptions="Center"/>
+                            <Label Grid.Column="3" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" HorizontalOptions="Center"/>
+                            <Label Grid.Column="4" Text="Add On" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalOptions="Center"/>
+                            <Label Grid.Column="5" Text="Price" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalOptions="Center"/>
+                            <Label Grid.Column="6" Text="VAT" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" HorizontalOptions="Center"/>
+                            <Label Grid.Column="7" Text="Total" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalOptions="Center"/>
+                            <Label Grid.Column="8" Text="Date" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" HorizontalOptions="Center"/>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Scrollable Transaction Data -->
+                    <ScrollView Grid.Row="1" Padding="15,0">
+                        <CollectionView ItemsSource="{Binding FilteredTransactions}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid BackgroundColor="White" Padding="15,8" Margin="0,0,0,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="50" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="60" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- ID -->
+                                        <Label Grid.Column="0" 
+                                               Text="{Binding TransactionId}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Drink Name -->
+                                        <Label Grid.Column="1" 
+                                               Text="{Binding DrinkName}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Start" />
+
+                                        <!-- Quantity -->
+                                        <Label Grid.Column="2" 
+                                               Text="{Binding Quantity}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Size -->
+                                        <Label Grid.Column="3" 
+                                               Text="{Binding Size}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Add Ons -->
+                                        <Label Grid.Column="4" 
+                                               Text="{Binding AddOns}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Price -->
+                                        <Label Grid.Column="5" 
+                                               Text="{Binding FormattedPrice}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- VAT -->
+                                        <Label Grid.Column="6" 
+                                               Text="{Binding FormattedVAT}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Total -->
+                                        <Label Grid.Column="7" 
+                                               Text="{Binding FormattedTotal}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Date -->
+                                        <Label Grid.Column="8" 
+                                               Text="{Binding FormattedDate}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </ScrollView>
+
+                    <!-- Footer with Pagination -->
+                    <Grid Grid.Row="2" BackgroundColor="#E8D5C4" Padding="20,15">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <!-- Pagination -->
+                            <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
+                                <Button Text="1" 
+                                        Command="{Binding GoToPageCommand}" 
+                                        CommandParameter="1"
+                                        FontSize="14" 
+                                        BackgroundColor="#5B4F45" 
+                                        TextColor="White" 
+                                        WidthRequest="30" 
+                                        HeightRequest="30" 
+                                        CornerRadius="15" />
+                                <Button Text="2" 
+                                        Command="{Binding GoToPageCommand}" 
+                                        CommandParameter="2"
+                                        FontSize="14" 
+                                        BackgroundColor="LightGray" 
+                                        TextColor="Black" 
+                                        WidthRequest="30" 
+                                        HeightRequest="30" 
+                                        CornerRadius="15" />
+                                <Button Text="3" 
+                                        Command="{Binding GoToPageCommand}" 
+                                        CommandParameter="3"
+                                        FontSize="14" 
+                                        BackgroundColor="LightGray" 
+                                        TextColor="Black" 
+                                        WidthRequest="30" 
+                                        HeightRequest="30" 
+                                        CornerRadius="15" />
+                                <Button Text="4" 
+                                        Command="{Binding GoToPageCommand}" 
+                                        CommandParameter="4"
+                                        FontSize="14" 
+                                        BackgroundColor="LightGray" 
+                                        TextColor="Black" 
+                                        WidthRequest="30" 
+                                        HeightRequest="30" 
+                                        CornerRadius="15" />
+                                <Button Text="5" 
+                                        Command="{Binding GoToPageCommand}" 
+                                        CommandParameter="5"
+                                        FontSize="14" 
+                                        BackgroundColor="LightGray" 
+                                        TextColor="Black" 
+                                        WidthRequest="30" 
+                                        HeightRequest="30" 
+                                        CornerRadius="15" />
+                            </HorizontalStackLayout>
+
+                            <!-- Status Message -->
+                            <Label Grid.Column="1" 
+                                   Text="{Binding StatusMessage}" 
+                                   FontSize="12" 
+                                   TextColor="Black" 
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

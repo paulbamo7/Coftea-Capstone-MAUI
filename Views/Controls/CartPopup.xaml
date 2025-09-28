@@ -102,24 +102,24 @@
                                             <Label Text="{Binding ProductName, StringFormat='Drink: {0}'}" 
                                                    FontSize="12" 
                                                    TextColor="Black" />
-                                            <Label Text="Customer Name: Sanchez" 
+                                            <Label Text="{Binding CustomerName, StringFormat='Customer: {0}'}" 
                                                    FontSize="12" 
                                                    TextColor="Gray" />
-                                            <Label Text="Sugar Level: 100%" 
+                                            <Label Text="{Binding SugarLevel, StringFormat='Sugar: {0}'}" 
                                                    FontSize="12" 
                                                    TextColor="Gray" />
                                         </VerticalStackLayout>
 
                                         <!-- Add-ons -->
                                         <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="5,0">
-                                            <Label Text="Expresso - P5" FontSize="11" TextColor="Black" />
-                                            <Label Text="Pearl - P5" FontSize="11" TextColor="Black" />
-                                            <Label Text="Nata - P10" FontSize="11" TextColor="Black" />
+                                            <Label Text="{Binding AddOnsDisplay}" 
+                                                   FontSize="11" 
+                                                   TextColor="Black" />
                                         </VerticalStackLayout>
 
                                         <!-- Size -->
                                         <Label Grid.Column="3" 
-                                               Text="Large" 
+                                               Text="{Binding SizeDisplay}" 
                                                FontSize="12" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
@@ -127,7 +127,7 @@
 
                                         <!-- Quantity -->
                                         <Label Grid.Column="4" 
-                                               Text="{Binding LargeQuantity}" 
+                                               Text="{Binding TotalQuantity}" 
                                                FontSize="12" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
@@ -135,13 +135,13 @@
 
                                         <!-- Cost -->
                                         <Label Grid.Column="5" 
-                                               Text="{Binding LargePrice, StringFormat='P{0:F0}'}" 
+                                               Text="{Binding TotalPrice, StringFormat='P{0:F0}'}" 
                                                FontSize="12" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
 
-                                        <!-- Edit Button -->
+                                        <!-- Action Buttons -->
                                         <VerticalStackLayout Grid.Column="6" Spacing="15">
                                             <Button
                                                 Text="Edit" 
@@ -154,8 +154,7 @@
                                                 HeightRequest="30"
                                                 Command="{Binding BindingContext.EditCartItemCommand, Source={x:Reference CartPopupView}}" 
                                                 CommandParameter="{Binding .}" />
-                                        <!-- Edit Button -->
-                                        <Button 
+                                            <Button 
                                                 Text="Delete" 
                                                 FontSize="12" 
                                                 BackgroundColor="Red" 
@@ -164,7 +163,7 @@
                                                 Padding="0"
                                                 WidthRequest="60" 
                                                 HeightRequest="30"
-                                                Command="{Binding BindingContext.EditCartItemCommand, Source={x:Reference CartPopupView}}" 
+                                                Command="{Binding BindingContext.DeleteCartItemCommand, Source={x:Reference CartPopupView}}" 
                                                 CommandParameter="{Binding .}" />
                                         </VerticalStackLayout>
                                     </Grid>
@@ -174,47 +173,19 @@
                     </ScrollView>
                 </Grid>
 
-                <!-- Footer with Pagination and Checkout -->
+                <!-- Footer with Total and Checkout -->
                 <Grid Grid.Row="2" BackgroundColor="#E8D5C4" Padding="20,15">
                     <Grid ColumnDefinitions="*, Auto">
-                        <!-- Pagination -->
-                        <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
-                            <Button Text="1" 
-                                    FontSize="14" 
-                                    BackgroundColor="#5B4F45" 
-                                    TextColor="White" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="2" 
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="3" 
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="4" 
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="5" 
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                        </HorizontalStackLayout>
+                        <!-- Total Amount -->
+                        <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                            <Label Text="Total Amount:" 
+                                   FontSize="16" 
+                                   TextColor="Black" />
+                            <Label Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
+                                   FontSize="24" 
+                                   FontAttributes="Bold"
+                                   TextColor="#5B4F45" />
+                        </VerticalStackLayout>
 
                         <!-- Checkout Button -->
                         <Button Grid.Column="1" 

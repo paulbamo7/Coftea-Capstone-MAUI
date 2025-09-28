@@ -3,41 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using SQLite;
 
-namespace Coftea_Capstone.C_
+namespace Coftea_Capstone.Models
 {
-    public class UserInfoModel
+    public class UserInfoModel : ObservableObject
     {
-        [PrimaryKey, AutoIncrement]
+      
         public int ID { get; set; }
 
+        public string Email { get; set; }
 
+        public string FirstName { get; set; }
 
-        [Unique, NotNull]
-        public string Email { get; set; } = string.Empty;
-
-        [NotNull]
-        public string FirstName { get; set; } = string.Empty;
-
-        [NotNull]
         public string LastName { get; set; } = string.Empty;
+        public string Password { get; set; }
 
-        [NotNull]
-        public string Password { get; set; } = string.Empty;
+        public bool IsAdmin { get; set; }
 
-        [NotNull]
-        public string Role { get; set; } = string.Empty;
-
-        [NotNull]
         public DateTime Birthday { get; set; }
 
-        [NotNull]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [NotNull]
         public string Address { get; set; } = string.Empty;
 
-        public string Status { get; set; } = "pending"; // pending, approved, rejected
+        public string Status { get; set; } = "approved";
     }
 }

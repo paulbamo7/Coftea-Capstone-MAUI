@@ -39,8 +39,10 @@ public partial class SalesReport : ContentPage
 
 	private void ViewModelOnPropertyChanged(object sender, PropertyChangedEventArgs e)
 	{
-		if (e.PropertyName == nameof(ViewModel.SalesReportPageViewModel.CurrentCategoryToday)
-			|| e.PropertyName == nameof(ViewModel.SalesReportPageViewModel.CurrentCategoryWeekly))
+		if (e.PropertyName == nameof(ViewModel.SalesReportPageViewModel.TopCoffeeToday)
+			|| e.PropertyName == nameof(ViewModel.SalesReportPageViewModel.TopMilkteaToday)
+			|| e.PropertyName == nameof(ViewModel.SalesReportPageViewModel.TopCoffeeWeekly)
+			|| e.PropertyName == nameof(ViewModel.SalesReportPageViewModel.TopMilkteaWeekly))
 		{
 			UpdateCharts();
 		}
@@ -50,33 +52,35 @@ public partial class SalesReport : ContentPage
 	{
 		if (BindingContext is not ViewModel.SalesReportPageViewModel vm) return;
 
-		// Update current category pie chart
-		var currentCategoryPie = new SimplePieChartDrawable();
-		foreach (var item in vm.CurrentCategoryToday)
+		// Build pie slices
+		var coffeePie = new SimplePieChartDrawable();
+		foreach (var item in vm.TopCoffeeToday)
 		{
-			currentCategoryPie.Slices.Add(new PieSlice { Label = item.Name, Value = item.Count, Color = GetColorForLabel(item.Name) });
+			coffeePie.Slices.Add(new PieSlice { Label = item.Name, Value = item.Count, Color = GetColorForLabel(item.Name) });
 		}
-		
-		// Find the GraphicsView elements by name
-		var pieChart = this.FindByName<GraphicsView>("CurrentCategoryPie");
-		var barChart = this.FindByName<GraphicsView>("CurrentCategoryBar");
-		
-		if (pieChart != null)
-		{
-			pieChart.Drawable = currentCategoryPie;
-		}
+		CoffeePie.Drawable = coffeePie;
 
-		// Update current category bar chart
-		var currentCategoryBar = new SimpleBarChartDrawable();
-		foreach (var item in vm.CurrentCategoryWeekly)
+		var milkTeaPie = new SimplePieChartDrawable();
+		foreach (var item in vm.TopMilkteaToday)
 		{
-			currentCategoryBar.Items.Add(new BarItem { Label = item.Name, Value = item.Count, Color = GetColorForLabel(item.Name) });
+			milkTeaPie.Slices.Add(new PieSlice { Label = item.Name, Value = item.Count, Color = GetColorForLabel(item.Name) });
 		}
-		
-		if (barChart != null)
+		MilkTeaPie.Drawable = milkTeaPie;
+
+		// Build bar items
+		var coffeeBar = new SimpleBarChartDrawable();
+		foreach (var item in vm.TopCoffeeWeekly)
 		{
-			barChart.Drawable = currentCategoryBar;
+			coffeeBar.Items.Add(new BarItem { Label = item.Name, Value = item.Count, Color = GetColorForLabel(item.Name) });
 		}
+		CoffeeBar.Drawable = coffeeBar;
+
+		var milkTeaBar = new SimpleBarChartDrawable();
+		foreach (var item in vm.TopMilkteaWeekly)
+		{
+			milkTeaBar.Items.Add(new BarItem { Label = item.Name, Value = item.Count, Color = GetColorForLabel(item.Name) });
+		}
+		MilkTeaBar.Drawable = milkTeaBar;
 	}
 
 
@@ -89,22 +93,9 @@ public partial class SalesReport : ContentPage
 			"Salted Caramel" => Color.FromRgb(210, 150, 100),
 			"Vanilla Blanca" => Color.FromRgb(240, 220, 200),
 			"Chocolate" => Color.FromRgb(120, 80, 60),
-			"Java Chip" => Color.FromRgb(100, 60, 40),
-			"Americano Black" => Color.FromRgb(80, 50, 30),
-			"Americano White" => Color.FromRgb(180, 140, 100),
-			"Cafe Latte" => Color.FromRgb(200, 160, 120),
-			"Cappuccino" => Color.FromRgb(160, 120, 80),
-			"Mocha Frappe" => Color.FromRgb(140, 100, 60),
-			"Caramel Frappe" => Color.FromRgb(220, 180, 140),
-			"Strawberry Frappe" => Color.FromRgb(255, 150, 150),
-			"Orange Soda" => Color.FromRgb(255, 165, 0),
-			"Lemon Soda" => Color.FromRgb(255, 255, 0),
-			"Grape Soda" => Color.FromRgb(128, 0, 128),
 			"Matcha" => Color.FromRgb(140, 190, 120),
 			"Brown Sugar" => Color.FromRgb(160, 110, 70),
 			"Hokkaido" => Color.FromRgb(200, 160, 120),
-			"Taro" => Color.FromRgb(180, 120, 180),
-			"Wintermelon" => Color.FromRgb(120, 200, 120),
 			_ => Colors.SlateGray
 		};
 	}

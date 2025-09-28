@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.PaymentPopup"
+    x:Name="PaymentPopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsPaymentVisible, FallbackValue=False, TargetNullValue=False}"
+    InputTransparent="False">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding ClosePaymentCommand}" />
+        </Grid.GestureRecognizers>
+        
+        <!-- Payment Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="0"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="750"
+               HeightRequest="550"
+               HasShadow="True"
+               InputTransparent="False">
+
+            <Grid RowDefinitions="Auto, *, Auto">
+                <!-- Header -->
+                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Grid.Column="0" 
+                               Text="Cash Payment" 
+                               FontSize="24" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               TextColor="White" />
+                        <Button Grid.Column="1"
+                                Text="×"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                BackgroundColor="Transparent"
+                                TextColor="White"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                Padding="0"
+                                VerticalOptions="Center"
+                                Command="{Binding ClosePaymentCommand}" />
+                    </Grid>
+                </Grid>
+
+                <!-- Payment Content -->
+                <Grid Grid.Row="1" Padding="30">
+                    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto">
+                        
+                        <!-- Total Amount -->
+                        <Grid Grid.Row="0" Margin="0,0,0,20">
+                            <Label Text="Total Amount:" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold"
+                                   TextColor="Black" />
+                            <Label Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
+                                   FontSize="24" 
+                                   FontAttributes="Bold"
+                                   TextColor="#5B4F45"
+                                   HorizontalOptions="End" />
+                        </Grid>
+
+                        <!-- Amount Paid Input -->
+                        <Grid Grid.Row="1" Margin="0,0,0,15">
+                            <Label Text="Amount Paid:" 
+                                   FontSize="16" 
+                                   TextColor="Black" />
+                            <Entry x:Name="AmountPaidEntry"
+                                   Text="{Binding AmountPaid, StringFormat='{0:F2}'}"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   TextColor="#5B4F45"
+                                   HorizontalOptions="End"
+                                   WidthRequest="150"
+                                   Placeholder="0.00"
+                                   Keyboard="Numeric"
+                                   TextChanged="OnAmountPaidChanged" />
+                        </Grid>
+
+                        <!-- Change Display -->
+                        <Grid Grid.Row="2" Margin="0,0,0,20">
+                            <Label Text="Change:" 
+                                   FontSize="16" 
+                                   TextColor="Black" />
+                            <Label Text="{Binding Change, StringFormat='₱{0:F2}'}" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold"
+                                   TextColor="{Binding Change, Converter={StaticResource ChangeColorConverter}}"
+                                   HorizontalOptions="End" />
+                        </Grid>
+
+                        <!-- Payment Status -->
+                        <Grid Grid.Row="3" Margin="0,0,0,20">
+                            <Label Text="Status:" 
+                                   FontSize="16" 
+                                   TextColor="Black" />
+                            <Label Text="{Binding PaymentStatus}" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold"
+                                   TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
+                                   HorizontalOptions="End" />
+                        </Grid>
+
+                        <!-- Quick Amount Buttons -->
+                        <Grid Grid.Row="4" Margin="0,0,0,20">
+                            <Label Text="Quick Amounts:" 
+                                   FontSize="14" 
+                                   TextColor="Gray" />
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                                <Button Text="₱50" 
+                                        FontSize="12"
+                                        BackgroundColor="#E8D5C4"
+                                        TextColor="Black"
+                                        CornerRadius="15"
+                                        Padding="0"
+                                        WidthRequest="50"
+                                        HeightRequest="30"
+                                        Clicked="OnQuickAmountClicked" />
+                                <Button Text="₱100" 
+                                        FontSize="12"
+                                        BackgroundColor="#E8D5C4"
+                                        TextColor="Black"
+                                        CornerRadius="15"
+                                        Padding="0"
+                                        WidthRequest="50"
+                                        HeightRequest="30"
+                                        Clicked="OnQuickAmountClicked" />
+                                <Button Text="₱200" 
+                                        FontSize="12"
+                                        BackgroundColor="#E8D5C4"
+                                        TextColor="Black"
+                                        CornerRadius="15"
+                                        Padding="0"
+                                        WidthRequest="50"
+                                        HeightRequest="30"
+                                        Clicked="OnQuickAmountClicked" />
+                                <Button Text="₱500" 
+                                        FontSize="12"
+                                        BackgroundColor="#E8D5C4"
+                                        TextColor="Black"
+                                        CornerRadius="15"
+                                        Padding="0"
+                                        WidthRequest="50"
+                                        HeightRequest="30"
+                                        Clicked="OnQuickAmountClicked" />
+                            </HorizontalStackLayout>
+                        </Grid>
+
+                        <!-- Confirm Button -->
+                        <Button Grid.Row="5"
+                                Text="Confirm Payment" 
+                                FontSize="16" 
+                                FontAttributes="Bold"
+                                BackgroundColor="#4CAF50" 
+                                TextColor="White" 
+                                CornerRadius="20"
+                                HeightRequest="50"
+                                Command="{Binding ConfirmPaymentCommand}"
+                                IsEnabled="{Binding Change, Converter={StaticResource IsPositiveConverter}}" />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>

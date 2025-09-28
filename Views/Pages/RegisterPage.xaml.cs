@@ -11,6 +11,9 @@ public partial class RegisterPage : ContentPage
 		
 		// Set RetryConnectionPopup binding context
 		 RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
+		 
+		// Set maximum date to today for birthday picker
+		BirthdayDatePicker.MaximumDate = DateTime.Today;
 	}
 
 	private void OnToggleRegisterPasswordVisibility(object sender, EventArgs e)

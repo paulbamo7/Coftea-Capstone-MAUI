@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.ConfirmPOSProduct">
+    <Frame
+        BackgroundColor="White"
+        CornerRadius="20"
+        Padding="20"
+        HorizontalOptions="Center"
+        VerticalOptions="Center"
+        HasShadow="True">
+
+        <StackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+
+            <Label Text="Are you sure you want to add this item?"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Text="Confirm" BackgroundColor="#C4D600" TextColor="Black"
+                        Grid.Column="0"
+                        Command="{Binding AddProductToPOSCommand}"/>
+
+                <Button Text="Cancel" BackgroundColor="#F0AFAF" TextColor="Black"
+                        Grid.Column="1"
+                        Command="{Binding Return}"/>
+            </Grid>
+
+        </StackLayout>
+
+    </Frame>
+</ContentView>

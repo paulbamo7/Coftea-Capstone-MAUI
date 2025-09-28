@@ -28,6 +28,7 @@ namespace Coftea_Capstone
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; private set; }
         public NotificationPopupViewModel NotificationPopup { get; private set; }
         public PasswordResetPopupViewModel PasswordResetPopup { get; private set; }
+        public PaymentPopupViewModel PaymentPopup { get; private set; }
 
         // Shared transactions store for History
         public ObservableCollection<TransactionHistoryModel> Transactions { get; private set; }
@@ -37,7 +38,6 @@ namespace Coftea_Capstone
             InitializeComponent();
 
             InitializeViewModels();
-            InitializeDatabaseAsync();
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -88,23 +88,10 @@ namespace Coftea_Capstone
             RetryConnectionPopup = new RetryConnectionPopupViewModel();
             NotificationPopup = new NotificationPopupViewModel();
             PasswordResetPopup = new PasswordResetPopupViewModel();
+            PaymentPopup = new PaymentPopupViewModel();
 
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();
-        }
-
-        private async void InitializeDatabaseAsync()
-        {
-            try
-            {
-                var database = new Database();
-                await database.InitializeDatabaseAsync();
-                await database.UpdateExistingUsersToApprovedAsync();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to initialize database: {ex.Message}");
-            }
         }
 
         private void NavigateToDashboard(bool isAdmin)
@@ -140,6 +127,15 @@ namespace Coftea_Capstone
         public static void SetCurrentUser(UserInfoModel user)
         {
             CurrentUser = user;
+            // Also set the UserSession for admin checks
+            if (user != null)
+            {
+                UserSession.Instance.SetUser(user.Email, user.IsAdmin);
+            }
+            else
+            {
+                UserSession.Instance.Clear();
+            }
         }
 
         // Called after logout to reset everything

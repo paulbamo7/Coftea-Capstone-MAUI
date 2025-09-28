@@ -73,50 +73,21 @@ namespace Coftea_Capstone.ViewModel
         public IReadOnlyList<string> AvailableCategories { get; } = new List<string>
         {
             "Overview",
+            "Americano",
+            "Cafe Latte",
+            "Fruit and Soda Mix",
             "Frappe",
-            "Fruit/Soda",
-            "Milktea",
-            "Coffee"
+            "Milktea"
         };
 
         [ObservableProperty]
         private string selectedCategory = "Overview";
 
-        // Date range selection
-        public IReadOnlyList<string> AvailableDateRanges { get; } = new List<string>
-        {
-            "Today",
-            "Yesterday",
-            "7 Days",
-            "14 Days",
-            "30 Days"
-        };
+        [ObservableProperty]
+        private bool showCoffee = true;
 
         [ObservableProperty]
-        private string selectedDateRange = "Today";
-
-        // Category-specific data collections
-        [ObservableProperty]
-        private ObservableCollection<TrendItem> currentCategoryToday = new();
-
-        [ObservableProperty]
-        private ObservableCollection<TrendItem> currentCategoryWeekly = new();
-
-        [ObservableProperty]
-        private int currentCategoryTodayOrders;
-
-        [ObservableProperty]
-        private int currentCategoryWeeklyOrders;
-
-        // Current category display properties
-        [ObservableProperty]
-        private string currentCategoryTitle = "Top 3 Popular Coffee Today";
-
-        [ObservableProperty]
-        private string currentCategoryWeeklyTitle = "Top Coffee Trends Weekly";
-
-        [ObservableProperty]
-        private DateTime currentDateTime = DateTime.Now;
+        private bool showMilktea = true;
 
         public SalesReportPageViewModel(SettingsPopUpViewModel settingsPopup, Services.ISalesReportService salesReportService = null)
         {
@@ -156,10 +127,9 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                // Calculate date range based on selected date range
-                var (startDate, endDate) = GetDateRange(SelectedDateRange);
-
-                // Pull summary from service with date range
+                // Pull summary from service (real implementation can fetch from DB)
+                var startDate = DateTime.Today.AddDays(-30); // Last 30 days
+                var endDate = DateTime.Today.AddDays(1); // Include today
                 var summary = await _salesReportService.GetSummaryAsync(startDate, endDate);
 
                 SalesReports = new ObservableCollection<SalesReportPageModel>(summary.Reports ?? new List<SalesReportPageModel>());
@@ -182,7 +152,6 @@ namespace Coftea_Capstone.ViewModel
                 OnPropertyChanged(nameof(TopCoffeeTodayOrders));
                 OnPropertyChanged(nameof(TopMilkteaTodayOrders));
 
-                // Apply initial category filter
                 ApplyCategoryFilter();
             }
             catch (Exception ex)
@@ -197,31 +166,9 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private (DateTime startDate, DateTime endDate) GetDateRange(string dateRange)
-        {
-            var today = DateTime.Today;
-            var now = DateTime.Now;
-
-            return dateRange switch
-            {
-                "Today" => (today, now),
-                "Yesterday" => (today.AddDays(-1), today.AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59)),
-                "7 Days" => (today.AddDays(-6), now),
-                "14 Days" => (today.AddDays(-13), now),
-                "30 Days" => (today.AddDays(-29), now),
-                _ => (today, now)
-            };
-        }
-
         partial void OnSelectedCategoryChanged(string value)
         {
             ApplyCategoryFilter();
-        }
-
-        partial void OnSelectedDateRangeChanged(string value)
-        {
-            // Reload data when date range changes
-            _ = LoadDataAsync();
         }
 
         [RelayCommand]
@@ -230,71 +177,19 @@ namespace Coftea_Capstone.ViewModel
             SelectedCategory = category;
         }
 
-        [RelayCommand]
-        private void SelectDateRange(string dateRange)
-        {
-            SelectedDateRange = dateRange;
-        }
-
         private void ApplyCategoryFilter()
         {
-            // Update current category data based on selection
-            switch (SelectedCategory)
+            // Show only one category at a time
+            if (SelectedCategory == "Milktea")
             {
-                case "Overview":
-                    CurrentCategoryToday = new ObservableCollection<TrendItem>(TopCoffeeToday.Take(3));
-                    CurrentCategoryWeekly = new ObservableCollection<TrendItem>(TopCoffeeWeekly);
-                    CurrentCategoryTitle = "Top 3 Popular Coffee Today";
-                    CurrentCategoryWeeklyTitle = "Top Coffee Trends Weekly";
-                    break;
-                case "Frappe":
-                    CurrentCategoryToday = GetCategoryData("Frappe", TopCoffeeToday);
-                    CurrentCategoryWeekly = GetCategoryData("Frappe", TopCoffeeWeekly);
-                    CurrentCategoryTitle = "Top 3 Popular Frappe Today";
-                    CurrentCategoryWeeklyTitle = "Top Frappe Trends Weekly";
-                    break;
-                case "Fruit/Soda":
-                    CurrentCategoryToday = GetCategoryData("Fruit/Soda", TopCoffeeToday);
-                    CurrentCategoryWeekly = GetCategoryData("Fruit/Soda", TopCoffeeWeekly);
-                    CurrentCategoryTitle = "Top 3 Popular Fruit/Soda Today";
-                    CurrentCategoryWeeklyTitle = "Top Fruit/Soda Trends Weekly";
-                    break;
-                case "Milktea":
-                    CurrentCategoryToday = new ObservableCollection<TrendItem>(TopMilkteaToday.Take(3));
-                    CurrentCategoryWeekly = new ObservableCollection<TrendItem>(TopMilkteaWeekly);
-                    CurrentCategoryTitle = "Top 3 Popular Milktea Today";
-                    CurrentCategoryWeeklyTitle = "Top Milktea Trends Weekly";
-                    break;
-                case "Coffee":
-                    CurrentCategoryToday = GetCategoryData("Coffee", TopCoffeeToday);
-                    CurrentCategoryWeekly = GetCategoryData("Coffee", TopCoffeeWeekly);
-                    CurrentCategoryTitle = "Top 3 Popular Coffee Today";
-                    CurrentCategoryWeeklyTitle = "Top Coffee Trends Weekly";
-                    break;
+                ShowCoffee = false;
+                ShowMilktea = true;
+                return;
             }
 
-            // Update order counts
-            CurrentCategoryTodayOrders = CurrentCategoryToday?.Sum(i => i.Count) ?? 0;
-            CurrentCategoryWeeklyOrders = CurrentCategoryWeekly?.Sum(i => i.Count) ?? 0;
-        }
-
-        private ObservableCollection<TrendItem> GetCategoryData(string category, ObservableCollection<TrendItem> sourceData)
-        {
-            // Filter data based on category (this would be more sophisticated in a real implementation)
-            var filteredData = sourceData.Where(item => 
-                item.Name.Contains(category, StringComparison.OrdinalIgnoreCase) ||
-                (category == "Frappe" && item.Name.Contains("Frappe", StringComparison.OrdinalIgnoreCase)) ||
-                (category == "Fruit/Soda" && (item.Name.Contains("Soda", StringComparison.OrdinalIgnoreCase))) ||
-                (category == "Coffee" && (item.Name.Contains("Americano", StringComparison.OrdinalIgnoreCase) || 
-                                         item.Name.Contains("Latte", StringComparison.OrdinalIgnoreCase) || 
-                                         item.Name.Contains("Cappuccino", StringComparison.OrdinalIgnoreCase) ||
-                                         item.Name.Contains("Salted Caramel", StringComparison.OrdinalIgnoreCase) ||
-                                         item.Name.Contains("Vanilla Blanca", StringComparison.OrdinalIgnoreCase) ||
-                                         item.Name.Contains("Chocolate", StringComparison.OrdinalIgnoreCase) ||
-                                         item.Name.Contains("Java Chip", StringComparison.OrdinalIgnoreCase)))
-            ).Take(3);
-
-            return new ObservableCollection<TrendItem>(filteredData);
+            // Any other selection (including Overview, Americano, etc.) shows Coffee-only
+            ShowCoffee = true;
+            ShowMilktea = false;
         }
     }
 }

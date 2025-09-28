@@ -4,6 +4,7 @@
              x:Class="Coftea_Capstone.Views.Pages.RegisterPage"
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              Shell.NavBarIsVisible="False"
              >
 
@@ -69,7 +70,10 @@
                                 </Grid>
                             </Border>
                             <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
-                                <DatePicker Date="{Binding BirthDate}"/>
+                                <DatePicker Date="{Binding Birthday}" 
+                                           Format="MM/dd/yyyy"
+                                           MinimumDate="01/01/1900"
+                                           x:Name="BirthdayDatePicker"/>
                             </Border>
 
                             <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">

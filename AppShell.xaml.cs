@@ -1,4 +1,4 @@
-﻿namespace Coftea_Capstone
+namespace Coftea_Capstone
 {
     public partial class AppShell : Shell
     {

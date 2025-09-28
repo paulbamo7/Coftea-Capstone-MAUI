@@ -10,7 +10,6 @@ using Microsoft.Maui.Controls;
 using Coftea_Capstone.Models;
 using System.Text.RegularExpressions;
 using BCrypt.Net;
-using System.Linq;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -138,13 +137,21 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                // Check if this is the first user registration
-                bool isFirstUser = !await _database.HasAnyUsersAsync();
+                // Check if email already exists
+                var existingUser = await _database.GetUserByEmailAsync(Email);
+                if (existingUser != null)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered.", "OK");
+                    return;
+                }
+
+                // Check if this will be the first user (admin)
+                bool isFirstUser = await _database.IsFirstUserAsync();
 
                 if (isFirstUser)
                 {
-                    // First user - create admin account directly
-                    var adminUser = new UserInfoModel
+                    // First user gets direct registration with admin privileges
+                    var user = new UserInfoModel
                     {
                         Email = Email.Trim(),
                         Password = BCrypt.Net.BCrypt.HashPassword(Password),
@@ -153,33 +160,16 @@ namespace Coftea_Capstone.ViewModel
                         PhoneNumber = PhoneNumber.Trim(),
                         Address = Address.Trim(),
                         Birthday = Birthday,
-                        Status = "approved",
                         IsAdmin = true
                     };
 
-                    await _database.AddUserAsync(adminUser);
-                    await Application.Current.MainPage.DisplayAlert("Registration Successful", "Welcome! You have been registered as the first admin user. You can now log in.", "OK");
+                    await _database.AddUserAsync(user);
+                    await Application.Current.MainPage.DisplayAlert("Success", "Account created successfully! You are the first user and have been granted admin privileges.", "OK");
                 }
                 else
                 {
-                    // Check if email already exists in users table
-                    var existingUser = await _database.GetUserByEmailAsync(Email);
-                    if (existingUser != null)
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered.", "OK");
-                        return;
-                    }
-
-                    // Check if email already exists in pending registrations
-                    var existingPendingRegistrations = await _database.GetPendingRegistrationsAsync();
-                    if (existingPendingRegistrations.Any(r => r.Email.Equals(Email.Trim(), StringComparison.OrdinalIgnoreCase)))
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Error", "A registration request with this email is already pending approval.", "OK");
-                        return;
-                    }
-
-                    // Create pending registration model
-                    var pendingRegistration = new PendingRegistrationModel
+                    // Subsequent users create pending requests
+                    var pendingRequest = new UserPendingRequest
                     {
                         Email = Email.Trim(),
                         Password = BCrypt.Net.BCrypt.HashPassword(Password),
@@ -188,11 +178,11 @@ namespace Coftea_Capstone.ViewModel
                         PhoneNumber = PhoneNumber.Trim(),
                         Address = Address.Trim(),
                         Birthday = Birthday,
-                        RegistrationDate = DateTime.Now
+                        RequestDate = DateTime.Now
                     };
 
-                    await _database.AddPendingRegistrationAsync(pendingRegistration);
-                    await Application.Current.MainPage.DisplayAlert("Registration Submitted", "Your registration has been submitted for admin approval. You will be notified once your account is approved.", "OK");
+                    await _database.AddPendingUserRequestAsync(pendingRequest);
+                    await Application.Current.MainPage.DisplayAlert("Success", "Registration request submitted! An admin will review and approve your account.", "OK");
                 }
 
                 // Navigate back to Login page

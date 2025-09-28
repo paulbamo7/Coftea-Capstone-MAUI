@@ -101,25 +101,6 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                // Check if user is approved
-                if (user.Status != "approved")
-                {
-                    if (user.Status == "pending")
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Account Pending", "Your account is still pending admin approval. Please wait for approval before logging in.", "OK");
-                    }
-                    else if (user.Status == "rejected")
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Account Rejected", "Your account has been rejected. Please contact an administrator for more information.", "OK");
-                    }
-                    else
-                    {
-                        await Application.Current.MainPage.DisplayAlert("Account Not Active", "Your account is not active. Please contact an administrator.", "OK");
-                    }
-                    ClearEntries();
-                    return;
-                }
-
                 // Set current user
                 App.SetCurrentUser(user);
 

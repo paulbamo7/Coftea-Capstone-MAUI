@@ -2,13 +2,26 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Coftea_Capstone"
-             x:Class="Coftea_Capstone.App">
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             x:Class="Coftea_Capstone.App"
+             NavigationPage.HasNavigationBar="False">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Converters -->
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+            <converters:ChangeColorConverter x:Key="ChangeColorConverter" />
+            <converters:StatusColorConverter x:Key="StatusColorConverter" />
+            <converters:IsPositiveConverter x:Key="IsPositiveConverter" />
+            
+            <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+                <Setter Property="NavigationPage.HasNavigationBar" Value="False" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

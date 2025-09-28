@@ -11,16 +11,13 @@ namespace Coftea_Capstone.Models
 {
     public class LoginPageModel
     {
-        [PrimaryKey, AutoIncrement]
+  
         public int Id { get; set; }
 
-        [Unique, NotNull]
         public string Email { get; set; } = string.Empty;
 
-        [NotNull]
         public string Password { get; set; } = string.Empty;
 
-        [NotNull]
         public string Role { get; set; } = string.Empty;
     }
 }

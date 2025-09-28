@@ -20,7 +20,6 @@ namespace Coftea_Capstone.Models
         public string itemDescription { get; set; }
         public string unitOfMeasurement { get; set; }
         public double minimumQuantity { get; set; }
-        public double maximumStockLevel { get; set; } // Track the maximum stock level ever reached
         [ObservableProperty]
         private bool isSelected;
 
@@ -71,6 +70,13 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private decimal addonPriceLarge;
 
+        // Addon properties for preview
+        [ObservableProperty]
+        private decimal addonPrice;
+
+        [ObservableProperty]
+        private string addonUnit;
+
         public IList<string> AllowedUnits
         {
             get
@@ -97,16 +103,6 @@ namespace Coftea_Capstone.Models
         }
 
         public bool IsQuantityType => !HasUnit;
-
-        // Whether this item is a cup (automatically selected, not manually selectable)
-        public bool IsCupItem
-        {
-            get
-            {
-                var name = (itemName ?? string.Empty).ToLowerInvariant();
-                return name.Contains("cup") && (name.Contains("small") || name.Contains("medium") || name.Contains("large"));
-            }
-        }
 
         public string DefaultUnit
         {
@@ -159,51 +155,6 @@ namespace Coftea_Capstone.Models
                 return string.IsNullOrWhiteSpace(shortUnit)
                     ? $"/ Min {minimumQuantity}"
                     : $"/ Min {minimumQuantity} {shortUnit}";
-            }
-        }
-
-        // Progress bar properties for UI
-        public double StockProgressWidth
-        {
-            get
-            {
-                // Use the dynamic maximum stock level, or current quantity if it's higher
-                var maxStock = Math.Max(maximumStockLevel, itemQuantity);
-                if (maxStock <= 0) return 0; // Avoid division by zero
-                
-                var progress = itemQuantity / maxStock;
-                // When full (progress = 1), return full width (200)
-                // When empty (progress = 0), return 0
-                // Otherwise, return proportional width
-                return progress * 200;
-            }
-        }
-
-        public string StockText
-        {
-            get
-            {
-                // Show current stock vs dynamic maximum
-                var maxStock = Math.Max(maximumStockLevel, itemQuantity);
-                var shortUnit = NormalizeUnit(unitOfMeasurement);
-                
-                if (string.IsNullOrWhiteSpace(shortUnit))
-                {
-                    return $"{itemQuantity}/{maxStock}";
-                }
-                else
-                {
-                    return $"{itemQuantity} {shortUnit}/{maxStock} {shortUnit}";
-                }
-            }
-        }
-
-        // Method to update maximum stock level when adding new stock
-        public void UpdateMaximumStockLevel(double newQuantity)
-        {
-            if (newQuantity > maximumStockLevel)
-            {
-                maximumStockLevel = newQuantity;
             }
         }
 

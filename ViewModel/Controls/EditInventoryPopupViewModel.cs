@@ -29,12 +29,7 @@ namespace Coftea_Capstone.ViewModel
 
         public EditInventoryPopupViewModel(AddItemToInventoryViewModel addItemToInventoryViewModel)
         {
-            _database = new Database(
-                host: "192.168.1.4",
-                database: "coftea_db", 
-                user: "maui", 
-                password: "password123"
-            );
+            _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
             _addItemToInventoryViewModel = addItemToInventoryViewModel;
         }
 
@@ -93,12 +88,6 @@ namespace Coftea_Capstone.ViewModel
         {
             IsEditInventoryPopupVisible = true;
             await LoadInventoryAsync();
-        }
-
-        [RelayCommand]
-        private async Task ShowEditInventoryPopupCommand()
-        {
-            await ShowEditInventoryPopup();
         }
 
         [RelayCommand]

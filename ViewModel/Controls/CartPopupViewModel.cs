@@ -15,7 +15,15 @@ namespace Coftea_Capstone.ViewModel.Controls
         private bool isCartVisible = false;
 
         [ObservableProperty] 
-        private ObservableCollection<POSPageModel> cartItems = new();
+        private ObservableCollection<CartItem> cartItems = new();
+
+        [ObservableProperty]
+        private string customerName = "Sanchez"; // Default customer name
+
+        [ObservableProperty]
+        private decimal totalAmount;
+
+        private ObservableCollection<POSPageModel> _originalItems;
 
         public CartPopupViewModel()
         {
@@ -23,8 +31,55 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public void ShowCart(ObservableCollection<POSPageModel> items)
         {
-            CartItems = items ?? new ObservableCollection<POSPageModel>();
+            // Store reference to original items for quantity reset
+            _originalItems = items;
+            
+            // Convert POSPageModel items to CartItem format - combine same products
+            CartItems.Clear();
+            var productGroups = (items ?? new ObservableCollection<POSPageModel>())
+                .Where(item => item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0)
+                .GroupBy(item => item.ProductID);
+
+            foreach (var group in productGroups)
+            {
+                var firstItem = group.First();
+                CartItems.Add(new CartItem
+                {
+                    ProductId = firstItem.ProductID,
+                    ProductName = firstItem.ProductName,
+                    ImageSource = firstItem.ImageSet,
+                    CustomerName = CustomerName,
+                    SugarLevel = "100%",
+                    AddOns = new ObservableCollection<string> { "Expresso - P5", "Pearl - P5", "Nata - P10" },
+                    SmallQuantity = firstItem.SmallQuantity,
+                    MediumQuantity = firstItem.MediumQuantity,
+                    LargeQuantity = firstItem.LargeQuantity,
+                    SmallPrice = firstItem.SmallPrice,
+                    MediumPrice = firstItem.MediumPrice,
+                    LargePrice = firstItem.LargePrice,
+                    SelectedSize = GetCombinedSizeDisplay(firstItem),
+                    Quantity = firstItem.SmallQuantity + firstItem.MediumQuantity + firstItem.LargeQuantity,
+                    Price = firstItem.SmallPrice + firstItem.MediumPrice + firstItem.LargePrice
+                });
+            }
+            
+            CalculateTotal();
             IsCartVisible = true;
+        }
+
+        private void CalculateTotal()
+        {
+            TotalAmount = CartItems.Sum(item => item.TotalPrice);
+        }
+
+        private string GetCombinedSizeDisplay(POSPageModel item)
+        {
+            var sizes = new List<string>();
+            if (item.SmallQuantity > 0) sizes.Add($"Small: {item.SmallQuantity}");
+            if (item.MediumQuantity > 0) sizes.Add($"Medium: {item.MediumQuantity}");
+            if (item.LargeQuantity > 0) sizes.Add($"Large: {item.LargeQuantity}");
+            
+            return sizes.Count > 0 ? string.Join(", ", sizes) : "No sizes";
         }
 
         [RelayCommand]
@@ -34,7 +89,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void EditCartItem(POSPageModel item)
+        private void EditCartItem(CartItem item)
         {
             if (item == null) return;
             
@@ -43,123 +98,48 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private void DeleteCartItem(CartItem item)
+        {
+            if (item == null) return;
+            
+            // Reset quantities in the original POSPageModel
+            if (_originalItems != null)
+            {
+                var originalItem = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
+                if (originalItem != null)
+                {
+                    originalItem.SmallQuantity = 0;
+                    originalItem.MediumQuantity = 0;
+                    originalItem.LargeQuantity = 0;
+                }
+            }
+            
+            CartItems.Remove(item);
+            CalculateTotal();
+        }
+
+        [RelayCommand]
         private async Task Checkout()
         {
             if (CartItems == null || !CartItems.Any())
                 return;
 
-            // Compute total (Small and Large quantities supported in POSPageModel)
-            decimal total = 0m;
-            foreach (var item in CartItems)
-            {
-                var smallSubtotal = item.SmallPrice * item.SmallQuantity;
-                var largeSubtotal = item.LargePrice * item.LargeQuantity;
-                total += smallSubtotal + largeSubtotal;
-            }
-
-            // Confirm checkout
-            bool confirm = await Application.Current.MainPage.DisplayAlert(
-                "Checkout",
-                $"Proceed to simulate payment for total ₱{total:F2}?",
-                "Pay",
-                "Cancel");
-
-            if (!confirm)
-                return;
-
-            // Simulate processing delay
-            await Task.Delay(800);
-
-            // Save transactions to database and shared store
-            var app = (App)Application.Current;
-            var transactions = app?.Transactions;
-            var database = new Coftea_Capstone.C_.Database(
-                host: "192.168.1.4",
-                database: "coftea_db",
-                user: "maui",
-                password: "password123"
-            );
-
-            if (transactions != null)
-            {
-                int nextId = (transactions.Count > 0 ? transactions.Max(t => t.TransactionId) : 0) + 1;
-
-                foreach (var item in CartItems.ToList())
-                {
-                    if (item.SmallQuantity > 0)
-                    {
-                        var transaction = new TransactionHistoryModel
-                        {
-                            TransactionId = nextId++,
-                            DrinkName = item.ProductName,
-                            Size = "Small",
-                            Quantity = item.SmallQuantity,
-                            Price = item.SmallPrice,
-                            Vat = 0m,
-                            Total = item.SmallPrice * item.SmallQuantity,
-                            AddOns = string.Empty,
-                            CustomerName = string.Empty,
-                            PaymentMethod = "Simulated",
-                            Status = "Completed",
-                            TransactionDate = DateTime.Now
-                        };
-
-                        // Save to database
-                        try
-                        {
-                            await database.SaveTransactionAsync(transaction);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Log error but continue with in-memory storage
-                            System.Diagnostics.Debug.WriteLine($"Failed to save transaction to database: {ex.Message}");
-                        }
-
-                        // Also add to in-memory store for immediate UI updates
-                        transactions.Add(transaction);
-                    }
-                    if (item.LargeQuantity > 0)
-                    {
-                        var transaction = new TransactionHistoryModel
-                        {
-                            TransactionId = nextId++,
-                            DrinkName = item.ProductName,
-                            Size = "Large",
-                            Quantity = item.LargeQuantity,
-                            Price = item.LargePrice,
-                            Vat = 0m,
-                            Total = item.LargePrice * item.LargeQuantity,
-                            AddOns = string.Empty,
-                            CustomerName = string.Empty,
-                            PaymentMethod = "Simulated",
-                            Status = "Completed",
-                            TransactionDate = DateTime.Now
-                        };
-
-                        // Save to database
-                        try
-                        {
-                            await database.SaveTransactionAsync(transaction);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Log error but continue with in-memory storage
-                            System.Diagnostics.Debug.WriteLine($"Failed to save transaction to database: {ex.Message}");
-                        }
-
-                        // Also add to in-memory store for immediate UI updates
-                        transactions.Add(transaction);
-                    }
-                }
-            }
-
-            // Success: clear cart and hide popup
-            CartItems.Clear();
+            System.Diagnostics.Debug.WriteLine($"Checkout called with {CartItems.Count} items, total: {TotalAmount}");
+            
+            // Navigate to payment screen
             IsCartVisible = false;
-
-            // Notify success if NotificationPopup is available via App POSVM
-            var notification = app?.NotificationPopup;
-            notification?.ShowNotification("Payment successful. Receipt generated.", "Checkout Complete");
+            
+            // Show payment popup using the shared instance from App
+            var app = (App)Application.Current;
+            if (app?.PaymentPopup != null)
+            {
+                System.Diagnostics.Debug.WriteLine("Calling ShowPayment on PaymentPopup");
+                app.PaymentPopup.ShowPayment(TotalAmount, CartItems.ToList());
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("PaymentPopup is null!");
+            }
         }
     }
 }

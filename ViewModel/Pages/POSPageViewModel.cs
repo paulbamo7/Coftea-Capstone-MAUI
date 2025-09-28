@@ -20,6 +20,7 @@ namespace Coftea_Capstone.ViewModel
         public NotificationPopupViewModel NotificationPopup { get; set; }
         public CartPopupViewModel CartPopup { get; set; }
         public HistoryPopupViewModel HistoryPopup { get; set; }
+        public PaymentPopupViewModel PaymentPopup { get; set; }
 
 
         private readonly Database _database;
@@ -72,20 +73,11 @@ namespace Coftea_Capstone.ViewModel
             _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
             SettingsPopup = settingsPopupViewModel;
             AddItemToPOSViewModel = addItemToPOSViewModel;
-            
-            // Safely get NotificationPopup and RetryConnectionPopup with null checks
-            try
-            {
-                NotificationPopup = ((App)Application.Current)?.NotificationPopup;
-                RetryConnectionPopup = ((App)Application.Current)?.RetryConnectionPopup;
-            }
-            catch
-            {
-                NotificationPopup = null;
-                RetryConnectionPopup = null;
-            }
+            NotificationPopup = ((App)Application.Current).NotificationPopup;
+            RetryConnectionPopup = ((App)Application.Current).RetryConnectionPopup;
             CartPopup = new CartPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
+            PaymentPopup = ((App)Application.Current).PaymentPopup;
 
             AddItemToPOSViewModel.ProductAdded += OnProductAdded;
             AddItemToPOSViewModel.ProductUpdated += OnProductUpdated;
@@ -93,21 +85,11 @@ namespace Coftea_Capstone.ViewModel
             {
                 AddItemToPOSViewModel.IsAddItemToPOSVisible = true;
             };
-            
-            // Subscribe to product deletion events
-            SettingsPopup.ManagePOSOptionsVM.EditProductPopupVM.ProductDeleted += OnProductDeleted;
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
-            try
-            {
-                return ((App)Application.Current)?.RetryConnectionPopup;
-            }
-            catch
-            {
-                return null;
-            }
+            return ((App)Application.Current).RetryConnectionPopup;
         }
 
         private async void OnProductAdded(POSPageModel newProduct)
@@ -134,31 +116,6 @@ namespace Coftea_Capstone.ViewModel
                 FilteredProducts[index] = updatedProduct;
             }
 
-            await LoadDataAsync();
-        }
-
-        private async void OnProductDeleted(POSPageModel deletedProduct)
-        {
-            // Remove the product from local collections
-            var existingProduct = Products.FirstOrDefault(p => p.ProductID == deletedProduct.ProductID);
-            if (existingProduct != null)
-            {
-                Products.Remove(existingProduct);
-            }
-
-            var existingFilteredProduct = FilteredProducts.FirstOrDefault(p => p.ProductID == deletedProduct.ProductID);
-            if (existingFilteredProduct != null)
-            {
-                FilteredProducts.Remove(existingFilteredProduct);
-            }
-
-            // Clear selected product if it was the deleted one
-            if (SelectedProduct?.ProductID == deletedProduct.ProductID)
-            {
-                SelectedProduct = null;
-            }
-
-            // Refresh data from database to ensure consistency
             await LoadDataAsync();
         }
 
@@ -287,6 +244,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+
         [RelayCommand]
         private void AddToCart(POSPageModel product)
         {
@@ -297,7 +255,7 @@ namespace Coftea_Capstone.ViewModel
             }
 
             // Check if there are any items to add (at least one quantity > 0)
-            if (product.SmallQuantity <= 0 && product.LargeQuantity <= 0)
+            if (product.SmallQuantity <= 0 && product.MediumQuantity <= 0 && product.LargeQuantity <= 0)
             {
                 // Show notification that no items were selected
                 if (NotificationPopup != null)
@@ -311,6 +269,7 @@ namespace Coftea_Capstone.ViewModel
             if (existing != null)
             {
                 existing.SmallQuantity += product.SmallQuantity;
+                existing.MediumQuantity += product.MediumQuantity;
                 existing.LargeQuantity += product.LargeQuantity;
             }
             else
@@ -320,9 +279,11 @@ namespace Coftea_Capstone.ViewModel
                     ProductID = product.ProductID,
                     ProductName = product.ProductName,
                     SmallPrice = product.SmallPrice,
+                    MediumPrice = product.MediumPrice,
                     LargePrice = product.LargePrice,
                     ImageSet = product.ImageSet,
                     SmallQuantity = product.SmallQuantity,
+                    MediumQuantity = product.MediumQuantity,
                     LargeQuantity = product.LargeQuantity
                 };
                 CartItems.Add(copy);
@@ -330,6 +291,7 @@ namespace Coftea_Capstone.ViewModel
 
             // Reset selection quantities
             product.SmallQuantity = 0;
+            product.MediumQuantity = 0;
             product.LargeQuantity = 0;
 
             // Show success notification
@@ -347,6 +309,7 @@ namespace Coftea_Capstone.ViewModel
 
             AvailableSizes.Clear();
             if (product.HasSmall) AvailableSizes.Add("Small");
+            if (product.HasMedium) AvailableSizes.Add("Medium");
             if (product.HasLarge) AvailableSizes.Add("Large");
 
             // Load linked addons from DB for this product
@@ -402,6 +365,20 @@ namespace Coftea_Capstone.ViewModel
         { 
             if (SelectedProduct != null && SelectedProduct.SmallQuantity > 0) 
                 SelectedProduct.SmallQuantity--; 
+        }
+
+        [RelayCommand]
+        private void IncreaseMediumQty() 
+        { 
+            if (SelectedProduct != null) 
+                SelectedProduct.MediumQuantity++; 
+        }
+
+        [RelayCommand]
+        private void DecreaseMediumQty() 
+        { 
+            if (SelectedProduct != null && SelectedProduct.MediumQuantity > 0) 
+                SelectedProduct.MediumQuantity--; 
         }
 
         [RelayCommand]
