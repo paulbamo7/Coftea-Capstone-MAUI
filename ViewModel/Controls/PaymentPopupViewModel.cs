@@ -114,12 +114,11 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Save transaction to database and shared store
             await SaveTransaction();
 
-            // Show success
+            // Show success: full order-complete popup and a short toast
             PaymentStatus = "Payment Confirmed";
-            await Application.Current.MainPage.DisplayAlert(
-                "Payment Successful",
-                $"Payment confirmed!\nChange: ₱{Change:F2}",
-                "OK");
+            var appInstance = (App)Application.Current;
+            appInstance?.OrderCompletePopup?.Show();
+            appInstance?.NotificationPopup?.ShowToast($"Payment confirmed! Change: ₱{Change:F2}", 1500);
 
             // Add to recent orders
             var app = (App)Application.Current;

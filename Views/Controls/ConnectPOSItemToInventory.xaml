@@ -48,8 +48,8 @@
                                     <Label Grid.Column="2" Text="STOCKS" HorizontalOptions="Start" FontAttributes="Bold"/>
                                 </Grid>
 
-                                <!-- Data Rows -->
-                                <CollectionView ItemsSource="{Binding InventoryItems}">
+                                <!-- Data Rows (bounded height to keep footer visible) -->
+                                <CollectionView ItemsSource="{Binding InventoryItems}" HeightRequest="420" VerticalOptions="Start">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <Grid ColumnDefinitions="2*,1*,2*" Padding="10,6">

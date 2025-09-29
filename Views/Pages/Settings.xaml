@@ -8,95 +8,118 @@
     InputTransparent="False">
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <!-- Tap outside to close -->
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Command="{Binding CloseSettingsPopupCommand}" />
         </Grid.GestureRecognizers>
 
-        <Frame VerticalOptions="Center"
-               HorizontalOptions="Center"
-               Padding="20"
-               BackgroundColor="#F8E8D7"
-               CornerRadius="20"
-               WidthRequest="550"
-               HeightRequest="450"
-               InputTransparent="False">
+        <!-- Main Popup Frame -->
+        <Frame
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Padding="25"
+            BackgroundColor="#FFF9F4"
+            CornerRadius="25"
+            HasShadow="True"
+            WidthRequest="580"
+            HeightRequest="480"
+            InputTransparent="False">
+
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnFrameTapped" />
             </Frame.GestureRecognizers>
 
-            <VerticalStackLayout Spacing="15">
+            <VerticalStackLayout Spacing="20">
+                <!-- Header -->
                 <Label Text="Settings"
-                       FontSize="22"
+                       FontSize="26"
                        FontAttributes="Bold"
+                       TextColor="#4B3832"
                        HorizontalOptions="Center" />
 
                 <!-- 2x2 Grid for buttons -->
                 <Grid RowDefinitions="*,*"
                       ColumnDefinitions="*,*"
-                      ColumnSpacing="20"
-                      RowSpacing="20"
+                      ColumnSpacing="25"
+                      RowSpacing="25"
                       HorizontalOptions="Center"
                       VerticalOptions="Center">
 
                     <!-- Row 0, Column 0 -->
-                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" HorizontalOptions="Center">
-                        <ImageButton Source="usermanagementicon.png"
-                                     BackgroundColor="#B89C83"
-                                     HeightRequest="80" WidthRequest="80"
-                                     Command="{Binding OpenUserManagementCommand}"
-                                     />
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" HorizontalOptions="Center" Spacing="10">
+                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
+                            <ImageButton Source="usermanagementicon.png"
+                                         BackgroundColor="Transparent"
+                                         HeightRequest="90"
+                                         WidthRequest="90"
+                                         Command="{Binding OpenUserManagementCommand}" />
+                        </Frame>
                         <Label Text="User Management"
                                HorizontalOptions="Center"
-                               FontSize="14"
-                               FontAttributes="Bold"/>
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               TextColor="#4B3832"/>
                     </VerticalStackLayout>
 
                     <!-- Row 0, Column 1 -->
-                    <VerticalStackLayout Grid.Row="0" Grid.Column="1" HorizontalOptions="Center">
-                        <ImageButton Source="manageposicon.png"
-                                     BackgroundColor="#B89C83"
-                                     HeightRequest="80" WidthRequest="80"
-                                     Command="{Binding OpenManagePOSOptionsCommand}"
-                                     />
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="1" HorizontalOptions="Center" Spacing="10">
+                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
+                            <ImageButton Source="manageposicon.png"
+                                         BackgroundColor="Transparent"
+                                         HeightRequest="90"
+                                         WidthRequest="90"
+                                         Command="{Binding OpenManagePOSOptionsCommand}" />
+                        </Frame>
                         <Label Text="Manage POS Menu"
                                HorizontalOptions="Center"
-                               FontSize="14"
-                               FontAttributes="Bold"/>
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               TextColor="#4B3832"/>
                     </VerticalStackLayout>
 
                     <!-- Row 1, Column 0 -->
-                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" HorizontalOptions="Center">
-                        <ImageButton Source="manageinventoryicon.png"
-                                     BackgroundColor="#B89C83"
-                                     HeightRequest="80" WidthRequest="80"
-                                     Command="{Binding OpenManageInventoryOptionsCommand}"
-                                     />
+                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" HorizontalOptions="Center" Spacing="10">
+                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
+                            <ImageButton Source="manageinventoryicon.png"
+                                         BackgroundColor="Transparent"
+                                         HeightRequest="90"
+                                         WidthRequest="90"
+                                         Command="{Binding OpenManageInventoryOptionsCommand}" />
+                        </Frame>
                         <Label Text="Manage Inventory"
                                HorizontalOptions="Center"
-                               FontSize="14"
-                               FontAttributes="Bold"/>
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               TextColor="#4B3832"/>
                     </VerticalStackLayout>
 
                     <!-- Row 1, Column 1 -->
-                    <VerticalStackLayout Grid.Row="1" Grid.Column="1" HorizontalOptions="Center">
-                        <ImageButton Source="logouticon.png"
-                                     BackgroundColor="#B89C83"
-                                     HeightRequest="80" WidthRequest="80"
-                                     Command="{Binding LogoutCommand}"
-                                     />
+                    <VerticalStackLayout Grid.Row="1" Grid.Column="1" HorizontalOptions="Center" Spacing="10">
+                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#F28C8C">
+                            <ImageButton Source="logouticon.png"
+                                         BackgroundColor="Transparent"
+                                         HeightRequest="90"
+                                         WidthRequest="90"
+                                         Command="{Binding LogoutCommand}" />
+                        </Frame>
                         <Label Text="Logout"
                                HorizontalOptions="Center"
-                               FontSize="14"
-                               FontAttributes="Bold"/>
+                               FontSize="15"
+                               FontAttributes="Bold"
+                               TextColor="#4B3832"/>
                     </VerticalStackLayout>
 
                 </Grid>
 
                 <!-- Close button at bottom -->
                 <Button Text="Close"
-                        Margin="0,10,0,0"
-                        WidthRequest="90"
-                        BackgroundColor="Red"
+                        Margin="0,15,0,0"
+                        WidthRequest="100"
+                        HeightRequest="45"
+                        BackgroundColor="#F28C8C"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="20"
                         HorizontalOptions="Center"
                         Command="{Binding CloseSettingsPopupCommand}"/>
             </VerticalStackLayout>

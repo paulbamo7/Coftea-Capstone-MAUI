@@ -29,5 +29,9 @@ namespace Coftea_Capstone.Models
         public string Address { get; set; } = string.Empty;
 
         public string Status { get; set; } = "approved";
+
+        // Access flags managed by admin
+        public bool CanAccessInventory { get; set; }
+        public bool CanAccessSalesReport { get; set; }
     }
 }

@@ -1,135 +1,162 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Views.Controls.AddItemToPOS"
-             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
-             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
-             BackgroundColor="#80000000"
-             IsVisible="{Binding IsAddItemToPOSVisible}"
-             InputTransparent="False">
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.AddItemToPOS"
+    xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+    xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsAddItemToPOSVisible}"
+    InputTransparent="False">
 
-    <!-- Add Item to POS Section -->
     <Grid ColumnDefinitions="200, *" RowDefinitions="*" InputTransparent="False">
 
-        <!-- Background Gradient -->
-        <VerticalStackLayout Grid.Column="1" Padding="30,60,0,0">
+        <VerticalStackLayout Grid.Column="1" Padding="30,50,30,50" Spacing="20">
             <HorizontalStackLayout Spacing="20">
-                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7">
-                    <VerticalStackLayout Spacing="5">
-                        <Label Text="Product Details" FontAttributes="Bold" FontSize="30" Padding="0,0,0,25"/>
-                        <Label Text="Product Name" FontSize="21"/>
-                        <Frame BackgroundColor="#FFFFFF" CornerRadius="10" Padding="10" HasShadow="False">
-                            <Entry Placeholder="Product Name" PlaceholderColor="Black" Text="{Binding ProductName}" Visual="Default" BackgroundColor="Transparent"/>
+
+                <!-- Left Panel: Product Details -->
+                <Frame CornerRadius="25" BackgroundColor="#F8E8D7" HasShadow="True" WidthRequest="500" HeightRequest="600" Padding="25">
+                    <VerticalStackLayout Spacing="15">
+
+                        <!-- Header -->
+                        <Label Text="Product Details" FontAttributes="Bold" FontSize="28" TextColor="#4B3832" />
+
+                        <!-- Product Name -->
+                        <Label Text="Product Name" FontSize="20" TextColor="#4B3832"/>
+                        <Frame CornerRadius="10" Padding="5" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
+                            <Entry Placeholder="Enter Product Name"
+                                   PlaceholderColor="#4B3832"
+                                   Text="{Binding ProductName}"
+                                   BackgroundColor="Transparent"
+                                   FontSize="16"
+                                   TextColor="#4B3832"/>
                         </Frame>
 
-                        <Frame BorderColor="Gray" CornerRadius="10" HeightRequest="150" WidthRequest="455" BackgroundColor="#E0E0E0"
-                               HorizontalOptions="Start" Margin="0,15,0,15">
+                        <!-- Product Image -->
+                        <Frame CornerRadius="15" BackgroundColor="#F8E8D7" HeightRequest="160" Padding="5">
                             <Grid>
                                 <Button BackgroundColor="Transparent" Command="{Binding PickImageCommand}" />
-                                <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit" />
-                                
+                                <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit"/>
                             </Grid>
                         </Frame>
 
-                        <Grid ColumnDefinitions="*, *" Margin="0,0,0,0">
+                        <!-- Category & Subcategory -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
                             <VerticalStackLayout Spacing="5" Grid.Column="0">
-                                <Label Text="Category" FontSize="21"/>
+                                <Label Text="Category" FontSize="20" TextColor="#4B3832"/>
                                 <Picker Title="Select Category"
                                         ItemsSource="{Binding Categories}"
                                         SelectedItem="{Binding SelectedCategory}"
-                                        FontSize="14"
-                                        HorizontalOptions="Fill"/>
+                                        FontSize="16"
+                                        TextColor="#4B3832"
+                                        BackgroundColor="Transparent"/>
                             </VerticalStackLayout>
+
                             <VerticalStackLayout Spacing="5" Grid.Column="1" IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
-                                <Label Text="Subcategory" FontSize="21"/>
+                                <Label Text="Subcategory" FontSize="20" TextColor="#4B3832"/>
                                 <Picker Title="Select Subcategory"
                                         ItemsSource="{Binding FruitSodaSubcategories}"
                                         SelectedItem="{Binding SelectedSubcategory}"
-                                        FontSize="14"
-                                        HorizontalOptions="Fill"/>
+                                        FontSize="16"
+                                        TextColor="#4B3832"
+                                        BackgroundColor="Transparent"/>
                             </VerticalStackLayout>
                         </Grid>
 
-                        <Label Text="Color Code" FontSize="21"/>
-                        <Frame BackgroundColor="#FFFFFF" CornerRadius="10" Padding="10" HasShadow="False">
-                            <Entry Placeholder="Product Category" Keyboard="Email" PlaceholderColor="Black" Visual="Default" BackgroundColor="Transparent"/>
+                        <!-- Color Code -->
+                        <Label Text="Color Code" FontSize="20" TextColor="#4B3832"/>
+                        <Frame CornerRadius="10" Padding="5" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
+                            <Entry Placeholder="Enter Color Code"
+                                   PlaceholderColor="#4B3832"
+                                   Keyboard="Text"
+                                   Text="{Binding ProductColorCode}"
+                                   BackgroundColor="Transparent"
+                                   FontSize="16"
+                                   TextColor="#4B3832"/>
                         </Frame>
                     </VerticalStackLayout>
                 </Frame>
-                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7">
-                    <VerticalStackLayout>
-                        <Grid Margin="0,0,0,25">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Label Text="Product Size" FontAttributes="Bold" FontSize="30" VerticalOptions="Center" Grid.Column="0"/>
-                            <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" Grid.Column="1" 
-                                         VerticalOptions="Center" Command="{Binding CloseAddItemToPOSCommand}"/>
+
+                <!-- Right Panel: Pricing & Description -->
+                <Frame CornerRadius="25" BackgroundColor="#F8E8D7" HasShadow="True" WidthRequest="500" HeightRequest="600" Padding="25">
+                    <VerticalStackLayout Spacing="15">
+
+                        <!-- Header -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Product Size" FontAttributes="Bold" FontSize="28" Grid.Column="0" VerticalOptions="Center" TextColor="#4B3832"/>
+                            <ImageButton Source="close.png" WidthRequest="25" HeightRequest="25" Grid.Column="1" VerticalOptions="Center" Command="{Binding CloseAddItemToPOSCommand}"/>
                         </Grid>
 
-                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="20" Margin="0,10,0,0">
+                        <!-- Pricing Grid -->
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="15">
                             <VerticalStackLayout Spacing="5" Grid.Column="0">
-                                <Label Text="Small Price" FontSize="21"/>
-                                <Frame BackgroundColor="#FFFFFF" CornerRadius="10" Padding="10" HasShadow="False">
+                                <Label Text="Small Price" FontSize="20" TextColor="#4B3832"/>
+                                <Frame CornerRadius="10" Padding="5" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                                     <Entry Placeholder="Enter Small Price"
                                            Keyboard="Numeric"
                                            Text="{Binding SmallPrice}"
-                                           PlaceholderColor="Black"
-                                           Visual="Default"
-                                           BackgroundColor="Transparent" />
+                                           BackgroundColor="Transparent"
+                                           TextColor="#4B3832"/>
                                 </Frame>
                             </VerticalStackLayout>
+
                             <VerticalStackLayout Spacing="5" Grid.Column="1">
-                                <Label Text="Medium Price" FontSize="21"/>
-                                <Frame BackgroundColor="#FFFFFF" CornerRadius="10" Padding="10" HasShadow="False">
+                                <Label Text="Medium Price" FontSize="20" TextColor="#4B3832"/>
+                                <Frame CornerRadius="10" Padding="5" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                                     <Entry Placeholder="Enter Medium Price"
                                            Keyboard="Numeric"
                                            Text="{Binding MediumPrice}"
-                                           PlaceholderColor="Black"
-                                           Visual="Default"
-                                           BackgroundColor="Transparent" />
+                                           BackgroundColor="Transparent"
+                                           TextColor="#4B3832"/>
                                 </Frame>
                             </VerticalStackLayout>
+
                             <VerticalStackLayout Spacing="5" Grid.Column="2">
-                                <Label Text="Large Price" FontSize="21"/>
-                                <Frame BackgroundColor="#FFFFFF" CornerRadius="10" Padding="10" HasShadow="False">
+                                <Label Text="Large Price" FontSize="20" TextColor="#4B3832"/>
+                                <Frame CornerRadius="10" Padding="5" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                                     <Entry Placeholder="Enter Large Price"
                                            Keyboard="Numeric"
                                            Text="{Binding LargePrice}"
-                                           PlaceholderColor="Black"
-                                           Visual="Default"
-                                           BackgroundColor="Transparent" /> 
+                                           BackgroundColor="Transparent"
+                                           TextColor="#4B3832"/>
                                 </Frame>
                             </VerticalStackLayout>
                         </Grid>
-                        
-                        <Label Text="Description (Optional)" FontSize="21" Margin="0,25,0,0"/>
-                        <Frame BackgroundColor="#FFFFFF" 
-                               Margin="0,10,0,0"
-                               CornerRadius="10" 
-                               Padding="10"
-                               HasShadow="False">
-                            <Editor Placeholder="Enter product description..." 
-                                HeightRequest="150" 
-                                Text="{Binding ProductDescription}" 
-                                BackgroundColor="Transparent"
-                                TextColor="Black"/>
+
+                        <!-- Description -->
+                        <Label Text="Description (Optional)" FontSize="20" TextColor="#4B3832"/>
+                        <Frame CornerRadius="10" Padding="5" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
+                            <Editor Placeholder="Enter product description..."
+                                    Text="{Binding ProductDescription}"
+                                    BackgroundColor="Transparent"
+                                    TextColor="#4B3832"
+                                    FontSize="16"
+                                    HeightRequest="150"/>
                         </Frame>
+
+                        <!-- Action Buttons -->
                         <HorizontalStackLayout HorizontalOptions="End" Spacing="15">
-                            <Button Text="Close" WidthRequest="120" BackgroundColor="#D3D3D3" TextColor="Black"
-                                    Command="{Binding CloseAddItemToPOSCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
-                            <Button Text="Next" WidthRequest="150" BackgroundColor="#E6DE9D" TextColor="Black" 
-                                Command="{Binding OpenConnectPOSToInventoryCommand}" HorizontalOptions="End" Margin="0,20,0,0"/>
+                            <Button Text="Close" WidthRequest="120" HeightRequest="45"
+                                    BackgroundColor="#D3D3D3" TextColor="#4B3832"
+                                    CornerRadius="20"
+                                    Command="{Binding CloseAddItemToPOSCommand}"/>
+                            <Button Text="Next" WidthRequest="150" HeightRequest="45"
+                                    BackgroundColor="#E6DE9D" TextColor="#4B3832"
+                                    CornerRadius="20"
+                                    Command="{Binding OpenConnectPOSToInventoryCommand}"/>
                         </HorizontalStackLayout>
+
                     </VerticalStackLayout>
                 </Frame>
+
             </HorizontalStackLayout>
         </VerticalStackLayout>
-        <otherViews:ConnectPOSItemToInventory
-                  BindingContext="{Binding ConnectPOSToInventoryVM}" Grid.Column="2"/>
-        <otherViews:InputIngredientsAmountUsed
-                  BindingContext="{Binding ConnectPOSToInventoryVM}" Grid.Column="2"/>
+
+        <!-- Subcomponents -->
+        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding ConnectPOSToInventoryVM}" Grid.Column="2"/>
+        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding ConnectPOSToInventoryVM}" Grid.Column="2"/>
+
+        <!-- Success popup -->
+        <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" />
 
     </Grid>
 </ContentView>

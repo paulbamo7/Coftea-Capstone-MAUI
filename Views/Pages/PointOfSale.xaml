@@ -254,6 +254,8 @@
         <otherViews:CartPopup BindingContext="{Binding CartPopup}" Grid.ColumnSpan="2"/>
         <otherViews:HistoryPopup BindingContext="{Binding HistoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:PaymentPopup x:Name="PaymentPopupControl" Grid.ColumnSpan="2"/>
+        <otherViews:OrderCompletePopup BindingContext="{Binding OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
+        <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Reference POS}, Path=BindingContext.SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
 
     </Grid>
 </ContentPage>

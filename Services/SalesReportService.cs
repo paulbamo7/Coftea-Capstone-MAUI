@@ -92,6 +92,27 @@ namespace Coftea_Capstone.Services
                     }
                 }
 
+                // Sort categories by count desc and take top 5 for each
+                coffeeProducts = coffeeProducts
+                    .OrderByDescending(i => i.Count)
+                    .Take(5)
+                    .ToList();
+
+                milkTeaProducts = milkTeaProducts
+                    .OrderByDescending(i => i.Count)
+                    .Take(5)
+                    .ToList();
+
+                frappeProducts = frappeProducts
+                    .OrderByDescending(i => i.Count)
+                    .Take(5)
+                    .ToList();
+
+                fruitSodaProducts = fruitSodaProducts
+                    .OrderByDescending(i => i.Count)
+                    .Take(5)
+                    .ToList();
+
                 // Get most bought and trending items
                 var mostBought = topProducts.OrderByDescending(p => p.Value).FirstOrDefault();
                 var trending = topProducts.OrderByDescending(p => p.Value).Skip(1).FirstOrDefault();
@@ -104,10 +125,10 @@ namespace Coftea_Capstone.Services
                     TotalSalesToday = totalSales,
                     TotalOrdersToday = totalOrders,
                     TotalOrdersThisWeek = totalOrders, // Same as today for now
-                    TopCoffeeToday = coffeeProducts.Take(3),
-                    TopMilkteaToday = milkTeaProducts.Take(3),
-                    TopCoffeeWeekly = coffeeProducts,
-                    TopMilkteaWeekly = milkTeaProducts,
+                    TopCoffeeToday = coffeeProducts.Take(5),
+                    TopMilkteaToday = milkTeaProducts.Take(5),
+                    TopCoffeeWeekly = coffeeProducts.Take(5),
+                    TopMilkteaWeekly = milkTeaProducts.Take(5),
                     Reports = new List<SalesReportPageModel>()
                 };
             }

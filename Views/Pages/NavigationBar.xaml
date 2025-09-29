@@ -36,7 +36,7 @@
             <Button ImageSource="settings2.png"
                     Background="Transparent"
                     HeightRequest="80"
-                    Command="{Binding SettingsPopup.ShowSettingsPopupCommand}" />
+                    Command="{Binding Source={x:Static Application.Current}, Path=SettingsPopup.ShowSettingsPopupCommand}" />
             <Label Text="Settings" FontAttributes="Bold" HorizontalOptions="Center"/>
         </VerticalStackLayout>
     </StackLayout>

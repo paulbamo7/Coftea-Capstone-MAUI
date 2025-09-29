@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Pages.OrderCompleteDialogPage"
+             BackgroundColor="#80000000"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False">
+    <Grid>
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseCommand}" />
+        </Grid.GestureRecognizers>
+
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="0"
+               BackgroundColor="#FFFFFF"
+               CornerRadius="20"
+               WidthRequest="600"
+               HeightRequest="400"
+               HasShadow="True">
+
+            <Grid RowDefinitions="Auto, * , Auto">
+                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Order Complete" FontSize="24" FontAttributes="Bold" TextColor="White" />
+                        <Button Grid.Column="1" Text="×" FontSize="24" FontAttributes="Bold" BackgroundColor="Transparent" TextColor="White" WidthRequest="40" HeightRequest="40" Padding="0" Command="{Binding CloseCommand}" />
+                    </Grid>
+                </Grid>
+
+                <Grid Grid.Row="1" Padding="30">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,0,0,10">
+                        <Frame BackgroundColor="#4CAF50" WidthRequest="100" HeightRequest="100" CornerRadius="50" HasShadow="False">
+                            <Label Text="✓" FontSize="56" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+                        </Frame>
+                    </Grid>
+
+                    <VerticalStackLayout Grid.Row="1" Spacing="4" HorizontalOptions="Center">
+                        <Label Text="Order Complete" FontSize="26" FontAttributes="Bold" TextColor="#000000" HorizontalOptions="Center" />
+                        <Label Text="Thanks For The Purchase" FontSize="16" TextColor="#444444" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+
+                    <Image Grid.Row="2" Source="coftea_logo.png" Aspect="AspectFit" HorizontalOptions="End" VerticalOptions="End" Opacity="0.15" WidthRequest="180" HeightRequest="180" />
+                </Grid>
+
+                <Grid Grid.Row="2" Padding="30">
+                    <Button Text="Confirm" FontSize="18" BackgroundColor="#4CAF50" TextColor="White" CornerRadius="25" HeightRequest="50" Command="{Binding ConfirmCommand}" />
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentPage>
+
+

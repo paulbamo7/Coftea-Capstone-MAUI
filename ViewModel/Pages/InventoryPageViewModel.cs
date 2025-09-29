@@ -33,6 +33,27 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool hasError;
 
+        // Demo controls for showing inventory progress behavior
+        [ObservableProperty]
+        private double demoQuantity = 50;
+
+        [ObservableProperty]
+        private double demoMinimum = 100;
+
+        public double DemoProgress
+        {
+            get
+            {
+                if (DemoMinimum <= 0) return 1.0;
+                var ratio = DemoQuantity / DemoMinimum;
+                if (ratio < 0) return 0;
+                if (ratio > 1) return 1;
+                return ratio;
+            }
+        }
+
+        public string DemoStockFillColor => DemoQuantity < DemoMinimum ? "#C62828" : "#2E7D32";
+
         public InventoryPageViewModel(SettingsPopUpViewModel settingsPopup)
         {
             _database = new Database(
@@ -84,6 +105,18 @@ namespace Coftea_Capstone.ViewModel
             {
                 IsLoading = false;
             }
+        }
+
+        partial void OnDemoQuantityChanged(double value)
+        {
+            OnPropertyChanged(nameof(DemoProgress));
+            OnPropertyChanged(nameof(DemoStockFillColor));
+        }
+
+        partial void OnDemoMinimumChanged(double value)
+        {
+            OnPropertyChanged(nameof(DemoProgress));
+            OnPropertyChanged(nameof(DemoStockFillColor));
         }
 
         [RelayCommand]

@@ -3,6 +3,7 @@ using MySqlConnector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Linq;
 
 using Coftea_Capstone.C_;
 
@@ -30,6 +31,26 @@ namespace Coftea_Capstone.Models
                 SslMode = MySqlSslMode.None
             }.ConnectionString;
 
+        }
+
+        // Ensure server is reachable and the database exists; create DB if missing
+        public async Task EnsureServerAndDatabaseAsync()
+        {
+            var server = DeviceInfo.Platform == DevicePlatform.Android ? "10.0.2.2" : "localhost";
+            var builder = new MySqlConnectionStringBuilder
+            {
+                Server = server,
+                Port = 3306,
+                UserID = "root",
+                Password = "",
+                SslMode = MySqlSslMode.None
+            };
+
+            await using var conn = new MySqlConnection(builder.ConnectionString);
+            await conn.OpenAsync();
+            var createDbSql = "CREATE DATABASE IF NOT EXISTS coftea_db;";
+            await using var cmd = new MySqlCommand(createDbSql, conn);
+            await cmd.ExecuteNonQueryAsync();
         }
         private async Task<MySqlConnection> GetOpenConnectionAsync()
         {
@@ -79,7 +100,7 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status FROM users ORDER BY id ASC;";
+            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
             await using var cmd = new MySqlCommand(sql, conn);
 
             var users = new List<UserInfoModel>();
@@ -97,7 +118,9 @@ namespace Coftea_Capstone.Models
                     PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                     Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
                     IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
-                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status")
+                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
+                    CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
+                    CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report")
                 };
                 users.Add(user);
             }
@@ -692,6 +715,8 @@ namespace Coftea_Capstone.Models
                     address TEXT,
                     status VARCHAR(50) DEFAULT 'approved',
                     isAdmin BOOLEAN DEFAULT FALSE,
+                    can_access_inventory BOOLEAN DEFAULT FALSE,
+                    can_access_sales_report BOOLEAN DEFAULT FALSE,
                     reset_token VARCHAR(255),
                     reset_expiry DATETIME,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -773,7 +798,9 @@ namespace Coftea_Capstone.Models
             // Add status column to existing users table if it doesn't exist
             var alterTableSql = @"
                 ALTER TABLE users 
-                ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'approved';
+                ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'approved',
+                ADD COLUMN IF NOT EXISTS can_access_inventory BOOLEAN DEFAULT FALSE,
+                ADD COLUMN IF NOT EXISTS can_access_sales_report BOOLEAN DEFAULT FALSE;
             ";
             await using var alterCmd = new MySqlCommand(alterTableSql, conn);
             await alterCmd.ExecuteNonQueryAsync();
@@ -795,6 +822,18 @@ namespace Coftea_Capstone.Models
             ";
             await using var seedCmd = new MySqlCommand(seedSql, conn);
             await seedCmd.ExecuteNonQueryAsync();
+        }
+
+        // Update user access flags
+        public async Task<int> UpdateUserAccessAsync(int userId, bool canAccessInventory, bool canAccessSalesReport)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            var sql = "UPDATE users SET can_access_inventory = @Inv, can_access_sales_report = @Sales WHERE id = @Id;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Inv", canAccessInventory);
+            cmd.Parameters.AddWithValue("@Sales", canAccessSalesReport);
+            cmd.Parameters.AddWithValue("@Id", userId);
+            return await cmd.ExecuteNonQueryAsync();
         }
         
         // Update existing users to approved status

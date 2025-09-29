@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.SuccessCardPopup"
+    x:Name="SuccessCard"
+    BackgroundColor="Transparent"
+    IsVisible="{Binding IsVisible, FallbackValue=False, TargetNullValue=False}"
+    InputTransparent="True">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
+        <Frame VerticalOptions="End"
+               HorizontalOptions="End"
+               Margin="0,0,24,24"
+               CornerRadius="16"
+               BackgroundColor="#FFFFFF"
+               Padding="16"
+               WidthRequest="320"
+               HasShadow="True">
+            <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10">
+                <Frame Grid.Row="0" WidthRequest="56" HeightRequest="56" CornerRadius="28" BackgroundColor="#C1CE93" HasShadow="False" HorizontalOptions="Center">
+                    <Label Text="✓" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Frame>
+
+                <Label Grid.Row="1" Text="{Binding Title}" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#000000" />
+                <Label Grid.Row="2" Text="{Binding Message}" FontSize="13" HorizontalTextAlignment="Center" TextColor="#666666" />
+                <Label Grid.Row="3" Text="{Binding Subtext}" FontSize="11" HorizontalTextAlignment="Center" TextColor="#999999" />
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>
+
+

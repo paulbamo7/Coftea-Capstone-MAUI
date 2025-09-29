@@ -55,7 +55,7 @@
                 </Grid>
 
                 <!-- Filter Buttons -->
-                <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,10">
+                <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,15,5" HorizontalOptions="Center" >
                     <HorizontalStackLayout Spacing="10">
                         <Button Text="Today" 
                                 Command="{Binding FilterByTimePeriodCommand}" 
@@ -381,7 +381,8 @@
                         <HorizontalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center">
                             <Button Text="Refresh" 
                                     Command="{Binding RefreshHistoryCommand}" 
-                                    BackgroundColor="#5B4F45" 
+                                    BackgroundColor="#5B4F45"
+                                    Padding="0"
                                     TextColor="White" 
                                     CornerRadius="15" 
                                     WidthRequest="80" 
@@ -389,6 +390,7 @@
                             <Button Text="Export" 
                                     Command="{Binding ExportHistoryCommand}" 
                                     BackgroundColor="#A57C5C" 
+                                    Padding="0"
                                     TextColor="White" 
                                     CornerRadius="15" 
                                     WidthRequest="80" 

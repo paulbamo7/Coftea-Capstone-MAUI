@@ -29,6 +29,8 @@ namespace Coftea_Capstone
         public NotificationPopupViewModel NotificationPopup { get; private set; }
         public PasswordResetPopupViewModel PasswordResetPopup { get; private set; }
         public PaymentPopupViewModel PaymentPopup { get; private set; }
+        public OrderCompletePopupViewModel OrderCompletePopup { get; private set; }
+        public SuccessCardPopupViewModel SuccessCardPopup { get; private set; }
 
         // Shared transactions store for History
         public ObservableCollection<TransactionHistoryModel> Transactions { get; private set; }
@@ -38,6 +40,29 @@ namespace Coftea_Capstone
             InitializeComponent();
 
             InitializeViewModels();
+
+            // Ensure database exists and tables are created, then adjust theme colors to match Login page
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    var db = new Database();
+                    await db.EnsureServerAndDatabaseAsync();
+                    await db.InitializeDatabaseAsync();
+                }
+                catch (Exception)
+                {
+                    // Swallow init errors here; UI will display connection issues elsewhere
+                }
+
+                // Align app accent colors to Login page palette
+                if (Current?.Resources != null)
+                {
+                    if (Current.Resources.ContainsKey("Primary")) Current.Resources["Primary"] = Color.FromArgb("#5B4F45");
+                    if (Current.Resources.ContainsKey("Tertiary")) Current.Resources["Tertiary"] = Color.FromArgb("#5B4F45");
+                    if (Current.Resources.ContainsKey("Secondary")) Current.Resources["Secondary"] = Color.FromArgb("#C1A892");
+                }
+            });
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -89,6 +114,8 @@ namespace Coftea_Capstone
             NotificationPopup = new NotificationPopupViewModel();
             PasswordResetPopup = new PasswordResetPopupViewModel();
             PaymentPopup = new PaymentPopupViewModel();
+            OrderCompletePopup = new OrderCompletePopupViewModel();
+            SuccessCardPopup = new SuccessCardPopupViewModel();
 
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();

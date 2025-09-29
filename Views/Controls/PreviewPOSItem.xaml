@@ -36,14 +36,11 @@
                     <!-- Product Info -->
                     <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="22"/>
                     <Label Text="Add-ons Used" FontAttributes="Bold"/>
-                    <!-- Show selected addons with editable inputs below the Add-ons text -->
-                    <CollectionView ItemsSource="{Binding InventoryItems}">
+                    <!-- Show only selected addons with editable inputs below the Add-ons text -->
+                    <CollectionView ItemsSource="{Binding SelectedAddons}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="*,Auto,Auto" Padding="8" Margin="0,4">
-                                    <Grid.IsVisible>
-                                        <Binding Path="IsSelected"/>
-                                    </Grid.IsVisible>
                                     <HorizontalStackLayout>
                                         <Label Grid.Column="0" Text="{Binding itemName}"/>
                                         <Entry Grid.Column="1" WidthRequest="90" Keyboard="Numeric" Placeholder="Price"

@@ -4,6 +4,7 @@
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
              xmlns:controls="clr-namespace:Coftea_Capstone.Views.Controls"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              BackgroundColor="#D6BCA8">
 
     <ContentPage.BindingContext>
@@ -55,20 +56,26 @@
                             <CollectionView ItemsSource="{Binding Users}">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid ColumnDefinitions="2*,3*,2*,2*" Padding="10" RowSpacing="0">
+                                            <Grid ColumnDefinitions="2*,3*,2*,2*,Auto" Padding="10" RowSpacing="0">
                                             <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center"/>
 
                                             <HorizontalStackLayout Grid.Column="1" Spacing="6">
-                                                <Button Text="Edit Inventory" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
-                                            IsVisible="{Binding CanEditInventory}"/>
-                                                <Button Text="Edit POS" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
-                                            IsVisible="{Binding CanEditPOS}"/>
-                                                <Button Text="Edit Balance Sheet" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
-                                            IsVisible="{Binding CanEditBalanceSheet}"/>
+                                                <Switch IsToggled="{Binding CanAccessInventory}"/>
+                                                <Switch IsToggled="{Binding CanAccessSalesReport}"/>
+                                                <Button Text="Grant Access" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=GrantAccessCommand}"
+                                                        CommandParameter="{Binding .}"/>
                                             </HorizontalStackLayout>
 
                                             <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center"/>
                                             <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center"/>
+
+                                            <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
+                                            <Grid Grid.Column="4" HorizontalOptions="End" VerticalOptions="Center">
+                                                <Button Text="⋮" WidthRequest="36" HeightRequest="30" CornerRadius="6"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=OpenRowMenuCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                            </Grid>
                                         </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
@@ -78,7 +85,7 @@
                             <HorizontalStackLayout HorizontalOptions="End" Padding="10" Spacing="10">
                                 <Button Text="Add User" BackgroundColor="#D0B08A" TextColor="Black" Command="{Binding AddUserCommand}" WidthRequest="120"/>
                                 <Button Text="Delete User" BackgroundColor="#B24D4D" TextColor="White" Command="{Binding DeleteUserCommand}" WidthRequest="120"/>
-                                <Button Text="Test Request" BackgroundColor="#4CAF50" TextColor="White" Command="{Binding CreateTestPendingRequestCommand}" WidthRequest="120"/>
+                                <!-- Test Request removed; access is managed per-user -->
                             </HorizontalStackLayout>
 
                         </VerticalStackLayout>
@@ -89,5 +96,6 @@
 
         <!-- User Approval Popup Overlay - Inside main grid -->
         <controls:UserApprovalPopup Grid.ColumnSpan="2" Grid.RowSpan="1" BindingContext="{Binding UserApprovalPopup}"/>
+        <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
     </Grid>
 </ContentPage>

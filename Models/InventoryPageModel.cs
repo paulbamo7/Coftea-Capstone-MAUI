@@ -158,6 +158,16 @@ namespace Coftea_Capstone.Models
             }
         }
 
+        // Progress bar color: green when at/above minimum, red when below
+        public string StockFillColor
+        {
+            get
+            {
+                if (minimumQuantity <= 0) return "#2E7D32"; // default green when no minimum
+                return itemQuantity < minimumQuantity ? "#C62828" : "#2E7D32";
+            }
+        }
+
         // Normalize long-form units like "Pieces (pcs)" to short codes like "pcs"
         private static string NormalizeUnit(string raw)
         {

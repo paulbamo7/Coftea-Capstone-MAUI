@@ -44,30 +44,16 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task CreateTestPendingRequest()
+        private async Task GrantAccess(UserEntry entry)
         {
-            try
-            {
-                var testRequest = new UserPendingRequest
-                {
-                    Email = "test@example.com",
-                    Password = "hashedpassword",
-                    FirstName = "Test",
-                    LastName = "User",
-                    PhoneNumber = "123-456-7890",
-                    Address = "123 Test St",
-                    Birthday = DateTime.Now.AddYears(-25),
-                    RequestDate = DateTime.Now
-                };
-
-                await _database.AddPendingUserRequestAsync(testRequest);
-                await Application.Current.MainPage.DisplayAlert("Success", "Test pending request created!", "OK");
-                await UserApprovalPopup.LoadPendingRequests();
-            }
-            catch (Exception ex)
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to create test request: {ex.Message}", "OK");
-            }
+            if (entry == null) return;
+            // Toggle both access flags for simplicity; adjust per UI as needed
+            var newInventory = !entry.CanAccessInventory;
+            var newSales = !entry.CanAccessSalesReport;
+            await _database.UpdateUserAccessAsync(entry.Id, newInventory, newSales);
+            entry.CanAccessInventory = newInventory;
+            entry.CanAccessSalesReport = newSales;
+            OnPropertyChanged(nameof(Users));
         }
 
         [RelayCommand]
@@ -76,17 +62,38 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private Task SortBy() => Task.CompletedTask;
 
+        [RelayCommand]
+        private async Task ViewProfile(UserEntry entry)
+        {
+            if (entry == null) return;
+            await Application.Current.MainPage.DisplayAlert("Details",
+                $"Full Name: {entry.Username}\n\nPermissions:\n- Inventory: {(entry.CanAccessInventory ? "Yes" : "No")}\n- Sales Report: {(entry.CanAccessSalesReport ? "Yes" : "No")}",
+                "Close");
+        }
+
+        [RelayCommand]
+        private async Task OpenRowMenu(UserEntry entry)
+        {
+            if (entry == null) return;
+            var action = await Application.Current.MainPage.DisplayActionSheet("Options", "Cancel", null, "View Profile", "Edit Inventory", "Edit POS Menu");
+            if (action == "View Profile")
+            {
+                await ViewProfile(entry);
+            }
+            // Future: handle other actions here
+        }
+
         public async Task InitializeAsync()
         {
             var allUsers = await _database.GetAllUsersAsync();
             Users = new ObservableCollection<UserEntry>(allUsers.Select(u => new UserEntry
             {
+                Id = u.ID,
                 Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
                 LastActive = "—",
                 DateAdded = "—",
-                CanEditInventory = false,
-                CanEditPOS = false,
-                CanEditBalanceSheet = false
+                CanAccessInventory = u.CanAccessInventory,
+                CanAccessSalesReport = u.CanAccessSalesReport
             }));
         }
     }

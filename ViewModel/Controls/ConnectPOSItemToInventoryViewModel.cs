@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
@@ -45,6 +46,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         // Size selection for ingredient inputs
         [ObservableProperty] private string selectedSize = "Small";
         [ObservableProperty] private string productDescription;
+        // True when any inventory item is marked selected; used to toggle inputs visibility
+        public bool HasSelectedIngredients => InventoryItems.Any(i => i.IsSelected);
+
+        // Only the inventory items that are selected; used for ingredient inputs
+        public IEnumerable<InventoryPageModel> SelectedInventoryItems => InventoryItems.Where(i => i.IsSelected);
 
         // Event to notify AddItem popup
         public event Action ReturnRequested;
@@ -143,6 +149,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 AllInventoryItems.Add(it);
             }
             ApplyFilters();
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
         [RelayCommand]
@@ -170,12 +178,16 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 Ingredients.Remove(existing);
                 item.IsSelected = false;
+                OnPropertyChanged(nameof(HasSelectedIngredients));
+                OnPropertyChanged(nameof(SelectedInventoryItems));
                 return;
             }
             // Initialize default unit based on inventory definition
             var initUnit = item.HasUnit ? item.unitOfMeasurement : "pcs";
             Ingredients.Add(new Ingredient { Name = item.itemName, Amount = 1, Unit = initUnit, Selected = true });
             item.IsSelected = true;
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
         private void ApplyFilters()
@@ -213,6 +225,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
             InventoryItems.Clear();
             foreach (var it in query) InventoryItems.Add(it);
+            OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
         [RelayCommand]
@@ -243,6 +256,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     item.IsSelected = true;
                 }
             }
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
         [RelayCommand]
@@ -315,6 +330,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
 
             IsAddonPopupVisible = false;
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
         [RelayCommand]

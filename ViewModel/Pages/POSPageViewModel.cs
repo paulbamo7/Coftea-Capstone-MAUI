@@ -21,6 +21,8 @@ namespace Coftea_Capstone.ViewModel
         public CartPopupViewModel CartPopup { get; set; }
         public HistoryPopupViewModel HistoryPopup { get; set; }
         public PaymentPopupViewModel PaymentPopup { get; set; }
+        public OrderCompletePopupViewModel OrderCompletePopup { get; set; }
+        public SuccessCardPopupViewModel SuccessCardPopup { get; set; }
 
 
         private readonly Database _database;
@@ -78,6 +80,8 @@ namespace Coftea_Capstone.ViewModel
             CartPopup = new CartPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
             PaymentPopup = ((App)Application.Current).PaymentPopup;
+            OrderCompletePopup = ((App)Application.Current).OrderCompletePopup;
+            SuccessCardPopup = ((App)Application.Current).SuccessCardPopup;
 
             AddItemToPOSViewModel.ProductAdded += OnProductAdded;
             AddItemToPOSViewModel.ProductUpdated += OnProductUpdated;

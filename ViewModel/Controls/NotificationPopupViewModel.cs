@@ -40,6 +40,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+        // Convenience for short-lived toast on bottom-left
+        public void ShowToast(string message, int milliseconds = 1500)
+        {
+            ShowNotification(message, "Success", true, milliseconds);
+        }
+
         [RelayCommand]
         private void CloseNotification()
         {

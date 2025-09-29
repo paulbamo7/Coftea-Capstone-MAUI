@@ -86,7 +86,8 @@
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Frame Padding="10" Margin="0,6,0,6" CornerRadius="10" BackgroundColor="White">
-                                            <Grid ColumnDefinitions="2*, 1*, 2*" VerticalOptions="Center" ColumnSpacing="10">
+                                            <VerticalStackLayout Spacing="6">
+                                                <Grid ColumnDefinitions="2*, 1*, 2*" VerticalOptions="Center" ColumnSpacing="10">
                                                 <!-- Items: image + name -->
                                                 <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
                                                     <Frame WidthRequest="50" HeightRequest="50" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
@@ -98,26 +99,31 @@
                                                 <!-- Category -->
                                                 <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
 
-                                                <!-- Stocks: progress bar only -->
                                                 <VerticalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
-                                                    <!-- Custom progress bar -->
-                                                    <Grid HeightRequest="20" VerticalOptions="Center">
-                                                        <!-- Background (always full width) -->
-                                                        <BoxView Color="#E0E0E0" CornerRadius="10"/>
-
-                                                        <!-- Green progress bar (shows current stock level) -->
-                                                        <BoxView Color="#34C759" CornerRadius="10" HorizontalOptions="Start"
-                                                                 WidthRequest="{Binding StockProgressWidth}" />
-
-                                                        <!-- Text overlay -->
-                                                        <Label Text="{Binding StockText}" 
-                                                               FontSize="12" 
-                                                               TextColor="Black" 
-                                                               HorizontalOptions="Center" 
-                                                               VerticalOptions="Center"/>
-                                                    </Grid>
+                                                    <Frame BackgroundColor="White" CornerRadius="10" Padding="6" HasShadow="True">
+                                                        <Grid RowDefinitions="Auto,Auto" VerticalOptions="Center">
+                                                            <!-- Row 0: bar with grey rounded background -->
+                                                            <Grid HeightRequest="22">
+                                                                <BoxView Color="#E0E0E0" CornerRadius="17" />
+                                                                <ProgressBar Progress="{Binding StockProgress}"
+                                                                             ProgressColor="{Binding StockFillColor}"
+                                                                             HeightRequest="34" />
+                                                            </Grid>
+                                                            <!-- Row 1: text below the bar -->
+                                                            <Label Grid.Row="1" FontSize="12" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center">
+                                                                <Label.Text>
+                                                                    <MultiBinding StringFormat="{}{0} {1}">
+                                                                        <Binding Path="StockDisplay"/>
+                                                                        <Binding Path="MinimumDisplay"/>
+                                                                    </MultiBinding>
+                                                                </Label.Text>
+                                                            </Label>
+                                                        </Grid>
+                                                    </Frame>
                                                 </VerticalStackLayout>
-                                            </Grid>
+                                                </Grid>
+                                                <!-- Removed external Qty/Min row as requested -->
+                                            </VerticalStackLayout>
                                         </Frame>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
@@ -140,8 +146,12 @@
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
         
         <!-- Retry Connection Popup -->
         <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
+
+        <!-- Success Card Popup (global) -->
+        <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
     </Grid>
 </ContentPage>

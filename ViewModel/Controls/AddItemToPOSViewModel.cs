@@ -282,11 +282,19 @@ namespace Coftea_Capstone.ViewModel
                         }
                     }
 
-                    await Application.Current.MainPage.DisplayAlert("Success", "Product added successfully!", "OK");
+                    // Close preview popup first, then show toast-style success card (bottom-right)
+                    ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = false;
+                    IsAddItemToPOSVisible = false;
+                    var app = (App)Application.Current;
+                    app?.SuccessCardPopup?.Show(
+                        "Product Added To Menu",
+                        $"{product.ProductName} has been added to the menu",
+                        $"ID: {newProductId}",
+                        1500);
                     await DeductSelectedIngredientsAsync();
                     ResetForm();
                     ProductAdded?.Invoke(product);
-                }
+                        }
             }
             catch (Exception ex)
             {

@@ -13,14 +13,15 @@
             <TapGestureRecognizer Command="{Binding CloseNotificationCommand}" />
         </Grid.GestureRecognizers>
         
-        <!-- Notification Frame -->
-        <Frame VerticalOptions="Center"
-               HorizontalOptions="Center"
+        <!-- Notification Frame (bottom-left toast) -->
+        <Frame VerticalOptions="End"
+               HorizontalOptions="Start"
+               Margin="20,0,0,20"
                Padding="20"
                BackgroundColor="#F8E8D7"
                CornerRadius="15"
-               WidthRequest="350"
-               HeightRequest="80"
+               WidthRequest="360"
+               HeightRequest="90"
                HasShadow="True"
                InputTransparent="False">
 
