@@ -44,7 +44,8 @@ namespace Coftea_Capstone.Models
         public string FormattedDate => TransactionDate.ToString("dd/MM");
         
         public string FormattedPrice => $"P{Price:F2}";
-       
+        
+        public string FormattedVAT => $"P{Vat:F2}";
         
         public string FormattedTotal => $"P{Total:F2}";
     }

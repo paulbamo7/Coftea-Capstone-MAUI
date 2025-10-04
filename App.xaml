@@ -18,9 +18,12 @@
             <converters:ChangeColorConverter x:Key="ChangeColorConverter" />
             <converters:StatusColorConverter x:Key="StatusColorConverter" />
             <converters:IsPositiveConverter x:Key="IsPositiveConverter" />
+            <converters:NotificationTextIconConverter x:Key="NotificationTextIconConverter" />
+            <converters:NotificationColorConverter x:Key="NotificationColorConverter" />
             
             <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
                 <Setter Property="NavigationPage.HasNavigationBar" Value="False" />
+                <Setter Property="BackgroundColor" Value="#C1A892" />
             </Style>
         </ResourceDictionary>
     </Application.Resources>

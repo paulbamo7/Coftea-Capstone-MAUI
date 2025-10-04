@@ -96,6 +96,18 @@
                                             SelectedItem="{Binding SelectedUoM}"
                                             FontSize="16" TextColor="Black"/>
                                 </Grid>
+                                
+                                <!-- Conversion Display -->
+                                <Frame IsVisible="{Binding ShowConversionInfo}"
+                                       BackgroundColor="#E8F5E8"
+                                       CornerRadius="8"
+                                       Padding="10"
+                                       Margin="0,10,0,0">
+                                    <Label Text="{Binding ConvertedQuantityDisplay}"
+                                           FontSize="14"
+                                           TextColor="#2E7D32"
+                                           HorizontalTextAlignment="Center"/>
+                                </Frame>
                             </VerticalStackLayout>
 
                             <!-- Pieces-only categories -->
@@ -156,6 +168,18 @@
                                             SelectedItem="{Binding SelectedMinimumUoM}" 
                                             FontSize="16" TextColor="Black"/>
                                 </Grid>
+                                
+                                <!-- Minimum Conversion Display -->
+                                <Frame IsVisible="{Binding ConvertedMinimumDisplay, Converter={StaticResource NullToBoolConverter}}"
+                                       BackgroundColor="#FFF3E0"
+                                       CornerRadius="8"
+                                       Padding="10"
+                                       Margin="0,10,0,0">
+                                    <Label Text="{Binding ConvertedMinimumDisplay}"
+                                           FontSize="14"
+                                           TextColor="#E65100"
+                                           HorizontalTextAlignment="Center"/>
+                                </Frame>
                             </VerticalStackLayout>
 
                             <!-- Description -->

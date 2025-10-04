@@ -48,23 +48,47 @@ namespace Coftea_Capstone.ViewModel
             "Soda"
         };
 
+        public ObservableCollection<string> CoffeeSubcategories { get; } = new ObservableCollection<string>
+        {
+            "Americano",
+            "Latte"
+        };
+
         [ObservableProperty]
         private string selectedSubcategory;
 
         public bool IsFruitSodaSubcategoryVisible => string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase);
+        
+        public bool IsCoffeeSubcategoryVisible => string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
+
+        // Pricing field visibility properties
+        public bool IsSmallPriceVisible => string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
+        
+        public bool IsMediumPriceVisible => true; // Always visible
+        
+        public bool IsLargePriceVisible => true; // Always visible
 
         public string EffectiveCategory =>
             string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase)
                 ? (string.IsNullOrWhiteSpace(SelectedSubcategory) ? null : SelectedSubcategory)
-                : SelectedCategory;
+                : string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase)
+                    ? (string.IsNullOrWhiteSpace(SelectedSubcategory) ? null : SelectedSubcategory)
+                    : SelectedCategory;
 
         partial void OnSelectedCategoryChanged(string value)
         {
             // Notify visibility change for subcategory UI
             OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
+            OnPropertyChanged(nameof(IsCoffeeSubcategoryVisible));
+            
+            // Notify visibility change for pricing fields
+            OnPropertyChanged(nameof(IsSmallPriceVisible));
+            OnPropertyChanged(nameof(IsMediumPriceVisible));
+            OnPropertyChanged(nameof(IsLargePriceVisible));
 
-            // Reset subcategory when leaving Fruit/Soda
-            if (!string.Equals(value, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+            // Reset subcategory when leaving Fruit/Soda or Coffee
+            if (!string.Equals(value, "Fruit/Soda", StringComparison.OrdinalIgnoreCase) && 
+                !string.Equals(value, "Coffee", StringComparison.OrdinalIgnoreCase))
                 SelectedSubcategory = null;
         }
 
@@ -153,6 +177,11 @@ namespace Coftea_Capstone.ViewModel
                     SelectedCategory = "Fruit/Soda";
                     SelectedSubcategory = product.Category;
                 }
+                else if (product.Category == "Americano" || product.Category == "Latte")
+                {
+                    SelectedCategory = "Coffee";
+                    SelectedSubcategory = product.Category;
+                }
                 else
                 {
                     SelectedCategory = product.Category;
@@ -183,7 +212,14 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            if (SmallPrice <= 0)
+            if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(SelectedSubcategory))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please select a subcategory (Americano or Latte).", "OK");
+                return;
+            }
+
+            // Only validate Small price if it's visible (Coffee category)
+            if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase) && SmallPrice <= 0)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Small price must be greater than 0.", "OK");
                 return;

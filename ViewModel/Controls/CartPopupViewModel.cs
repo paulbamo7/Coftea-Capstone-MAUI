@@ -50,7 +50,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     ImageSource = firstItem.ImageSet,
                     CustomerName = CustomerName,
                     SugarLevel = "100%",
-                    AddOns = new ObservableCollection<string> { "Expresso - P5", "Pearl - P5", "Nata - P10" },
+                    AddOns = new ObservableCollection<string>(),
                     SmallQuantity = firstItem.SmallQuantity,
                     MediumQuantity = firstItem.MediumQuantity,
                     LargeQuantity = firstItem.LargeQuantity,

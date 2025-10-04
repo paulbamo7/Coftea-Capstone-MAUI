@@ -26,13 +26,11 @@
         <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto, Auto, *">
 
             <!-- Top Bar -->
-            <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
+            <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
                 <Label Text="Point Of Sale" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
                 <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="20" FontAttributes="Bold"/>
-                <SearchBar Placeholder="Search for something" Grid.Column="2" WidthRequest="250" HorizontalOptions="FillAndExpand"/>
-                <ImageButton Source="notification.png" Grid.Column="3" WidthRequest="35" HeightRequest="28" />
-                <ImageButton Source="settings.png" Grid.Column="4" WidthRequest="35" HeightRequest="35" Command="{Binding SettingsPopup.ShowSettingsPopupCommand}" />
-                <ImageButton Source="usericon.png" Grid.Column="5" WidthRequest="35" HeightRequest="35"/>
+                <otherViews:NotificationDropdown Grid.Column="2" />
+                <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="35" HeightRequest="35"/>
             </Grid>
 
             <!-- Menu Categories + History/Cart -->
@@ -70,15 +68,26 @@
                 </HorizontalStackLayout>
             </Grid>
 
-            <!-- Subcategories for Fruit/Soda -->
-            <HorizontalStackLayout Grid.Row="1" Margin="0,65,0,0" HorizontalOptions="Start" Spacing="10"
-                                   IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
-                <Button Text="Fruit" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
-                        BackgroundColor="#897564" WidthRequest="100" HeightRequest="36"
+            <!-- Subcategories for Fruit/Soda - Left Side -->
+            <HorizontalStackLayout Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
+                                   IsVisible="{Binding IsFruitSodaSubcategoryVisible}" Padding="0,10,0,0">
+                <Button Text="Fruit" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
+                        BackgroundColor="#6B8E23" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit"/>
-                <Button Text="Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
-                        BackgroundColor="#897564" WidthRequest="100" HeightRequest="36"
+                <Button Text="Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
+                        BackgroundColor="#FF6347" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda"/>
+            </HorizontalStackLayout>
+
+            <!-- Subcategories for Coffee - Left Side -->
+            <HorizontalStackLayout Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
+                                   IsVisible="{Binding IsCoffeeSubcategoryVisible}" Padding="0,10,0,0">
+                <Button Text="Americano" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
+                        BackgroundColor="#8B4513" WidthRequest="100" HeightRequest="40" 
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano"/>
+                <Button Text="Latte" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
+                        BackgroundColor="#D2691E" WidthRequest="100" HeightRequest="40" 
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte"/>
             </HorizontalStackLayout>
 
             <!-- Products + Cart -->
@@ -105,22 +114,38 @@
                             <DataTemplate>
                                 <Frame BackgroundColor="#D9C3B0" CornerRadius="20" Margin="10" Padding="5" VerticalOptions="Fill" HorizontalOptions="Fill">
                                     <Frame.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" CommandParameter="{Binding .}" />
+                                        <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" 
+                                                             CommandParameter="{Binding .}" />
                                     </Frame.GestureRecognizers>
-                                    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
-                                        <Frame CornerRadius="20" Padding="0">
-                                            <!-- Bind to ImageSource property -->
-                                            <Image Source="{Binding ImageSource}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+                                    <Grid>
+                                        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
+                                            <Frame CornerRadius="20" Padding="0">
+                                                <!-- Bind to ImageSource property -->
+                                                <Image Source="{Binding ImageSource}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+                                            </Frame>
+                                            <Frame CornerRadius="15" BackgroundColor="White" Padding="5,2" Margin="0,5,0,0" HasShadow="False" HorizontalOptions="Center">
+                                                <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                            </Frame>
+                                            <HorizontalStackLayout HorizontalOptions="Center">
+                                                <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="13"/>
+                                                <Label Text=" | " FontSize="13"/>
+                                                <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="13"/>
+                                                <Label Text=" | " FontSize="13"/>
+                                                <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="13"/>
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+                                        
+                                        <!-- Low Stock Overlay -->
+                                        <Frame BackgroundColor="#80000000" CornerRadius="20" IsVisible="{Binding IsLowStock}" 
+                                               VerticalOptions="Fill" HorizontalOptions="Fill">
+                                            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="5">
+                                                <Label Text="LOW STOCK" FontSize="12" FontAttributes="Bold" TextColor="White" 
+                                                       HorizontalOptions="Center"/>
+                                                <Label Text="Cannot be selected" FontSize="10" TextColor="White" 
+                                                       HorizontalOptions="Center"/>
+                                            </VerticalStackLayout>
                                         </Frame>
-                                        <Frame CornerRadius="15" BackgroundColor="White" Padding="5,2" Margin="0,5,0,0" HasShadow="False" HorizontalOptions="Center">
-                                            <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
-                                        </Frame>
-                                        <HorizontalStackLayout HorizontalOptions="Center">
-                                            <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="13"/>
-                                            <Label Text=" | " FontSize="13"/>
-                                            <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="13"/>
-                                        </HorizontalStackLayout>
-                                    </VerticalStackLayout>
+                                    </Grid>
                                 </Frame>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -135,7 +160,8 @@
 
                         <!-- Cart Content -->
                         <Grid Grid.Row="1">
-                            <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10">
+                            <ScrollView VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                                <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10">
                                 <Frame CornerRadius="20" Padding="0" HeightRequest="150" WidthRequest="150" HorizontalOptions="Center">
                                     <!-- Bind to computed ImageSource property -->
                                     <Image Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill" />
@@ -148,13 +174,14 @@
                                 <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,0,0,10">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid ColumnDefinitions="*,Auto,Auto" Padding="6" BackgroundColor="#F5F1ED" Margin="0,4">
+                                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Padding="6" BackgroundColor="#F5F1ED" Margin="0,4">
                                                 <Grid.IsVisible>
                                                     <Binding Path="IsSelected"/>
                                                 </Grid.IsVisible>
                                                 <Label Grid.Column="0" Text="{Binding itemName}" FontAttributes="Bold"/>
-                                                <!-- Small details: amount, unit, price -->
-                                                <HorizontalStackLayout Grid.Column="1" Spacing="4">
+                                                <!-- Small details: amount, unit, price - Only for Coffee -->
+                                                <HorizontalStackLayout Grid.Column="1" Spacing="4" 
+                                                                       IsVisible="{Binding BindingContext.IsSmallSizeVisibleInCart, Source={x:Reference POS}}">
                                                     <Label Text="S:" FontAttributes="Bold"/>
                                                     <Label Text="{Binding InputAmountSmall}"/>
                                                     <Label Text="{Binding InputUnitSmall}"/>
@@ -162,8 +189,19 @@
                                                     <Label Text="₱"/>
                                                     <Label Text="{Binding PriceUsedSmall, StringFormat='{0:F2}'}"/>
                                                 </HorizontalStackLayout>
-                                                <!-- Large details: amount, unit, price -->
-                                                <HorizontalStackLayout Grid.Column="2" Spacing="4">
+                                                <!-- Medium details: amount, unit, price - For all categories -->
+                                                <HorizontalStackLayout Grid.Column="2" Spacing="4" 
+                                                                       IsVisible="{Binding BindingContext.IsMediumSizeVisibleInCart, Source={x:Reference POS}}">
+                                                    <Label Text="M:" FontAttributes="Bold"/>
+                                                    <Label Text="{Binding InputAmountMedium}"/>
+                                                    <Label Text="{Binding InputUnitMedium}"/>
+                                                    <Label Text="-"/>
+                                                    <Label Text="₱"/>
+                                                    <Label Text="{Binding PriceUsedMedium, StringFormat='{0:F2}'}"/>
+                                                </HorizontalStackLayout>
+                                                <!-- Large details: amount, unit, price - For all categories -->
+                                                <HorizontalStackLayout Grid.Column="3" Spacing="4" 
+                                                                       IsVisible="{Binding BindingContext.IsLargeSizeVisibleInCart, Source={x:Reference POS}}">
                                                     <Label Text="L:" FontAttributes="Bold"/>
                                                     <Label Text="{Binding InputAmountLarge}"/>
                                                     <Label Text="{Binding InputUnitLarge}"/>
@@ -176,38 +214,54 @@
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
 
-                                <Label Text="Select Size:" FontSize="20" FontAttributes="Bold" Margin="0,25,0,0"/>
+                                    <!-- Select Size Section -->
+                                    <Label Text="Select Size:" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>
 
-                                <!-- Small Size -->
-                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center" Margin="25,0,0,0">
-                                    <Label Text="Small:" VerticalOptions="Center"/>
-                                    <Button Text="-" Command="{Binding DecreaseSmallQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
-                                    <Label Text="{Binding SelectedProduct.SmallQuantity}" WidthRequest="30" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Center" HorizontalOptions="Center" FontSize="16" TextColor="Black"/>
-                                    <Button Text="+" Command="{Binding IncreaseSmallQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
-                                </HorizontalStackLayout>
+                                    <Grid Margin="25,0,0,0" RowSpacing="10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- Small -->
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- Medium -->
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- Large -->
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="35"/>
+                                            <ColumnDefinition Width="40"/>
+                                            <ColumnDefinition Width="35"/>
+                                        </Grid.ColumnDefinitions>
 
-                                <!-- Medium Size -->
-                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center" Margin="25,0,0,0">
-                                    <Label Text="Medium:" VerticalOptions="Center"/>
-                                    <Button Text="-" Command="{Binding DecreaseMediumQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
-                                    <Label Text="{Binding SelectedProduct.MediumQuantity}" WidthRequest="30" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Center" HorizontalOptions="Center" FontSize="16" TextColor="Black"/>
-                                    <Button Text="+" Command="{Binding IncreaseMediumQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
-                                </HorizontalStackLayout>
+                                        <!-- Small Size -->
+                                        <Label Text="Small:" Grid.Row="0" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
+                                        <Button Text="-" Grid.Row="0" Grid.Column="1" Command="{Binding DecreaseSmallQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
+                                        <Label Text="{Binding SelectedProduct.SmallQuantity}" Grid.Row="0" Grid.Column="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="16" TextColor="Black" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
+                                        <Button Text="+" Grid.Row="0" Grid.Column="3" Command="{Binding IncreaseSmallQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
 
-                                <!-- Large Size -->
-                                <HorizontalStackLayout Spacing="10" Margin="25,0,0,0">
-                                    <Label Text="Large:" VerticalOptions="Center"/>
-                                    <Button Text="-" Command="{Binding DecreaseLargeQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
-                                    <Label Text="{Binding SelectedProduct.LargeQuantity}" WidthRequest="30" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="Center" HorizontalOptions="Center" FontSize="16" TextColor="Black"/>
-                                    <Button Text="+" Command="{Binding IncreaseLargeQtyCommand}" WidthRequest="35" HeightRequest="30" FontSize="14" TextColor="Black" BackgroundColor="LightGray" Padding="0"/>
-                                </HorizontalStackLayout>
+                                        <!-- Medium Size -->
+                                        <Label Text="Medium:" Grid.Row="1" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
+                                        <Button Text="-" Grid.Row="1" Grid.Column="1" Command="{Binding DecreaseMediumQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
+                                        <Label Text="{Binding SelectedProduct.MediumQuantity}" Grid.Row="1" Grid.Column="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="16" TextColor="Black" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
+                                        <Button Text="+" Grid.Row="1" Grid.Column="3" Command="{Binding IncreaseMediumQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
 
-                                <!-- Price Labels -->
-                                <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
-                                    <Label Text="{Binding SelectedProduct.SmallQuantity, StringFormat='Small: {0} pcs'}"/>
-                                    <Label Text="{Binding SelectedProduct.MediumQuantity, StringFormat='Medium: {0} pcs'}"/>
-                                    <Label Text="{Binding SelectedProduct.LargeQuantity, StringFormat='Large: {0} pcs'}"/>
-                                </HorizontalStackLayout>
+                                        <!-- Large Size -->
+                                        <Label Text="Large:" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                        <Button Text="-" Grid.Row="2" Grid.Column="1" Command="{Binding DecreaseLargeQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                        <Label Text="{Binding SelectedProduct.LargeQuantity}" Grid.Row="2" Grid.Column="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="16" TextColor="Black" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                        <Button Text="+" Grid.Row="2" Grid.Column="3" Command="{Binding IncreaseLargeQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                    </Grid>
+
+
+                                    <!-- Price Labels -->
+                                <Grid ColumnDefinitions="*,*,*" HorizontalOptions="Center" Margin="25,0,0,0" >
+                                    <Label Grid.Column="0" Text="{Binding SelectedProduct.SmallQuantity, StringFormat='Small: {0} pcs'}" 
+                                           IsVisible="{Binding IsSmallSizeVisibleInCart}" HorizontalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="{Binding SelectedProduct.MediumQuantity, StringFormat='Medium: {0} pcs'}" 
+                                           IsVisible="{Binding IsMediumSizeVisibleInCart}" HorizontalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="{Binding SelectedProduct.LargeQuantity, StringFormat='Large: {0} pcs'}" 
+                                           IsVisible="{Binding IsLargeSizeVisibleInCart}" HorizontalOptions="Center"/>
+                                </Grid>
                                 <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="Total:" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
                                     <Label Text="{Binding SelectedProduct.TotalPrice, StringFormat='₱ {0:F2}'}" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
@@ -237,7 +291,8 @@
                                         <Button.CornerRadius>25</Button.CornerRadius>
                                     </Button>
                                 </HorizontalStackLayout>
-                            </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </ScrollView>
                         </Grid>
                     </Grid>
                 </Frame>

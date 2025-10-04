@@ -82,6 +82,9 @@ public partial class PointOfSale : ContentPage
             if (POSViewModel.SettingsPopup != null)
                 POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
 
+            // Subscribe to property changes (removed loading animation)
+            POSViewModel.PropertyChanged += OnViewModelPropertyChanged;
+
             await POSViewModel.LoadDataAsync();
         }
         catch (Exception ex)
@@ -94,6 +97,12 @@ public partial class PointOfSale : ContentPage
         }
     }
 
+    private void OnViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Loading animation removed - no longer needed
+    }
+
+
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
@@ -102,6 +111,12 @@ public partial class PointOfSale : ContentPage
         {
             _timer.Stop();
             _timer.Tick -= null; 
+        }
+
+        // Unsubscribe from property changes
+        if (POSViewModel != null)
+        {
+            POSViewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
     }
 

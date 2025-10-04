@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.NetworkSettingsPopup"
+    x:Name="NetworkSettingsPopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsVisible}"
+    InputTransparent="False">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseCommand}" />
+        </Grid.GestureRecognizers>
+        
+        <!-- Popup Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="30"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="600"
+               HeightRequest="500"
+               HasShadow="True"
+               InputTransparent="False">
+
+            <ScrollView>
+                <VerticalStackLayout Spacing="20">
+                    <!-- Title -->
+                    <Label Text="Network Settings" 
+                           FontSize="24" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center" 
+                           TextColor="#8B4513" />
+                    
+                    <!-- Current Settings -->
+                    <Frame BackgroundColor="#E8D5C4" 
+                           CornerRadius="10" 
+                           Padding="15">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Current Settings:" 
+                                   FontAttributes="Bold" 
+                                   FontSize="16" 
+                                   TextColor="#654321" />
+                            
+                            <Label Text="{Binding CurrentDatabaseHost, StringFormat='Database Host: {0}'}" 
+                                   FontSize="14" 
+                                   TextColor="#8B4513" />
+                            
+                            <Label Text="{Binding CurrentEmailHost, StringFormat='Email Host: {0}'}" 
+                                   FontSize="14" 
+                                   TextColor="#8B4513" />
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Detected Settings -->
+                    <Frame BackgroundColor="#E8F5E8" 
+                           CornerRadius="10" 
+                           Padding="15">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Auto-Detected Settings:" 
+                                   FontAttributes="Bold" 
+                                   FontSize="16" 
+                                   TextColor="#2E7D32" />
+                            
+                            <Label Text="{Binding DetectedDatabaseHost, StringFormat='Database Host: {0}'}" 
+                                   FontSize="14" 
+                                   TextColor="#4CAF50" />
+                            
+                            <Label Text="{Binding DetectedEmailHost, StringFormat='Email Host: {0}'}" 
+                                   FontSize="14" 
+                                   TextColor="#4CAF50" />
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Manual Configuration -->
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Manual Configuration:" 
+                               FontAttributes="Bold" 
+                               FontSize="16" 
+                               TextColor="#8B4513" />
+                        
+                        <Entry x:Name="DatabaseHostEntry"
+                               Text="{Binding DatabaseHost}"
+                               Placeholder="Database Host (e.g., 192.168.1.4)"
+                               BackgroundColor="White"
+                               HeightRequest="40" />
+                        
+                        <Entry x:Name="EmailHostEntry"
+                               Text="{Binding EmailHost}"
+                               Placeholder="Email Host (e.g., 192.168.254.104)"
+                               BackgroundColor="White"
+                               HeightRequest="40" />
+                    </VerticalStackLayout>
+
+                    <!-- Network Diagnostics -->
+                    <Frame BackgroundColor="#FFF3E0" 
+                           CornerRadius="10" 
+                           Padding="15">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Network Diagnostics:" 
+                                   FontAttributes="Bold" 
+                                   FontSize="16" 
+                                   TextColor="#E65100" />
+                            
+                            <Label Text="{Binding NetworkDiagnostics}" 
+                                   FontSize="12" 
+                                   TextColor="#F57C00"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Buttons -->
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="15" Margin="0,20,0,0">
+                        <Button Grid.Column="0"
+                                Text="Refresh"
+                                BackgroundColor="#2196F3"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="40"
+                                Command="{Binding RefreshCommand}" />
+                        
+                        <Button Grid.Column="1"
+                                Text="Save"
+                                BackgroundColor="#4CAF50"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="40"
+                                Command="{Binding SaveCommand}" />
+                        
+                        <Button Grid.Column="2"
+                                Text="Close"
+                                BackgroundColor="#F44336"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="40"
+                                Command="{Binding CloseCommand}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Frame>
+    </Grid>
+</ContentView>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.NotificationDropdown"
+             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel.Controls"
+             x:Name="NotificationDropdownControl">
+
+    <AbsoluteLayout>
+        <!-- Notification Icon Button -->
+        <ImageButton Source="notification.png" 
+                     WidthRequest="35" 
+                     HeightRequest="35" 
+                     BackgroundColor="Transparent"
+                     Clicked="OnNotificationIconClicked"
+                     AbsoluteLayout.LayoutBounds="0, 0, 35, 35"
+                     AbsoluteLayout.LayoutFlags="None"/>
+
+        <!-- Notification Popup - True overlay that doesn't affect layout -->
+        <Frame x:Name="DropdownPanel"
+               IsVisible="False"
+               BackgroundColor="White"
+               CornerRadius="8"
+               HasShadow="True"
+               Padding="0"
+               WidthRequest="280"
+               HeightRequest="180"
+               AbsoluteLayout.LayoutBounds="-245, 40, 280, 180"
+               AbsoluteLayout.LayoutFlags="None">
+            
+            <ScrollView>
+                <VerticalStackLayout Spacing="0">
+                    
+                    <!-- Header -->
+                    <Grid BackgroundColor="#7E6D5F" Padding="12,8">
+                        <Label Text="Notifications" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="White" 
+                               HorizontalOptions="Center"/>
+                        <Button Text="✕" 
+                                FontSize="12" 
+                                TextColor="White" 
+                                BackgroundColor="Transparent" 
+                                HorizontalOptions="End"
+                                Clicked="OnCloseClicked"/>
+                    </Grid>
+
+                    <!-- Notification Items -->
+                    <VerticalStackLayout x:Name="NotificationItemsContainer" Spacing="0">
+                        
+                        <!-- User Register Request -->
+                        <Grid BackgroundColor="#F8E8D7" Padding="10,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Image Source="usericon.png" 
+                                   Grid.Column="0" 
+                                   WidthRequest="24" 
+                                   HeightRequest="24" 
+                                   VerticalOptions="Center"/>
+                            
+                            <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
+                                <Label Text="User Registration Request" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#3E2723"/>
+                                <Label Text="New user registration pending approval" 
+                                       FontSize="10" 
+                                       TextColor="#5B4F45"/>
+                            </VerticalStackLayout>
+                            
+                            <Label Text="2m ago" 
+                                   Grid.Column="2" 
+                                   FontSize="9" 
+                                   TextColor="#5B4F45" 
+                                   VerticalOptions="Start"/>
+                        </Grid>
+
+                        <!-- Item Added to POS -->
+                        <Grid BackgroundColor="White" Padding="10,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Image Source="pos.png" 
+                                   Grid.Column="0" 
+                                   WidthRequest="24" 
+                                   HeightRequest="24" 
+                                   VerticalOptions="Center"/>
+                            
+                            <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
+                                <Label Text="Item Added to POS" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#3E2723"/>
+                                <Label Text="New product added to Point of Sale" 
+                                       FontSize="10" 
+                                       TextColor="#5B4F45"/>
+                            </VerticalStackLayout>
+                            
+                            <Label Text="5m ago" 
+                                   Grid.Column="2" 
+                                   FontSize="9" 
+                                   TextColor="#5B4F45" 
+                                   VerticalOptions="Start"/>
+                        </Grid>
+
+                        <!-- Item Added to Inventory -->
+                        <Grid BackgroundColor="#F8E8D7" Padding="10,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Image Source="inventory.png" 
+                                   Grid.Column="0" 
+                                   WidthRequest="24" 
+                                   HeightRequest="24" 
+                                   VerticalOptions="Center"/>
+                            
+                            <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
+                                <Label Text="Item Added to Inventory" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#3E2723"/>
+                                <Label Text="New item added to inventory management" 
+                                       FontSize="10" 
+                                       TextColor="#5B4F45"/>
+                            </VerticalStackLayout>
+                            
+                            <Label Text="10m ago" 
+                                   Grid.Column="2" 
+                                   FontSize="9" 
+                                   TextColor="#5B4F45" 
+                                   VerticalOptions="Start"/>
+                        </Grid>
+
+                        <!-- Transaction Success -->
+                        <Grid BackgroundColor="White" Padding="10,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Image Source="sales_report.png" 
+                                   Grid.Column="0" 
+                                   WidthRequest="24" 
+                                   HeightRequest="24" 
+                                   VerticalOptions="Center"/>
+                            
+                            <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
+                                <Label Text="Transaction Success" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#3E2723"/>
+                                <Label Text="POS transaction completed successfully" 
+                                       FontSize="10" 
+                                       TextColor="#5B4F45"/>
+                            </VerticalStackLayout>
+                            
+                            <Label Text="15m ago" 
+                                   Grid.Column="2" 
+                                   FontSize="9" 
+                                   TextColor="#5B4F45" 
+                                   VerticalOptions="Start"/>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Frame>
+    </AbsoluteLayout>
+</ContentView>

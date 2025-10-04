@@ -27,6 +27,12 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private double inputAmount = 1;
 
+        partial void OnInputAmountChanged(double value)
+        {
+            // Trigger recalculation of total deduction
+            OnPropertyChanged(nameof(TotalDeduction));
+        }
+
         // Size-specific amounts
         [ObservableProperty]
         private double inputAmountSmall = 1;
@@ -39,6 +45,19 @@ namespace Coftea_Capstone.Models
 
         [ObservableProperty]
         private string inputUnit;
+
+        // Size selection
+        [ObservableProperty]
+        private string selectedSize = "Small";
+
+        // Calculated total deduction - now simply equals the input amount since it's always 1 serving
+        public double TotalDeduction
+        {
+            get
+            {
+                return InputAmount;
+            }
+        }
 
         // Size-specific editable units
         [ObservableProperty]
@@ -165,6 +184,28 @@ namespace Coftea_Capstone.Models
             {
                 if (minimumQuantity <= 0) return "#2E7D32"; // default green when no minimum
                 return itemQuantity < minimumQuantity ? "#C62828" : "#2E7D32";
+            }
+        }
+
+        // Width for progress bar (0-200 range for visual display)
+        public double StockProgressWidth
+        {
+            get
+            {
+                if (minimumQuantity <= 0) return 200; // full width when no minimum
+                var ratio = itemQuantity / minimumQuantity;
+                if (ratio < 0) return 0;
+                if (ratio > 2) return 200; // cap at 200 for very high stock
+                return ratio * 100; // scale to 0-200 range
+            }
+        }
+
+        // Text display for stock progress bar
+        public string StockText
+        {
+            get
+            {
+                return StockDisplay;
             }
         }
 

@@ -73,12 +73,14 @@
                                IsPassword="True"
                                BackgroundColor="Transparent"
                                HeightRequest="40" />
-                        <Button Text="Show"
-                                Padding="10,0"
-                                BackgroundColor="Transparent"
-                                HorizontalOptions="End"
-                                VerticalOptions="Center"
-                                Clicked="OnToggleLoginPasswordVisibility" />
+                        <ImageButton Source="show.png"
+                                    WidthRequest="24"
+                                    HeightRequest="24"
+                                    Padding="0"
+                                    BackgroundColor="Transparent"
+                                    HorizontalOptions="End"
+                                    VerticalOptions="Center"
+                                    Clicked="OnToggleLoginPasswordVisibility" />
                     </Grid>
 
                     <!-- Remember Me -->

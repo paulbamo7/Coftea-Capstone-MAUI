@@ -5,7 +5,14 @@
              xmlns:controls="clr-namespace:Coftea_Capstone.Views.Controls"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              BackgroundColor="#D6BCA8">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ContentPage.BindingContext>
         <vm:UserManagementPageViewModel />
@@ -24,7 +31,7 @@
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                     <Label Text="User Management" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
-                    <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" Command="{Binding SettingsPopup.ShowSettingsPopupCommand}"/>
+                    <otherViews:NotificationDropdown Grid.Column="2" />
                     <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
                 </Grid>
 
@@ -59,13 +66,22 @@
                                             <Grid ColumnDefinitions="2*,3*,2*,2*,Auto" Padding="10" RowSpacing="0">
                                             <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center"/>
 
-                                            <HorizontalStackLayout Grid.Column="1" Spacing="6">
-                                                <Switch IsToggled="{Binding CanAccessInventory}"/>
-                                                <Switch IsToggled="{Binding CanAccessSalesReport}"/>
-                                                <Button Text="Grant Access" BackgroundColor="#B8E08A" FontSize="18" CornerRadius="8" HeightRequest="30"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=GrantAccessCommand}"
-                                                        CommandParameter="{Binding .}"/>
-                                            </HorizontalStackLayout>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="8">
+                                                <!-- Show access toggles only for non-admin users -->
+                                                <VerticalStackLayout IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}" Spacing="8">
+                                                    <!-- Inventory Access -->
+                                                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                        <Label Text="Inventory Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
+                                                        <Switch IsToggled="{Binding CanAccessInventory}"/>
+                                                    </HorizontalStackLayout>
+                                                    
+                                                    <!-- Sales Report Access -->
+                                                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                        <Label Text="Sales Report Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
+                                                        <Switch IsToggled="{Binding CanAccessSalesReport}"/>
+                                                    </HorizontalStackLayout>
+                                                </VerticalStackLayout>
+                                            </VerticalStackLayout>
 
                                             <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center"/>
                                             <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center"/>
@@ -96,6 +112,13 @@
 
         <!-- User Approval Popup Overlay - Inside main grid -->
         <controls:UserApprovalPopup Grid.ColumnSpan="2" Grid.RowSpan="1" BindingContext="{Binding UserApprovalPopup}"/>
+        
+        <!-- User Profile Popup Overlay -->
+        <controls:UserProfilePopup Grid.ColumnSpan="2" Grid.RowSpan="1" BindingContext="{Binding UserProfilePopup}"/>
+        
+        <!-- Settings Popup Overlay -->
+        <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
+        
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
     </Grid>
 </ContentPage>

@@ -12,56 +12,62 @@
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Command="{Binding ClosePOSManagementPopupCommand}" />
         </Grid.GestureRecognizers>
-        
+
         <!-- Popup Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
-               Padding="20"
-               BackgroundColor="#F8E8D7"
-               CornerRadius="20"
+               Padding="30"
+               BackgroundColor="#FFF9F4"
+               CornerRadius="28"
                WidthRequest="450"
                HeightRequest="350"
                HasShadow="True"
                InputTransparent="False">
 
-            <VerticalStackLayout Spacing="25">
+            <VerticalStackLayout Spacing="30">
+
                 <!-- Title -->
-                
                 <Label Text="Manage POS Menu"
-                       FontSize="22"
+                       FontSize="24"
                        FontAttributes="Bold"
+                       TextColor="#4A3F35"
                        HorizontalOptions="Center" />
 
                 <!-- Action Buttons -->
-                <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
+                <VerticalStackLayout Spacing="20" HorizontalOptions="Center">
+
                     <Button Text="Add Menu"
-                            WidthRequest="200"
-                            HeightRequest="50"
+                            WidthRequest="220"
+                            HeightRequest="55"
                             FontSize="16"
                             Command="{Binding AddItemCommand}"
                             BackgroundColor="#A57C5C"
                             TextColor="White"
-                            CornerRadius="25" />
+                            CornerRadius="25"
+                           />
 
                     <Button Text="Edit Menu"
-                            WidthRequest="200"
-                            HeightRequest="50"
+                            WidthRequest="220"
+                            HeightRequest="55"
                             FontSize="16"
                             Command="{Binding EditItemCommand}"
                             BackgroundColor="#897564"
                             TextColor="White"
-                            CornerRadius="25" />
-                    
+                            CornerRadius="25"
+                            />
+
                 </VerticalStackLayout>
 
                 <!-- Close Button -->
                 <Button Text="Close"
-                        WidthRequest="100"
-                        HeightRequest="40"
-                        FontSize="14"
-                        BackgroundColor="Red"
+                        WidthRequest="120"
+                        HeightRequest="45"
+                        FontSize="16"
+                        BackgroundColor="#F28C8C"
                         TextColor="White"
+                        CornerRadius="22"
                         HorizontalOptions="Center"
+                       
                         Command="{Binding ClosePOSManagementPopupCommand}" />
             </VerticalStackLayout>
         </Frame>

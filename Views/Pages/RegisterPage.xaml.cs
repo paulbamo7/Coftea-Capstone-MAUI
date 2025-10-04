@@ -20,9 +20,9 @@ public partial class RegisterPage : ContentPage
 	{
 		if (RegisterPasswordEntry == null) return;
 		RegisterPasswordEntry.IsPassword = !RegisterPasswordEntry.IsPassword;
-		if (sender is Button btn)
+		if (sender is ImageButton btn)
 		{
-			btn.Text = RegisterPasswordEntry.IsPassword ? "Show" : "Hide";
+			btn.Source = RegisterPasswordEntry.IsPassword ? "show.png" : "hidden.png";
 		}
 	}
 
@@ -30,9 +30,9 @@ public partial class RegisterPage : ContentPage
 	{
 		if (RegisterConfirmPasswordEntry == null) return;
 		RegisterConfirmPasswordEntry.IsPassword = !RegisterConfirmPasswordEntry.IsPassword;
-		if (sender is Button btn)
+		if (sender is ImageButton btn)
 		{
-			btn.Text = RegisterConfirmPasswordEntry.IsPassword ? "Show" : "Hide";
+			btn.Source = RegisterConfirmPasswordEntry.IsPassword ? "show.png" : "hidden.png";
 		}
 	}
 

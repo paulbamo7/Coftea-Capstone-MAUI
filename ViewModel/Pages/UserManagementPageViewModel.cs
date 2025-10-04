@@ -26,6 +26,9 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private UserApprovalPopupViewModel userApprovalPopup = new();
 
+        [ObservableProperty]
+        private UserProfilePopupViewModel userProfilePopup = new();
+
         public UserManagementPageViewModel()
         {
             // Subscribe to the approval event to refresh user list
@@ -44,19 +47,6 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task GrantAccess(UserEntry entry)
-        {
-            if (entry == null) return;
-            // Toggle both access flags for simplicity; adjust per UI as needed
-            var newInventory = !entry.CanAccessInventory;
-            var newSales = !entry.CanAccessSalesReport;
-            await _database.UpdateUserAccessAsync(entry.Id, newInventory, newSales);
-            entry.CanAccessInventory = newInventory;
-            entry.CanAccessSalesReport = newSales;
-            OnPropertyChanged(nameof(Users));
-        }
-
-        [RelayCommand]
         private Task DeleteUser() => Task.CompletedTask;
 
         [RelayCommand]
@@ -66,9 +56,20 @@ namespace Coftea_Capstone.ViewModel
         private async Task ViewProfile(UserEntry entry)
         {
             if (entry == null) return;
-            await Application.Current.MainPage.DisplayAlert("Details",
-                $"Full Name: {entry.Username}\n\nPermissions:\n- Inventory: {(entry.CanAccessInventory ? "Yes" : "No")}\n- Sales Report: {(entry.CanAccessSalesReport ? "Yes" : "No")}",
-                "Close");
+            
+            // Get the full user details from database
+            var allUsers = await _database.GetAllUsersAsync();
+            var fullUserDetails = allUsers.FirstOrDefault(u => u.ID == entry.Id);
+            
+            if (fullUserDetails != null)
+            {
+                UserProfilePopup.ShowUserProfile(fullUserDetails);
+            }
+            else
+            {
+                // Fallback to UserEntry if full details not found
+                UserProfilePopup.ShowUserProfile(entry);
+            }
         }
 
         [RelayCommand]
@@ -92,8 +93,9 @@ namespace Coftea_Capstone.ViewModel
                 Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
                 LastActive = "—",
                 DateAdded = "—",
-                CanAccessInventory = u.CanAccessInventory,
-                CanAccessSalesReport = u.CanAccessSalesReport
+                // Admin users (ID = 1) always have full access, regular users use database values
+                CanAccessInventory = u.ID == 1 ? true : u.CanAccessInventory,
+                CanAccessSalesReport = u.ID == 1 ? true : u.CanAccessSalesReport
             }));
         }
     }

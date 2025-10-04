@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.Services;
 using Coftea_Capstone.C_;
 
 namespace Coftea_Capstone.Services
@@ -11,6 +12,7 @@ namespace Coftea_Capstone.Services
         public int ActiveDays { get; set; }
         public string MostBoughtToday { get; set; }
         public string TrendingToday { get; set; }
+        public double TrendingPercentage { get; set; }
         public decimal TotalSalesToday { get; set; }
         public int TotalOrdersToday { get; set; }
         public int TotalOrdersThisWeek { get; set; }
@@ -34,10 +36,10 @@ namespace Coftea_Capstone.Services
         public DatabaseSalesReportService()
         {
             _database = new Database(
-                host: "192.168.1.4",
+                host: "0.0.0.0",
                 database: "coftea_db",
-                user: "maui",
-                password: "password123"
+                user: "root",
+                password: ""
             );
         }
 
@@ -53,8 +55,8 @@ namespace Coftea_Capstone.Services
                 var totalOrders = transactions.Count;
                 var activeDays = transactions.Select(t => t.TransactionDate.Date).Distinct().Count();
 
-                // Get top products
-                var topProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 20);
+                // Get top products (increase limit to ensure we get comprehensive data)
+                var topProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 50);
                 
                 // Separate by category
                 var coffeeProducts = new List<TrendItem>();
@@ -113,15 +115,18 @@ namespace Coftea_Capstone.Services
                     .Take(5)
                     .ToList();
 
-                // Get most bought and trending items
+                // Get most bought item across ALL categories (single item)
                 var mostBought = topProducts.OrderByDescending(p => p.Value).FirstOrDefault();
-                var trending = topProducts.OrderByDescending(p => p.Value).Skip(1).FirstOrDefault();
+                
+                // Calculate trending item based on recent demand patterns
+                var trending = await GetTrendingItemAsync(startDate, endDate);
 
                 return new SalesReportSummary
                 {
                     ActiveDays = activeDays,
                     MostBoughtToday = mostBought.Key ?? "No data",
-                    TrendingToday = trending.Key ?? "No data",
+                    TrendingToday = trending?.Key ?? "No data",
+                    TrendingPercentage = trending?.Value ?? 0.0,
                     TotalSalesToday = totalSales,
                     TotalOrdersToday = totalOrders,
                     TotalOrdersThisWeek = totalOrders, // Same as today for now
@@ -149,6 +154,94 @@ namespace Coftea_Capstone.Services
                     TopMilkteaWeekly = new List<TrendItem>(),
                     Reports = new List<SalesReportPageModel>()
                 };
+            }
+        }
+
+        private async Task<KeyValuePair<string, double>?> GetTrendingItemAsync(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"GetTrendingItemAsync called with startDate: {startDate}, endDate: {endDate}");
+                
+                // Get recent sales (last 3 days) vs historical average (last 7 days before that)
+                var recentStart = endDate.AddDays(-3);
+                var historicalStart = recentStart.AddDays(-7);
+                var historicalEnd = recentStart;
+
+                System.Diagnostics.Debug.WriteLine($"Recent period: {recentStart} to {endDate}");
+                System.Diagnostics.Debug.WriteLine($"Historical period: {historicalStart} to {historicalEnd}");
+
+                // Get recent sales
+                var recentProducts = await _database.GetTopProductsByDateRangeAsync(recentStart, endDate, 20);
+                System.Diagnostics.Debug.WriteLine($"Recent products count: {recentProducts.Count}");
+                
+                // Get historical sales for comparison
+                var historicalProducts = await _database.GetTopProductsByDateRangeAsync(historicalStart, historicalEnd, 20);
+                System.Diagnostics.Debug.WriteLine($"Historical products count: {historicalProducts.Count}");
+
+                // Calculate trending score (recent sales vs historical average)
+                var trendingScores = new Dictionary<string, double>();
+                
+                foreach (var recent in recentProducts)
+                {
+                    var historicalCount = historicalProducts.ContainsKey(recent.Key) ? historicalProducts[recent.Key] : 0;
+                    var historicalAverage = historicalCount / 7.0; // Average per day over 7 days
+                    var recentAverage = recent.Value / 3.0; // Average per day over 3 days
+                    
+                    if (historicalAverage > 0)
+                    {
+                        // Calculate growth rate
+                        var growthRate = (recentAverage - historicalAverage) / historicalAverage;
+                        trendingScores[recent.Key] = growthRate;
+                    }
+                    else if (recentAverage > 0)
+                    {
+                        // New product or no historical data, but has recent sales
+                        trendingScores[recent.Key] = 1.0; // 100% growth
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Trending scores calculated: {trendingScores.Count} items");
+                foreach (var score in trendingScores.Take(5))
+                {
+                    System.Diagnostics.Debug.WriteLine($"  {score.Key}: {score.Value:P2} growth");
+                }
+
+                // Find the item with highest growth rate (most trending)
+                var mostTrending = trendingScores
+                    .Where(kvp => kvp.Value > 0) // Only positive growth
+                    .OrderByDescending(kvp => kvp.Value)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(mostTrending.Key))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Most trending item: {mostTrending.Key} with {mostTrending.Value:P2} growth");
+                    return new KeyValuePair<string, double>(mostTrending.Key, mostTrending.Value);
+                }
+
+                System.Diagnostics.Debug.WriteLine("No positive trending items found, using fallback logic");
+                
+                // Fallback: if no trending items, return second most bought from current period
+                var fallback = recentProducts.Skip(1).FirstOrDefault();
+                if (fallback.Key != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Fallback trending item: {fallback.Key}");
+                    return new KeyValuePair<string, double>(fallback.Key, 0.0); // No growth data
+                }
+                
+                // Final fallback: use second most bought from main period
+                var mainProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 10);
+                var finalFallback = mainProducts.Skip(1).FirstOrDefault();
+                System.Diagnostics.Debug.WriteLine($"Final fallback trending item: {finalFallback.Key}");
+                return finalFallback.Key != null ? new KeyValuePair<string, double>(finalFallback.Key, 0.0) : (KeyValuePair<string, double>?)null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error calculating trending item: {ex.Message}");
+                // Fallback to second most bought item
+                var topProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 10);
+                var fallback = topProducts.Skip(1).FirstOrDefault();
+                return fallback.Key != null ? new KeyValuePair<string, double>(fallback.Key, 0.0) : (KeyValuePair<string, double>?)null;
             }
         }
     }

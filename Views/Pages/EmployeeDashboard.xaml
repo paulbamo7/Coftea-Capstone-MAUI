@@ -16,11 +16,10 @@
         <VerticalStackLayout Grid.Column="1" Padding="20" Spacing="20">
 
             <!-- Top Bar -->
-            <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
+            <Grid ColumnDefinitions="*, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                 <Label Text="Home" FontSize="32" FontAttributes="Bold" VerticalOptions="Center" TextColor="#3E2723"/>
-                <SearchBar Placeholder="Search for something" Grid.Column="1" WidthRequest="300" BackgroundColor="White"/>
-                <ImageButton Source="settings.png" Grid.Column="2" WidthRequest="30" HeightRequest="30" Command="{Binding ShowSettingsPopupCommand}"/>
-                <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                <otherViews:NotificationDropdown Grid.Column="1" />
+                <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40"/>
             </Grid>
 
             <!-- Dashboard Grid -->
@@ -118,8 +117,38 @@
                 <Frame Grid.Column="1" CornerRadius="25" Padding="20" BackgroundColor="White" HasShadow="True">
                     <VerticalStackLayout>
                         <Label Text="Today's Sales Report" FontAttributes="Bold" FontSize="20" TextColor="#5B4F45"/>
-                        <BoxView HeightRequest="150" Color="#E0E0E0" CornerRadius="15"/>
-                        <!-- Chart Placeholder -->
+                        <Label Text="Top 5 Selling Products" FontSize="14" TextColor="Gray" Margin="0,5,0,10"/>
+                        
+                        <!-- Bar Chart for Top Selling Products -->
+                        <CollectionView ItemsSource="{Binding TopSellingProductsToday}" HeightRequest="150" ItemsLayout="HorizontalList">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <VerticalStackLayout HorizontalOptions="Center" WidthRequest="60" VerticalOptions="End" Spacing="6">
+                                        <Grid HeightRequest="120" VerticalOptions="End" RowDefinitions="*,Auto">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                    <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="25" Color="#4CAF50" CornerRadius="8"/>
+                                            </Grid>
+                                            <Label Grid.Row="1" Text="{Binding Name}" FontSize="9" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center" MaxLines="2"/>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                        
+                        <!-- Product List -->
+                        <CollectionView ItemsSource="{Binding TopSellingProductsToday}" HeightRequest="80" Margin="0,10,0,0">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto" Padding="5">
+                                        <Label Text="{Binding Name}" FontSize="12" VerticalOptions="Center"/>
+                                        <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Gray" Grid.Column="1" VerticalOptions="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </VerticalStackLayout>
                 </Frame>
             </Grid>

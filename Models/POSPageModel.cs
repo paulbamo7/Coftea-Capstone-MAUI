@@ -5,7 +5,7 @@ using Coftea_Capstone.Models;
 
 namespace Coftea_Capstone.C_
 {
-    public class POSPageModel : ObservableObject
+    public partial class POSPageModel : ObservableObject
     {
         public int ProductID { get; set; }
         public string ProductName { get; set; }
@@ -40,6 +40,10 @@ namespace Coftea_Capstone.C_
         public bool HasSmall { get; set; } = true;
         public bool HasMedium { get; set; } = true;
         public bool HasLarge { get; set; } = true;
+
+        // Stock availability
+        [ObservableProperty]
+        private bool isLowStock = false;
 
         private int smallQuantity;
         public int SmallQuantity

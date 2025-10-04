@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.SimplePieChart"
+             x:Name="PieChartControl"
+             BackgroundColor="Transparent">
+    
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <Grid x:Name="ChartContainer" 
+              HorizontalOptions="Center" 
+              VerticalOptions="Center"
+              WidthRequest="200" 
+              HeightRequest="200">
+            
+            <!-- Donut Chart with Single Ring -->
+            <Grid x:Name="PieChartGrid" 
+                  HorizontalOptions="Center" 
+                  VerticalOptions="Center"
+                  WidthRequest="160" 
+                  HeightRequest="160">
+                
+                <!-- Single Donut Ring with Three Segments -->
+                <Grid x:Name="DonutContainer" 
+                      HorizontalOptions="Center" 
+                      VerticalOptions="Center"
+                      WidthRequest="160" 
+                      HeightRequest="160">
+                    
+                    <!-- Slice 1 - First segment -->
+                    <Path x:Name="Slice1" 
+                          Fill="#90EE90" 
+                          Data="M 80,80 L 80,20 A 60,60 0 0,1 140,80 Z" 
+                          HorizontalOptions="Center" 
+                          VerticalOptions="Center"/>
+                    
+                    <!-- Slice 2 - Second segment -->
+                    <Path x:Name="Slice2" 
+                          Fill="#F5DEB3" 
+                          Data="M 80,80 L 140,80 A 60,60 0 0,1 80,140 Z" 
+                          HorizontalOptions="Center" 
+                          VerticalOptions="Center"/>
+                    
+                    <!-- Slice 3 - Third segment -->
+                    <Path x:Name="Slice3" 
+                          Fill="#8B4513" 
+                          Data="M 80,80 L 80,140 A 60,60 0 0,1 20,80 Z" 
+                          HorizontalOptions="Center" 
+                          VerticalOptions="Center"/>
+                    
+                    <!-- Center Text - positioned in the donut hole -->
+                    <Label Text="Top 3" 
+                           FontSize="14" 
+                           FontAttributes="Bold" 
+                           TextColor="#5B4F45" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center"/>
+                </Grid>
+            </Grid>
+        </Grid>
+        
+        <!-- Legend -->
+        <VerticalStackLayout HorizontalOptions="End" VerticalOptions="Center" Spacing="12" Margin="0,0,20,0">
+            <!-- Item 1 -->
+            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                <Ellipse Fill="#90EE90" WidthRequest="12" HeightRequest="12"/>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{Binding Item1Name}" FontSize="12" FontAttributes="Bold" TextColor="#5B4F45"/>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="{Binding Item1Count, StringFormat='{0} orders'}" FontSize="10" TextColor="Gray"/>
+                        <Label Text="↗" FontSize="10" TextColor="Green" IsVisible="{Binding Item1HasTrend}"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+            
+            <!-- Item 2 -->
+            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                <Ellipse Fill="#F5DEB3" WidthRequest="12" HeightRequest="12"/>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{Binding Item2Name}" FontSize="12" FontAttributes="Bold" TextColor="#5B4F45"/>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="{Binding Item2Count, StringFormat='{0} orders'}" FontSize="10" TextColor="Gray"/>
+                        <Label Text="↗" FontSize="10" TextColor="Green" IsVisible="{Binding Item2HasTrend}"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+            
+            <!-- Item 3 -->
+            <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                <Ellipse Fill="#8B4513" WidthRequest="12" HeightRequest="12"/>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{Binding Item3Name}" FontSize="12" FontAttributes="Bold" TextColor="#5B4F45"/>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="{Binding Item3Count, StringFormat='{0} orders'}" FontSize="10" TextColor="Gray"/>
+                        <Label Text="↗" FontSize="10" TextColor="Green" IsVisible="{Binding Item3HasTrend}"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

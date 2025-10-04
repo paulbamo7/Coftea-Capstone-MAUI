@@ -18,9 +18,8 @@ public partial class NavigationBar : ContentView
         var nav = Application.Current.MainPage as NavigationPage;
         if (nav == null) return;
 
-        // Remove current stack and push POS
-        await nav.PopToRootAsync(false);
-        await nav.PushAsync(new PointOfSale());
+        // Replace current page with POS using animation
+        await nav.ReplaceWithAnimationAsync(new PointOfSale());
     }
 
     private async void HomeButton_Clicked(object sender, EventArgs e)
@@ -30,48 +29,49 @@ public partial class NavigationBar : ContentView
 
         if (App.CurrentUser == null)
         {
-            await nav.PopToRootAsync(false);
-            await nav.PushAsync(new LoginPage());
+            await nav.ReplaceWithAnimationAsync(new LoginPage());
             return;
         }
 
-        await nav.PopToRootAsync(false);
-
-        await nav.PushAsync(new EmployeeDashboard());
+        await nav.ReplaceWithAnimationAsync(new EmployeeDashboard());
     }
 
     private async void InventoryButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return;
 
-        if (!(App.CurrentUser?.IsAdmin ?? false))
+        // Admin users (ID = 1) always have access, or check individual permission
+        bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessInventory ?? false);
+        
+        if (!hasAccess)
         {
-            await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only admins can access Inventory.", "OK");
+            await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Inventory.", "OK");
             return;
         }
 
         var nav = Application.Current.MainPage as NavigationPage;
         if (nav == null) return;
 
-        await nav.PopToRootAsync(false);
-        await nav.PushAsync(new Inventory());
+        await nav.ReplaceWithAnimationAsync(new Inventory());
     }
 
     private async void SalesReportButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return;
 
-        if (!(App.CurrentUser?.IsAdmin ?? false))
+        // Admin users (ID = 1) always have access, or check individual permission
+        bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessSalesReport ?? false);
+        
+        if (!hasAccess)
         {
-            await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only admins can access Sales Reports.", "OK");
+            await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Sales Reports.", "OK");
             return;
         }
 
         var nav = Application.Current.MainPage as NavigationPage;
         if (nav == null) return;
 
-        await nav.PopToRootAsync(false);
-        await nav.PushAsync(new SalesReport());
+        await nav.ReplaceWithAnimationAsync(new SalesReport());
     }
 
 

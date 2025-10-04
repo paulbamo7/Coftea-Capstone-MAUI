@@ -1,5 +1,6 @@
 ﻿using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.Models.Service;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.Controls;
@@ -66,6 +67,16 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ImageSource selectedImageSource;
 
+        // Conversion display properties
+        [ObservableProperty]
+        private string convertedQuantityDisplay = string.Empty;
+
+        [ObservableProperty]
+        private string convertedMinimumDisplay = string.Empty;
+
+        [ObservableProperty]
+        private bool showConversionInfo = false;
+
         public ObservableCollection<string> UoMOptions { get; set; } = new ObservableCollection<string>
         {
             "Pieces (pcs)",
@@ -87,10 +98,10 @@ namespace Coftea_Capstone.ViewModel
         public AddItemToInventoryViewModel()
         {
             _database = new Database(
-                host: "0.0.0.0",
+                host: "192.168.1.4",
                 database: "coftea_db",
-                user: "root",
-                password: ""
+                user: "maui",
+                password: "password123"
             );
         }
 
@@ -120,6 +131,29 @@ namespace Coftea_Capstone.ViewModel
                     SelectedUoM = string.Empty;
                 }
             }
+
+            // Update conversion displays when category changes
+            UpdateConversionDisplays();
+        }
+
+        partial void OnUoMQuantityChanged(double value)
+        {
+            UpdateConversionDisplays();
+        }
+
+        partial void OnSelectedUoMChanged(string value)
+        {
+            UpdateConversionDisplays();
+        }
+
+        partial void OnMinimumUoMQuantityChanged(double value)
+        {
+            UpdateConversionDisplays();
+        }
+
+        partial void OnSelectedMinimumUoMChanged(string value)
+        {
+            UpdateConversionDisplays();
         }
 
         private void UpdateUoMOptionsForCategory(string category)
@@ -166,6 +200,52 @@ namespace Coftea_Capstone.ViewModel
             if (!UoMOptions.Contains(SelectedMinimumUoM))
             {
                 SelectedMinimumUoM = UoMOptions.FirstOrDefault();
+            }
+        }
+
+        private void UpdateConversionDisplays()
+        {
+            // Update quantity conversion display
+            if (UoMQuantity > 0 && !string.IsNullOrWhiteSpace(SelectedUoM))
+            {
+                var (convertedValue, convertedUnit) = UnitConversionService.ConvertToBestUnit(UoMQuantity, SelectedUoM);
+                var originalUnit = UnitConversionService.Normalize(SelectedUoM);
+                
+                if (convertedUnit != originalUnit)
+                {
+                    ConvertedQuantityDisplay = $"{UoMQuantity} {UnitConversionService.FormatUnit(originalUnit)} = {convertedValue:F2} {UnitConversionService.FormatUnit(convertedUnit)}";
+                    ShowConversionInfo = true;
+                }
+                else
+                {
+                    ConvertedQuantityDisplay = string.Empty;
+                    ShowConversionInfo = false;
+                }
+            }
+            else
+            {
+                ConvertedQuantityDisplay = string.Empty;
+                ShowConversionInfo = false;
+            }
+
+            // Update minimum quantity conversion display
+            if (MinimumUoMQuantity > 0 && !string.IsNullOrWhiteSpace(SelectedMinimumUoM))
+            {
+                var (convertedValue, convertedUnit) = UnitConversionService.ConvertToBestUnit(MinimumUoMQuantity, SelectedMinimumUoM);
+                var originalUnit = UnitConversionService.Normalize(SelectedMinimumUoM);
+                
+                if (convertedUnit != originalUnit)
+                {
+                    ConvertedMinimumDisplay = $"{MinimumUoMQuantity} {UnitConversionService.FormatUnit(originalUnit)} = {convertedValue:F2} {UnitConversionService.FormatUnit(convertedUnit)}";
+                }
+                else
+                {
+                    ConvertedMinimumDisplay = string.Empty;
+                }
+            }
+            else
+            {
+                ConvertedMinimumDisplay = string.Empty;
             }
         }
 
@@ -221,11 +301,28 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            // Determine final quantity (default to 1 when not pieces-only)
+            // Determine final quantity with automatic unit conversion
             var finalQuantity = UoMQuantity;
+            var finalUnit = SelectedUoM;
+
+            // Convert to best unit for storage if needed
+            if (!string.IsNullOrWhiteSpace(SelectedUoM) && UoMQuantity > 0)
+            {
+                var (convertedValue, convertedUnit) = UnitConversionService.ConvertToBestUnit(UoMQuantity, SelectedUoM);
+                finalQuantity = convertedValue;
+                finalUnit = UnitConversionService.FormatUnit(convertedUnit);
+            }
 
             // Determine the relevant minimum by category type
             var minimumThreshold = IsPiecesOnlyCategory ? MinimumQuantity : MinimumUoMQuantity;
+            var minimumUnit = IsPiecesOnlyCategory ? SelectedUoM : SelectedMinimumUoM;
+
+            // Convert minimum to best unit if needed
+            if (!string.IsNullOrWhiteSpace(minimumUnit) && minimumThreshold > 0)
+            {
+                var (convertedMinValue, convertedMinUnit) = UnitConversionService.ConvertToBestUnit(minimumThreshold, minimumUnit);
+                minimumThreshold = convertedMinValue;
+            }
 
             // Enforce business rule: current stock must be greater than the relevant minimum
             if (minimumThreshold > 0 && finalQuantity <= minimumThreshold)
@@ -240,7 +337,7 @@ namespace Coftea_Capstone.ViewModel
                 itemCategory = ItemCategory,
                 itemDescription = ItemDescription,
                 itemQuantity = finalQuantity,
-                unitOfMeasurement = SelectedUoM,
+                unitOfMeasurement = finalUnit,
                 minimumQuantity = minimumThreshold,
                 ImageSet = ImagePath
             };
@@ -342,6 +439,9 @@ namespace Coftea_Capstone.ViewModel
             SelectedMinimumUoM = null;
             ImagePath = string.Empty;
             SelectedImageSource = null;
+            ConvertedQuantityDisplay = string.Empty;
+            ConvertedMinimumDisplay = string.Empty;
+            ShowConversionInfo = false;
         }
     }
 }

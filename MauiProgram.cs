@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using CommunityToolkit.Maui; 
+
 namespace Coftea_Capstone
 {
     public static class MauiProgram
@@ -8,7 +10,9 @@ namespace Coftea_Capstone
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .ConfigureFonts(fonts =>
+                .UseMauiCommunityToolkit();
+
+                builder.ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");

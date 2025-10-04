@@ -31,6 +31,7 @@ namespace Coftea_Capstone
         public PaymentPopupViewModel PaymentPopup { get; private set; }
         public OrderCompletePopupViewModel OrderCompletePopup { get; private set; }
         public SuccessCardPopupViewModel SuccessCardPopup { get; private set; }
+        public HistoryPopupViewModel HistoryPopup { get; private set; }
 
         // Shared transactions store for History
         public ObservableCollection<TransactionHistoryModel> Transactions { get; private set; }
@@ -76,11 +77,20 @@ namespace Coftea_Capstone
                     // Hydrate a minimal CurrentUser so navigation works after auto-login
                     if (CurrentUser == null)
                     {
-                        SetCurrentUser(new UserInfoModel
+                        var user = new UserInfoModel
                         {
                             IsAdmin = isAdmin,
                             Email = Preferences.Get("Email", string.Empty)
-                        });
+                        };
+                        
+                        // Ensure admin users always have full access
+                        if (isAdmin)
+                        {
+                            user.CanAccessInventory = true;
+                            user.CanAccessSalesReport = true;
+                        }
+                        
+                        SetCurrentUser(user);
                     }
                     NavigateToDashboard(isAdmin);
                 }
@@ -116,15 +126,22 @@ namespace Coftea_Capstone
             PaymentPopup = new PaymentPopupViewModel();
             OrderCompletePopup = new OrderCompletePopupViewModel();
             SuccessCardPopup = new SuccessCardPopupViewModel();
+            HistoryPopup = new HistoryPopupViewModel();
 
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();
         }
 
-        private void NavigateToDashboard(bool isAdmin)
+        private async void NavigateToDashboard(bool isAdmin)
         {
             // Route all users to EmployeeDashboard; frames are data-bound
-            MainPage = new NavigationPage(new EmployeeDashboard());
+            var dashboard = new EmployeeDashboard();
+            MainPage = new NavigationPage(dashboard);
+            
+            // Add a subtle fade-in animation for the dashboard after it's loaded
+            await Task.Delay(100); // Wait for page to be fully loaded
+            dashboard.Opacity = 0;
+            await dashboard.FadeTo(1, 500, Easing.CubicOut);
         }
 
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)

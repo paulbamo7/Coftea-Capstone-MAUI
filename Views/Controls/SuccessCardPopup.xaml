@@ -9,9 +9,9 @@
     InputTransparent="True">
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill">
-        <Frame VerticalOptions="End"
-               HorizontalOptions="End"
-               Margin="0,0,24,24"
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Margin="24"
                CornerRadius="16"
                BackgroundColor="#FFFFFF"
                Padding="16"

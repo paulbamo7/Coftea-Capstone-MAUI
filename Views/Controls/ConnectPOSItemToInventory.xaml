@@ -5,106 +5,186 @@
              BackgroundColor="#80000000"
              IsVisible="{Binding IsConnectPOSToInventoryVisible}"
              HorizontalOptions="FillAndExpand"
-             VerticalOptions="FillAndExpand">
+             VerticalOptions="FillAndExpand"
+             Padding="0">
 
-    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
-        <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
-            <HorizontalStackLayout Spacing="20">
-                <!-- Left Frame: Selection (wider) -->
-                <Frame BackgroundColor="#D8C4B6" CornerRadius="20" WidthRequest="900" HeightRequest="700" Padding="20">
+    <!-- Popup Background -->
+    <Grid HorizontalOptions="FillAndExpand"
+          VerticalOptions="FillAndExpand"
+          RowDefinitions="*,Auto,*"
+          ColumnDefinitions="*,Auto,*">
+
+        <!-- Transparent Click-Close Overlay -->
+        <BoxView Grid.RowSpan="3" Grid.ColumnSpan="3"
+                 BackgroundColor="#80000000">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseConnectPOSToInventoryCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Center Popup -->
+        <Frame Grid.Row="1" Grid.Column="1"
+               CornerRadius="25"
+               Padding="0"
+               WidthRequest="950"
+               HeightRequest="720"
+               BackgroundColor="#F8E8D7"
+               HasShadow="True"
+               BorderColor="#DDDDDD"
+               TranslationY="10">
+
+            <!-- MAIN GRID FOR HEADER, CONTENT, FOOTER -->
+            <Grid Padding="25" RowSpacing="15"
+                  RowDefinitions="Auto,*,Auto">
+
+                <!-- HEADER -->
+                <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="FillAndExpand" Spacing="10">
+                    <Label Text="Connect POS to Inventory"
+                           FontAttributes="Bold"
+                           FontSize="26"
+                           TextColor="#3C3C3C"
+                           VerticalOptions="Center" />
+                    <Button Text="✕"
+                            BackgroundColor="Transparent"
+                            TextColor="#444"
+                            FontSize="20"
+                            Command="{Binding CloseConnectPOSToInventoryCommand}"
+                            HorizontalOptions="EndAndExpand" />
+                </HorizontalStackLayout>
+
+                <!-- CONTENT SECTION -->
+                <ScrollView Grid.Row="1">
                     <VerticalStackLayout Spacing="15">
 
-                        <!-- Unified Frame: Selected + Inventory Selection -->
-                        <Frame BackgroundColor="White" CornerRadius="10" Padding="10" HasShadow="False" HeightRequest="650">
-                            <VerticalStackLayout Spacing="10">
-                                <Label Text="SELECTED INVENTORY ITEMS" FontAttributes="Bold" FontSize="20"/>
+                        <!-- Divider -->
+                        <BoxView HeightRequest="1" Color="#DDD" />
 
-                                <!-- Category buttons -->
-                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center" HorizontalOptions="Center">
-                                    <Button Text="Addons" Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons"/>
-                                    <Button Text="Ingredients" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
-                                    <Button Text="Supplies" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
-                                    <Button Text="Refresh" BackgroundColor="#D3D3D3" TextColor="Black" Command="{Binding RefreshInventoryCommand}"/>
-                                    <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="150" HeightRequest="36">
-                                        <Picker Title="Sort By" SelectedItem="{Binding SelectedSort}">
-                                            <Picker.Items>
-                                                <x:String>Name (A-Z)</x:String>
-                                                <x:String>Name (Z-A)</x:String>
-                                                <x:String>Quantity (Low to High)</x:String>
-                                                <x:String>Quantity (High to Low)</x:String>
-                                            </Picker.Items>
-                                        </Picker>
+                        <!-- Filter / Sort Controls -->
+                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                            <HorizontalStackLayout Spacing="10" Padding="5,0">
+                                <Button Text="Addons" Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons" StyleClass="FilterButton"/>
+                                <Button Text="Ingredients" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients" StyleClass="FilterButton"/>
+                                <Button Text="Supplies" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies" StyleClass="FilterButton"/>
+                                <Button Text="Refresh" BackgroundColor="#EEE" TextColor="Black" Command="{Binding RefreshInventoryCommand}"/>
+
+                                <!-- Sort -->
+                                <Frame CornerRadius="12" Padding="8,0" BackgroundColor="White" HasShadow="False" VerticalOptions="Center">
+                                    <Picker Title="Sort By" SelectedItem="{Binding SelectedSort}" FontSize="14">
+                                        <Picker.Items>
+                                            <x:String>Name (A-Z)</x:String>
+                                            <x:String>Name (Z-A)</x:String>
+                                            <x:String>Quantity (Low to High)</x:String>
+                                            <x:String>Quantity (High to Low)</x:String>
+                                        </Picker.Items>
+                                    </Picker>
+                                </Frame>
+
+                                <!-- Search -->
+                                <Frame CornerRadius="12" Padding="0" BackgroundColor="White" HasShadow="False" VerticalOptions="Center">
+                                    <SearchBar Placeholder="Search"
+                                               WidthRequest="220"
+                                               Text="{Binding SearchText}"
+                                               BackgroundColor="Transparent"
+                                               FontSize="14"/>
+                                </Frame>
+
+                                <Button Text="Select All" Command="{Binding SelectAllVisibleCommand}" BackgroundColor="#E6DE9D" TextColor="#333"/>
+                            </HorizontalStackLayout>
+                        </ScrollView>
+
+                        <!-- Inventory Content -->
+                        <Frame BackgroundColor="White"
+                               CornerRadius="15"
+                               HasShadow="True"
+                               Padding="0">
+                            <VerticalStackLayout Spacing="10" Padding="20">
+
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="SELECT FROM INVENTORY"
+                                           FontAttributes="Bold"
+                                           FontSize="18"
+                                           TextColor="#3C3C3C" />
+                                    <Frame BackgroundColor="#E8F5E8"
+                                           CornerRadius="8"
+                                           Padding="12,8"
+                                           HasShadow="False">
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Label Text="ℹ"
+                                                   FontSize="16"
+                                                   TextColor="#2E7D32"
+                                                   VerticalOptions="Center"/>
+                                            <Label Text="Cups are size-specific (Small Cup for Small, Medium Cup for Medium, Large Cup for Large). Straws are included for all sizes."
+                                                   FontSize="13"
+                                                   TextColor="#2E7D32"
+                                                   VerticalOptions="Center"/>
+                                        </HorizontalStackLayout>
                                     </Frame>
-                                    <SearchBar Placeholder="Search" WidthRequest="200" Text="{Binding SearchText}"/>
-                                    <Button Text="Select All" Command="{Binding SelectAllVisibleCommand}"/>
-                                </HorizontalStackLayout>
+                                </VerticalStackLayout>
 
-                                <Label Text="SELECT FROM INVENTORY" FontAttributes="Bold" FontSize="20"/>
-
-                                <!-- Header -->
-                                <Grid ColumnDefinitions="2*,1*,2*" BackgroundColor="#DAAB97" Padding="10,6">
-                                    <Label Grid.Column="0" Text="ITEMS" HorizontalOptions="Start" FontAttributes="Bold"/>
-                                    <Label Grid.Column="1" Text="CATEGORY" HorizontalOptions="Start" FontAttributes="Bold"/>
-                                    <Label Grid.Column="2" Text="STOCKS" HorizontalOptions="Start" FontAttributes="Bold"/>
+                                <!-- Table Header -->
+                                <Grid ColumnDefinitions="2*,1*,2*" BackgroundColor="#DAAB97" Padding="12,6" >
+                                    <Label Grid.Column="0" Text="ITEMS" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="1" Text="CATEGORY" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="2" Text="STOCKS" FontAttributes="Bold" TextColor="White"/>
                                 </Grid>
 
-                                <!-- Data Rows (bounded height to keep footer visible) -->
-                                <CollectionView ItemsSource="{Binding InventoryItems}" HeightRequest="420" VerticalOptions="Start">
+                                <!-- Scrollable Inventory List -->
+                                <CollectionView ItemsSource="{Binding InventoryItems}"
+                                                VerticalOptions="Start"
+                                                SelectionMode="None">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid ColumnDefinitions="2*,1*,2*" Padding="10,6">
-                                                <Grid.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.ToggleSelectCommand}" CommandParameter="{Binding .}"/>
-                                                </Grid.GestureRecognizers>
+                                            <Frame BackgroundColor="#FAFAFA"
+                                                   CornerRadius="10"
+                                                   Padding="10"
+                                                   Margin="0,5"
+                                                   HasShadow="False">
+                                                <Grid ColumnDefinitions="2*,1*,2*">
+                                                    <Grid.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.ToggleSelectCommand}" CommandParameter="{Binding .}" />
+                                                    </Grid.GestureRecognizers>
 
-                                                <!-- Column 0: Checkbox + Image + Name -->
-                                                <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center" HorizontalOptions="Start">
-                                                    <CheckBox IsChecked="{Binding IsSelected}"/>
-                                                    <Frame WidthRequest="30" HeightRequest="30" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
-                                                        <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
-                                                    </Frame>
-                                                    <Label Text="{Binding itemName}" VerticalOptions="Center"/>
-                                                </HorizontalStackLayout>
+                                                    <!-- Checkbox + Image + Name -->
+                                                    <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                                                        <CheckBox IsChecked="{Binding IsSelected}" />
+                                                        <Frame WidthRequest="36" HeightRequest="36" CornerRadius="8" Padding="0" HasShadow="False" BackgroundColor="#EFEFEF">
+                                                            <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
+                                                        </Frame>
+                                                        <Label Text="{Binding itemName}" VerticalOptions="Center" FontSize="14"/>
+                                                    </HorizontalStackLayout>
 
-                                                <!-- Column 1: Category -->
-                                                <Label Grid.Column="1" Text="{Binding itemCategory}" HorizontalOptions="Start" VerticalOptions="Center"/>
+                                                    <!-- Category -->
+                                                    <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13"/>
 
-                                                <!-- Column 2: Stock info + Amount/Unit inputs -->
-                                                <VerticalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
-                                                    <!-- Custom progress bar like Inventory -->
-                                                    <Grid HeightRequest="20" VerticalOptions="Center">
-                                                        <!-- Background -->
+                                                    <!-- Stock bar -->
+                                                    <Grid Grid.Column="2" HeightRequest="20" VerticalOptions="Center">
                                                         <BoxView Color="#E0E0E0" CornerRadius="10"/>
-
-                                                        <!-- Green bar -->
-                                                        <BoxView Color="#34C759" CornerRadius="10" HorizontalOptions="Start"
-                                                                 WidthRequest="{Binding StockProgressWidth}" />
-
-                                                        <!-- Overlay text -->
-                                                        <Label Text="{Binding StockText}" 
-                                                               FontSize="12" 
-                                                               TextColor="Black" 
-                                                               HorizontalOptions="Center" 
-                                                               VerticalOptions="Center"/>
+                                                        <BoxView Color="{Binding StockFillColor}" CornerRadius="10" HorizontalOptions="Start" WidthRequest="{Binding StockProgressWidth}" />
+                                                        <Label Text="{Binding StockText}" FontSize="12" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
                                                     </Grid>
-                                                </VerticalStackLayout>
-                                            </Grid>
+                                                </Grid>
+                                            </Frame>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
 
-                                <!-- Footer actions -->
-                                <HorizontalStackLayout HorizontalOptions="End" Spacing="20" Margin="0,10,0,0">
-                                    <Button Text="Close" Command="{Binding CloseConnectPOSToInventoryCommand}"/>
-                                    <Button Text="Return" BackgroundColor="#D3D3D3" TextColor="Black" Command="{Binding ReturnToAddItemToPOSCommand}"/>
-                                    <Button Text="Next" BackgroundColor="#E6DE9D" TextColor="Black" Command="{Binding OpenInputIngredientsCommand}"/>
-                                </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Frame>
 
                     </VerticalStackLayout>
-                </Frame>
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- FOOTER -->
+                <HorizontalStackLayout Grid.Row="2"
+                                       HorizontalOptions="End"
+                                       Spacing="15"
+                                       Padding="0,10,0,10">
+                    <Button Text="Close" Command="{Binding CloseConnectPOSToInventoryCommand}" StyleClass="SecondaryButton"/>
+                    <Button Text="Return" BackgroundColor="#D3D3D3" TextColor="Black" Command="{Binding ReturnToAddItemToPOSCommand}" />
+                    <Button Text="Next" BackgroundColor="#E6DE9D" TextColor="Black" Command="{Binding OpenInputIngredientsCommand}" />
+                </HorizontalStackLayout>
+
+            </Grid>
+        </Frame>
     </Grid>
 </ContentView>

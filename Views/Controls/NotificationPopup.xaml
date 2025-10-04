@@ -13,10 +13,10 @@
             <TapGestureRecognizer Command="{Binding CloseNotificationCommand}" />
         </Grid.GestureRecognizers>
         
-        <!-- Notification Frame (bottom-left toast) -->
-        <Frame VerticalOptions="End"
-               HorizontalOptions="Start"
-               Margin="20,0,0,20"
+        <!-- Notification Frame (centered) -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Margin="20"
                Padding="20"
                BackgroundColor="#F8E8D7"
                CornerRadius="15"
@@ -28,12 +28,12 @@
             <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="*">
                 <!-- Icon -->
                 <Label Grid.Column="0" Grid.Row="0"
-                       Text="✓"
+                       Text="{Binding NotificationType, Converter={StaticResource NotificationTextIconConverter}}"
                        FontSize="24" 
                        FontAttributes="Bold"
                        VerticalOptions="Center"
                        HorizontalOptions="Center"
-                       TextColor="#4CAF50"
+                       TextColor="{Binding NotificationType, Converter={StaticResource NotificationColorConverter}}"
                        Margin="0,0,15,0" />
                 
                 <!-- Message -->

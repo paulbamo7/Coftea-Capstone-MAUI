@@ -29,6 +29,10 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private decimal totalSalesToday = 0m;
 
+        // Top selling products for dashboard
+        [ObservableProperty]
+        private ObservableCollection<TrendItem> topSellingProductsToday = new();
+
         public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
 
@@ -38,26 +42,8 @@ namespace Coftea_Capstone.ViewModel
             _managePOSOptionsViewModel = managePOSOptionsViewModel;
             _manageInventoryOptionsViewModel = manageInventoryOptionsViewModel;
             
-            // Initialize with some default recent orders
-            RecentOrders.Add(new RecentOrderModel
-            {
-                OrderNumber = 23,
-                ProductName = "Coftea Special",
-                ProductImage = "coftea_logo.png",
-                TotalAmount = 150.00m,
-                OrderTime = DateTime.Now.AddMinutes(-30),
-                Status = "Completed"
-            });
-            
-            RecentOrders.Add(new RecentOrderModel
-            {
-                OrderNumber = 24,
-                ProductName = "Nata de Coco",
-                ProductImage = "drink.png",
-                TotalAmount = 120.00m,
-                OrderTime = DateTime.Now.AddMinutes(-45),
-                Status = "Completed"
-            });
+            // Initialize with empty recent orders - will be populated from real data
+            RecentOrders = new ObservableCollection<RecentOrderModel>();
         }
 
         public void AddRecentOrder(int orderNumber, string productName, string productImage, decimal totalAmount)
@@ -88,6 +74,8 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
+                // Load top selling products for dashboard
+                await LoadTopSellingProductsAsync();
                 var database = new Models.Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
                 var today = DateTime.Today;
                 var tomorrow = today.AddDays(1);
@@ -176,6 +164,50 @@ namespace Coftea_Capstone.ViewModel
             if (Application.Current is App app)
             {
                 app.ResetAppAfterLogout(); // now it works
+            }
+        }
+
+        private async Task LoadTopSellingProductsAsync()
+        {
+            try
+            {
+                var database = new Models.Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+                
+                var transactions = await database.GetTransactionsByDateRangeAsync(today, tomorrow);
+                
+                // Group by product name and count sales
+                var productSales = transactions
+                    .GroupBy(t => t.DrinkName)
+                    .Select(group => new TrendItem
+                    {
+                        Name = group.Key,
+                        Count = group.Sum(t => t.Quantity)
+                    })
+                    .OrderByDescending(item => item.Count)
+                    .Take(5)
+                    .ToList();
+
+                // Set MaxCount for proper scaling (like in sales report)
+                if (productSales.Count > 0)
+                {
+                    int maxCount = productSales.Max(x => x.Count);
+                    if (maxCount <= 0) maxCount = 1; // Prevent division by zero
+                    
+                    foreach (var item in productSales)
+                    {
+                        item.MaxCount = maxCount;
+                    }
+                }
+
+                TopSellingProductsToday = new ObservableCollection<TrendItem>(productSales);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load top selling products: {ex.Message}");
+                // Initialize with empty collection on error
+                TopSellingProductsToday = new ObservableCollection<TrendItem>();
             }
         }
     }

@@ -101,7 +101,12 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                // Set current user
+                // Set current user - ensure admin users always have full access
+                if (user.IsAdmin)
+                {
+                    user.CanAccessInventory = true;
+                    user.CanAccessSalesReport = true;
+                }
                 App.SetCurrentUser(user);
 
                 // Save preferences
@@ -120,9 +125,17 @@ namespace Coftea_Capstone.ViewModel
                     Preferences.Remove("Password");
                 }
 
-                // Navigate to dashboard (single dashboard with data-bound frames)
+                // Navigate to dashboard with animation
                 var mainPage = new NavigationPage(new EmployeeDashboard());
                 Application.Current.MainPage = mainPage;
+                
+                // Add a subtle fade-in animation for the dashboard after it's loaded
+                await Task.Delay(100); // Wait for page to be fully loaded
+                if (mainPage.CurrentPage is EmployeeDashboard dashboard)
+                {
+                    dashboard.Opacity = 0;
+                    await dashboard.FadeTo(1, 500, Easing.CubicOut);
+                }
 
                 ClearEntries();
             }
@@ -142,7 +155,11 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                await Application.Current.MainPage.Navigation.PushAsync(new RegisterPage());
+                var nav = Application.Current.MainPage as NavigationPage;
+                if (nav != null)
+                {
+                    await nav.PushWithAnimationAsync(new RegisterPage());
+                }
             }
             catch (Exception ex)
             {
@@ -153,7 +170,11 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task ForgotPassword()
         {
-            await Application.Current.MainPage.Navigation.PushAsync(new ForgotPasswordPage());
+            var nav = Application.Current.MainPage as NavigationPage;
+            if (nav != null)
+            {
+                await nav.PushWithAnimationAsync(new ForgotPasswordPage());
+            }
         }
 
         [RelayCommand]

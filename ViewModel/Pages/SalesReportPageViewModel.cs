@@ -35,6 +35,9 @@ namespace Coftea_Capstone.ViewModel
         private string trendingToday;
 
         [ObservableProperty]
+        private double trendingPercentage;
+
+        [ObservableProperty]
         private decimal totalSalesToday;
 
         [ObservableProperty]
@@ -55,6 +58,56 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private ObservableCollection<TrendItem> topMilkteaWeekly = new();
+
+        // Combined top items for new layout
+        [ObservableProperty]
+        private ObservableCollection<TrendItem> topItemsToday = new();
+
+        [ObservableProperty]
+        private ObservableCollection<TrendItem> topItemsWeekly = new();
+
+        [ObservableProperty]
+        private ObservableCollection<TrendItem> topItemsMonthly = new();
+
+        // Filtered order counts for selected category
+        [ObservableProperty]
+        private int filteredTodayOrders;
+
+        [ObservableProperty]
+        private int filteredWeeklyOrders;
+
+        [ObservableProperty]
+        private int monthlyOrders;
+
+        // Pie chart item names
+        [ObservableProperty]
+        private string item1Name = "Item 1";
+
+        [ObservableProperty]
+        private string item2Name = "Item 2";
+
+        [ObservableProperty]
+        private string item3Name = "Item 3";
+
+        // Pie chart item counts
+        [ObservableProperty]
+        private int item1Count = 0;
+
+        [ObservableProperty]
+        private int item2Count = 0;
+
+        [ObservableProperty]
+        private int item3Count = 0;
+
+        // Pie chart trend indicators
+        [ObservableProperty]
+        private bool item1HasTrend = false;
+
+        [ObservableProperty]
+        private bool item2HasTrend = false;
+
+        [ObservableProperty]
+        private bool item3HasTrend = false;
 
         // Derived totals for the "X Orders" labels
         public int TopCoffeeTodayOrders => TopCoffeeToday?.Sum(i => i.Count) ?? 0;
@@ -137,6 +190,7 @@ namespace Coftea_Capstone.ViewModel
                 ActiveDays = summary.ActiveDays;
                 MostBoughtToday = summary.MostBoughtToday;
                 TrendingToday = summary.TrendingToday;
+                TrendingPercentage = summary.TrendingPercentage;
                 TotalSalesToday = summary.TotalSalesToday;
                 TotalOrdersToday = summary.TotalOrdersToday;
                 TotalOrdersThisWeek = summary.TotalOrdersThisWeek;
@@ -145,6 +199,9 @@ namespace Coftea_Capstone.ViewModel
                 TopMilkteaToday = new ObservableCollection<TrendItem>(summary.TopMilkteaToday ?? new List<TrendItem>());
                 TopCoffeeWeekly = new ObservableCollection<TrendItem>(summary.TopCoffeeWeekly ?? new List<TrendItem>());
                 TopMilkteaWeekly = new ObservableCollection<TrendItem>(summary.TopMilkteaWeekly ?? new List<TrendItem>());
+
+                // Populate combined collections for new layout
+                UpdateCombinedCollections();
 
                 StatusMessage = SalesReports.Any() ? "Sales reports loaded successfully." : "No sales reports found.";
 
@@ -177,19 +234,150 @@ namespace Coftea_Capstone.ViewModel
             SelectedCategory = category;
         }
 
-        private void ApplyCategoryFilter()
+        private void UpdateCombinedCollections()
         {
-            // Show only one category at a time
-            if (SelectedCategory == "Milktea")
+            // Filter today's items based on selected category
+            var todayItems = GetFilteredItems(TopCoffeeToday, TopMilkteaToday, SelectedCategory);
+            var topTodayItems = todayItems.OrderByDescending(x => x.Count).Take(3).ToList();
+            SetMaxCountForItems(topTodayItems);
+            TopItemsToday = new ObservableCollection<TrendItem>(topTodayItems);
+
+            // Filter weekly items based on selected category
+            var weeklyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, SelectedCategory);
+            var topWeeklyItems = weeklyItems.OrderByDescending(x => x.Count).Take(3).ToList();
+            SetMaxCountForItems(topWeeklyItems);
+            TopItemsWeekly = new ObservableCollection<TrendItem>(topWeeklyItems);
+
+            // Create monthly data (combine weekly data for demo)
+            var monthlyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, SelectedCategory);
+            var topMonthlyItems = monthlyItems.OrderByDescending(x => x.Count).Take(3).ToList();
+            SetMaxCountForItems(topMonthlyItems);
+            TopItemsMonthly = new ObservableCollection<TrendItem>(topMonthlyItems);
+
+            // Update filtered order counts
+            FilteredTodayOrders = todayItems.Sum(x => x.Count);
+            FilteredWeeklyOrders = weeklyItems.Sum(x => x.Count);
+            MonthlyOrders = monthlyItems.Sum(x => x.Count);
+
+            // Update pie chart item names
+            UpdatePieChartNames(topTodayItems);
+        }
+
+        private void UpdatePieChartNames(List<TrendItem> items)
+        {
+            Item1Name = items.Count > 0 ? items[0].Name : "No Data";
+            Item2Name = items.Count > 1 ? items[1].Name : "";
+            Item3Name = items.Count > 2 ? items[2].Name : "";
+
+            Item1Count = items.Count > 0 ? items[0].Count : 0;
+            Item2Count = items.Count > 1 ? items[1].Count : 0;
+            Item3Count = items.Count > 2 ? items[2].Count : 0;
+
+            // Simple trend logic - show trend if count > 0
+            Item1HasTrend = items.Count > 0 && items[0].Count > 0;
+            Item2HasTrend = items.Count > 1 && items[1].Count > 0;
+            Item3HasTrend = items.Count > 2 && items[2].Count > 0;
+        }
+
+        private void SetMaxCountForItems(List<TrendItem> items)
+        {
+            if (items == null || items.Count == 0) return;
+            
+            // Find the maximum count in the collection
+            int maxCount = items.Max(x => x.Count);
+            if (maxCount <= 0) maxCount = 1; // Prevent division by zero
+            
+            // Set the MaxCount for each item
+            foreach (var item in items)
             {
-                ShowCoffee = false;
-                ShowMilktea = true;
-                return;
+                item.MaxCount = maxCount;
+            }
+        }
+
+        private List<TrendItem> GetFilteredItems(ObservableCollection<TrendItem> coffeeItems, ObservableCollection<TrendItem> milkTeaItems, string category)
+        {
+            var filteredItems = new List<TrendItem>();
+
+            switch (category?.ToLower())
+            {
+                case "frappe":
+                    // Filter for frappe items from both collections
+                    filteredItems.AddRange(coffeeItems.Where(item => 
+                        item.Name.Contains("Frappe", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Frappé", StringComparison.OrdinalIgnoreCase)));
+                    filteredItems.AddRange(milkTeaItems.Where(item => 
+                        item.Name.Contains("Frappe", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Frappé", StringComparison.OrdinalIgnoreCase)));
+                    break;
+
+                case "fruit/soda":
+                    // Filter for fruit/soda items from both collections
+                    filteredItems.AddRange(coffeeItems.Where(item => 
+                        item.Name.Contains("Soda", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Orange", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Lemon", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Grape", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Fruit", StringComparison.OrdinalIgnoreCase)));
+                    filteredItems.AddRange(milkTeaItems.Where(item => 
+                        item.Name.Contains("Soda", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Orange", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Lemon", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Grape", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Fruit", StringComparison.OrdinalIgnoreCase)));
+                    break;
+
+                case "milktea":
+                    // Filter for milktea items from both collections
+                    filteredItems.AddRange(coffeeItems.Where(item => 
+                        item.Name.Contains("Matcha", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Brown Sugar", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Hokkaido", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Taro", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Wintermelon", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Milktea", StringComparison.OrdinalIgnoreCase)));
+                    filteredItems.AddRange(milkTeaItems.Where(item => 
+                        item.Name.Contains("Matcha", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Brown Sugar", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Hokkaido", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Taro", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Wintermelon", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Milktea", StringComparison.OrdinalIgnoreCase)));
+                    break;
+
+                case "coffee":
+                    // Filter for coffee items from both collections
+                    filteredItems.AddRange(coffeeItems.Where(item => 
+                        item.Name.Contains("Coffee", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Americano", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Latte", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Cappuccino", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Espresso", StringComparison.OrdinalIgnoreCase) ||
+                        (!item.Name.Contains("Frappe", StringComparison.OrdinalIgnoreCase) &&
+                         !item.Name.Contains("Soda", StringComparison.OrdinalIgnoreCase) &&
+                         !item.Name.Contains("Matcha", StringComparison.OrdinalIgnoreCase) &&
+                         !item.Name.Contains("Milktea", StringComparison.OrdinalIgnoreCase))));
+                    filteredItems.AddRange(milkTeaItems.Where(item => 
+                        item.Name.Contains("Coffee", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Americano", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Latte", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Cappuccino", StringComparison.OrdinalIgnoreCase) ||
+                        item.Name.Contains("Espresso", StringComparison.OrdinalIgnoreCase)));
+                    break;
+
+                default:
+                    // Show all items for overview or unknown categories
+                    filteredItems.AddRange(coffeeItems);
+                    filteredItems.AddRange(milkTeaItems);
+                    break;
             }
 
-            // Any other selection (including Overview, Americano, etc.) shows Coffee-only
-            ShowCoffee = true;
-            ShowMilktea = false;
+            return filteredItems;
+        }
+
+        private void ApplyCategoryFilter()
+        {
+            // Update combined collections when category changes
+            UpdateCombinedCollections();
         }
     }
 }

@@ -42,12 +42,18 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedSubcategory;
 
-        public bool IsFruitSodaSubcategoryVisible => string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase);
+        public bool IsFruitSodaSubcategoryVisible => !string.IsNullOrWhiteSpace(SelectedMainCategory) && string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase);
+        
+        public bool IsCoffeeSubcategoryVisible => !string.IsNullOrWhiteSpace(SelectedMainCategory) && string.Equals(SelectedMainCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
 
         partial void OnSelectedMainCategoryChanged(string value)
-            => OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
+        {
+            System.Diagnostics.Debug.WriteLine($"OnSelectedMainCategoryChanged: value = '{value}'");
+            OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
+            OnPropertyChanged(nameof(IsCoffeeSubcategoryVisible));
+        }
 
-        public bool IsCartVisible => CartItems.Any();
+        public bool IsCartVisible => CartItems?.Any() ?? false;
 
         partial void OnCartItemsChanged(ObservableCollection<POSPageModel> value)
             => OnPropertyChanged(nameof(IsCartVisible));
@@ -65,10 +71,18 @@ namespace Coftea_Capstone.ViewModel
         private bool hasError;
 
         [ObservableProperty]
+        private bool isCategoryLoading;
+
+        [ObservableProperty]
         private POSPageModel selectedProduct;
 
         [ObservableProperty]
         private ObservableCollection<string> availableSizes = new();
+
+        // Size visibility properties for cart based on category
+        public bool IsSmallSizeVisibleInCart => string.Equals(SelectedProduct?.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
+        public bool IsMediumSizeVisibleInCart => true; // Always visible for all categories
+        public bool IsLargeSizeVisibleInCart => true; // Always visible for all categories
 
         public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
         {
@@ -98,13 +112,19 @@ namespace Coftea_Capstone.ViewModel
 
         private async void OnProductAdded(POSPageModel newProduct)
         {
-            Products.Add(newProduct); 
-            FilteredProducts.Add(newProduct); 
-            await LoadDataAsync();  
+            if (newProduct != null)
+            {
+                Products?.Add(newProduct); 
+                FilteredProducts?.Add(newProduct); 
+                await LoadDataAsync();  
+            }
         }
 
         private async void OnProductUpdated(POSPageModel updatedProduct)
         {
+            if (updatedProduct == null || Products == null || FilteredProducts == null)
+                return;
+
             // Find and update the existing product in the collections
             var existingProduct = Products.FirstOrDefault(p => p.ProductID == updatedProduct.ProductID);
             if (existingProduct != null)
@@ -132,19 +152,28 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void FilterByCategory(object category)
+        private async Task FilterByCategory(object category)
         {
-            SelectedMainCategory = category?.ToString() ?? string.Empty;
+            try
+            {
+                SelectedMainCategory = category?.ToString() ?? string.Empty;
+                System.Diagnostics.Debug.WriteLine($"FilterByCategory: SelectedMainCategory = '{SelectedMainCategory}'");
 
-            // Reset subcategory when switching main category (unless still Fruit/Soda)
-            if (!string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
-                SelectedSubcategory = null;
+                // Reset subcategory when switching main category (unless still Fruit/Soda)
+                if (!string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                    SelectedSubcategory = null;
 
-            ApplyFilters();
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"FilterByCategory error: {ex.Message}");
+                throw;
+            }
         }
 
         [RelayCommand]
-        private void FilterBySubcategory(object subcategory)
+        private async Task FilterBySubcategory(object subcategory)
         {
             SelectedSubcategory = subcategory?.ToString() ?? string.Empty;
             ApplyFilters();
@@ -152,50 +181,84 @@ namespace Coftea_Capstone.ViewModel
 
         private void ApplyFilters()
         {
-            IEnumerable<POSPageModel> filteredSequence = Products;
-
-            // Main category filtering
-            if (!string.IsNullOrWhiteSpace(SelectedMainCategory) &&
-                !string.Equals(SelectedMainCategory, "All", StringComparison.OrdinalIgnoreCase))
+            try
             {
-                if (string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                System.Diagnostics.Debug.WriteLine($"ApplyFilters: Products count = {Products?.Count ?? -1}");
+                
+                // Check if Products collection is null or empty to prevent crashes
+                if (Products == null || !Products.Any())
                 {
-                    // Include items categorized under Fruit/Soda via either Subcategory or Category
-                    filteredSequence = filteredSequence.Where(p =>
-                        (
-                            !string.IsNullOrWhiteSpace(p.Subcategory) &&
-                            (p.Subcategory.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
-                             p.Subcategory.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase))
-                        )
-                        ||
-                        (
-                            !string.IsNullOrWhiteSpace(p.Category) &&
-                            (p.Category.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
-                             p.Category.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase) ||
-                             p.Category.Trim().Equals("Fruit/Soda", StringComparison.OrdinalIgnoreCase))
-                        ));
+                    System.Diagnostics.Debug.WriteLine("ApplyFilters: Products is null or empty, clearing FilteredProducts");
+                    FilteredProducts?.Clear();
+                    return;
+                }
 
-                    // Optional subcategory refinement
-                    if (!string.IsNullOrWhiteSpace(SelectedSubcategory))
+                IEnumerable<POSPageModel> filteredSequence = Products;
+                System.Diagnostics.Debug.WriteLine($"ApplyFilters: Starting with {filteredSequence.Count()} products");
+
+                // Main category filtering
+                if (!string.IsNullOrWhiteSpace(SelectedMainCategory) &&
+                    !string.Equals(SelectedMainCategory, "All", StringComparison.OrdinalIgnoreCase))
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyFilters: Filtering by category '{SelectedMainCategory}'");
+                    
+                    if (string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                    {
+                        System.Diagnostics.Debug.WriteLine("ApplyFilters: Applying Fruit/Soda specific filtering");
+                        // Include items categorized under Fruit/Soda via either Subcategory or Category
+                        filteredSequence = filteredSequence.Where(p =>
+                            p != null && (
+                                (
+                                    !string.IsNullOrWhiteSpace(p.Subcategory) &&
+                                    (p.Subcategory.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
+                                     p.Subcategory.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase))
+                                )
+                                ||
+                                (
+                                    !string.IsNullOrWhiteSpace(p.Category) &&
+                                    (p.Category.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
+                                     p.Category.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase) ||
+                                     p.Category.Trim().Equals("Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                                )
+                            ));
+
+                        // Optional subcategory refinement
+                        if (!string.IsNullOrWhiteSpace(SelectedSubcategory))
+                        {
+                            filteredSequence = filteredSequence.Where(p =>
+                                p != null && (
+                                    (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
+                                    || (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
+                                )
+                            );
+                        }
+                    }
+                    else
                     {
                         filteredSequence = filteredSequence.Where(p =>
-                            (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
-                            || (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
+                            p != null && (
+                                (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
+                                || (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
+                            )
                         );
                     }
                 }
-                else
-                {
-                    filteredSequence = filteredSequence.Where(p =>
-                        (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
-                        || (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
-                    );
-                }
-            }
 
-            FilteredProducts.Clear();
-            foreach (var product in filteredSequence)
-                FilteredProducts.Add(product);
+            FilteredProducts?.Clear();
+            if (FilteredProducts != null)
+            {
+                foreach (var product in filteredSequence)
+                    FilteredProducts.Add(product);
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"ApplyFilters: Final filtered count = {FilteredProducts?.Count ?? -1}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ApplyFilters error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"ApplyFilters stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public async Task LoadDataAsync()
@@ -219,8 +282,17 @@ namespace Coftea_Capstone.ViewModel
                 }
 
                 var productList = await _database.GetProductsAsync();
-                Products = new ObservableCollection<POSPageModel>(productList);
-                FilteredProducts = new ObservableCollection<POSPageModel>(productList);
+                Products = new ObservableCollection<POSPageModel>(productList ?? new List<POSPageModel>());
+                FilteredProducts = new ObservableCollection<POSPageModel>(productList ?? new List<POSPageModel>());
+
+                // Check stock levels for all products
+                await CheckStockLevelsForAllProducts();
+
+                System.Diagnostics.Debug.WriteLine($"LoadDataAsync: Loaded {Products.Count} products");
+                foreach (var product in Products.Take(5)) // Log first 5 products for debugging
+                {
+                    System.Diagnostics.Debug.WriteLine($"Product: {product.ProductName}, Category: '{product.Category}', Subcategory: '{product.Subcategory}'");
+                }
 
                 if (Products.Any())
                 {
@@ -252,9 +324,9 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void AddToCart(POSPageModel product)
         {
-            if (product == null) 
+            if (product == null || CartItems == null) 
             {
-                System.Diagnostics.Debug.WriteLine("AddToCart: product is null");
+                System.Diagnostics.Debug.WriteLine("AddToCart: product or CartItems is null");
                 return;
             }
 
@@ -309,12 +381,25 @@ namespace Coftea_Capstone.ViewModel
         private void SelectProduct(POSPageModel product)
         {
             System.Diagnostics.Debug.WriteLine($"SelectProduct called with product: {product?.ProductName ?? "null"}");
+            
+            // Don't allow selection if product has low stock
+            if (product?.IsLowStock == true)
+            {
+                System.Diagnostics.Debug.WriteLine($"Product {product.ProductName} has low stock, selection blocked");
+                return;
+            }
+            
             SelectedProduct = product;
 
             AvailableSizes.Clear();
             if (product.HasSmall) AvailableSizes.Add("Small");
             if (product.HasMedium) AvailableSizes.Add("Medium");
             if (product.HasLarge) AvailableSizes.Add("Large");
+
+            // Notify visibility change for cart size options
+            OnPropertyChanged(nameof(IsSmallSizeVisibleInCart));
+            OnPropertyChanged(nameof(IsMediumSizeVisibleInCart));
+            OnPropertyChanged(nameof(IsLargeSizeVisibleInCart));
 
             // Load linked addons from DB for this product
             _ = LoadAddonsForSelectedAsync();
@@ -348,13 +433,35 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void RemoveFromCart(POSPageModel product)
         {
-            if (product == null) return;
+            if (product == null || CartItems == null) return;
 
             var itemInCart = CartItems.FirstOrDefault(p => p.ProductID == product.ProductID);
             if (itemInCart != null) CartItems.Remove(itemInCart);
 
             if (SelectedProduct?.ProductID == product.ProductID)
                 SelectedProduct = null;
+        }
+
+        private async Task CheckStockLevelsForAllProducts()
+        {
+            try
+            {
+                foreach (var product in Products)
+                {
+                    var ingredients = await _database.GetProductAddonsAsync(product.ProductID);
+                    
+                    // Check if any ingredient has low stock (below minimum quantity)
+                    bool hasLowStock = ingredients.Any(ingredient => 
+                        ingredient.minimumQuantity > 0 && 
+                        ingredient.itemQuantity < ingredient.minimumQuantity);
+                    
+                    product.IsLowStock = hasLowStock;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking stock levels: {ex.Message}");
+            }
         }
 
         [RelayCommand]

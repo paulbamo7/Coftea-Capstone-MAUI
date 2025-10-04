@@ -40,11 +40,12 @@
 		<!-- Disable Git information to avoid access issues -->
 		<EnableSourceControlManager>false</EnableSourceControlManager>
 		<Deterministic>false</Deterministic>
+		<UseGitVersioning>false</UseGitVersioning>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
-
+		<MauiIcon Include="Resources\AppIcon\appicon.png" />
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />

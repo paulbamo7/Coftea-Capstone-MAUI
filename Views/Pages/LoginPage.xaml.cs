@@ -22,9 +22,9 @@ public partial class LoginPage : ContentPage
     {
         if (LoginPasswordEntry == null) return;
         LoginPasswordEntry.IsPassword = !LoginPasswordEntry.IsPassword;
-        if (sender is Button btn)
+        if (sender is ImageButton btn)
         {
-            btn.Text = LoginPasswordEntry.IsPassword ? "Show" : "Hide";
+            btn.Source = LoginPasswordEntry.IsPassword ? "show.png" : "hidden.png";
         }
     }
 }

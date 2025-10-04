@@ -110,6 +110,23 @@
         </Setter>
     </Style>
 
+    <Style x:Key="FilterButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="#F4E1D2" />
+        <Setter Property="TextColor" Value="#333" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="Shadow" Value="None" />
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="#EEE" />
+        <Setter Property="TextColor" Value="Black" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="12,6" />
+    </Style>
+
+
     <Style TargetType="Entry">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
@@ -415,6 +432,7 @@
         <Setter Property="BarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
         <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource White}}" />
         <Setter Property="IconColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource White}}" />
+        <Setter Property="BackgroundColor" Value="#C1A892" />
     </Style>
 
     <Style TargetType="TabbedPage">
