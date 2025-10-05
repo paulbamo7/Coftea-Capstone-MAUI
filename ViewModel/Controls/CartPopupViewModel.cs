@@ -92,9 +92,25 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void EditCartItem(CartItem item)
         {
             if (item == null) return;
-            
-            // TODO: Implement edit functionality
-            // This could open another popup or navigate to edit page
+
+            // Bridge to POS: select product and apply current cart quantities
+            var app = (App)Application.Current;
+            var posVm = app?.POSVM;
+            if (posVm == null || _originalItems == null)
+                return;
+
+            var original = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
+            if (original == null)
+                return;
+
+            // Select the product in POS and set quantities to those in the cart item
+            posVm.SelectProductCommand.Execute(original);
+            original.SmallQuantity = item.SmallQuantity;
+            original.MediumQuantity = item.MediumQuantity;
+            original.LargeQuantity = item.LargeQuantity;
+
+            // Close cart popup so user can adjust in POS
+            IsCartVisible = false;
         }
 
         [RelayCommand]

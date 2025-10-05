@@ -129,7 +129,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             PaymentStatus = "Payment Confirmed";
             var appInstance = (App)Application.Current;
             appInstance?.OrderCompletePopup?.Show();
-            appInstance?.NotificationPopup?.ShowToast($"Payment confirmed! Change: ₱{Change:F2}", 1500);
+            appInstance?.NotificationPopup?.ShowToast($"Transaction completed. Change: ₱{Change:F2}", 2000);
 
             // Add to recent orders
             var app = (App)Application.Current;
@@ -220,8 +220,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     return;
                 }
 
-                // Calculate total quantity based on size and quantity
-                int totalQuantity = GetTotalQuantityForSize(cartItem, cartItem.SelectedSize);
+                // Calculate total quantity across sizes
+                int totalQuantity = (cartItem.SmallQuantity + cartItem.MediumQuantity + cartItem.LargeQuantity);
                 if (totalQuantity <= 0)
                 {
                     System.Diagnostics.Debug.WriteLine($"Invalid quantity for {cartItem.ProductName}: {totalQuantity}");
@@ -242,8 +242,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     deductions.Add((ingredient.itemName, totalAmount));
                 }
 
-                // Add automatic cup and straw based on size
-                await AddAutomaticCupAndStrawForSize(deductions, cartItem.SelectedSize, totalQuantity);
+                // Add automatic cups by size and straw for total pieces
+                await AddAutomaticCupsAndStrawAsync(deductions, cartItem.SmallQuantity, cartItem.MediumQuantity, cartItem.LargeQuantity, totalQuantity);
 
                 // Deduct inventory
                 if (deductions.Any())
@@ -259,43 +259,33 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private int GetTotalQuantityForSize(CartItem item, string size)
-        {
-            return size?.ToLowerInvariant() switch
-            {
-                "small" => item.SmallQuantity,
-                "medium" => item.MediumQuantity,
-                "large" => item.LargeQuantity,
-                _ => item.Quantity
-            };
-        }
-
-        private async Task AddAutomaticCupAndStrawForSize(List<(string name, double amount)> deductions, string size, int quantity)
+        private async Task AddAutomaticCupsAndStrawAsync(List<(string name, double amount)> deductions, int smallQty, int mediumQty, int largeQty, int totalQty)
         {
             try
             {
                 var database = new Models.Database();
-                
-                // Add appropriate cup based on size
-                string cupName = size?.ToLowerInvariant() switch
+                // Add cups per size
+                if (smallQty > 0)
                 {
-                    "small" => "Small Cup",
-                    "medium" => "Medium Cup", 
-                    "large" => "Large Cup",
-                    _ => "Medium Cup" // Default to medium
-                };
-
-                var cupItem = await database.GetInventoryItemByNameAsync(cupName);
-                if (cupItem != null)
+                    var smallCup = await database.GetInventoryItemByNameAsync("Small Cup");
+                    if (smallCup != null) deductions.Add(("Small Cup", smallQty));
+                }
+                if (mediumQty > 0)
                 {
-                    deductions.Add((cupName, quantity));
+                    var mediumCup = await database.GetInventoryItemByNameAsync("Medium Cup");
+                    if (mediumCup != null) deductions.Add(("Medium Cup", mediumQty));
+                }
+                if (largeQty > 0)
+                {
+                    var largeCup = await database.GetInventoryItemByNameAsync("Large Cup");
+                    if (largeCup != null) deductions.Add(("Large Cup", largeQty));
                 }
 
-                // Add straw (1 per item)
+                // Add straw (1 per item total)
                 var strawItem = await database.GetInventoryItemByNameAsync("Straw");
                 if (strawItem != null)
                 {
-                    deductions.Add(("Straw", quantity));
+                    deductions.Add(("Straw", totalQty));
                 }
             }
             catch (Exception ex)
@@ -411,8 +401,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                         continue;
                     }
 
-                    // Calculate total quantity based on size and quantity
-                    int totalQuantity = GetTotalQuantityForSize(item, item.SelectedSize);
+                    // Calculate total quantity across sizes
+                    int totalQuantity = (item.SmallQuantity + item.MediumQuantity + item.LargeQuantity);
                     if (totalQuantity <= 0)
                     {
                         issues.Add($"Invalid quantity for {item.ProductName}: {totalQuantity}");
@@ -436,8 +426,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                         }
                     }
 
-                    // Check automatic cup and straw
-                    await ValidateAutomaticCupAndStrawForSize(database, issues, item.SelectedSize, totalQuantity);
+                    // Check automatic cups per size and straw
+                    await ValidateAutomaticCupsAndStrawAsync(database, issues, item.SmallQuantity, item.MediumQuantity, item.LargeQuantity, totalQuantity);
                 }
 
                 return new InventoryValidationResult
@@ -456,32 +446,38 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task ValidateAutomaticCupAndStrawForSize(Models.Database database, List<string> issues, string size, int quantity)
+        private async Task ValidateAutomaticCupsAndStrawAsync(Models.Database database, List<string> issues, int smallQty, int mediumQty, int largeQty, int totalQty)
         {
             try
             {
-                // Check appropriate cup based on size
-                string cupName = size?.ToLowerInvariant() switch
+                // Check cups by size
+                var smallCup = await database.GetInventoryItemByNameAsync("Small Cup");
+                if (smallQty > 0 && smallCup != null && smallCup.itemQuantity < smallQty)
                 {
-                    "small" => "Small Cup",
-                    "medium" => "Medium Cup", 
-                    "large" => "Large Cup",
-                    _ => "Medium Cup" // Default to medium
-                };
-
-                var cupItem = await database.GetInventoryItemByNameAsync(cupName);
-                if (cupItem != null && cupItem.itemQuantity < quantity)
-                {
-                    var shortage = quantity - cupItem.itemQuantity;
-                    issues.Add($"Insufficient {cupName}: Need {quantity}, have {cupItem.itemQuantity} (short by {shortage})");
+                    var shortage = smallQty - smallCup.itemQuantity;
+                    issues.Add($"Insufficient Small Cup: Need {smallQty}, have {smallCup.itemQuantity} (short by {shortage})");
                 }
 
-                // Check straw (1 per item)
-                var strawItem = await database.GetInventoryItemByNameAsync("Straw");
-                if (strawItem != null && strawItem.itemQuantity < quantity)
+                var mediumCup = await database.GetInventoryItemByNameAsync("Medium Cup");
+                if (mediumQty > 0 && mediumCup != null && mediumCup.itemQuantity < mediumQty)
                 {
-                    var shortage = quantity - strawItem.itemQuantity;
-                    issues.Add($"Insufficient Straw: Need {quantity}, have {strawItem.itemQuantity} (short by {shortage})");
+                    var shortage = mediumQty - mediumCup.itemQuantity;
+                    issues.Add($"Insufficient Medium Cup: Need {mediumQty}, have {mediumCup.itemQuantity} (short by {shortage})");
+                }
+
+                var largeCup = await database.GetInventoryItemByNameAsync("Large Cup");
+                if (largeQty > 0 && largeCup != null && largeCup.itemQuantity < largeQty)
+                {
+                    var shortage = largeQty - largeCup.itemQuantity;
+                    issues.Add($"Insufficient Large Cup: Need {largeQty}, have {largeCup.itemQuantity} (short by {shortage})");
+                }
+
+                // Check straw (1 per item total)
+                var strawItem = await database.GetInventoryItemByNameAsync("Straw");
+                if (strawItem != null && strawItem.itemQuantity < totalQty)
+                {
+                    var shortage = totalQty - strawItem.itemQuantity;
+                    issues.Add($"Insufficient Straw: Need {totalQty}, have {strawItem.itemQuantity} (short by {shortage})");
                 }
             }
             catch (Exception ex)

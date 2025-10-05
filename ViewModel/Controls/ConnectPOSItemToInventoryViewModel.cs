@@ -28,15 +28,123 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         private void OnAddonsSelected(List<InventoryPageModel> selectedAddons)
         {
-            // Update SelectedAddons with the new selection
+            // Update SelectedAddons collection
             SelectedAddons.Clear();
             foreach (var addon in selectedAddons)
             {
                 SelectedAddons.Add(addon);
             }
-            
-            // Notify UI of changes
+
+            // Sync addon selections into InventoryItems for deduction
+            // Mark selected addons as selected with user-provided amount and unit
+            var selectedIds = new HashSet<int>(selectedAddons.Select(a => a.itemID));
+
+            // First, deselect any previously selected addons that are no longer selected
+            foreach (var inv in InventoryItems)
+            {
+                if (inv == null) continue;
+                bool isAddonCategory = string.Equals(inv.itemCategory?.Trim(), "Addons", StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(inv.itemCategory?.Trim(), "Sinkers", StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(inv.itemCategory?.Trim(), "Sinkers & etc.", StringComparison.OrdinalIgnoreCase);
+                if (isAddonCategory && !selectedIds.Contains(inv.itemID))
+                {
+                    inv.IsSelected = false;
+                }
+            }
+
+            // Apply newly selected addons to inventory list
+            foreach (var addon in selectedAddons)
+            {
+                // Find existing entry or add
+                var existing = InventoryItems.FirstOrDefault(i => i.itemID == addon.itemID);
+                if (existing == null)
+                {
+                    existing = addon; // reuse instance to keep bindings
+                    InventoryItems.Add(existing);
+                }
+
+                // Mark as selected and propagate user inputs
+                existing.IsSelected = true;
+                existing.InputAmount = addon.InputAmount > 0 ? addon.InputAmount : 1;
+                existing.InputUnit = string.IsNullOrWhiteSpace(addon.InputUnit) ? addon.DefaultUnit : addon.InputUnit;
+
+                // Preserve any addon pricing/unit fields (optional for POS UI)
+                existing.AddonPrice = addon.AddonPrice;
+                existing.AddonUnit = string.IsNullOrWhiteSpace(addon.AddonUnit) ? addon.DefaultUnit : addon.AddonUnit;
+            }
+
+            // Update helper collections and notify UI
+            UpdateSelectedIngredientsOnly();
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
             OnPropertyChanged(nameof(SelectedAddons));
+        }
+
+        // Load previously linked ingredients/addons for a product and mark them selected
+        public async Task LoadLinkedIngredientsForProductAsync(int productId)
+        {
+            try
+            {
+                // Ensure inventory is loaded before applying links
+                if (AllInventoryItems == null || AllInventoryItems.Count == 0)
+                {
+                    await LoadInventoryAsync();
+                }
+
+                var links = await _database.GetProductIngredientsAsync(productId);
+
+                // Clear existing selections first
+                foreach (var it in AllInventoryItems)
+                {
+                    it.IsSelected = false;
+                }
+
+                // Apply linked items to current inventory list
+                foreach (var (linkedItem, amount, unit, role) in links)
+                {
+                    var match = AllInventoryItems.FirstOrDefault(i => i.itemID == linkedItem.itemID);
+                    if (match == null) continue;
+
+                    match.IsSelected = true;
+
+                    // Map amount/unit into size-specific fields and editable fields
+                    match.InputAmountSmall = amount;
+                    match.InputAmountMedium = amount;
+                    match.InputAmountLarge = amount;
+                    var effUnit = string.IsNullOrWhiteSpace(unit) ? match.DefaultUnit : unit;
+                    match.InputUnitSmall = effUnit;
+                    match.InputUnitMedium = effUnit;
+                    match.InputUnitLarge = effUnit;
+
+                    // Set current editable fields to currently selected size
+                    switch (SelectedSize)
+                    {
+                        case "Small":
+                            match.InputAmount = match.InputAmountSmall;
+                            match.InputUnit = match.InputUnitSmall;
+                            break;
+                        case "Medium":
+                            match.InputAmount = match.InputAmountMedium;
+                            match.InputUnit = match.InputUnitMedium;
+                            break;
+                        case "Large":
+                            match.InputAmount = match.InputAmountLarge;
+                            match.InputUnit = match.InputUnitLarge;
+                            break;
+                    }
+                }
+
+                ApplyFilters();
+                UpdateSelectedIngredientsOnly();
+                OnPropertyChanged(nameof(HasSelectedIngredients));
+                OnPropertyChanged(nameof(SelectedInventoryItems));
+                OnPropertyChanged(nameof(SelectedIngredientsOnly));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load linked ingredients: {ex.Message}");
+            }
         }
         [ObservableProperty] private bool isConnectPOSToInventoryVisible;
         [ObservableProperty] private bool isPreviewVisible;
@@ -699,6 +807,30 @@ namespace Coftea_Capstone.ViewModel.Controls
             [ObservableProperty] private double amount;
             [ObservableProperty] private string unit;
             [ObservableProperty] private bool selected;
+        }
+
+        [RelayCommand]
+        private void EditIngredient(InventoryPageModel item)
+        {
+            if (item == null) return;
+
+            // Copy the size-specific stored values back into the editable fields
+            // so the Entry and Picker show the current usage and unit for the active size
+            switch (SelectedSize)
+            {
+                case "Small":
+                    if (item.InputAmountSmall > 0) item.InputAmount = item.InputAmountSmall;
+                    if (!string.IsNullOrWhiteSpace(item.InputUnitSmall)) item.InputUnit = item.InputUnitSmall;
+                    break;
+                case "Medium":
+                    if (item.InputAmountMedium > 0) item.InputAmount = item.InputAmountMedium;
+                    if (!string.IsNullOrWhiteSpace(item.InputUnitMedium)) item.InputUnit = item.InputUnitMedium;
+                    break;
+                case "Large":
+                    if (item.InputAmountLarge > 0) item.InputAmount = item.InputAmountLarge;
+                    if (!string.IsNullOrWhiteSpace(item.InputUnitLarge)) item.InputUnit = item.InputUnitLarge;
+                    break;
+            }
         }
     }
 

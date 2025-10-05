@@ -342,23 +342,46 @@ namespace Coftea_Capstone.ViewModel
                 var database = new Models.Database(); // Will use auto-detected host
                 var inventoryItems = await database.GetInventoryItemsAsync();
                 
-                // Filter items that have low stock (below minimum quantity or very low amounts)
-                var lowStockItems = inventoryItems
-                    .Where(item => item.itemQuantity <= item.minimumQuantity || item.itemQuantity <= 10)
-                    .OrderBy(item => item.itemQuantity)
-                    .Take(5) // Show top 5 lowest stock items
+                // Determine percentage of current stock relative to minimum threshold (as 100%)
+                var prioritized = inventoryItems
+                    .Select(item => new
+                    {
+                        Item = item,
+                        Min = item.minimumQuantity > 0 ? item.minimumQuantity : 1, // avoid div by zero
+                        Percent = item.minimumQuantity > 0 ? (item.itemQuantity / item.minimumQuantity) * 100.0 : 9999.0
+                    })
+                    // Consider alerts only when under or equal to 100% of minimum
+                    .Where(x => x.Percent <= 100.0)
+                    .Select(x => new
+                    {
+                        x.Item,
+                        x.Percent,
+                        Priority = x.Percent < 30.0 ? "High" : (x.Percent <= 60.0 ? "Medium" : (x.Percent <= 70.0 ? "Low" : "None"))
+                    })
+                    .Where(x => x.Priority != "None")
+                    // Order requested: Low, then Medium, then High
+                    .OrderBy(x => x.Priority == "Low" ? 0 : x.Priority == "Medium" ? 1 : 2)
+                    // Within same priority, sort ascending by percent (lower first)
+                    .ThenBy(x => x.Percent)
+                    .Take(5)
                     .ToList();
 
-                if (lowStockItems.Count == 0)
+                if (prioritized.Count == 0)
                 {
                     InventoryAlerts.Add("✅ All items well stocked");
                 }
                 else
                 {
-                    foreach (var item in lowStockItems)
+                    foreach (var entry in prioritized)
                     {
-                        var stockLevel = item.itemQuantity <= item.minimumQuantity ? "CRITICAL" : "LOW";
-                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {item.unitOfMeasurement})";
+                        var pct = Math.Max(0, Math.Min(100, entry.Percent));
+                        var label = entry.Priority switch
+                        {
+                            "Low" => "LOW PRIORITY",
+                            "Medium" => "MEDIUM PRIORITY",
+                            _ => "HIGH PRIORITY"
+                        };
+                        var alertText = $"{label}: {entry.Item.itemName} ({entry.Item.itemQuantity:F1} {entry.Item.unitOfMeasurement}) — {pct:F0}% of min";
                         InventoryAlerts.Add(alertText);
                     }
                 }

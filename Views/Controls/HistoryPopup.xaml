@@ -231,8 +231,8 @@
                     </Grid>
 
                     <!-- Scrollable Transaction Data -->
-                    <ScrollView Grid.Row="1" Padding="15,0">
-                        <CollectionView ItemsSource="{Binding FilteredTransactions}">
+                    <ScrollView Grid.Row="1" Padding="15,0" HorizontalOptions="FillAndExpand">
+                        <CollectionView ItemsSource="{Binding FilteredTransactions}" HorizontalOptions="FillAndExpand">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
                                     <Grid BackgroundColor="White" Padding="15,8" Margin="0,0,0,1">

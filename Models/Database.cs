@@ -361,24 +361,70 @@ namespace Coftea_Capstone.Models
             return (int)cmd.LastInsertedId;
         }
 
-        // Link product to inventory items (addons/ingredients)
-        public async Task<int> SaveProductIngredientLinksAsync(int productId, IEnumerable<(int inventoryItemId, double amount, string? unit, string role)> links)
+        // Link product to ingredient items only (role fixed to 'ingredient')
+        public async Task<int> SaveProductIngredientLinksAsync(int productId, IEnumerable<(int inventoryItemId, double amount, string? unit)> ingredients)
         {
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
-            const string sql = "INSERT INTO product_ingredients (productID, itemID, amount, unit, role) VALUES (@ProductID, @ItemID, @Amount, @Unit, @Role);";
+            // Clear existing links first so edits overwrite prior selections
+            const string deleteSql = "DELETE FROM product_ingredients WHERE productID = @ProductID;";
+            await using (var deleteCmd = new MySqlCommand(deleteSql, conn, (MySqlTransaction)tx))
+            {
+                deleteCmd.Parameters.AddWithValue("@ProductID", productId);
+                await deleteCmd.ExecuteNonQueryAsync();
+            }
+
+            const string sql = "INSERT INTO product_ingredients (productID, itemID, amount, unit, role) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient');";
             int total = 0;
             try
             {
-                foreach (var link in links)
+                foreach (var link in ingredients)
                 {
                     await using var cmd = new MySqlCommand(sql, conn, (MySqlTransaction)tx);
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
                     cmd.Parameters.AddWithValue("@Amount", link.amount);
                     cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Role", link.role);
+                    total += await cmd.ExecuteNonQueryAsync();
+                }
+
+                await tx.CommitAsync();
+                return total;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        // Link product to addons with price
+        public async Task<int> SaveProductAddonLinksAsync(int productId, IEnumerable<(int inventoryItemId, double amount, string? unit, decimal price)> addons)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            // Clear existing addon links
+            const string deleteSql = "DELETE FROM product_addons WHERE productID = @ProductID;";
+            await using (var deleteCmd = new MySqlCommand(deleteSql, conn, (MySqlTransaction)tx))
+            {
+                deleteCmd.Parameters.AddWithValue("@ProductID", productId);
+                await deleteCmd.ExecuteNonQueryAsync();
+            }
+
+            const string sql = "INSERT INTO product_addons (productID, itemID, amount, unit, price) VALUES (@ProductID, @ItemID, @Amount, @Unit, @Price);";
+            int total = 0;
+            try
+            {
+                foreach (var link in addons)
+                {
+                    await using var cmd = new MySqlCommand(sql, conn, (MySqlTransaction)tx);
+                    cmd.Parameters.AddWithValue("@ProductID", productId);
+                    cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
+                    cmd.Parameters.AddWithValue("@Amount", link.amount);
+                    cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Price", link.price);
                     total += await cmd.ExecuteNonQueryAsync();
                 }
 
@@ -860,6 +906,18 @@ namespace Coftea_Capstone.Models
                     amount DECIMAL(10,2) NOT NULL,
                     unit VARCHAR(50),
                     role VARCHAR(50) DEFAULT 'ingredient',
+                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
+                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
+                );
+                
+                -- Separate table for product addons (optional extras) with price
+                CREATE TABLE IF NOT EXISTS product_addons (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    productID INT NOT NULL,
+                    itemID INT NOT NULL,
+                    amount DECIMAL(10,2) NOT NULL,
+                    unit VARCHAR(50),
+                    price DECIMAL(10,2) NOT NULL DEFAULT 0,
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
                     FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
                 );

@@ -188,7 +188,18 @@ namespace Coftea_Capstone.ViewModel
                     SelectedSubcategory = null;
                 }
             }
-
+            // Load previously saved ingredient/addon links and pre-check them
+            _ = ConnectPOSToInventoryVM.LoadInventoryAsync().ContinueWith(async t =>
+            {
+                try
+                {
+                    await ConnectPOSToInventoryVM.LoadLinkedIngredientsForProductAsync(product.ProductID);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to preload ingredients for edit: {ex.Message}");
+                }
+            });
         }
 
         [RelayCommand]
@@ -271,7 +282,8 @@ namespace Coftea_Capstone.ViewModel
                     int rowsAffected = await _database.UpdateProductAsync(product);
                     if (rowsAffected > 0)
                     {
-                        await Application.Current.MainPage.DisplayAlert("Success", "Product updated successfully!", "OK");
+                        var appToast = (App)Application.Current;
+                        appToast?.NotificationPopup?.ShowToast("Product updated", 2000);
                         await DeductSelectedIngredientsAsync();
                         ResetForm();
                         ProductUpdated?.Invoke(product);
@@ -297,24 +309,42 @@ namespace Coftea_Capstone.ViewModel
 
                     product.ProductID = newProductId;
 
-                    // Build product→inventory links (addons/ingredients)
+                    // Build product→inventory links (addons/ingredients) and persist for future edits
                     var selected = ConnectPOSToInventoryVM?.InventoryItems?.Where(i => i.IsSelected).ToList() ?? new();
                     if (selected.Count > 0)
                     {
-                        var links = selected.Select(i => (
-                            inventoryItemId: i.itemID,
-                            amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-                            unit: (string?)i.unitOfMeasurement,
-                            role: string.Equals(i.itemCategory, "Addons", StringComparison.OrdinalIgnoreCase) ? "addon" : "ingredient"
-                        ));
+                        // Split into real ingredients and addons
+                        var ingredientLinks = selected
+                            .Where(i => !string.Equals(i.itemCategory, "Addons", StringComparison.OrdinalIgnoreCase)
+                                     && !string.Equals(i.itemCategory, "Sinkers", StringComparison.OrdinalIgnoreCase)
+                                     && !string.Equals(i.itemCategory, "Sinkers & etc.", StringComparison.OrdinalIgnoreCase))
+                            .Select(i => (
+                                inventoryItemId: i.itemID,
+                                amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
+                                unit: (string?)i.unitOfMeasurement
+                            ));
+
+                        var addonLinks = selected
+                            .Where(i => string.Equals(i.itemCategory, "Addons", StringComparison.OrdinalIgnoreCase)
+                                     || string.Equals(i.itemCategory, "Sinkers", StringComparison.OrdinalIgnoreCase)
+                                     || string.Equals(i.itemCategory, "Sinkers & etc.", StringComparison.OrdinalIgnoreCase))
+                            .Select(i => (
+                                inventoryItemId: i.itemID,
+                                amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
+                                unit: (string?)i.unitOfMeasurement,
+                                price: i.AddonPrice
+                            ));
 
                         try
                         {
-                            await _database.SaveProductIngredientLinksAsync(newProductId, links);
+                            if (ingredientLinks.Any())
+                                await _database.SaveProductIngredientLinksAsync(newProductId, ingredientLinks);
+                            if (addonLinks.Any())
+                                await _database.SaveProductAddonLinksAsync(newProductId, addonLinks);
                         }
                         catch (Exception ex)
                         {
-                            await Application.Current.MainPage.DisplayAlert("Warning", $"Product saved but failed to link addons/ingredients: {ex.Message}", "OK");
+                            await Application.Current.MainPage.DisplayAlert("Warning", $"Product saved but failed to link ingredients/addons: {ex.Message}", "OK");
                         }
                     }
 
@@ -327,6 +357,7 @@ namespace Coftea_Capstone.ViewModel
                         $"{product.ProductName} has been added to the menu",
                         $"ID: {newProductId}",
                         1500);
+                    app?.NotificationPopup?.ShowToast("Product added to POS", 2000);
                     await DeductSelectedIngredientsAsync();
                     ResetForm();
                     ProductAdded?.Invoke(product);

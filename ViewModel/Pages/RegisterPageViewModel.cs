@@ -159,7 +159,8 @@ namespace Coftea_Capstone.ViewModel
                     };
 
                     await _database.AddUserAsync(user);
-                    await Application.Current.MainPage.DisplayAlert("Success", "Account created successfully! You are the first user and have been granted admin privileges.", "OK");
+                    var app = (App)Application.Current;
+                    app?.NotificationPopup?.ShowToast("Registration successful (admin)", 2000);
                 }
                 else
                 {
@@ -177,7 +178,8 @@ namespace Coftea_Capstone.ViewModel
                     };
 
                     await _database.AddPendingUserRequestAsync(pendingRequest);
-                    await Application.Current.MainPage.DisplayAlert("Success", "Registration request submitted! An admin will review and approve your account.", "OK");
+                    var app = (App)Application.Current;
+                    app?.NotificationPopup?.ShowToast("Registration request submitted", 2000);
                 }
 
                 // Navigate back to Login page

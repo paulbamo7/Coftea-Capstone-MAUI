@@ -359,6 +359,7 @@ namespace Coftea_Capstone.ViewModel
                             $"{inventoryItem.itemName} has been updated",
                             $"ID: {inventoryItem.itemID}",
                             1500);
+                        app?.NotificationPopup?.ShowToast("Inventory updated", 2000);
                     }
                     else
                     {
@@ -373,6 +374,7 @@ namespace Coftea_Capstone.ViewModel
                             $"{inventoryItem.itemName} has been added",
                             $"ID: {createdId}",
                             1500);
+                        app?.NotificationPopup?.ShowToast("Inventory added", 2000);
                     }
                     // Notify listeners (e.g., Inventory page) to refresh
                     MessagingCenter.Send(this, "InventoryChanged");

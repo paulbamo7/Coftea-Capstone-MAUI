@@ -8,8 +8,8 @@
              IsVisible="{Binding IsPreviewVisible}">
 
     <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
-        <!-- Addons Selection Popup -->
-        <controls:AddonsSelectionPopup BindingContext="{Binding AddonsPopup}" />
+        <!-- Addons Selection Popup (overlay above preview frame) -->
+        <controls:AddonsSelectionPopup BindingContext="{Binding AddonsPopup}" ZIndex="1000" />
         <Frame BackgroundColor="#F8E8D7"
                CornerRadius="20"
                Padding="20"

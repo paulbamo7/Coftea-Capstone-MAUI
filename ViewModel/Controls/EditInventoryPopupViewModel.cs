@@ -125,6 +125,8 @@ namespace Coftea_Capstone.ViewModel
                 {
                     AllItems.Remove(item);
                     Items.Remove(item);
+                    var app = (App)Application.Current;
+                    app?.NotificationPopup?.ShowToast("Inventory item deleted", 2000);
                     MessagingCenter.Send(this, "InventoryChanged");
                 }
                 else

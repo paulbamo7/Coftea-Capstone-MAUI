@@ -133,7 +133,7 @@ namespace Coftea_Capstone.ViewModel
 
                 if (rowsAffected > 0 || !stillExists)
                 {
-                    NotificationPopup.ShowNotification("Product deleted successfully!", "Success");
+                    NotificationPopup.ShowToast("Product deleted", 2000);
                     AllProducts.Remove(product);
                     Products.Remove(product);
                     return;
