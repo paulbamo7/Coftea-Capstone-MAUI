@@ -35,12 +35,7 @@ namespace Coftea_Capstone.Services
 
         public DatabaseSalesReportService()
         {
-            _database = new Database(
-                host: "0.0.0.0",
-                database: "coftea_db",
-                user: "root",
-                password: ""
-            );
+            _database = new Database(); // Will use auto-detected host
         }
 
         public async Task<SalesReportSummary> GetSummaryAsync(DateTime startDate, DateTime endDate)

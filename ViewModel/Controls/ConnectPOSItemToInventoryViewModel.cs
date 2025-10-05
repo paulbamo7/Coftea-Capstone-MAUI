@@ -14,10 +14,30 @@ namespace Coftea_Capstone.ViewModel.Controls
 {
     public partial class ConnectPOSItemToInventoryViewModel : ObservableObject
     {
-        private readonly Database _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+        private readonly Database _database = new Database(); // Will use auto-detected host
 
         // Event to trigger AddProduct in parent VM
         public event Action ConfirmPreviewRequested;
+
+        public ConnectPOSItemToInventoryViewModel()
+        {
+            // Initialize addons popup
+            AddonsPopup = new AddonsSelectionPopupViewModel();
+            AddonsPopup.AddonsSelected += OnAddonsSelected;
+        }
+
+        private void OnAddonsSelected(List<InventoryPageModel> selectedAddons)
+        {
+            // Update SelectedAddons with the new selection
+            SelectedAddons.Clear();
+            foreach (var addon in selectedAddons)
+            {
+                SelectedAddons.Add(addon);
+            }
+            
+            // Notify UI of changes
+            OnPropertyChanged(nameof(SelectedAddons));
+        }
         [ObservableProperty] private bool isConnectPOSToInventoryVisible;
         [ObservableProperty] private bool isPreviewVisible;
         [ObservableProperty] private bool isInputIngredientsVisible;
@@ -30,6 +50,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new();
         public ObservableCollection<InventoryPageModel> SelectedAddons { get; set; } = new();
         [ObservableProperty] private bool isAddonPopupVisible;
+        
+        // Addons popup
+        [ObservableProperty] private AddonsSelectionPopupViewModel addonsPopup;
 
         [ObservableProperty] private string selectedFilter = "All";
         [ObservableProperty] private string searchText = string.Empty;
@@ -42,6 +65,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private decimal smallPrice;
         [ObservableProperty] private decimal mediumPrice;
         [ObservableProperty] private decimal largePrice;
+
+        // Dynamic cup sizes from database
+        [ObservableProperty] private string smallSizeText = "Small";
+        [ObservableProperty] private string mediumSizeText = "Medium";
+        [ObservableProperty] private string largeSizeText = "Large";
 
         // Size button visibility properties based on category
         public bool IsSmallSizeVisible => !string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
@@ -164,6 +192,31 @@ namespace Coftea_Capstone.ViewModel.Controls
         public async Task LoadInventoryAsync()
         {
             var list = await _database.GetInventoryItemsAsync();
+            
+            // Load cup sizes from database
+            await LoadCupSizesAsync();
+            
+            // Preserve current selection state
+            var currentSelections = new Dictionary<int, SelectionState>();
+            if (AllInventoryItems != null)
+            {
+                foreach (var item in AllInventoryItems.Where(i => i.IsSelected))
+                {
+                    currentSelections[item.itemID] = new SelectionState
+                    {
+                        IsSelected = item.IsSelected,
+                        InputAmount = item.InputAmount,
+                        InputUnit = item.InputUnit,
+                        InputAmountSmall = item.InputAmountSmall,
+                        InputUnitSmall = item.InputUnitSmall,
+                        InputAmountMedium = item.InputAmountMedium,
+                        InputUnitMedium = item.InputUnitMedium,
+                        InputAmountLarge = item.InputAmountLarge,
+                        InputUnitLarge = item.InputUnitLarge
+                    };
+                }
+            }
+            
             AllInventoryItems.Clear();
             InventoryItems.Clear();
             
@@ -176,13 +229,30 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             foreach (var it in list)
             {
-                // Start with all items unchecked by default
-                it.IsSelected = false;
-                // Initialize per-size units from inventory default if not set
-                var defUnit = it.HasUnit ? it.unitOfMeasurement : "pcs";
-                if (string.IsNullOrWhiteSpace(it.InputUnitSmall)) it.InputUnitSmall = defUnit;
-                if (string.IsNullOrWhiteSpace(it.InputUnitMedium)) it.InputUnitMedium = defUnit;
-                if (string.IsNullOrWhiteSpace(it.InputUnitLarge)) it.InputUnitLarge = defUnit;
+                // Restore selection state if it was previously selected
+                if (currentSelections.ContainsKey(it.itemID))
+                {
+                    var selection = currentSelections[it.itemID];
+                    it.IsSelected = selection.IsSelected;
+                    it.InputAmount = selection.InputAmount;
+                    it.InputUnit = selection.InputUnit;
+                    it.InputAmountSmall = selection.InputAmountSmall;
+                    it.InputUnitSmall = selection.InputUnitSmall;
+                    it.InputAmountMedium = selection.InputAmountMedium;
+                    it.InputUnitMedium = selection.InputUnitMedium;
+                    it.InputAmountLarge = selection.InputAmountLarge;
+                    it.InputUnitLarge = selection.InputUnitLarge;
+                }
+                else
+                {
+                    // Start with all items unchecked by default
+                    it.IsSelected = false;
+                    // Initialize per-size units from inventory default if not set
+                    var defUnit = it.HasUnit ? it.unitOfMeasurement : "pcs";
+                    if (string.IsNullOrWhiteSpace(it.InputUnitSmall)) it.InputUnitSmall = defUnit;
+                    if (string.IsNullOrWhiteSpace(it.InputUnitMedium)) it.InputUnitMedium = defUnit;
+                    if (string.IsNullOrWhiteSpace(it.InputUnitLarge)) it.InputUnitLarge = defUnit;
+                }
 
                 // No need to set per-size amount since it's always 1 serving
 
@@ -192,75 +262,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 bool isCup = nameLower.Contains("cup") && (categoryLower == "supplies" || categoryLower == "ingredients");
                 bool isStraw = nameLower.Contains("straw") && (categoryLower == "supplies" || categoryLower == "ingredients");
                 
+                // Skip cup items - they are handled automatically by the size buttons
                 if (isCup)
                 {
-                    // Create size-specific cup entries
-                    var smallCup = new InventoryPageModel
-                    {
-                        itemID = it.itemID + 1000, // Unique ID for small cup
-                        itemName = "Small Cup",
-                        itemCategory = it.itemCategory,
-                        itemQuantity = it.itemQuantity,
-                        unitOfMeasurement = it.unitOfMeasurement,
-                        minimumQuantity = it.minimumQuantity,
-                        ImageSet = it.ImageSet,
-                        itemDescription = it.itemDescription,
-                        InputAmountSmall = 1,
-                        InputUnitSmall = "pcs",
-                        InputAmountMedium = 0,
-                        InputUnitMedium = "pcs",
-                        InputAmountLarge = 0,
-                        InputUnitLarge = "pcs",
-                        InputAmount = 1,
-                        InputUnit = "pcs",
-                        IsSelected = false
-                    };
-                    
-                    var mediumCup = new InventoryPageModel
-                    {
-                        itemID = it.itemID + 2000, // Unique ID for medium cup
-                        itemName = "Medium Cup",
-                        itemCategory = it.itemCategory,
-                        itemQuantity = it.itemQuantity,
-                        unitOfMeasurement = it.unitOfMeasurement,
-                        minimumQuantity = it.minimumQuantity,
-                        ImageSet = it.ImageSet,
-                        itemDescription = it.itemDescription,
-                        InputAmountSmall = 0,
-                        InputUnitSmall = "pcs",
-                        InputAmountMedium = 1,
-                        InputUnitMedium = "pcs",
-                        InputAmountLarge = 0,
-                        InputUnitLarge = "pcs",
-                        InputAmount = 1,
-                        InputUnit = "pcs",
-                        IsSelected = false
-                    };
-                    
-                    var largeCup = new InventoryPageModel
-                    {
-                        itemID = it.itemID + 3000, // Unique ID for large cup
-                        itemName = "Large Cup",
-                        itemCategory = it.itemCategory,
-                        itemQuantity = it.itemQuantity,
-                        unitOfMeasurement = it.unitOfMeasurement,
-                        minimumQuantity = it.minimumQuantity,
-                        ImageSet = it.ImageSet,
-                        itemDescription = it.itemDescription,
-                        InputAmountSmall = 0,
-                        InputUnitSmall = "pcs",
-                        InputAmountMedium = 0,
-                        InputUnitMedium = "pcs",
-                        InputAmountLarge = 1,
-                        InputUnitLarge = "pcs",
-                        InputAmount = 1,
-                        InputUnit = "pcs",
-                        IsSelected = false
-                    };
-                    
-                    cupsAndStraws.Add(smallCup);
-                    cupsAndStraws.Add(mediumCup);
-                    cupsAndStraws.Add(largeCup);
+                    continue; // Don't add cup items to the display list
                 }
                 else if (isStraw)
                 {
@@ -299,6 +304,52 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(HasSelectedIngredients));
             OnPropertyChanged(nameof(SelectedInventoryItems));
             OnPropertyChanged(nameof(SelectedIngredientsOnly));
+        }
+
+        private async Task LoadCupSizesAsync()
+        {
+            try
+            {
+                // Load cup sizes from database - look for Small Cup, Medium Cup, Large Cup
+                var inventoryItems = await _database.GetInventoryItemsAsync();
+                
+                // Find the specific cup items
+                var smallCup = inventoryItems.FirstOrDefault(item => 
+                    string.Equals(item.itemName, "Small Cup", StringComparison.OrdinalIgnoreCase));
+                var mediumCup = inventoryItems.FirstOrDefault(item => 
+                    string.Equals(item.itemName, "Medium Cup", StringComparison.OrdinalIgnoreCase));
+                var largeCup = inventoryItems.FirstOrDefault(item => 
+                    string.Equals(item.itemName, "Large Cup", StringComparison.OrdinalIgnoreCase));
+
+                // Update button text with actual cup names from database
+                if (smallCup != null)
+                {
+                    SmallSizeText = smallCup.itemName; // "Small Cup"
+                }
+                if (mediumCup != null)
+                {
+                    MediumSizeText = mediumCup.itemName; // "Medium Cup"
+                }
+                if (largeCup != null)
+                {
+                    LargeSizeText = largeCup.itemName; // "Large Cup"
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading cup sizes: {ex.Message}");
+                // Keep default values if loading fails
+            }
+        }
+
+        private string ExtractSizeFromDescription(string description, string sizeType)
+        {
+            // This is a simple extraction method - you can enhance this based on your data structure
+            // For example, if your description contains "Small: 8oz, Medium: 12oz, Large: 16oz"
+            // you could extract the specific size names
+            
+            // For now, return the size type as-is, but you can implement more sophisticated parsing
+            return sizeType;
         }
 
         private void OnInventoryItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -470,9 +521,14 @@ namespace Coftea_Capstone.ViewModel.Controls
             query = query.Where(i => {
                 var nameLower = (i.itemName ?? string.Empty).Trim().ToLowerInvariant();
                 var categoryLower = (i.itemCategory ?? string.Empty).Trim().ToLowerInvariant();
-                bool isCup = nameLower.Contains("cup") && (categoryLower == "supplies" || categoryLower == "ingredients");
-                bool isStraw = nameLower.Contains("straw") && (categoryLower == "supplies" || categoryLower == "ingredients");
-                return !isCup && !isStraw;
+                
+                // Exclude specific cup items and straws
+                bool isSmallCup = string.Equals(i.itemName, "Small Cup", StringComparison.OrdinalIgnoreCase);
+                bool isMediumCup = string.Equals(i.itemName, "Medium Cup", StringComparison.OrdinalIgnoreCase);
+                bool isLargeCup = string.Equals(i.itemName, "Large Cup", StringComparison.OrdinalIgnoreCase);
+                bool isStraw = string.Equals(i.itemName, "Straw", StringComparison.OrdinalIgnoreCase);
+                
+                return !isSmallCup && !isMediumCup && !isLargeCup && !isStraw;
             });
 
             if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All")
@@ -576,13 +632,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         // Popup controls
         [RelayCommand]
-        private async Task OpenAddonPopup()
+        private async Task OpenAddonPopupCommand()
         {
-            if (AvailableAddons.Count == 0)
-            {
-                await AddAddons();
-            }
-            IsAddonPopupVisible = true;
+            await AddonsPopup.OpenAddonsPopup();
         }
 
         [RelayCommand]
@@ -648,5 +700,18 @@ namespace Coftea_Capstone.ViewModel.Controls
             [ObservableProperty] private string unit;
             [ObservableProperty] private bool selected;
         }
+    }
+
+    public class SelectionState
+    {
+        public bool IsSelected { get; set; }
+        public double InputAmount { get; set; }
+        public string InputUnit { get; set; }
+        public double InputAmountSmall { get; set; }
+        public string InputUnitSmall { get; set; }
+        public double InputAmountMedium { get; set; }
+        public string InputUnitMedium { get; set; }
+        public double InputAmountLarge { get; set; }
+        public string InputUnitLarge { get; set; }
     }
 }

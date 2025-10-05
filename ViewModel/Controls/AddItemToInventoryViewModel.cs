@@ -97,12 +97,7 @@ namespace Coftea_Capstone.ViewModel
 
         public AddItemToInventoryViewModel()
         {
-            _database = new Database(
-                host: "192.168.1.4",
-                database: "coftea_db",
-                user: "maui",
-                password: "password123"
-            );
+            _database = new Database(); // Will use auto-detected host
         }
 
         partial void OnItemCategoryChanged(string value)

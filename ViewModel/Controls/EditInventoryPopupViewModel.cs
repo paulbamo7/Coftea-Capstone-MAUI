@@ -29,7 +29,7 @@ namespace Coftea_Capstone.ViewModel
 
         public EditInventoryPopupViewModel(AddItemToInventoryViewModel addItemToInventoryViewModel)
         {
-            _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+            _database = new Database(); // Will use auto-detected host
             _addItemToInventoryViewModel = addItemToInventoryViewModel;
         }
 

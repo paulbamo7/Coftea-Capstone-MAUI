@@ -56,12 +56,7 @@ namespace Coftea_Capstone.ViewModel
 
         public InventoryPageViewModel(SettingsPopUpViewModel settingsPopup)
         {
-            _database = new Database(
-                host: "192.168.1.4",
-                database: "coftea_db",
-                user: "maui",
-                password: "password123"
-            );
+            _database = new Database(); // Will use auto-detected host
             SettingsPopup = settingsPopup;
         }
 

@@ -124,7 +124,7 @@ namespace Coftea_Capstone.ViewModel
 
         public AddItemToPOSViewModel()
         {
-            _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+            _database = new Database(); // Will use auto-detected host
 
             IsAddItemToPOSVisible = false;
             IsConnectPOSToInventoryVisible = false;
@@ -345,24 +345,32 @@ namespace Coftea_Capstone.ViewModel
             if (selected == null || selected.Count == 0) return true; // nothing to validate
 
             List<string> issues = new();
+            
+            // Validate selected ingredients
             foreach (var it in selected)
             {
-                // Convert requested amount to the inventory unit
-                var fromUnit = (it.InputUnit ?? string.Empty).Trim();
+                // Use the current InputAmount and InputUnit from the UI
+                var inputAmount = it.InputAmount > 0 ? it.InputAmount : 1;
+                var inputUnit = it.InputUnit ?? it.DefaultUnit;
                 var toUnit = (it.unitOfMeasurement ?? string.Empty).Trim();
-                var amountRequested = ConvertUnits(it.InputAmount > 0 ? it.InputAmount : 1, fromUnit, toUnit);
+                
+                // Convert requested amount to the inventory unit
+                var amountRequested = ConvertUnits(inputAmount, inputUnit, toUnit);
 
                 if (amountRequested <= 0)
                 {
-                    issues.Add($"{it.itemName}: incompatible unit ({fromUnit} → {toUnit}).");
+                    issues.Add($"{it.itemName}: incompatible unit conversion ({inputUnit} → {toUnit}).");
                     continue;
                 }
 
                 if (amountRequested > it.itemQuantity)
                 {
-                    issues.Add($"{it.itemName}: needs {amountRequested} {toUnit}, only {it.itemQuantity} left.");
+                    issues.Add($"{it.itemName}: needs {amountRequested:F2} {toUnit}, only {it.itemQuantity:F2} {toUnit} available.");
                 }
             }
+            
+            // Validate automatic cup and straw
+            await ValidateAutomaticCupAndStraw(issues);
 
             if (issues.Count > 0)
             {
@@ -374,21 +382,87 @@ namespace Coftea_Capstone.ViewModel
             return true;
         }
 
+        private async Task ValidateAutomaticCupAndStraw(List<string> issues)
+        {
+            try
+            {
+                // Get the selected size and input amount
+                var selectedSize = ConnectPOSToInventoryVM?.SelectedSize ?? "Medium";
+                var inputAmount = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.FirstOrDefault()?.InputAmount ?? 1;
+                
+                // Get appropriate cup name
+                string cupName = selectedSize switch
+                {
+                    "Small" => "Small Cup",
+                    "Medium" => "Medium Cup", 
+                    "Large" => "Large Cup",
+                    _ => "Medium Cup"
+                };
+                
+                // Validate cup availability
+                var cupItem = await _database.GetInventoryItemByNameAsync(cupName);
+                if (cupItem != null)
+                {
+                    if (inputAmount > cupItem.itemQuantity)
+                    {
+                        issues.Add($"{cupName}: needs {inputAmount} pcs, only {cupItem.itemQuantity} pcs available.");
+                    }
+                }
+                else
+                {
+                    issues.Add($"{cupName}: not found in inventory.");
+                }
+                
+                // Validate straw availability
+                var strawItem = await _database.GetInventoryItemByNameAsync("Straw");
+                if (strawItem != null)
+                {
+                    if (inputAmount > strawItem.itemQuantity)
+                    {
+                        issues.Add($"Straw: needs {inputAmount} pcs, only {strawItem.itemQuantity} pcs available.");
+                    }
+                }
+                else
+                {
+                    issues.Add("Straw: not found in inventory.");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error validating automatic cup and straw: {ex.Message}");
+                issues.Add("Error validating cup and straw availability.");
+            }
+        }
+
         private async Task DeductSelectedIngredientsAsync()
         {
-            if (ConnectPOSToInventoryVM?.Ingredients == null || ConnectPOSToInventoryVM.Ingredients.Count == 0)
+            if (ConnectPOSToInventoryVM?.InventoryItems == null || !ConnectPOSToInventoryVM.InventoryItems.Any(i => i.IsSelected))
                 return;
 
-            // Prefer per-item input from InventoryItems if available, fallback to Ingredients list
+            // Get selected ingredients with their input amounts and units
             var selected = ConnectPOSToInventoryVM.InventoryItems.Where(i => i.IsSelected);
-            var pairs = selected.Select(i => (
-                name: i.itemName,
-                amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement)
-            ));
+            var pairs = new List<(string name, double amount)>();
+            
+            // Add selected ingredients
+            foreach (var i in selected)
+            {
+                var inputAmount = i.InputAmount > 0 ? i.InputAmount : 1;
+                var inputUnit = i.InputUnit ?? i.DefaultUnit;
+                var convertedAmount = ConvertUnits(inputAmount, inputUnit, i.unitOfMeasurement);
+                
+                pairs.Add((name: i.itemName, amount: convertedAmount));
+            }
+            
+            // Automatically add cup and straw based on selected size and input amount
+            await AddAutomaticCupAndStraw(pairs);
 
             try
             {
-                await _database.DeductInventoryAsync(pairs);
+                var affectedRows = await _database.DeductInventoryAsync(pairs);
+                if (affectedRows > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Successfully deducted inventory for {affectedRows} items");
+                }
             }
             catch (Exception ex)
             {
@@ -396,34 +470,75 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private async Task AddAutomaticCupAndStraw(List<(string name, double amount)> pairs)
+        {
+            try
+            {
+                // Get the selected size from the ConnectPOSItemToInventoryViewModel
+                var selectedSize = ConnectPOSToInventoryVM?.SelectedSize ?? "Medium";
+                var inputAmount = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.FirstOrDefault()?.InputAmount ?? 1;
+                
+                // Add appropriate cup based on size
+                string cupName = selectedSize switch
+                {
+                    "Small" => "Small Cup",
+                    "Medium" => "Medium Cup", 
+                    "Large" => "Large Cup",
+                    _ => "Medium Cup"
+                };
+                
+                // Add 1 cup per serving (input amount)
+                pairs.Add((name: cupName, amount: inputAmount));
+                
+                // Add 1 straw per serving (input amount)
+                pairs.Add((name: "Straw", amount: inputAmount));
+                
+                System.Diagnostics.Debug.WriteLine($"Automatically added: {inputAmount} {cupName} and {inputAmount} Straw");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error adding automatic cup and straw: {ex.Message}");
+            }
+        }
+
         private static double ConvertUnits(double amount, string fromUnit, string toUnit)
         {
             if (string.IsNullOrWhiteSpace(toUnit)) return amount; // no target unit, pass-through
-            fromUnit = (fromUnit ?? string.Empty).Trim().ToLowerInvariant();
-            toUnit = (toUnit ?? string.Empty).Trim().ToLowerInvariant();
+            
+            // Normalize units to short form
+            fromUnit = NormalizeUnit(fromUnit);
+            toUnit = NormalizeUnit(toUnit);
+
+            // If units are the same, no conversion needed
+            if (string.Equals(fromUnit, toUnit, StringComparison.OrdinalIgnoreCase))
+            {
+                return amount;
+            }
 
             // Mass conversions
-            if ((fromUnit == "kg" || fromUnit == "g") && (toUnit == "kg" || toUnit == "g"))
+            if (IsMassUnit(fromUnit) && IsMassUnit(toUnit))
             {
-                return fromUnit == toUnit
-                    ? amount
-                    : (fromUnit == "kg" && toUnit == "g") ? amount * 1000
-                    : (fromUnit == "g" && toUnit == "kg") ? amount / 1000
-                    : amount;
+                return fromUnit.ToLowerInvariant() switch
+                {
+                    "kg" when toUnit.ToLowerInvariant() == "g" => amount * 1000,
+                    "g" when toUnit.ToLowerInvariant() == "kg" => amount / 1000,
+                    _ => amount
+                };
             }
 
             // Volume conversions
-            if ((fromUnit == "l" || fromUnit == "ml") && (toUnit == "l" || toUnit == "ml"))
+            if (IsVolumeUnit(fromUnit) && IsVolumeUnit(toUnit))
             {
-                return fromUnit == toUnit
-                    ? amount
-                    : (fromUnit == "l" && toUnit == "ml") ? amount * 1000
-                    : (fromUnit == "ml" && toUnit == "l") ? amount / 1000
-                    : amount;
+                return fromUnit.ToLowerInvariant() switch
+                {
+                    "l" when toUnit.ToLowerInvariant() == "ml" => amount * 1000,
+                    "ml" when toUnit.ToLowerInvariant() == "l" => amount / 1000,
+                    _ => amount
+                };
             }
 
             // Count
-            if ((fromUnit == "pcs" || string.IsNullOrEmpty(fromUnit)) && toUnit == "pcs")
+            if (IsCountUnit(fromUnit) && IsCountUnit(toUnit))
             {
                 return amount;
             }
@@ -433,6 +548,40 @@ namespace Coftea_Capstone.ViewModel
 
             // Unknown or mismatched units → block deduction by returning 0
             return 0;
+        }
+
+        private static string NormalizeUnit(string unit)
+        {
+            if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
+            
+            var normalized = unit.Trim().ToLowerInvariant();
+            
+            // Handle full unit names from database
+            if (normalized.Contains("kilograms") || normalized == "kg") return "kg";
+            if (normalized.Contains("grams") || normalized == "g") return "g";
+            if (normalized.Contains("liters") || normalized == "l") return "l";
+            if (normalized.Contains("milliliters") || normalized == "ml") return "ml";
+            if (normalized.Contains("pcs") || normalized.Contains("pieces")) return "pcs";
+            
+            return normalized;
+        }
+
+        private static bool IsMassUnit(string unit)
+        {
+            var normalized = NormalizeUnit(unit);
+            return normalized == "kg" || normalized == "g";
+        }
+
+        private static bool IsVolumeUnit(string unit)
+        {
+            var normalized = NormalizeUnit(unit);
+            return normalized == "l" || normalized == "ml";
+        }
+
+        private static bool IsCountUnit(string unit)
+        {
+            var normalized = NormalizeUnit(unit);
+            return normalized == "pcs" || string.IsNullOrEmpty(normalized);
         }
 
         private void ResetForm()

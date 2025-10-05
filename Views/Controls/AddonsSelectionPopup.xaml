@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.AddonsSelectionPopup"
+             x:Name="Root"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsAddonsPopupVisible}">
+
+    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Padding="20">
+        <Frame BackgroundColor="#F8E8D7"
+               CornerRadius="25"
+               Padding="0"
+               WidthRequest="950"
+               HeightRequest="720"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               HasShadow="True"
+               BorderColor="#DDDDDD">
+
+            <!-- MAIN GRID FOR HEADER, CONTENT, FOOTER -->
+            <Grid Padding="25" RowSpacing="15" RowDefinitions="Auto,*,Auto">
+
+                <!-- HEADER -->
+                <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="FillAndExpand" Spacing="10">
+                    <Label Text="Select Addons"
+                           FontAttributes="Bold"
+                           FontSize="26"
+                           TextColor="#3C3C3C"
+                           VerticalOptions="Center" />
+                    <Button Text="✕"
+                            BackgroundColor="Transparent"
+                            TextColor="#444"
+                            FontSize="20"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            Command="{Binding CloseAddonsPopupCommand}" />
+                </HorizontalStackLayout>
+
+                <!-- CONTENT -->
+                <Grid Grid.Row="1" RowDefinitions="Auto,*">
+                    <!-- Filter and Search -->
+                    <Grid Grid.Row="0" RowDefinitions="Auto,Auto" RowSpacing="10" Margin="0,0,0,15">
+                        <!-- Filter Buttons -->
+                        <ScrollView Grid.Row="0" Orientation="Horizontal">
+                            <HorizontalStackLayout Spacing="8">
+                                <Button Text="All" 
+                                        Command="{Binding FilterByCategoryCommand}" 
+                                        CommandParameter="All"
+                                        FontAttributes="Bold" 
+                                        FontSize="14" 
+                                        WidthRequest="80" 
+                                        HeightRequest="35"
+                                        BackgroundColor="#E6DE9D"
+                                        TextColor="Black"
+                                        CornerRadius="17"/>
+                                <Button Text="Addons" 
+                                        Command="{Binding FilterByCategoryCommand}" 
+                                        CommandParameter="Addons"
+                                        FontAttributes="Bold" 
+                                        FontSize="14" 
+                                        WidthRequest="80" 
+                                        HeightRequest="35"
+                                        BackgroundColor="LightGray"
+                                        TextColor="Black"
+                                        CornerRadius="17"/>
+                                <Button Text="Sinkers" 
+                                        Command="{Binding FilterByCategoryCommand}" 
+                                        CommandParameter="Sinkers"
+                                        FontAttributes="Bold" 
+                                        FontSize="14" 
+                                        WidthRequest="80" 
+                                        HeightRequest="35"
+                                        BackgroundColor="LightGray"
+                                        TextColor="Black"
+                                        CornerRadius="17"/>
+                            </HorizontalStackLayout>
+                        </ScrollView>
+
+                        <!-- Search Bar -->
+                        <Entry Grid.Row="1" 
+                               Text="{Binding SearchText}" 
+                               Placeholder="Search addons..." 
+                               FontSize="16" 
+                               BackgroundColor="White" 
+                               />
+                    </Grid>
+
+                    <!-- Inventory Items List -->
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding AvailableAddons}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="White" 
+                                       CornerRadius="15" 
+                                       Padding="15" 
+                                       Margin="0,5" 
+                                       HasShadow="True">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                                        <!-- Checkbox and Item Info -->
+                                        <CheckBox Grid.Column="0" 
+                                                  Grid.RowSpan="2"
+                                                  IsChecked="{Binding IsSelected}" 
+                                                  VerticalOptions="Center" 
+                                                  Margin="0,0,15,0"/>
+
+                                        <!-- Item Name and Category -->
+                                        <VerticalStackLayout Grid.Column="1" Grid.RowSpan="2" VerticalOptions="Center">
+                                            <Label Text="{Binding itemName}" 
+                                                   FontSize="16" 
+                                                   FontAttributes="Bold" 
+                                                   TextColor="#2C2C2C"/>
+                                            <Label Text="{Binding itemCategory}" 
+                                                   FontSize="13" 
+                                                   TextColor="#666666"/>
+                                        </VerticalStackLayout>
+
+                                        <!-- Stock Progress Bar -->
+                                        <Grid Grid.Column="2" Grid.RowSpan="2" HeightRequest="22" VerticalOptions="Center" WidthRequest="100">
+                                            <BoxView Color="#E0E0E0" CornerRadius="17" />
+                                            <ProgressBar Progress="{Binding StockProgress}"
+                                                         ProgressColor="{Binding StockFillColor}"
+                                                         HeightRequest="34" />
+                                            <Label Text="{Binding StockText}" FontSize="10" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Grid>
+
+                                        <!-- Amount Input -->
+                                        <Entry Grid.Column="3" 
+                                               Grid.Row="0"
+                                               Text="{Binding InputAmount}" 
+                                               FontSize="14" 
+                                               Keyboard="Numeric" 
+                                               HorizontalTextAlignment="Center"
+                                               BackgroundColor="#F8F8F8"
+                                               WidthRequest="80"
+                                               Placeholder="Amount"/>
+
+                                        <!-- Unit Picker -->
+                                        <Picker Grid.Column="4" 
+                                                Grid.Row="0"
+                                                SelectedItem="{Binding InputUnit}" 
+                                                ItemsSource="{Binding AllowedUnits}"
+                                                FontSize="12" 
+                                                HorizontalOptions="Center"
+                                                WidthRequest="70" />
+
+                                        <!-- Addon Price Input -->
+                                        <Entry Grid.Column="5" 
+                                               Grid.Row="0"
+                                               Text="{Binding AddonPrice}" 
+                                               FontSize="14" 
+                                               Keyboard="Numeric" 
+                                               HorizontalTextAlignment="Center"
+                                               BackgroundColor="#F8F8F8"
+                                               WidthRequest="80"
+                                               Placeholder="Price"/>
+
+                                        <!-- Addon Unit Picker -->
+                                        <Picker Grid.Column="6" 
+                                                Grid.Row="0"
+                                                SelectedItem="{Binding AddonUnit}" 
+                                                ItemsSource="{Binding AllowedUnits}"
+                                                FontSize="12" 
+                                                HorizontalOptions="Center"
+                                                WidthRequest="70" />
+
+                                        <!-- Labels Row -->
+                                        <Grid Grid.Column="3" Grid.ColumnSpan="4" Grid.Row="1" Margin="0,5,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="80" />
+                                                <ColumnDefinition Width="70" />
+                                                <ColumnDefinition Width="80" />
+                                                <ColumnDefinition Width="70" />
+                                            </Grid.ColumnDefinitions>
+                                            <Label Grid.Column="0" Text="Amount" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="1" Text="Unit" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="2" Text="Price" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="3" Text="Unit" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
+                                        </Grid>
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Grid>
+
+                <!-- FOOTER -->
+                <HorizontalStackLayout Grid.Row="2" HorizontalOptions="End" Spacing="15">
+                    <Button Text="Cancel" 
+                            BackgroundColor="#D3D3D3" 
+                            TextColor="Black" 
+                            CornerRadius="20"
+                            WidthRequest="100" 
+                            HeightRequest="45"
+                            Command="{Binding CloseAddonsPopupCommand}"/>
+                    <Button Text="Confirm Selection" 
+                            BackgroundColor="#E6DE9D" 
+                            TextColor="Black" 
+                            CornerRadius="20"
+                            WidthRequest="150" 
+                            HeightRequest="45"
+                            Command="{Binding ConfirmAddonSelectionCommand}"/>
+                </HorizontalStackLayout>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>

@@ -14,6 +14,9 @@
     <Grid BackgroundColor="#80000000" 
           VerticalOptions="FillAndExpand" 
           HorizontalOptions="FillAndExpand">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseCommand}"/>
+        </Grid.GestureRecognizers>
         
         <!-- Main Popup Container -->
         <Frame BackgroundColor="White"
@@ -25,8 +28,28 @@
                HorizontalOptions="Center"
                WidthRequest="600"
                HeightRequest="400">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer/>
+            </Frame.GestureRecognizers>
             
             <Grid RowDefinitions="Auto, *" ColumnDefinitions="*, *">
+                
+                <!-- Close Button - Top Right Corner -->
+                <Button Text="✕"
+                        BackgroundColor="Transparent"
+                        TextColor="#666666"
+                        FontSize="24"
+                        FontAttributes="Bold"
+                        Padding="0"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        HorizontalOptions="End"
+                        VerticalOptions="Start"
+                        Margin="0,15,15,0"
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        CornerRadius="20"
+                        Command="{Binding CloseCommand}"/>
                 
                 <!-- Left Section - Profile Picture and Name -->
                 <Grid Grid.Row="0" Grid.Column="0" Padding="30" VerticalOptions="Center">
@@ -119,12 +142,13 @@
                 </Grid>
                 
                 <!-- Close Button -->
-                <Button Text="Close"
-                        BackgroundColor="#4CAF50"
+                <Button Text="✕ Close"
+                        BackgroundColor="#FF6B6B"
                         TextColor="White"
-                        CornerRadius="15"
-                        Padding="20,10"
+                        CornerRadius="20"
+                        Padding="25,12"
                         FontSize="16"
+                        FontAttributes="Bold"
                         Grid.Row="1"
                         Grid.ColumnSpan="2"
                         HorizontalOptions="End"

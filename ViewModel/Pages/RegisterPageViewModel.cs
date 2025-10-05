@@ -20,12 +20,7 @@ namespace Coftea_Capstone.ViewModel
 
         public RegisterPageViewModel()
         {
-            _database = new Database(
-               host: "0.0.0.0",
-               database: "coftea_db",
-               user: "root",
-               password: ""
-            );
+            _database = new Database(); // Will use auto-detected host
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()

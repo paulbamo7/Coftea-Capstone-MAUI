@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             x:Class="Coftea_Capstone.Views.Controls.DeleteUserPopup"
+             x:Name="DeleteUserPopupView"
+             BackgroundColor="Transparent"
+             IsVisible="{Binding IsDeleteUserPopupVisible, FallbackValue=False}">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <!-- Popup Content -->
+    <Frame Grid.Row="0" Grid.Column="0" 
+           BackgroundColor="White" 
+           CornerRadius="15" 
+           Padding="0"
+           Margin="50"
+           HorizontalOptions="Center" 
+           VerticalOptions="Center"
+           WidthRequest="600"
+           HeightRequest="500">
+
+        <Grid RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Grid Grid.Row="0" BackgroundColor="#B24D4D" Padding="20,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" 
+                       Text="Delete Users" 
+                       FontSize="20" 
+                       FontAttributes="Bold" 
+                       TextColor="White"
+                       VerticalOptions="Center"/>
+
+                <ImageButton Grid.Column="1" 
+                             Source="close.png" 
+                             WidthRequest="25" 
+                             HeightRequest="25"
+                             BackgroundColor="Transparent"
+                             Command="{Binding CloseDeleteUserPopupCommand}"/>
+            </Grid>
+
+            <!-- Content -->
+            <ScrollView Grid.Row="1" Padding="20">
+                <CollectionView ItemsSource="{Binding Users}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="#F5F5F5" 
+                                   CornerRadius="10" 
+                                   Padding="15" 
+                                   Margin="0,5">
+                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="10" RowSpacing="5">
+                                    <!-- User Basic Info -->
+                                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                                        <Label FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               TextColor="Black"
+                                               Text="{Binding Username}"/>
+                                        <Label Text="{Binding LastActive, StringFormat='Last Active: {0}'}" 
+                                               FontSize="14" 
+                                               TextColor="Gray"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- User Details -->
+                                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,5,0,0">
+                                        <Label Text="{Binding DateAdded, StringFormat='Date Added: {0}'}" 
+                                               FontSize="12" 
+                                               TextColor="DarkGray"/>
+                                        <Label Text="{Binding CanAccessInventory, StringFormat='Inventory Access: {0}'}" 
+                                               FontSize="12" 
+                                               TextColor="DarkGray"/>
+                                        <Label Text="{Binding CanAccessSalesReport, StringFormat='Sales Report Access: {0}'}" 
+                                               FontSize="12" 
+                                               TextColor="DarkGray"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- Delete Button -->
+                                    <Button Grid.Row="2" Grid.Column="1" 
+                                            Text="Delete" 
+                                            BackgroundColor="#F44336" 
+                                            TextColor="White"
+                                            CornerRadius="8"
+                                            Padding="20,8"
+                                            IsEnabled="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}"
+                                            Command="{Binding Source={x:Reference DeleteUserPopupView}, Path=BindingContext.DeleteUserCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                    <CollectionView.EmptyView>
+                        <Grid Padding="40" HorizontalOptions="Center">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="No users to delete" 
+                                       FontSize="16" 
+                                       TextColor="Gray" 
+                                       HorizontalOptions="Center"/>
+                                <Label Text="All users have been processed" 
+                                       FontSize="14" 
+                                       TextColor="LightGray" 
+                                       HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+            </ScrollView>
+
+            <!-- Footer -->
+            <Grid Grid.Row="2" BackgroundColor="#F0F0F0" Padding="20,15">
+                <Button Text="Close" 
+                        BackgroundColor="#B24D4D" 
+                        TextColor="White"
+                        CornerRadius="8"
+                        Padding="30,10"
+                        HorizontalOptions="End"
+                        Command="{Binding CloseDeleteUserPopupCommand}"/>
+            </Grid>
+        </Grid>
+    </Frame>
+</ContentView>

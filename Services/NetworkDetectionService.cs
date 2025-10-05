@@ -48,10 +48,36 @@ namespace Coftea_Capstone.Services
                     return "10.0.2.2"; // Android emulator default
                 }
 
-                // For Windows, iOS, and other platforms, try to detect the actual server
-                var possibleHosts = await GetPossibleHostsAsync();
+                if (DeviceInfo.Platform == DevicePlatform.iOS)
+                {
+                    // For iOS Simulator, use localhost
+                    // For physical iOS devices, try to detect the host machine's IP
+                    if (DeviceInfo.DeviceType == DeviceType.Virtual)
+                    {
+                        return "localhost"; // iOS Simulator
+                    }
+                    else
+                    {
+                        // Physical iOS device - try to find the host machine's IP
+                        var possibleHosts = await GetPossibleHostsAsync();
+                        
+                        foreach (var host in possibleHosts)
+                        {
+                            if (await TestDatabaseConnectionAsync(host))
+                            {
+                                return host;
+                            }
+                        }
+                        
+                        // Fallback to localhost for physical devices
+                        return "localhost";
+                    }
+                }
+
+                // For Windows, Mac, and other platforms, try to detect the actual server
+                var allPossibleHosts = await GetPossibleHostsAsync();
                 
-                foreach (var host in possibleHosts)
+                foreach (var host in allPossibleHosts)
                 {
                     if (await TestDatabaseConnectionAsync(host))
                     {
@@ -73,9 +99,42 @@ namespace Coftea_Capstone.Services
         {
             try
             {
-                var possibleHosts = await GetPossibleHostsAsync();
+                // Platform-specific detection for email host
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    return "10.0.2.2"; // Android emulator default
+                }
+
+                if (DeviceInfo.Platform == DevicePlatform.iOS)
+                {
+                    // For iOS Simulator, use localhost
+                    // For physical iOS devices, try to detect the host machine's IP
+                    if (DeviceInfo.DeviceType == DeviceType.Virtual)
+                    {
+                        return "localhost"; // iOS Simulator
+                    }
+                    else
+                    {
+                        // Physical iOS device - try to find the host machine's IP
+                        var possibleHosts = await GetPossibleHostsAsync();
+                        
+                        foreach (var host in possibleHosts)
+                        {
+                            if (await TestEmailConnectionAsync(host))
+                            {
+                                return host;
+                            }
+                        }
+                        
+                        // Fallback to localhost for physical devices
+                        return "localhost";
+                    }
+                }
+
+                // For Windows, Mac, and other platforms, try to detect the actual server
+                var allPossibleHosts = await GetPossibleHostsAsync();
                 
-                foreach (var host in possibleHosts)
+                foreach (var host in allPossibleHosts)
                 {
                     if (await TestEmailConnectionAsync(host))
                     {

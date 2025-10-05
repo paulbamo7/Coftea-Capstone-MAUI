@@ -4,11 +4,14 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
     public partial class HistoryPopupViewModel : ObservableObject
     {
+        private readonly Database _database = new(); // Will use auto-detected host
+
         [ObservableProperty] 
         private bool isHistoryVisible = false;
 
@@ -19,16 +22,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         private ObservableCollection<TransactionHistoryModel> filteredTransactions = new();
 
         [ObservableProperty]
+        private ObservableCollection<TransactionHistoryModel> allTransactions = new();
+
+        [ObservableProperty]
         private string selectedFilter = "All Time";
 
-        [ObservableProperty]
-        private int currentPage = 1;
-
-        [ObservableProperty]
-        private int totalPages = 1;
-
-        [ObservableProperty]
-        private int itemsPerPage = 10;
 
         public ObservableCollection<string> FilterOptions { get; } = new()
         {
@@ -51,18 +49,39 @@ namespace Coftea_Capstone.ViewModel.Controls
             System.Diagnostics.Debug.WriteLine($"IsHistoryVisible set to: {IsHistoryVisible}");
         }
 
-        public void ShowHistory(ObservableCollection<TransactionHistoryModel> transactions)
+        public async Task ShowHistory(ObservableCollection<TransactionHistoryModel> transactions = null)
         {
-            System.Diagnostics.Debug.WriteLine($"HistoryPopup.ShowHistory called with {transactions?.Count ?? 0} transactions");
-            // Populate the filtered transactions collection directly
-            FilteredTransactions.Clear();
-            foreach (var transaction in transactions ?? new ObservableCollection<TransactionHistoryModel>())
+            System.Diagnostics.Debug.WriteLine($"HistoryPopup.ShowHistory called");
+            
+            try
             {
-                FilteredTransactions.Add(transaction);
+                // Load all transactions from database
+                await LoadAllTransactionsAsync();
+                
+                // Also add any in-memory transactions if provided
+                if (transactions != null && transactions.Any())
+                {
+                    foreach (var transaction in transactions)
+                    {
+                        if (!AllTransactions.Any(t => t.TransactionId == transaction.TransactionId))
+                        {
+                            AllTransactions.Add(transaction);
+                        }
+                    }
+                }
+                
+                ApplyTransactionFilter();
+                IsHistoryVisible = true;
+                System.Diagnostics.Debug.WriteLine($"IsHistoryVisible set to: {IsHistoryVisible}, Total transactions: {AllTransactions.Count}");
             }
-            ApplyTransactionFilter();
-            IsHistoryVisible = true;
-            System.Diagnostics.Debug.WriteLine($"IsHistoryVisible set to: {IsHistoryVisible}");
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading transaction history: {ex.Message}");
+                // Show empty history on error
+                AllTransactions.Clear();
+                FilteredTransactions.Clear();
+                IsHistoryVisible = true;
+            }
         }
 
         [RelayCommand]
@@ -79,9 +98,16 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void FilterByTimePeriod(string timePeriod)
+        private async Task FilterByTimePeriod(string timePeriod)
         {
             SelectedFilter = timePeriod;
+            
+            // If filtering for older periods, load more data from database
+            if (timePeriod == "1 Month Ago" || timePeriod == "All Time")
+            {
+                await LoadAllTransactionsAsync();
+            }
+            
             ApplyTransactionFilter();
         }
 
@@ -121,33 +147,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 SelectedInventoryItems.Add(item);
             }
-
-            CalculatePagination();
         }
 
-        private void CalculatePagination()
-        {
-            if (SelectedInventoryItems == null || !SelectedInventoryItems.Any())
-            {
-                TotalPages = 1;
-                CurrentPage = 1;
-                return;
-            }
-
-            TotalPages = (int)Math.Ceiling((double)SelectedInventoryItems.Count / ItemsPerPage);
-            if (CurrentPage > TotalPages)
-                CurrentPage = TotalPages;
-        }
-
-        [RelayCommand]
-        private void GoToPage(object pageNumberObj)
-        {
-            if (int.TryParse(pageNumberObj?.ToString(), out int pageNumber) && 
-                pageNumber >= 1 && pageNumber <= TotalPages)
-            {
-                CurrentPage = pageNumber;
-            }
-        }
 
         [RelayCommand]
         private void RefreshHistory()
@@ -155,19 +156,70 @@ namespace Coftea_Capstone.ViewModel.Controls
             ApplyTransactionFilter();
         }
 
+        private async Task LoadAllTransactionsAsync()
+        {
+            try
+            {
+                // Load transactions based on selected filter
+                DateTime startDate;
+                DateTime endDate = DateTime.Today.AddDays(1);
+                
+                switch (SelectedFilter)
+                {
+                    case "Today":
+                        startDate = DateTime.Today;
+                        break;
+                    case "Yesterday":
+                        startDate = DateTime.Today.AddDays(-1);
+                        endDate = DateTime.Today;
+                        break;
+                    case "3 Days Ago":
+                        startDate = DateTime.Today.AddDays(-3);
+                        break;
+                    case "1 Week Ago":
+                        startDate = DateTime.Today.AddDays(-7);
+                        break;
+                    case "2 Weeks Ago":
+                        startDate = DateTime.Today.AddDays(-14);
+                        break;
+                    case "1 Month Ago":
+                        startDate = DateTime.Today.AddDays(-30);
+                        break;
+                    case "All Time":
+                        startDate = DateTime.Today.AddDays(-365); // Load 1 year of data
+                        break;
+                    default:
+                        startDate = DateTime.Today.AddDays(-30); // Default to 30 days
+                        break;
+                }
+                
+                var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                
+                AllTransactions.Clear();
+                foreach (var transaction in transactions)
+                {
+                    AllTransactions.Add(transaction);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"Loaded {AllTransactions.Count} transactions from database for period: {SelectedFilter}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading transactions from database: {ex.Message}");
+                AllTransactions.Clear();
+            }
+        }
+
         private void ApplyTransactionFilter()
         {
-            if (FilteredTransactions == null || !FilteredTransactions.Any())
+            if (AllTransactions == null || !AllTransactions.Any())
             {
+                FilteredTransactions.Clear();
                 return;
             }
 
-            // Get all transactions from the app's shared collection
-            var app = (App)Application.Current;
-            var allTransactions = app?.Transactions ?? new ObservableCollection<TransactionHistoryModel>();
-            
             // Apply time period filtering
-            var filteredItems = allTransactions.AsEnumerable();
+            var filteredItems = AllTransactions.AsEnumerable();
             
             if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All Time")
             {
@@ -206,15 +258,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 FilteredTransactions.Add(transaction);
             }
-
-            CalculatePagination();
         }
 
-        [RelayCommand]
-        private void ExportHistory()
-        {
-            // TODO: Implement export functionality for selected inventory items
-            // This could export to CSV, PDF, etc.
-        }
     }
 }

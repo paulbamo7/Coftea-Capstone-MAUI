@@ -31,7 +31,7 @@
                HasShadow="True"
                InputTransparent="False">
 
-            <Grid RowDefinitions="Auto, Auto, *, Auto">
+            <Grid RowDefinitions="Auto, Auto, *">
                 <!-- Header -->
                 <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15">
                     <Grid ColumnDefinitions="*, Auto">
@@ -43,6 +43,7 @@
                                TextColor="White" />
                         <Button Grid.Column="1"
                                 Text="×"
+                                Padding="0"
                                 FontSize="24"
                                 FontAttributes="Bold"
                                 BackgroundColor="Transparent"
@@ -325,79 +326,6 @@
                     </ScrollView>
                 </Grid>
 
-                <!-- Footer with Pagination and Actions -->
-                <Grid Grid.Row="3" BackgroundColor="#E8D5C4" Padding="20,15">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <!-- Pagination -->
-                        <HorizontalStackLayout Grid.Column="0" Spacing="5" VerticalOptions="Center">
-                            <Button Text="1" 
-                                    Command="{Binding GoToPageCommand}" 
-                                    CommandParameter="1"
-                                    FontSize="14" 
-                                    BackgroundColor="#5B4F45" 
-                                    TextColor="White" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="2" 
-                                    Command="{Binding GoToPageCommand}" 
-                                    CommandParameter="2"
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="3" 
-                                    Command="{Binding GoToPageCommand}" 
-                                    CommandParameter="3"
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="4" 
-                                    Command="{Binding GoToPageCommand}" 
-                                    CommandParameter="4"
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                            <Button Text="5" 
-                                    Command="{Binding GoToPageCommand}" 
-                                    CommandParameter="5"
-                                    FontSize="14" 
-                                    BackgroundColor="LightGray" 
-                                    TextColor="Black" 
-                                    WidthRequest="30" 
-                                    HeightRequest="30" 
-                                    CornerRadius="15" />
-                        </HorizontalStackLayout>
-
-                        <!-- Action Buttons -->
-                        <HorizontalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center">
-                            <Button Text="Refresh" 
-                                    Command="{Binding RefreshHistoryCommand}" 
-                                    BackgroundColor="#5B4F45"
-                                    Padding="0"
-                                    TextColor="White" 
-                                    CornerRadius="15" 
-                                    WidthRequest="80" 
-                                    HeightRequest="35" />
-                            <Button Text="Export" 
-                                    Command="{Binding ExportHistoryCommand}" 
-                                    BackgroundColor="#A57C5C" 
-                                    Padding="0"
-                                    TextColor="White" 
-                                    CornerRadius="15" 
-                                    WidthRequest="80" 
-                                    HeightRequest="35" />
-                        </HorizontalStackLayout>
-                    </Grid>
-                </Grid>
             </Grid>
         </Frame>
     </Grid>

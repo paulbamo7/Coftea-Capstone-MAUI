@@ -14,13 +14,13 @@ namespace Coftea_Capstone.Models
     {
         private readonly string _db;
 
-        public Database(string host = "localhost",
+        public Database(string host = null,
                         string database = "coftea_db",
                         string user = "root",
                         string password = "")
         {
-            // Use localhost for Windows, 10.0.2.2 for Android emulator
-            var server = DeviceInfo.Platform == DevicePlatform.Android ? "10.0.2.2" : "localhost";
+            // Use provided host or auto-detect
+            var server = host ?? GetDefaultHostForPlatform();
             
             _db = new MySqlConnectionStringBuilder
             {
@@ -34,10 +34,29 @@ namespace Coftea_Capstone.Models
 
         }
 
+        private static string GetDefaultHostForPlatform()
+        {
+            if (DeviceInfo.Platform == DevicePlatform.Android)
+            {
+                return "10.0.2.2"; // Android emulator default
+            }
+            
+            if (DeviceInfo.Platform == DevicePlatform.iOS)
+            {
+                // For iOS Simulator, use localhost
+                // For physical iOS devices, use localhost as well (will be overridden by NetworkConfigurationService)
+                return "localhost";
+            }
+            
+            // For Windows, Mac, and other platforms
+            return "localhost";
+        }
+
         // Ensure server is reachable and the database exists; create DB if missing
         public async Task EnsureServerAndDatabaseAsync()
         {
-            var server = DeviceInfo.Platform == DevicePlatform.Android ? "10.0.2.2" : "localhost";
+            // Get the database host from NetworkConfigurationService
+            var server = await NetworkConfigurationService.GetDatabaseHostAsync();
             var builder = new MySqlConnectionStringBuilder
             {
                 Server = server,
@@ -188,6 +207,64 @@ namespace Coftea_Capstone.Models
                 });
             }
             return products;
+        }
+
+        // Get all ingredients and addons (linked inventory items) for a product
+        public async Task<List<(InventoryPageModel item, double amount, string unit, string role)>> GetProductIngredientsAsync(int productId)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            const string sql = @"SELECT pi.amount, pi.unit, pi.role,
+                                        i.itemID, i.itemName, i.itemQuantity, i.itemCategory, i.imageSet,
+                                        i.itemDescription, i.unitOfMeasurement, i.minimumQuantity
+                                   FROM product_ingredients pi
+                                   JOIN inventory i ON i.itemID = pi.itemID
+                                  WHERE pi.productID = @ProductID";
+
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ProductID", productId);
+
+            var results = new List<(InventoryPageModel item, double amount, string unit, string role)>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var item = new InventoryPageModel
+                {
+                    itemID = reader.GetInt32("itemID"),
+                    itemName = reader.GetString("itemName"),
+                    itemQuantity = reader.GetDouble("itemQuantity"),
+                    itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? string.Empty : reader.GetString("itemCategory"),
+                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? string.Empty : reader.GetString("imageSet"),
+                    itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? string.Empty : reader.GetString("itemDescription"),
+                    unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? string.Empty : reader.GetString("unitOfMeasurement"),
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
+                    IsSelected = true
+                };
+
+                // Map linked amount/unit into size-specific fields (default to same across sizes)
+                var linkAmount = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
+                var linkUnit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
+
+                item.InputAmountSmall = linkAmount;
+                item.InputAmountMedium = linkAmount;
+                item.InputAmountLarge = linkAmount;
+                item.InputUnitSmall = string.IsNullOrWhiteSpace(linkUnit) ? item.DefaultUnit : linkUnit;
+                item.InputUnitMedium = item.InputUnitSmall;
+                item.InputUnitLarge = item.InputUnitSmall;
+
+                // If you later add cost computation, populate PriceUsed* here
+                item.PriceUsedSmall = 0;
+                item.PriceUsedMedium = 0;
+                item.PriceUsedLarge = 0;
+
+                var amount = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
+                var unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
+                var role = reader.IsDBNull(reader.GetOrdinal("role")) ? "ingredient" : reader.GetString("role");
+
+                results.Add((item, amount, unit, role));
+            }
+
+            return results;
         }
 
         // Get add-ons (linked inventory items) for a product
@@ -429,6 +506,32 @@ namespace Coftea_Capstone.Models
             var sql = "SELECT * FROM inventory WHERE itemID = @ItemID LIMIT 1;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemID", itemId);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new InventoryPageModel
+                {
+                    itemID = reader.GetInt32("itemID"),
+                    itemName = reader.GetString("itemName"),
+                    itemQuantity = reader.GetDouble("itemQuantity"),
+                    itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
+                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+                    itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
+                    unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
+                };
+            }
+            return null;
+        }
+
+        public async Task<InventoryPageModel?> GetInventoryItemByNameAsync(string itemName)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "SELECT * FROM inventory WHERE itemName = @ItemName LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ItemName", itemName);
 
             await using var reader = await cmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
@@ -835,6 +938,16 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Inv", canAccessInventory);
             cmd.Parameters.AddWithValue("@Sales", canAccessSalesReport);
+            cmd.Parameters.AddWithValue("@Id", userId);
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Delete user
+        public async Task<int> DeleteUserAsync(int userId)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            var sql = "DELETE FROM users WHERE id = @Id;";
+            await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Id", userId);
             return await cmd.ExecuteNonQueryAsync();
         }

@@ -86,7 +86,7 @@ namespace Coftea_Capstone.ViewModel
 
         public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
         {
-            _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+            _database = new Database(); // Will use auto-detected host
             SettingsPopup = settingsPopupViewModel;
             AddItemToPOSViewModel = addItemToPOSViewModel;
             NotificationPopup = ((App)Application.Current).NotificationPopup;
@@ -513,14 +513,14 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void ShowHistory()
+        private async Task ShowHistory()
         {
             System.Diagnostics.Debug.WriteLine("ShowHistory command called");
 
             // Use shared transactions populated from checkout
             var app = (App)Application.Current;
             var transactions = app?.Transactions ?? new ObservableCollection<TransactionHistoryModel>();
-            HistoryPopup.ShowHistory(transactions);
+            await HistoryPopup.ShowHistory(transactions);
             System.Diagnostics.Debug.WriteLine($"HistoryPopup.IsHistoryVisible: {HistoryPopup.IsHistoryVisible}");
         }
 

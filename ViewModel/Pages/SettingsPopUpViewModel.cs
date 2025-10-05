@@ -33,6 +33,30 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<TrendItem> topSellingProductsToday = new();
 
+        // Dashboard specific properties
+        [ObservableProperty]
+        private string mostBoughtToday = "No data";
+
+        [ObservableProperty]
+        private string trendingToday = "No data";
+
+        [ObservableProperty]
+        private string mostBoughtTrend = "";
+
+        [ObservableProperty]
+        private string trendingPercent = "";
+
+        [ObservableProperty]
+        private string ordersTrend = "";
+
+        // Inventory alerts
+        private ObservableCollection<string> _inventoryAlerts = new();
+        public ObservableCollection<string> InventoryAlerts
+        {
+            get => _inventoryAlerts;
+            set => SetProperty(ref _inventoryAlerts, value);
+        }
+
         public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
 
@@ -76,7 +100,7 @@ namespace Coftea_Capstone.ViewModel
             {
                 // Load top selling products for dashboard
                 await LoadTopSellingProductsAsync();
-                var database = new Models.Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+                var database = new Models.Database(); // Will use auto-detected host
                 var today = DateTime.Today;
                 var tomorrow = today.AddDays(1);
                 
@@ -84,6 +108,18 @@ namespace Coftea_Capstone.ViewModel
                 
                 TotalOrdersToday = transactions.Count;
                 TotalSalesToday = transactions.Sum(t => t.Total);
+                
+                // Load recent orders
+                await LoadRecentOrdersAsync(transactions);
+                
+                // Load most bought and trending items
+                await LoadMostBoughtAndTrendingAsync(transactions);
+                
+                // Load inventory alerts
+                await LoadInventoryAlertsAsync();
+                
+                // Set trend indicators
+                OrdersTrend = TotalOrdersToday > 0 ? "↑ Today" : "No orders today";
             }
             catch (Exception ex)
             {
@@ -171,7 +207,7 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                var database = new Models.Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+                var database = new Models.Database(); // Will use auto-detected host
                 var today = DateTime.Today;
                 var tomorrow = today.AddDays(1);
                 
@@ -208,6 +244,129 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"Failed to load top selling products: {ex.Message}");
                 // Initialize with empty collection on error
                 TopSellingProductsToday = new ObservableCollection<TrendItem>();
+            }
+        }
+
+        private async Task LoadRecentOrdersAsync(List<TransactionHistoryModel> transactions)
+        {
+            try
+            {
+                RecentOrders.Clear();
+                
+                // Get the most recent 5 transactions
+                var recentTransactions = transactions
+                    .OrderByDescending(t => t.TransactionDate)
+                    .Take(5)
+                    .ToList();
+
+                foreach (var transaction in recentTransactions)
+                {
+                    RecentOrders.Add(new RecentOrderModel
+                    {
+                        OrderNumber = transaction.TransactionId,
+                        ProductName = transaction.DrinkName,
+                        ProductImage = "drink.png", // Default image
+                        TotalAmount = transaction.Total,
+                        OrderTime = transaction.TransactionDate,
+                        Status = "Completed"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load recent orders: {ex.Message}");
+            }
+        }
+
+        private async Task LoadMostBoughtAndTrendingAsync(List<TransactionHistoryModel> transactions)
+        {
+            try
+            {
+                if (transactions.Count == 0)
+                {
+                    MostBoughtToday = "No data";
+                    TrendingToday = "No data";
+                    MostBoughtTrend = "";
+                    TrendingPercent = "";
+                    return;
+                }
+
+                // Group by product and calculate total quantity sold
+                var productSales = transactions
+                    .GroupBy(t => t.DrinkName)
+                    .Select(group => new
+                    {
+                        Name = group.Key,
+                        TotalQuantity = group.Sum(t => t.Quantity),
+                        TransactionCount = group.Count()
+                    })
+                    .OrderByDescending(x => x.TotalQuantity)
+                    .ToList();
+
+                if (productSales.Count > 0)
+                {
+                    // Most bought today (highest quantity)
+                    var mostBought = productSales.First();
+                    MostBoughtToday = mostBought.Name;
+                    MostBoughtTrend = $"{mostBought.TotalQuantity} sold";
+
+                    // Trending today (most transactions, not necessarily highest quantity)
+                    var trending = productSales.OrderByDescending(x => x.TransactionCount).First();
+                    TrendingToday = trending.Name;
+                    TrendingPercent = $"{trending.TransactionCount} orders";
+                }
+                else
+                {
+                    MostBoughtToday = "No data";
+                    TrendingToday = "No data";
+                    MostBoughtTrend = "";
+                    TrendingPercent = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load most bought and trending: {ex.Message}");
+                MostBoughtToday = "Error";
+                TrendingToday = "Error";
+                MostBoughtTrend = "";
+                TrendingPercent = "";
+            }
+        }
+
+        private async Task LoadInventoryAlertsAsync()
+        {
+            try
+            {
+                InventoryAlerts.Clear();
+                
+                var database = new Models.Database(); // Will use auto-detected host
+                var inventoryItems = await database.GetInventoryItemsAsync();
+                
+                // Filter items that have low stock (below minimum quantity or very low amounts)
+                var lowStockItems = inventoryItems
+                    .Where(item => item.itemQuantity <= item.minimumQuantity || item.itemQuantity <= 10)
+                    .OrderBy(item => item.itemQuantity)
+                    .Take(5) // Show top 5 lowest stock items
+                    .ToList();
+
+                if (lowStockItems.Count == 0)
+                {
+                    InventoryAlerts.Add("✅ All items well stocked");
+                }
+                else
+                {
+                    foreach (var item in lowStockItems)
+                    {
+                        var stockLevel = item.itemQuantity <= item.minimumQuantity ? "CRITICAL" : "LOW";
+                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {item.unitOfMeasurement})";
+                        InventoryAlerts.Add(alertText);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load inventory alerts: {ex.Message}");
+                InventoryAlerts.Add("❌ Error loading inventory data");
             }
         }
     }

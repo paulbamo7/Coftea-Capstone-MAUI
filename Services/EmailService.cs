@@ -10,40 +10,22 @@ namespace Coftea_Capstone.Services
         private readonly string _mailHogHost;
         private readonly int _mailHogPort;
 
-        public EmailService(string mailHogHost = "192.168.254.104", int mailHogPort = 1025)
+        public EmailService(string mailHogHost = null, int mailHogPort = 1025)
         {
-            _mailHogHost = mailHogHost;
+            _mailHogHost = mailHogHost; // Will be resolved dynamically
             _mailHogPort = mailHogPort;
-        }
-
-        public async Task<bool> TestConnectionAsync()
-        {
-            try
-            {
-                using var client = new SmtpClient(_mailHogHost, _mailHogPort);
-                client.EnableSsl = false;
-                client.UseDefaultCredentials = false;
-                
-                // Try to connect without sending
-                await client.SendMailAsync(new MailMessage("test@test.com", "test@test.com", "Test", "Test"));
-                return true;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"MailHog connection test failed: {ex.Message}");
-                return false;
-            }
         }
 
         public async Task<bool> SendPasswordResetEmailAsync(string email, string resetToken)
         {
             try
             {
+                var host = _mailHogHost ?? await NetworkConfigurationService.GetEmailHostAsync();
                 System.Diagnostics.Debug.WriteLine($"Attempting to send password reset email to: {email}");
-                System.Diagnostics.Debug.WriteLine($"Using MailHog host: {_mailHogHost}:{_mailHogPort}");
+                System.Diagnostics.Debug.WriteLine($"Using MailHog host: {host}:{_mailHogPort}");
                 System.Diagnostics.Debug.WriteLine($"Reset token: {resetToken}");
 
-                using var client = new SmtpClient(_mailHogHost, _mailHogPort);
+                using var client = new SmtpClient(host, _mailHogPort);
                 client.EnableSsl = false; // MailHog doesn't use SSL
                 client.UseDefaultCredentials = false;
 

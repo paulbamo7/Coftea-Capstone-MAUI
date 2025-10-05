@@ -116,6 +116,9 @@
         <!-- User Profile Popup Overlay -->
         <controls:UserProfilePopup Grid.ColumnSpan="2" Grid.RowSpan="1" BindingContext="{Binding UserProfilePopup}"/>
         
+        <!-- Delete User Popup Overlay -->
+        <controls:DeleteUserPopup Grid.ColumnSpan="2" Grid.RowSpan="1" BindingContext="{Binding DeleteUserPopup}"/>
+        
         <!-- Settings Popup Overlay -->
         <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
         

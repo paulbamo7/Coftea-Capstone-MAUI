@@ -37,7 +37,7 @@ namespace Coftea_Capstone.ViewModel
 
         public EditProductPopupViewModel(AddItemToPOSViewModel addItemToPOSViewModel)
         {
-            _database = new Database(host: "0.0.0.0", database: "coftea_db", user: "root", password: "");
+            _database = new Database(); // Will use auto-detected host
             _addItemToPOSViewModel = addItemToPOSViewModel;
             NotificationPopup = ((App)Application.Current).NotificationPopup;
         }

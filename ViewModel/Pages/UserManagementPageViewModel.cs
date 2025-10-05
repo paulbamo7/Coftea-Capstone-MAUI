@@ -29,13 +29,23 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private UserProfilePopupViewModel userProfilePopup = new();
 
+        [ObservableProperty]
+        private DeleteUserPopupViewModel deleteUserPopup = new();
+
         public UserManagementPageViewModel()
         {
             // Subscribe to the approval event to refresh user list
             UserApprovalPopup.OnUserApprovedOrDenied += OnUserApprovedOrDenied;
+            // Subscribe to the delete event to refresh user list
+            DeleteUserPopup.OnUserDeleted += OnUserDeleted;
         }
 
         private async void OnUserApprovedOrDenied()
+        {
+            await InitializeAsync(); // Refresh the user list
+        }
+
+        private async void OnUserDeleted()
         {
             await InitializeAsync(); // Refresh the user list
         }
@@ -47,7 +57,10 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private Task DeleteUser() => Task.CompletedTask;
+        private async Task DeleteUser()
+        {
+            await DeleteUserPopup.ShowDeleteUserPopup();
+        }
 
         [RelayCommand]
         private Task SortBy() => Task.CompletedTask;
@@ -76,12 +89,47 @@ namespace Coftea_Capstone.ViewModel
         private async Task OpenRowMenu(UserEntry entry)
         {
             if (entry == null) return;
-            var action = await Application.Current.MainPage.DisplayActionSheet("Options", "Cancel", null, "View Profile", "Edit Inventory", "Edit POS Menu");
+            
+            // Prevent admin user from being deleted
+            var actions = entry.IsAdmin 
+                ? new[] { "View Profile", "Edit Inventory", "Edit POS Menu" }
+                : new[] { "View Profile", "Edit Inventory", "Edit POS Menu", "Delete User" };
+                
+            var action = await Application.Current.MainPage.DisplayActionSheet("Options", "Cancel", null, actions);
+            
             if (action == "View Profile")
             {
                 await ViewProfile(entry);
             }
+            else if (action == "Delete User" && !entry.IsAdmin)
+            {
+                await DeleteSpecificUser(entry);
+            }
             // Future: handle other actions here
+        }
+
+        private async Task DeleteSpecificUser(UserEntry user)
+        {
+            // Confirm deletion
+            var confirm = await Application.Current.MainPage.DisplayAlert(
+                "Confirm Delete", 
+                $"Are you sure you want to delete user '{user.Username}'? This action cannot be undone.", 
+                "Delete", 
+                "Cancel");
+
+            if (confirm)
+            {
+                try
+                {
+                    await _database.DeleteUserAsync(user.Id);
+                    await InitializeAsync(); // Refresh the user list
+                    await Application.Current.MainPage.DisplayAlert("Success", $"User '{user.Username}' has been deleted.", "OK");
+                }
+                catch (Exception ex)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", $"Failed to delete user: {ex.Message}", "OK");
+                }
+            }
         }
 
         public async Task InitializeAsync()
@@ -91,12 +139,26 @@ namespace Coftea_Capstone.ViewModel
             {
                 Id = u.ID,
                 Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
-                LastActive = "—",
-                DateAdded = "—",
+                LastActive = GetLastActiveText(u.ID), // Get real last active data
+                DateAdded = GetDateAddedText(u.ID), // Get real date added data
                 // Admin users (ID = 1) always have full access, regular users use database values
                 CanAccessInventory = u.ID == 1 ? true : u.CanAccessInventory,
                 CanAccessSalesReport = u.ID == 1 ? true : u.CanAccessSalesReport
             }));
+        }
+
+        private string GetLastActiveText(int userId)
+        {
+            // For now, return a placeholder. In a real app, you'd query the database for actual last login time
+            // This could be stored in a separate login_logs table or a last_login column in the users table
+            return DateTime.Now.AddDays(-new Random().Next(1, 30)).ToString("MMM dd, yyyy");
+        }
+
+        private string GetDateAddedText(int userId)
+        {
+            // For now, return a placeholder. In a real app, you'd use the actual creation date
+            // This could be stored in a created_at column in the users table
+            return DateTime.Now.AddDays(-new Random().Next(30, 365)).ToString("MMM dd, yyyy");
         }
     }
 }

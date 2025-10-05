@@ -37,12 +37,7 @@ namespace Coftea_Capstone.ViewModel
 
         public ForgotPasswordPageViewModel()
         {
-            _database = new Database(
-                host: "0.0.0.0",
-                database: "coftea_db",
-                user: "root",
-                password: ""
-            );
+            _database = new Database(); // Will use auto-detected host
             _emailService = new EmailService();
         }
 
@@ -78,16 +73,7 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                // Test MailHog connection
-                System.Diagnostics.Debug.WriteLine("Testing MailHog connection...");
-                bool mailHogConnected = await _emailService.TestConnectionAsync();
-                System.Diagnostics.Debug.WriteLine($"MailHog connection test: {mailHogConnected}");
-                
-                if (!mailHogConnected)
-                {
-                    ShowError("MailHog is not running. Please start MailHog on localhost:1025 and try again.");
-                    return;
-                }
+                // MailHog connection will be tested when sending the email
 
                 // Request password reset from database
                 System.Diagnostics.Debug.WriteLine($"Requesting password reset for email: {Email.Trim()}");

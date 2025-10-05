@@ -27,12 +27,7 @@ namespace Coftea_Capstone.ViewModel
 
         public LoginPageViewModel()
         {
-            _database = new Database(
-                host: "0.0.0.0",
-                database: "coftea_db",
-                user: "root",
-                password: ""
-            );
+            _database = new Database(); // Will use auto-detected host
             _emailService = new EmailService();
             PasswordResetPopup = ((App)Application.Current).PasswordResetPopup;
 

@@ -157,9 +157,11 @@
                                                     <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13"/>
 
                                                     <!-- Stock bar -->
-                                                    <Grid Grid.Column="2" HeightRequest="20" VerticalOptions="Center">
-                                                        <BoxView Color="#E0E0E0" CornerRadius="10"/>
-                                                        <BoxView Color="{Binding StockFillColor}" CornerRadius="10" HorizontalOptions="Start" WidthRequest="{Binding StockProgressWidth}" />
+                                                    <Grid Grid.Column="2" HeightRequest="22" VerticalOptions="Center">
+                                                        <BoxView Color="#E0E0E0" CornerRadius="17" />
+                                                        <ProgressBar Progress="{Binding StockProgress}"
+                                                                     ProgressColor="{Binding StockFillColor}"
+                                                                     HeightRequest="34" />
                                                         <Label Text="{Binding StockText}" FontSize="12" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
                                                     </Grid>
                                                 </Grid>

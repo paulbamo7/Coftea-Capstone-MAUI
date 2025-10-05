@@ -104,6 +104,17 @@ namespace Coftea_Capstone.Views.Controls
         public SimplePieChart()
         {
             InitializeComponent();
+            
+            // Subscribe to property changes to update the chart
+            PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(Item1Count) || 
+                    e.PropertyName == nameof(Item2Count) || 
+                    e.PropertyName == nameof(Item3Count))
+                {
+                    UpdateChart();
+                }
+            };
         }
 
         private static void OnItemsSourceChanged(BindableObject bindable, object oldValue, object newValue)
@@ -220,22 +231,24 @@ namespace Coftea_Capstone.Views.Controls
                 currentAngle += angle3;
             }
 
-            // If we have less than 3 items, fill the remaining space
-            if (trendItems.Count < 3)
+            // Ensure all angles add up to exactly 360 degrees
+            if (currentAngle < 360)
             {
                 var remainingAngle = 360 - currentAngle;
-                if (remainingAngle > 0)
+                if (trendItems.Count == 1)
                 {
-                    // Hide the unused slice
-                    if (trendItems.Count == 1)
-                    {
-                        Slice2.IsVisible = false;
-                        Slice3.IsVisible = false;
-                    }
-                    else if (trendItems.Count == 2)
-                    {
-                        Slice3.IsVisible = false;
-                    }
+                    // Single item takes full circle
+                    UpdateSlicePath(Slice1, 0, 360);
+                    Slice2.IsVisible = false;
+                    Slice3.IsVisible = false;
+                }
+                else if (trendItems.Count == 2)
+                {
+                    // Two items - distribute remaining angle to second item
+                    var item2Percentage = (double)trendItems[1].Count / totalCount;
+                    var angle2 = item2Percentage * 360;
+                    UpdateSlicePath(Slice2, currentAngle - angle2, angle2);
+                    Slice3.IsVisible = false;
                 }
             }
         }
@@ -252,19 +265,19 @@ namespace Coftea_Capstone.Views.Controls
             var outerRadius = 60.0;
             var innerRadius = 30.0; // Inner radius for donut hole
 
-            // Calculate outer arc points
-            var outerStartX = centerX + outerRadius * Math.Sin(startRad);
-            var outerStartY = centerY - outerRadius * Math.Cos(startRad);
-            var outerEndX = centerX + outerRadius * Math.Sin(endRad);
-            var outerEndY = centerY - outerRadius * Math.Cos(endRad);
+            // Calculate outer arc points with proper circular positioning
+            var outerStartX = centerX + outerRadius * Math.Cos(startRad - Math.PI / 2);
+            var outerStartY = centerY + outerRadius * Math.Sin(startRad - Math.PI / 2);
+            var outerEndX = centerX + outerRadius * Math.Cos(endRad - Math.PI / 2);
+            var outerEndY = centerY + outerRadius * Math.Sin(endRad - Math.PI / 2);
 
-            // Calculate inner arc points
-            var innerStartX = centerX + innerRadius * Math.Sin(startRad);
-            var innerStartY = centerY - innerRadius * Math.Cos(startRad);
-            var innerEndX = centerX + innerRadius * Math.Sin(endRad);
-            var innerEndY = centerY - innerRadius * Math.Cos(endRad);
+            // Calculate inner arc points with proper circular positioning
+            var innerStartX = centerX + innerRadius * Math.Cos(startRad - Math.PI / 2);
+            var innerStartY = centerY + innerRadius * Math.Sin(startRad - Math.PI / 2);
+            var innerEndX = centerX + innerRadius * Math.Cos(endRad - Math.PI / 2);
+            var innerEndY = centerY + innerRadius * Math.Sin(endRad - Math.PI / 2);
 
-            // Create the path data for the donut slice
+            // Create PathGeometry for donut slice
             var pathGeometry = new PathGeometry();
             var pathFigure = new PathFigure();
             

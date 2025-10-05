@@ -142,14 +142,16 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool showMilktea = true;
 
+        // Recent Orders properties
+        [ObservableProperty]
+        private ObservableCollection<TransactionHistoryModel> recentOrders = new();
+
+        [ObservableProperty]
+        private int recentOrdersCount;
+
         public SalesReportPageViewModel(SettingsPopUpViewModel settingsPopup, Services.ISalesReportService salesReportService = null)
         {
-            _database = new Database(
-                host: "192.168.1.4",
-                database: "coftea_db",
-                user: "maui",
-                password: "password123"
-            );
+            _database = new Database(); // Will use auto-detected host
             SettingsPopup = settingsPopup;
             _salesReportService = salesReportService ?? new Services.DatabaseSalesReportService();
         }
@@ -157,6 +159,32 @@ namespace Coftea_Capstone.ViewModel
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
             return ((App)Application.Current).RetryConnectionPopup;
+        }
+
+        private async Task LoadRecentOrdersAsync()
+        {
+            try
+            {
+                // Get recent transactions from today
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+                var recentTransactions = await _database.GetTransactionsByDateRangeAsync(today, tomorrow);
+                
+                // Sort by transaction date descending and take the most recent 10
+                var sortedTransactions = recentTransactions
+                    .OrderByDescending(t => t.TransactionDate)
+                    .Take(10)
+                    .ToList();
+
+                RecentOrders = new ObservableCollection<TransactionHistoryModel>(sortedTransactions);
+                RecentOrdersCount = sortedTransactions.Count;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load recent orders: {ex.Message}");
+                RecentOrders = new ObservableCollection<TransactionHistoryModel>();
+                RecentOrdersCount = 0;
+            }
         }
 
         public async Task InitializeAsync()
@@ -188,12 +216,15 @@ namespace Coftea_Capstone.ViewModel
                 SalesReports = new ObservableCollection<SalesReportPageModel>(summary.Reports ?? new List<SalesReportPageModel>());
 
                 ActiveDays = summary.ActiveDays;
-                MostBoughtToday = summary.MostBoughtToday;
-                TrendingToday = summary.TrendingToday;
+                MostBoughtToday = summary.MostBoughtToday ?? "No data";
+                TrendingToday = summary.TrendingToday ?? "No data";
                 TrendingPercentage = summary.TrendingPercentage;
                 TotalSalesToday = summary.TotalSalesToday;
                 TotalOrdersToday = summary.TotalOrdersToday;
                 TotalOrdersThisWeek = summary.TotalOrdersThisWeek;
+
+                // Load recent orders
+                await LoadRecentOrdersAsync();
 
                 TopCoffeeToday = new ObservableCollection<TrendItem>(summary.TopCoffeeToday ?? new List<TrendItem>());
                 TopMilkteaToday = new ObservableCollection<TrendItem>(summary.TopMilkteaToday ?? new List<TrendItem>());
@@ -238,19 +269,19 @@ namespace Coftea_Capstone.ViewModel
         {
             // Filter today's items based on selected category
             var todayItems = GetFilteredItems(TopCoffeeToday, TopMilkteaToday, SelectedCategory);
-            var topTodayItems = todayItems.OrderByDescending(x => x.Count).Take(3).ToList();
+            var topTodayItems = todayItems.OrderByDescending(x => x.Count).Take(5).ToList();
             SetMaxCountForItems(topTodayItems);
             TopItemsToday = new ObservableCollection<TrendItem>(topTodayItems);
 
             // Filter weekly items based on selected category
             var weeklyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, SelectedCategory);
-            var topWeeklyItems = weeklyItems.OrderByDescending(x => x.Count).Take(3).ToList();
+            var topWeeklyItems = weeklyItems.OrderByDescending(x => x.Count).Take(5).ToList();
             SetMaxCountForItems(topWeeklyItems);
             TopItemsWeekly = new ObservableCollection<TrendItem>(topWeeklyItems);
 
             // Create monthly data (combine weekly data for demo)
             var monthlyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, SelectedCategory);
-            var topMonthlyItems = monthlyItems.OrderByDescending(x => x.Count).Take(3).ToList();
+            var topMonthlyItems = monthlyItems.OrderByDescending(x => x.Count).Take(5).ToList();
             SetMaxCountForItems(topMonthlyItems);
             TopItemsMonthly = new ObservableCollection<TrendItem>(topMonthlyItems);
 
