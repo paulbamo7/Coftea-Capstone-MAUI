@@ -12,49 +12,24 @@
               WidthRequest="200" 
               HeightRequest="200">
             
-            <!-- Donut Chart with Single Ring -->
+            <!-- Donut Chart with GraphicsView for perfect circle rendering -->
             <Grid x:Name="PieChartGrid" 
                   HorizontalOptions="Center" 
                   VerticalOptions="Center"
                   WidthRequest="160" 
                   HeightRequest="160">
-                
-                <!-- Single Donut Ring with Three Segments -->
-                <Grid x:Name="DonutContainer" 
-                      HorizontalOptions="Center" 
-                      VerticalOptions="Center"
-                      WidthRequest="160" 
-                      HeightRequest="160">
-                    
-                    <!-- Slice 1 - First segment (120 degrees) - Perfect circle -->
-                    <Path x:Name="Slice1" 
-                          Fill="#90EE90" 
-                          Data="M 80,20 A 60,60 0 0,1 140,80 L 110,80 A 30,30 0 0,0 80,50 Z" 
-                          HorizontalOptions="Center" 
-                          VerticalOptions="Center"/>
-                    
-                    <!-- Slice 2 - Second segment (120 degrees) - Perfect circle -->
-                    <Path x:Name="Slice2" 
-                          Fill="#F5DEB3" 
-                          Data="M 140,80 A 60,60 0 0,1 80,140 L 80,110 A 30,30 0 0,0 110,80 Z" 
-                          HorizontalOptions="Center" 
-                          VerticalOptions="Center"/>
-                    
-                    <!-- Slice 3 - Third segment (120 degrees) - Perfect circle -->
-                    <Path x:Name="Slice3" 
-                          Fill="#8B4513" 
-                          Data="M 80,140 A 60,60 0 0,1 20,80 L 50,80 A 30,30 0 0,0 80,110 Z" 
-                          HorizontalOptions="Center" 
-                          VerticalOptions="Center"/>
-                    
-                    <!-- Center Text - positioned in the donut hole -->
-                    <Label Text="Top 3" 
-                           FontSize="14" 
-                           FontAttributes="Bold" 
-                           TextColor="#5B4F45" 
-                           HorizontalOptions="Center" 
-                           VerticalOptions="Center"/>
-                </Grid>
+                <GraphicsView x:Name="PieChartCanvas"
+                              HorizontalOptions="Center"
+                              VerticalOptions="Center"
+                              WidthRequest="160"
+                              HeightRequest="160" />
+                <!-- Center Text -->
+                <Label Text="Top 3" 
+                       FontSize="14" 
+                       FontAttributes="Bold" 
+                       TextColor="#5B4F45" 
+                       HorizontalOptions="Center" 
+                       VerticalOptions="Center"/>
             </Grid>
         </Grid>
         

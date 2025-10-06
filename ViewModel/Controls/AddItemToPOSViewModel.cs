@@ -301,17 +301,27 @@ namespace Coftea_Capstone.ViewModel
                     var selected = ConnectPOSToInventoryVM?.InventoryItems?.Where(i => i.IsSelected).ToList() ?? new();
                     if (selected.Count > 0)
                     {
-                        var links = selected.Select(i => (
-                            inventoryItemId: i.itemID,
-                            amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-                            unit: (string?)i.unitOfMeasurement,
-                            role: string.Equals(i.itemCategory, "Addons", StringComparison.OrdinalIgnoreCase) ? "addon" : "ingredient"
-                        ));
+						var ingredients = selected
+							.Where(i => !IsAddonCategory(i.itemCategory))
+							.Select(i => (
+								inventoryItemId: i.itemID,
+								amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
+								unit: (string?)i.unitOfMeasurement
+							));
 
-                        try
-                        {
-                            await _database.SaveProductIngredientLinksAsync(newProductId, links);
-                        }
+						var addons = selected
+							.Where(i => IsAddonCategory(i.itemCategory))
+							.Select(i => (
+								inventoryItemId: i.itemID,
+								amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
+								unit: (string?)i.unitOfMeasurement,
+								addonPrice: i.AddonPrice
+							));
+
+						try
+						{
+							await _database.SaveProductLinksSplitAsync(newProductId, ingredients, addons);
+						}
                         catch (Exception ex)
                         {
                             await Application.Current.MainPage.DisplayAlert("Warning", $"Product saved but failed to link addons/ingredients: {ex.Message}", "OK");
@@ -500,6 +510,15 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"Error adding automatic cup and straw: {ex.Message}");
             }
         }
+
+		private static bool IsAddonCategory(string? category)
+		{
+			var normalized = (category ?? string.Empty).Trim();
+			if (string.IsNullOrEmpty(normalized)) return false;
+			return string.Equals(normalized, "Addons", StringComparison.OrdinalIgnoreCase)
+				|| string.Equals(normalized, "Sinkers & etc.", StringComparison.OrdinalIgnoreCase)
+				|| normalized.Contains("Sinker", StringComparison.OrdinalIgnoreCase);
+		}
 
         private static double ConvertUnits(double amount, string fromUnit, string toUnit)
         {

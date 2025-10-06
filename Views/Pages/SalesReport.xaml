@@ -28,7 +28,7 @@
                 <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
                     <Label Text="" Grid.Column="0" />
 
-                    <otherViews:NotificationDropdown Grid.Column="1" />
+                    <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                     <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40" CornerRadius="20"/>
                 </Grid>
 
@@ -226,5 +226,8 @@
 
         <!-- Retry Connection Popup -->
         <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
+
+        <!-- Notification Popup Overlay -->
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
     </Grid>
 </ContentPage>

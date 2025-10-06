@@ -6,6 +6,8 @@ using Coftea_Capstone.C_;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using Coftea_Capstone.Views.Pages;
+using Coftea_Capstone.ViewModel;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -36,30 +38,29 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             // Convert POSPageModel items to CartItem format - combine same products
             CartItems.Clear();
-            var productGroups = (items ?? new ObservableCollection<POSPageModel>())
+            var flatItems = (items ?? new ObservableCollection<POSPageModel>())
                 .Where(item => item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0)
-                .GroupBy(item => item.ProductID);
+                .ToList();
 
-            foreach (var group in productGroups)
+            foreach (var it in flatItems)
             {
-                var firstItem = group.First();
                 CartItems.Add(new CartItem
                 {
-                    ProductId = firstItem.ProductID,
-                    ProductName = firstItem.ProductName,
-                    ImageSource = firstItem.ImageSet,
+                    ProductId = it.ProductID,
+                    ProductName = it.ProductName,
+                    ImageSource = it.ImageSet,
                     CustomerName = CustomerName,
                     SugarLevel = "100%",
                     AddOns = new ObservableCollection<string>(),
-                    SmallQuantity = firstItem.SmallQuantity,
-                    MediumQuantity = firstItem.MediumQuantity,
-                    LargeQuantity = firstItem.LargeQuantity,
-                    SmallPrice = firstItem.SmallPrice,
-                    MediumPrice = firstItem.MediumPrice,
-                    LargePrice = firstItem.LargePrice,
-                    SelectedSize = GetCombinedSizeDisplay(firstItem),
-                    Quantity = firstItem.SmallQuantity + firstItem.MediumQuantity + firstItem.LargeQuantity,
-                    Price = firstItem.SmallPrice + firstItem.MediumPrice + firstItem.LargePrice
+                    SmallQuantity = it.SmallQuantity,
+                    MediumQuantity = it.MediumQuantity,
+                    LargeQuantity = it.LargeQuantity,
+                    SmallPrice = it.SmallPrice,
+                    MediumPrice = it.MediumPrice,
+                    LargePrice = it.LargePrice,
+                    SelectedSize = GetCombinedSizeDisplay(it),
+                    Quantity = it.SmallQuantity + it.MediumQuantity + it.LargeQuantity,
+                    Price = it.SmallPrice + it.MediumPrice + it.LargePrice
                 });
             }
             
@@ -93,8 +94,48 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (item == null) return;
             
-            // TODO: Implement edit functionality
-            // This could open another popup or navigate to edit page
+            // Close the cart popup immediately
+            IsCartVisible = false;
+            
+            // Find the original POSPageModel item
+            if (_originalItems != null)
+            {
+                var originalItem = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
+                if (originalItem != null)
+                {
+                    // Set the selected product in the current POS page
+                    SetSelectedProductInCurrentPOS(originalItem);
+                }
+            }
+        }
+
+        private void SetSelectedProductInCurrentPOS(POSPageModel product)
+        {
+            try
+            {
+                // Get the current page
+                var nav = Application.Current.MainPage as NavigationPage;
+                if (nav?.CurrentPage == null) return;
+
+                // Check if current page is POS page
+                if (nav.CurrentPage is PointOfSale posPage)
+                {
+                    // Get the POS page's ViewModel and set the selected product
+                    if (posPage.BindingContext is POSPageViewModel posViewModel)
+                    {
+                        posViewModel.SelectedProduct = product;
+                        System.Diagnostics.Debug.WriteLine($"Selected product set to: {product.ProductName} in current POS page");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Current page is not POS page, cannot set selected product");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting selected product: {ex.Message}");
+            }
         }
 
         [RelayCommand]
@@ -115,6 +156,42 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             
             CartItems.Remove(item);
+            CalculateTotal();
+        }
+
+        // Quantity controls for cart
+        [RelayCommand]
+        private void IncreaseCartQty(CartItem item)
+        {
+            if (item == null) return;
+            // Prefer bumping the currently selected size if any, else small
+            if (item.SmallQuantity + item.MediumQuantity + item.LargeQuantity == 0)
+            {
+                item.SmallQuantity = 1;
+            }
+            else
+            {
+                // Default bump small for simplicity
+                item.SmallQuantity += 1;
+            }
+            OnPropertyChanged(nameof(CartItems));
+            CalculateTotal();
+        }
+
+        [RelayCommand]
+        private void DecreaseCartQty(CartItem item)
+        {
+            if (item == null) return;
+            var total = item.SmallQuantity + item.MediumQuantity + item.LargeQuantity;
+            if (total <= 1)
+            {
+                // keep at least 1
+                return;
+            }
+            if (item.SmallQuantity > 0) item.SmallQuantity -= 1;
+            else if (item.MediumQuantity > 0) item.MediumQuantity -= 1;
+            else if (item.LargeQuantity > 0) item.LargeQuantity -= 1;
+            OnPropertyChanged(nameof(CartItems));
             CalculateTotal();
         }
 

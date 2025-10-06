@@ -1,5 +1,5 @@
 using Coftea_Capstone.ViewModel;
-using Coftea_Capstone.Views.Controls;
+using Coftea_Capstone.ViewModel.Controls;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -20,4 +20,12 @@ public partial class SalesReport : ContentPage
 		// Initialize the view model
 		_ = viewModel.InitializeAsync();
 	}
+
+    private void OnBellClicked(object sender, EventArgs e)
+    {
+        var popup = ((App)Application.Current).NotificationPopup;
+        popup?.AddSuccess("Sales Report", "Generated Daily Report (ID: DR20251006)", "ID: DR20251006");
+        popup?.AddSuccess("Sales Report", "Exported to CSV (ID: CSV106)", "ID: CSV106");
+        popup?.ToggleCommand.Execute(null);
+    }
 }

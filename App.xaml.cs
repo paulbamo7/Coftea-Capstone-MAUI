@@ -130,6 +130,30 @@ namespace Coftea_Capstone
 
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();
+            
+            // For testing: Set your PC's IP address manually
+            // Replace "192.168.1.4" with your actual PC's IP address
+            // Uncomment the line below and replace with your PC's IP:
+            NetworkConfigurationService.SetManualDatabaseHost("192.168.1.6");
+            
+            // Common IP addresses to try (uncomment one at a time):
+            // NetworkConfigurationService.SetManualDatabaseHost("192.168.1.100");
+            // NetworkConfigurationService.SetManualDatabaseHost("192.168.0.100");
+            // NetworkConfigurationService.SetManualDatabaseHost("192.168.1.1");
+            // NetworkConfigurationService.SetManualDatabaseHost("10.0.0.1");
+            
+            // Debug: Print detected IPs (check debug output)
+            _ = Task.Run(async () => {
+                try
+                {
+                    var detectedHosts = await NetworkConfigurationService.GetAllPossibleHostsAsync();
+                    System.Diagnostics.Debug.WriteLine($"🔍 All possible hosts: {string.Join(", ", detectedHosts)}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Error getting hosts: {ex.Message}");
+                }
+            });
         }
 
         private async void NavigateToDashboard(bool isAdmin)

@@ -12,9 +12,13 @@ namespace Coftea_Capstone.Converters
                 {
                     return Colors.Red;
                 }
-                else if (alertText.Contains("LOW"))
+                else if (alertText.Contains("MEDIUM") || alertText.Contains("WARNING"))
                 {
                     return Colors.Orange;
+                }
+                else if (alertText.Contains("LOW") || alertText.Contains("SAFE"))
+                {
+                    return Colors.Green;
                 }
                 else if (alertText.Contains("✅"))
                 {

@@ -5,59 +5,41 @@
     x:Class="Coftea_Capstone.Views.Controls.NotificationPopup"
     x:Name="NotificationPopupView"
     BackgroundColor="Transparent"
-    IsVisible="{Binding IsNotificationVisible}"
+    IsVisible="{Binding IsNotificationVisible, FallbackValue=False}"
     InputTransparent="False">
 
+    <!-- Full-screen transparent layer to allow outside tap to dismiss -->
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Command="{Binding CloseNotificationCommand}" />
         </Grid.GestureRecognizers>
-        
-        <!-- Notification Frame (centered) -->
-        <Frame VerticalOptions="Center"
-               HorizontalOptions="Center"
-               Margin="20"
-               Padding="20"
-               BackgroundColor="#F8E8D7"
-               CornerRadius="15"
-               WidthRequest="360"
-               HeightRequest="90"
-               HasShadow="True"
-               InputTransparent="False">
 
-            <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="*">
-                <!-- Icon -->
-                <Label Grid.Column="0" Grid.Row="0"
-                       Text="{Binding NotificationType, Converter={StaticResource NotificationTextIconConverter}}"
-                       FontSize="24" 
-                       FontAttributes="Bold"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Center"
-                       TextColor="{Binding NotificationType, Converter={StaticResource NotificationColorConverter}}"
-                       Margin="0,0,15,0" />
-                
-                <!-- Message -->
-                <Label Grid.Column="1" Grid.Row="0"
-                       Text="{Binding NotificationMessage}" 
-                       FontSize="16" 
-                       FontAttributes="Bold"
-                       VerticalOptions="Center"
-                       HorizontalTextAlignment="Center"
-                       TextColor="#8B4513"
-                       LineBreakMode="WordWrap" />
-                
-                <!-- Close Button -->
-                <Button Grid.Column="2" Grid.Row="0"
-                        Text="×"
-                        FontSize="20"
-                        FontAttributes="Bold"
-                        BackgroundColor="Transparent"
-                        TextColor="#8B4513"
-                        WidthRequest="30"
-                        HeightRequest="30"
-                        VerticalOptions="Center"
-                        Command="{Binding CloseNotificationCommand}" />
-            </Grid>
-        </Frame>
+        <!-- Dropdown positioned below the bell (top-right) -->
+        <Grid VerticalOptions="Start" HorizontalOptions="End" Margin="0,60,20,0" InputTransparent="False">
+            <Frame Padding="12" BackgroundColor="#FFFFFF" CornerRadius="14" HasShadow="True" WidthRequest="360">
+                <VerticalStackLayout Spacing="10">
+                    <!-- Individual notification items -->
+                    <CollectionView ItemsSource="{Binding Notifications}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="#E9E1D9" CornerRadius="15" Padding="12" HasShadow="False">
+                                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*">
+                                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
+                                        <Label Grid.Row="1" Text="{Binding Message}" FontSize="13"/>
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- View All link -->
+                    <Label Text="View All" TextDecorations="Underline" TextColor="#1F4E79" HorizontalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding CloseNotificationCommand}"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
     </Grid>
 </ContentView>

@@ -20,6 +20,11 @@ public partial class EmployeeDashboard : ContentPage
 		_ = LoadTodaysMetrics();
 	}
 
+    private void OnBellClicked(object sender, EventArgs e)
+    {
+        ((App)Application.Current).NotificationPopup?.ToggleCommand.Execute(null);
+    }
+
 	private async Task LoadTodaysMetrics()
 	{
 		try

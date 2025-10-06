@@ -96,6 +96,10 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private string addonUnit;
 
+        // Quantity for addon selections in preview/cart
+        [ObservableProperty]
+        private int addonQuantity = 1;
+
         public IList<string> AllowedUnits
         {
             get

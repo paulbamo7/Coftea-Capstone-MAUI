@@ -56,7 +56,7 @@
                 </Grid>
 
                 <!-- Filter Buttons -->
-                <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,15,5" HorizontalOptions="Center" >
+                <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,20,5" HorizontalOptions="Center" >
                     <HorizontalStackLayout Spacing="10">
                         <Button Text="Today" 
                                 Command="{Binding FilterByTimePeriodCommand}" 
@@ -231,11 +231,11 @@
                     </Grid>
 
                     <!-- Scrollable Transaction Data -->
-                    <ScrollView Grid.Row="1" Padding="15,0">
+                    <ScrollView Grid.Row="1" Padding="20,0">
                         <CollectionView ItemsSource="{Binding FilteredTransactions}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid BackgroundColor="White" Padding="15,8" Margin="0,0,0,1">
+                                    <Grid BackgroundColor="White" Padding="20,8" Margin="0,0,0,1">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="40" />
                                             <ColumnDefinition Width="*" />

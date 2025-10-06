@@ -25,7 +25,7 @@
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                     <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
-                    <otherViews:NotificationDropdown Grid.Column="2" />
+                    <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                     <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
                 </Grid>
 
@@ -39,9 +39,8 @@
                             <HorizontalStackLayout Spacing="15" VerticalOptions="Center">
 
                                 <!-- Category Buttons -->
-                                <Button Text="Addons" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
-                                <Button Text="Ingredients" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
-                                <Button Text="Supplies" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7"/>
+                                <Button Text="Ingredients" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
+                                <Button Text="Supplies" TextColor="Black" FontAttributes="Bold" BackgroundColor="#D9D9D9" WidthRequest="120" HeightRequest="40" CornerRadius="7" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
 
                                 <!-- Sort By Picker -->
                                 <Frame CornerRadius="10" BackgroundColor="White" Padding="5" WidthRequest="180" HeightRequest="40">
@@ -151,5 +150,8 @@
 
         <!-- Success Card Popup (global) -->
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
+
+        <!-- Notification Popup Overlay -->
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
     </Grid>
 </ContentPage>

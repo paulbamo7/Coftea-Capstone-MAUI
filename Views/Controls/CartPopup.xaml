@@ -62,9 +62,8 @@
                             <Label Grid.Column="1" Text="Drink Details" FontAttributes="Bold" FontSize="14" TextColor="Black" />
                             <Label Grid.Column="2" Text="Add-ons" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="150" />
                             <Label Grid.Column="3" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" />
-                            <Label Grid.Column="4" Text="Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="50" />
-                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
-                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="4" Text="Cost" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="5" Text="Action" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
                         </Grid>
                     </Grid>
 
@@ -79,7 +78,6 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="150" />
                                             <ColumnDefinition Width="60" />
-                                            <ColumnDefinition Width="50" />
                                             <ColumnDefinition Width="80" />
                                             <ColumnDefinition Width="80" />
                                         </Grid.ColumnDefinitions>
@@ -102,12 +100,6 @@
                                             <Label Text="{Binding ProductName, StringFormat='Drink: {0}'}" 
                                                    FontSize="12" 
                                                    TextColor="Black" />
-                                            <Label Text="{Binding CustomerName, StringFormat='Customer: {0}'}" 
-                                                   FontSize="12" 
-                                                   TextColor="Gray" />
-                                            <Label Text="{Binding SugarLevel, StringFormat='Sugar: {0}'}" 
-                                                   FontSize="12" 
-                                                   TextColor="Gray" />
                                         </VerticalStackLayout>
 
                                         <!-- Add-ons -->
@@ -125,16 +117,8 @@
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
 
-                                        <!-- Quantity -->
-                                        <Label Grid.Column="4" 
-                                               Text="{Binding TotalQuantity}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
                                         <!-- Cost -->
-                                        <Label Grid.Column="5" 
+                                        <Label Grid.Column="4" 
                                                Text="{Binding TotalPrice, StringFormat='P{0:F0}'}" 
                                                FontSize="12" 
                                                TextColor="Black" 
@@ -142,7 +126,7 @@
                                                HorizontalOptions="Center" />
 
                                         <!-- Action Buttons -->
-                                        <VerticalStackLayout Grid.Column="6" Spacing="15">
+                                        <VerticalStackLayout Grid.Column="5" Spacing="15">
                                             <Button
                                                 Text="Edit" 
                                                 FontSize="12" 

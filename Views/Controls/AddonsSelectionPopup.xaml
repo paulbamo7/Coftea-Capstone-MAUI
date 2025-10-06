@@ -4,198 +4,153 @@
              x:Class="Coftea_Capstone.Views.Controls.AddonsSelectionPopup"
              x:Name="Root"
              BackgroundColor="#80000000"
-             IsVisible="{Binding IsAddonsPopupVisible}">
+             IsVisible="{Binding IsAddonsPopupVisible}"
+             HorizontalOptions="FillAndExpand"
+             VerticalOptions="FillAndExpand"
+             ZIndex="1000">
 
-    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Padding="20">
-        <Frame BackgroundColor="#F8E8D7"
-               CornerRadius="25"
-               Padding="0"
-               WidthRequest="950"
-               HeightRequest="720"
-               HorizontalOptions="Center"
-               VerticalOptions="Center"
+    <!-- Overlay Grid to emulate ConnectPOSItemToInventory layout -->
+    <Grid HorizontalOptions="FillAndExpand"
+          VerticalOptions="FillAndExpand"
+          RowDefinitions="*,Auto,*"
+          ColumnDefinitions="*,Auto,*">
+
+        <!-- Transparent background click close -->
+        <BoxView Grid.RowSpan="3" Grid.ColumnSpan="3" BackgroundColor="#80000000">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseAddonsPopupCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Center Popup -->
+        <Frame Grid.Row="1" Grid.Column="1"
+               BackgroundColor="#FFF9F4"
+               CornerRadius="28"
+               Padding="30"
+               WidthRequest="1000"
+               HeightRequest="700"
                HasShadow="True"
                BorderColor="#DDDDDD">
 
             <!-- MAIN GRID FOR HEADER, CONTENT, FOOTER -->
-            <Grid Padding="25" RowSpacing="15" RowDefinitions="Auto,*,Auto">
+            <Grid RowSpacing="20" RowDefinitions="Auto,*,Auto">
 
                 <!-- HEADER -->
-                <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="FillAndExpand" Spacing="10">
+                <!-- Header (match InputIngredientsAmountUsed styling) -->
+                <VerticalStackLayout Grid.Row="0" Spacing="10">
                     <Label Text="Select Addons"
+                           FontSize="28"
                            FontAttributes="Bold"
-                           FontSize="26"
-                           TextColor="#3C3C3C"
-                           VerticalOptions="Center" />
-                    <Button Text="✕"
-                            BackgroundColor="Transparent"
-                            TextColor="#444"
-                            FontSize="20"
-                            WidthRequest="40"
-                            HeightRequest="40"
-                            Command="{Binding CloseAddonsPopupCommand}" />
-                </HorizontalStackLayout>
+                           TextColor="#4A3F35"
+                           HorizontalOptions="Center" />
+                    <Label Text="Choose addons, set amount, unit, and price."
+                           FontSize="16"
+                           TextColor="#7B6F63"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
 
-                <!-- CONTENT -->
-                <Grid Grid.Row="1" RowDefinitions="Auto,*">
-                    <!-- Filter and Search -->
-                    <Grid Grid.Row="0" RowDefinitions="Auto,Auto" RowSpacing="10" Margin="0,0,0,15">
-                        <!-- Filter Buttons -->
-                        <ScrollView Grid.Row="0" Orientation="Horizontal">
-                            <HorizontalStackLayout Spacing="8">
-                                <Button Text="All" 
-                                        Command="{Binding FilterByCategoryCommand}" 
-                                        CommandParameter="All"
-                                        FontAttributes="Bold" 
-                                        FontSize="14" 
-                                        WidthRequest="80" 
-                                        HeightRequest="35"
-                                        BackgroundColor="#E6DE9D"
-                                        TextColor="Black"
-                                        CornerRadius="17"/>
-                                <Button Text="Addons" 
-                                        Command="{Binding FilterByCategoryCommand}" 
-                                        CommandParameter="Addons"
-                                        FontAttributes="Bold" 
-                                        FontSize="14" 
-                                        WidthRequest="80" 
-                                        HeightRequest="35"
-                                        BackgroundColor="LightGray"
-                                        TextColor="Black"
-                                        CornerRadius="17"/>
-                                <Button Text="Sinkers" 
-                                        Command="{Binding FilterByCategoryCommand}" 
-                                        CommandParameter="Sinkers"
-                                        FontAttributes="Bold" 
-                                        FontSize="14" 
-                                        WidthRequest="80" 
-                                        HeightRequest="35"
-                                        BackgroundColor="LightGray"
-                                        TextColor="Black"
-                                        CornerRadius="17"/>
-                            </HorizontalStackLayout>
-                        </ScrollView>
+                <!-- CONTENT (table layout copied from InputIngredientsAmountUsed, with extra Price column) -->
+                <Grid Grid.Row="1" Padding="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                        <!-- Search Bar -->
-                        <Entry Grid.Row="1" 
-                               Text="{Binding SearchText}" 
-                               Placeholder="Search addons..." 
-                               FontSize="16" 
-                               BackgroundColor="White" 
-                               />
+                    <!-- Fixed Table Header -->
+                    <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,8" Margin="0,0,0,0">
+                        <Grid ColumnDefinitions="40, *, 100, 80, 80, 80, 80, 100, 80, 100">
+                            <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="1" Text="Item Name" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Start"/>
+                            <Label Grid.Column="2" Text="Category" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="3" Text="Stock" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="4" Text="Unit" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="5" Text="Min Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="6" Text="Status" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="7" Text="Amount" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="8" Text="UoM" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="9" Text="Price" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                        </Grid>
                     </Grid>
 
-                    <!-- Inventory Items List -->
-                    <CollectionView Grid.Row="1" ItemsSource="{Binding AvailableAddons}">
+                    <!-- Addons Data (use CollectionView's own vertical scrolling) -->
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding AvailableAddons}"
+                                    ItemsLayout="VerticalList"
+                                    VerticalOptions="FillAndExpand">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="White" 
-                                       CornerRadius="15" 
-                                       Padding="15" 
-                                       Margin="0,5" 
-                                       HasShadow="True">
-                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
-                                        <!-- Checkbox and Item Info -->
-                                        <CheckBox Grid.Column="0" 
-                                                  Grid.RowSpan="2"
-                                                  IsChecked="{Binding IsSelected}" 
-                                                  VerticalOptions="Center" 
-                                                  Margin="0,0,15,0"/>
+                                <Grid BackgroundColor="White" 
+                                      Padding="15,8"
+                                      Margin="0,0,0,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
 
-                                        <!-- Item Name and Category -->
-                                        <VerticalStackLayout Grid.Column="1" Grid.RowSpan="2" VerticalOptions="Center">
-                                            <Label Text="{Binding itemName}" 
-                                                   FontSize="16" 
-                                                   FontAttributes="Bold" 
-                                                   TextColor="#2C2C2C"/>
-                                            <Label Text="{Binding itemCategory}" 
-                                                   FontSize="13" 
-                                                   TextColor="#666666"/>
-                                        </VerticalStackLayout>
+                                        <!-- ID -->
+                                        <!-- Checkbox + ID -->
+                                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                                            <CheckBox IsChecked="{Binding IsSelected}" />
+                                            <Label Text="{Binding itemID}" FontSize="12" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </HorizontalStackLayout>
 
-                                        <!-- Stock Progress Bar -->
-                                        <Grid Grid.Column="2" Grid.RowSpan="2" HeightRequest="22" VerticalOptions="Center" WidthRequest="100">
-                                            <BoxView Color="#E0E0E0" CornerRadius="17" />
-                                            <ProgressBar Progress="{Binding StockProgress}"
-                                                         ProgressColor="{Binding StockFillColor}"
-                                                         HeightRequest="34" />
-                                            <Label Text="{Binding StockText}" FontSize="10" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
-                                        </Grid>
+                                        <!-- Item Name -->
+                                        <Label Grid.Column="1" Text="{Binding itemName}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Start" />
+
+                                        <!-- Category -->
+                                        <Label Grid.Column="2" Text="{Binding itemCategory}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+
+                                        <!-- Stock -->
+                                        <Label Grid.Column="3" Text="{Binding itemQuantity}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
+
+                                        <!-- Unit -->
+                                        <Label Grid.Column="4" Text="{Binding unitOfMeasurement}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
+
+                                        <!-- Min Quantity -->
+                                        <Label Grid.Column="5" Text="{Binding minimumQuantity}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
+
+                                        <!-- Status -->
+                                        <Label Grid.Column="6" Text="{Binding StockText}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
 
                                         <!-- Amount Input -->
-                                        <Entry Grid.Column="3" 
-                                               Grid.Row="0"
-                                               Text="{Binding InputAmount}" 
-                                               FontSize="14" 
-                                               Keyboard="Numeric" 
-                                               HorizontalTextAlignment="Center"
-                                               BackgroundColor="#F8F8F8"
-                                               WidthRequest="80"
-                                               Placeholder="Amount"/>
+                                        <Entry Grid.Column="7" Text="{Binding InputAmount}" FontSize="12" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
 
-                                        <!-- Unit Picker -->
-                                        <Picker Grid.Column="4" 
-                                                Grid.Row="0"
-                                                SelectedItem="{Binding InputUnit}" 
-                                                ItemsSource="{Binding AllowedUnits}"
-                                                FontSize="12" 
-                                                HorizontalOptions="Center"
-                                                WidthRequest="70" />
+                                        <!-- UoM Picker -->
+                                        <Picker Grid.Column="8" SelectedItem="{Binding InputUnit}" ItemsSource="{Binding AllowedUnits}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="70" />
 
-                                        <!-- Addon Price Input -->
-                                        <Entry Grid.Column="5" 
-                                               Grid.Row="0"
-                                               Text="{Binding AddonPrice}" 
-                                               FontSize="14" 
-                                               Keyboard="Numeric" 
-                                               HorizontalTextAlignment="Center"
-                                               BackgroundColor="#F8F8F8"
-                                               WidthRequest="80"
-                                               Placeholder="Price"/>
-
-                                        <!-- Addon Unit Picker -->
-                                        <Picker Grid.Column="6" 
-                                                Grid.Row="0"
-                                                SelectedItem="{Binding AddonUnit}" 
-                                                ItemsSource="{Binding AllowedUnits}"
-                                                FontSize="12" 
-                                                HorizontalOptions="Center"
-                                                WidthRequest="70" />
-
-                                        <!-- Labels Row -->
-                                        <Grid Grid.Column="3" Grid.ColumnSpan="4" Grid.Row="1" Margin="0,5,0,0">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="80" />
-                                                <ColumnDefinition Width="70" />
-                                                <ColumnDefinition Width="80" />
-                                                <ColumnDefinition Width="70" />
-                                            </Grid.ColumnDefinitions>
-                                            <Label Grid.Column="0" Text="Amount" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="1" Text="Unit" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="2" Text="Price" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="3" Text="Unit" FontSize="10" TextColor="Gray" HorizontalOptions="Center"/>
-                                        </Grid>
-                                    </Grid>
-                                </Frame>
+                                        <!-- Addon Price (extra vs ingredients UI) -->
+                                        <Entry Grid.Column="9" Text="{Binding AddonPrice}" FontSize="12" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
+                                </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
                 </Grid>
 
-                <!-- FOOTER -->
-                <HorizontalStackLayout Grid.Row="2" HorizontalOptions="End" Spacing="15">
-                    <Button Text="Cancel" 
-                            BackgroundColor="#D3D3D3" 
-                            TextColor="Black" 
-                            CornerRadius="20"
-                            WidthRequest="100" 
+                <!-- Footer Buttons (match sizing/styles) -->
+                <HorizontalStackLayout Grid.Row="2"
+                                       HorizontalOptions="End"
+                                       Spacing="15"
+                                       Margin="0,10,0,0">
+                    <Button Text="Back"
+                            BackgroundColor="#EFEFEF"
+                            TextColor="Black"
+                            CornerRadius="14"
+                            WidthRequest="120"
                             HeightRequest="45"
                             Command="{Binding CloseAddonsPopupCommand}"/>
-                    <Button Text="Confirm Selection" 
-                            BackgroundColor="#E6DE9D" 
-                            TextColor="Black" 
-                            CornerRadius="20"
-                            WidthRequest="150" 
+                    <Button Text="Preview"
+                            BackgroundColor="#E6DE9D"
+                            TextColor="Black"
+                            CornerRadius="14"
+                            WidthRequest="120"
                             HeightRequest="45"
                             Command="{Binding ConfirmAddonSelectionCommand}"/>
                 </HorizontalStackLayout>

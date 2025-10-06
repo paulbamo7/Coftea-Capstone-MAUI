@@ -33,10 +33,31 @@ namespace Coftea_Capstone.ViewModel.Controls
             foreach (var addon in selectedAddons)
             {
                 SelectedAddons.Add(addon);
+
+                // Sync into InventoryItems so save path can persist them
+                var existing = InventoryItems.FirstOrDefault(i => i.itemID == addon.itemID);
+                if (existing == null)
+                {
+                    existing = addon;
+                    InventoryItems.Add(existing);
+                }
+
+                // Mark as selected and carry over editable fields
+                existing.IsSelected = true;
+                existing.AddonPrice = addon.AddonPrice;
+                existing.AddonUnit = addon.AddonUnit;
+                existing.InputAmount = addon.InputAmount > 0 ? addon.InputAmount : 1;
+                existing.InputUnit = string.IsNullOrWhiteSpace(addon.InputUnit) ? addon.DefaultUnit : addon.InputUnit;
             }
             
             // Notify UI of changes
             OnPropertyChanged(nameof(SelectedAddons));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+
+            // Ensure the popup closes and we return to the preview overlay
+            IsAddonPopupVisible = false;
+            IsPreviewVisible = true;
         }
         [ObservableProperty] private bool isConnectPOSToInventoryVisible;
         [ObservableProperty] private bool isPreviewVisible;
@@ -155,6 +176,22 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsInputIngredientsVisible = false;
             IsPreviewVisible = false;
             ConfirmPreviewRequested?.Invoke();
+        }
+
+        // Addon quantity adjusters used by PreviewPOSItem
+        [RelayCommand]
+        private void IncreaseAddonQty(InventoryPageModel addon)
+        {
+            if (addon == null) return;
+            addon.AddonQuantity = Math.Max(1, addon.AddonQuantity + 1);
+        }
+
+        [RelayCommand]
+        private void DecreaseAddonQty(InventoryPageModel addon)
+        {
+            if (addon == null) return;
+            var next = addon.AddonQuantity - 1;
+            addon.AddonQuantity = next < 1 ? 1 : next;
         }
 
         [RelayCommand]
@@ -534,10 +571,16 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All")
             {
                 var filter = SelectedFilter?.Trim() ?? string.Empty;
-                if (string.Equals(filter, "Addons", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(filter, "Ingredients", StringComparison.OrdinalIgnoreCase))
                 {
-                    query = query.Where(i => string.Equals(i.itemCategory?.Trim(), "Addons", StringComparison.OrdinalIgnoreCase)
-                                           || string.Equals(i.itemCategory?.Trim(), "Sinkers", StringComparison.OrdinalIgnoreCase));
+                    // Show only allowed ingredient categories
+                    var allowed = new[] { "Syrups", "Powdered", "Fruit Series", "Sinkers", "Sinkers & etc." };
+                    query = query.Where(i => allowed.Any(a => string.Equals(i.itemCategory?.Trim(), a, StringComparison.OrdinalIgnoreCase)));
+                }
+                else if (string.Equals(filter, "Supplies", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Supplies should only show Others
+                    query = query.Where(i => string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));
                 }
                 else
                 {
@@ -601,6 +644,27 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private void UnselectAllVisible()
+        {
+            foreach (var item in InventoryItems)
+            {
+                var allItem = AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
+                if (allItem != null && allItem.IsSelected)
+                {
+                    var existing = Ingredients.FirstOrDefault(i => i.Name == allItem.itemName);
+                    if (existing != null)
+                    {
+                        Ingredients.Remove(existing);
+                    }
+                    allItem.IsSelected = false;
+                }
+            }
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+        }
+
+        [RelayCommand]
         private async Task AddAddons()
         {
             // Load addons from inventory (items categorized as "Addons")
@@ -634,7 +698,23 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task OpenAddonPopupCommand()
         {
-            await AddonsPopup.OpenAddonsPopup();
+            System.Diagnostics.Debug.WriteLine($"🔍 OpenAddonPopupCommand called");
+            try
+            {
+                if (AddonsPopup == null)
+                {
+                    AddonsPopup = new AddonsSelectionPopupViewModel();
+                    AddonsPopup.AddonsSelected += OnAddonsSelected;
+                }
+
+                // Open the bound AddonsSelectionPopup (this VM controls its own IsAddonsPopupVisible)
+                await AddonsPopup.OpenAddonsPopup();
+                System.Diagnostics.Debug.WriteLine($"✅ AddonsSelectionPopup opened (IsVisible={AddonsPopup.IsAddonsPopupVisible})");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error opening addon popup: {ex.Message}");
+            }
         }
 
         [RelayCommand]

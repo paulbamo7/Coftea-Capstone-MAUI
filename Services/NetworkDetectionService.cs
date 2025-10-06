@@ -42,10 +42,37 @@ namespace Coftea_Capstone.Services
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔍 Detecting database host for {DeviceInfo.Platform} ({DeviceInfo.DeviceType})");
+                
                 // Platform-specific detection
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "10.0.2.2"; // Android emulator default
+                    // Check if running on emulator or physical device
+                    if (DeviceInfo.DeviceType == DeviceType.Virtual)
+                    {
+                        System.Diagnostics.Debug.WriteLine("📱 Android emulator detected, using 10.0.2.2");
+                        return "10.0.2.2"; // Android emulator default
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("📱 Physical Android device detected, scanning for host IP");
+                        // Physical Android device - try to find the host machine's IP
+                        var possibleHosts = await GetPossibleHostsAsync();
+                        System.Diagnostics.Debug.WriteLine($"🔍 Testing {possibleHosts.Count} possible hosts: {string.Join(", ", possibleHosts)}");
+                        
+                        foreach (var host in possibleHosts)
+                        {
+                            if (await TestDatabaseConnectionAsync(host))
+                            {
+                                System.Diagnostics.Debug.WriteLine($"✅ Found working database host: {host}");
+                                return host;
+                            }
+                        }
+                        
+                        // Fallback to localhost for physical devices
+                        System.Diagnostics.Debug.WriteLine("❌ No working database host found, falling back to localhost");
+                        return "localhost";
+                    }
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
@@ -102,7 +129,27 @@ namespace Coftea_Capstone.Services
                 // Platform-specific detection for email host
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "10.0.2.2"; // Android emulator default
+                    // Check if running on emulator or physical device
+                    if (DeviceInfo.DeviceType == DeviceType.Virtual)
+                    {
+                        return "10.0.2.2"; // Android emulator default
+                    }
+                    else
+                    {
+                        // Physical Android device - try to find the host machine's IP
+                        var possibleHosts = await GetPossibleHostsAsync();
+                        
+                        foreach (var host in possibleHosts)
+                        {
+                            if (await TestEmailConnectionAsync(host))
+                            {
+                                return host;
+                            }
+                        }
+                        
+                        // Fallback to localhost for physical devices
+                        return "localhost";
+                    }
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
@@ -152,28 +199,59 @@ namespace Coftea_Capstone.Services
             }
         }
 
-        private static async Task<List<string>> GetPossibleHostsAsync()
+        public static async Task<List<string>> GetPossibleHostsAsync()
         {
-            var hosts = new List<string> { "localhost", "127.0.0.1" };
+            var hosts = new List<string>();
 
             try
             {
-                // Get local IP addresses
-                var localIPs = GetLocalIPAddresses();
-                hosts.AddRange(localIPs);
-
-                // Try common development server IPs
-                var commonIPs = new[]
+                // For physical devices, prioritize network IPs over localhost
+                if (DeviceInfo.DeviceType == DeviceType.Physical)
                 {
-                    "192.168.1.4",    // Your current hardcoded IP
-                    "192.168.254.104", // Your email service IP
-                    "192.168.0.1",
-                    "192.168.1.1",
-                    "10.0.0.1",
-                    "172.16.0.1"
-                };
+                    // Get local IP addresses first for physical devices
+                    var localIPs = GetLocalIPAddresses();
+                    hosts.AddRange(localIPs);
 
-                hosts.AddRange(commonIPs);
+                    // Try common development server IPs
+                    var commonIPs = new[]
+                    {
+                        "192.168.1.4",    // Your current hardcoded IP
+                        "192.168.254.104", // Your email service IP
+                        "192.168.0.1",
+                        "192.168.1.1",
+                        "10.0.0.1",
+                        "172.16.0.1"
+                    };
+
+                    hosts.AddRange(commonIPs);
+                    
+                    // Add localhost as last resort for physical devices
+                    hosts.Add("localhost");
+                    hosts.Add("127.0.0.1");
+                }
+                else
+                {
+                    // For emulators/simulators, prioritize localhost
+                    hosts.Add("localhost");
+                    hosts.Add("127.0.0.1");
+                    
+                    // Get local IP addresses
+                    var localIPs = GetLocalIPAddresses();
+                    hosts.AddRange(localIPs);
+
+                    // Try common development server IPs
+                    var commonIPs = new[]
+                    {
+                        "192.168.1.4",    // Your current hardcoded IP
+                        "192.168.254.104", // Your email service IP
+                        "192.168.0.1",
+                        "192.168.1.1",
+                        "10.0.0.1",
+                        "172.16.0.1"
+                    };
+
+                    hosts.AddRange(commonIPs);
+                }
 
                 // Remove duplicates and return
                 return hosts.Distinct().ToList();
@@ -181,7 +259,7 @@ namespace Coftea_Capstone.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error getting possible hosts: {ex.Message}");
-                return hosts;
+                return new List<string> { "localhost", "127.0.0.1" };
             }
         }
 
@@ -219,6 +297,7 @@ namespace Coftea_Capstone.Services
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"Testing database connection to {host}:3306");
                 using var tcpClient = new TcpClient();
                 var connectTask = tcpClient.ConnectAsync(host, 3306);
                 var timeoutTask = Task.Delay(2000); // 2 second timeout
@@ -228,13 +307,17 @@ namespace Coftea_Capstone.Services
                 if (completedTask == connectTask && tcpClient.Connected)
                 {
                     tcpClient.Close();
-                    System.Diagnostics.Debug.WriteLine($"Database connection successful to {host}:3306");
+                    System.Diagnostics.Debug.WriteLine($"✅ Database connection successful to {host}:3306");
                     return true;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Database connection timeout to {host}:3306");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Database connection test failed for {host}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Database connection test failed for {host}: {ex.Message}");
             }
 
             return false;
@@ -244,6 +327,7 @@ namespace Coftea_Capstone.Services
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"Testing email connection to {host}:1025");
                 using var tcpClient = new TcpClient();
                 var connectTask = tcpClient.ConnectAsync(host, 1025); // MailHog port
                 var timeoutTask = Task.Delay(2000); // 2 second timeout
@@ -253,13 +337,17 @@ namespace Coftea_Capstone.Services
                 if (completedTask == connectTask && tcpClient.Connected)
                 {
                     tcpClient.Close();
-                    System.Diagnostics.Debug.WriteLine($"Email connection successful to {host}:1025");
+                    System.Diagnostics.Debug.WriteLine($"✅ Email connection successful to {host}:1025");
                     return true;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Email connection timeout to {host}:1025");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Email connection test failed for {host}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Email connection test failed for {host}: {ex.Message}");
             }
 
             return false;

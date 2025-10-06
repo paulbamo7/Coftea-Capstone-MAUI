@@ -15,6 +15,8 @@
             <converters:RadioButtonItemSize x:Key="RadioButtonItemSize"/>
             <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
             <converters:NotificationIconConverter x:Key="NotificationIconConverter"/>
+            <converters:NotificationTextIconConverter x:Key="NotificationTextIconConverter"/>
+            <converters:NotificationColorConverter x:Key="NotificationColorConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
@@ -29,7 +31,7 @@
             <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
                 <Label Text="Point Of Sale" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
                 <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="20" FontAttributes="Bold"/>
-                <otherViews:NotificationDropdown Grid.Column="2" />
+                <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Command="{Binding ShowNotificationBellCommand}"/>
                 <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="35" HeightRequest="35"/>
             </Grid>
 
@@ -136,12 +138,12 @@
                                         </VerticalStackLayout>
                                         
                                         <!-- Low Stock Overlay -->
-                                        <Frame BackgroundColor="#80000000" CornerRadius="20" IsVisible="{Binding IsLowStock}" 
+                                        <Frame BackgroundColor="#80FF0000" CornerRadius="20" IsVisible="{Binding IsLowStock}" 
                                                VerticalOptions="Fill" HorizontalOptions="Fill">
                                             <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="5">
-                                                <Label Text="LOW STOCK" FontSize="12" FontAttributes="Bold" TextColor="White" 
+                                                <Label Text="UNAVAILABLE" FontSize="12" FontAttributes="Bold" TextColor="White" 
                                                        HorizontalOptions="Center"/>
-                                                <Label Text="Cannot be selected" FontSize="10" TextColor="White" 
+                                                <Label Text="Insufficient inventory" FontSize="10" TextColor="White" 
                                                        HorizontalOptions="Center"/>
                                             </VerticalStackLayout>
                                         </Frame>
@@ -217,7 +219,7 @@
                                     <!-- Select Size Section -->
                                     <Label Text="Select Size:" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>
 
-                                    <Grid Margin="25,0,0,0" RowSpacing="10">
+                                    <Grid Margin="25,0,0,0" RowSpacing="8">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                             <!-- Small -->
@@ -228,28 +230,64 @@
                                         </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="35"/>
-                                            <ColumnDefinition Width="40"/>
-                                            <ColumnDefinition Width="35"/>
+                                        <ColumnDefinition Width="28"/>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition Width="28"/>
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Small Size -->
                                         <Label Text="Small:" Grid.Row="0" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
-                                        <Button Text="-" Grid.Row="0" Grid.Column="1" Command="{Binding DecreaseSmallQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
-                                        <Label Text="{Binding SelectedProduct.SmallQuantity}" Grid.Row="0" Grid.Column="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="16" TextColor="Black" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
-                                        <Button Text="+" Grid.Row="0" Grid.Column="3" Command="{Binding IncreaseSmallQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="0" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding DecreaseSmallQtyCommand}"/>
+                                            </Frame.GestureRecognizers>
+                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseSmallQtyCommand}"/>
+                                        </Frame>
+                                        <Frame Grid.Row="0" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
+                                            <Label Text="{Binding SelectedProduct.SmallQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Frame>
+                                        <Frame Grid.Row="0" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding IncreaseSmallQtyCommand}"/>
+                                            </Frame.GestureRecognizers>
+                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseSmallQtyCommand}"/>
+                                        </Frame>
 
                                         <!-- Medium Size -->
                                         <Label Text="Medium:" Grid.Row="1" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
-                                        <Button Text="-" Grid.Row="1" Grid.Column="1" Command="{Binding DecreaseMediumQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
-                                        <Label Text="{Binding SelectedProduct.MediumQuantity}" Grid.Row="1" Grid.Column="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="16" TextColor="Black" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
-                                        <Button Text="+" Grid.Row="1" Grid.Column="3" Command="{Binding IncreaseMediumQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding DecreaseMediumQtyCommand}"/>
+                                            </Frame.GestureRecognizers>
+                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseMediumQtyCommand}"/>
+                                        </Frame>
+                                        <Frame Grid.Row="1" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                            <Label Text="{Binding SelectedProduct.MediumQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Frame>
+                                        <Frame Grid.Row="1" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding IncreaseMediumQtyCommand}"/>
+                                            </Frame.GestureRecognizers>
+                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseMediumQtyCommand}"/>
+                                        </Frame>
 
                                         <!-- Large Size -->
                                         <Label Text="Large:" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
-                                        <Button Text="-" Grid.Row="2" Grid.Column="1" Command="{Binding DecreaseLargeQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
-                                        <Label Text="{Binding SelectedProduct.LargeQuantity}" Grid.Row="2" Grid.Column="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontSize="16" TextColor="Black" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
-                                        <Button Text="+" Grid.Row="2" Grid.Column="3" Command="{Binding IncreaseLargeQtyCommand}" FontSize="14" HeightRequest="30" TextColor="Black" BackgroundColor="LightGray" Padding="0" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="2" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding DecreaseLargeQtyCommand}"/>
+                                            </Frame.GestureRecognizers>
+                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseLargeQtyCommand}"/>
+                                        </Frame>
+                                        <Frame Grid.Row="2" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                            <Label Text="{Binding SelectedProduct.LargeQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        </Frame>
+                                        <Frame Grid.Row="2" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding IncreaseLargeQtyCommand}"/>
+                                            </Frame.GestureRecognizers>
+                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseLargeQtyCommand}"/>
+                                        </Frame>
                                     </Grid>
 
 
@@ -311,6 +349,7 @@
         <otherViews:PaymentPopup x:Name="PaymentPopupControl" Grid.ColumnSpan="2"/>
         <otherViews:OrderCompletePopup BindingContext="{Binding OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Reference POS}, Path=BindingContext.SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
+        <otherViews:NotificationPopup BindingContext="{Binding NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
 
     </Grid>
 </ContentPage>

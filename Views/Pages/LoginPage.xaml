@@ -20,7 +20,7 @@
         </LinearGradientBrush>
     </ContentPage.Background>
 
-    <!-- Grid that adapts -->
+    <!-- Main Grid containing all content -->
     <Grid RowDefinitions="*,Auto,*"
           ColumnDefinitions="*"
           Padding="20">
@@ -129,9 +129,13 @@
                 </VerticalStackLayout>
             </Frame>
         </ScrollView>
-        <!-- Retry Connection Popup -->
-        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" />
+        
         <!-- Password Reset Popup -->
         <otherViews:PasswordResetPopup BindingContext="{Binding PasswordResetPopup}" />
+        
+        <!-- Retry Connection Popup - Overlay at root level -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" 
+                                         Grid.RowSpan="3" 
+                                         Grid.ColumnSpan="1" />
     </Grid>
 </ContentPage>

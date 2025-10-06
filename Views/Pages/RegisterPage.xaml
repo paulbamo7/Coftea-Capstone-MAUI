@@ -20,105 +20,108 @@
         </LinearGradientBrush>
     </ContentPage.Background>
 
-    <!-- Outer Grid to center content -->
-    <ScrollView VerticalOptions="Center" HorizontalOptions="Center">
-        <HorizontalStackLayout HorizontalOptions="Center">
-            <Grid RowDefinitions="*,*">
-                <HorizontalStackLayout  Grid.Row="0" >
-                    <Frame BackgroundColor="#BDAEA2"
-                           Padding="25,60,25,0"
-                           CornerRadius="0"
-                           BorderColor="Gray"
-                           HasShadow="False"
-                           WidthRequest="420"
-                           HeightRequest="620">
+    <!-- Main Grid containing all content -->
+    <Grid>
+        <ScrollView VerticalOptions="Center" HorizontalOptions="Center">
+            <HorizontalStackLayout HorizontalOptions="Center">
+                <Grid RowDefinitions="*,*">
+                    <HorizontalStackLayout  Grid.Row="0" >
+                        <Frame BackgroundColor="#BDAEA2"
+                               Padding="25,60,25,0"
+                               CornerRadius="0"
+                               BorderColor="Gray"
+                               HasShadow="False"
+                               WidthRequest="420"
+                               HeightRequest="620">
 
-                        <VerticalStackLayout Spacing="12">
-                            <HorizontalStackLayout Spacing="10">
-                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179" >
-                                    <Entry Placeholder="First Name" PlaceholderColor="White" Text="{Binding FirstName}"/>
+                            <VerticalStackLayout Spacing="12">
+                                <HorizontalStackLayout Spacing="10">
+                                    <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179" >
+                                        <Entry Placeholder="First Name" PlaceholderColor="White" Text="{Binding FirstName}"/>
+                                    </Border>
+                                    <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179">
+                                        <Entry Placeholder="Last Name" PlaceholderColor="White" Text="{Binding LastName}" />
+                                    </Border>
+                                </HorizontalStackLayout>
+
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370" Margin="15">
+                                    <Entry Placeholder="Enter Email" Keyboard="Email" PlaceholderColor="White" Text="{Binding Email}"/>
                                 </Border>
-                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179">
-                                    <Entry Placeholder="Last Name" PlaceholderColor="White" Text="{Binding LastName}" />
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                    <Grid>
+                                        <Entry x:Name="RegisterPasswordEntry" Placeholder="Enter Password" IsPassword="True" PlaceholderColor="White"  Text="{Binding Password}"/>
+                                        <ImageButton Source="show.png"
+                                                    WidthRequest="24"
+                                                    HeightRequest="24"
+                                                    Padding="10,0"
+                                                    BackgroundColor="Transparent"
+                                                    HorizontalOptions="End"
+                                                    VerticalOptions="Center"
+                                                    Clicked="OnToggleRegisterPasswordVisibility" />
+                                    </Grid>
                                 </Border>
-                            </HorizontalStackLayout>
 
-                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370" Margin="15">
-                                <Entry Placeholder="Enter Email" Keyboard="Email" PlaceholderColor="White" Text="{Binding Email}"/>
-                            </Border>
-                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
-                                <Grid>
-                                    <Entry x:Name="RegisterPasswordEntry" Placeholder="Enter Password" IsPassword="True" PlaceholderColor="White"  Text="{Binding Password}"/>
-                                    <ImageButton Source="show.png"
-                                                WidthRequest="24"
-                                                HeightRequest="24"
-                                                Padding="10,0"
-                                                BackgroundColor="Transparent"
-                                                HorizontalOptions="End"
-                                                VerticalOptions="Center"
-                                                Clicked="OnToggleRegisterPasswordVisibility" />
-                                </Grid>
-                            </Border>
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                    <Grid>
+                                        <Entry x:Name="RegisterConfirmPasswordEntry" Placeholder="Confirm Password" IsPassword="True" PlaceholderColor="White" Text="{Binding ConfirmPassword}"/>
+                                        <ImageButton Source="show.png"
+                                                    WidthRequest="24"
+                                                    HeightRequest="24"
+                                                    Padding="10,0"
+                                                    BackgroundColor="Transparent"
+                                                    HorizontalOptions="End"
+                                                    VerticalOptions="Center"
+                                                    Clicked="OnToggleRegisterConfirmPasswordVisibility" />
+                                    </Grid>
+                                </Border>
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                    <DatePicker Date="{Binding Birthday}" 
+                                               Format="MM/dd/yyyy"
+                                               MinimumDate="01/01/1900"
+                                               x:Name="BirthdayDatePicker"/>
+                                </Border>
 
-                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
-                                <Grid>
-                                    <Entry x:Name="RegisterConfirmPasswordEntry" Placeholder="Confirm Password" IsPassword="True" PlaceholderColor="White" Text="{Binding ConfirmPassword}"/>
-                                    <ImageButton Source="show.png"
-                                                WidthRequest="24"
-                                                HeightRequest="24"
-                                                Padding="10,0"
-                                                BackgroundColor="Transparent"
-                                                HorizontalOptions="End"
-                                                VerticalOptions="Center"
-                                                Clicked="OnToggleRegisterConfirmPasswordVisibility" />
-                                </Grid>
-                            </Border>
-                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
-                                <DatePicker Date="{Binding Birthday}" 
-                                           Format="MM/dd/yyyy"
-                                           MinimumDate="01/01/1900"
-                                           x:Name="BirthdayDatePicker"/>
-                            </Border>
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                    <Entry Placeholder="Phone Number" Keyboard="Telephone" PlaceholderColor="White" Text="{Binding PhoneNumber}" />
+                                </Border>
+                                <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
+                                    <Entry Placeholder="Address" PlaceholderColor="White" Text="{Binding Address}"/>
+                                </Border>
+                                <!-- Checkbox for T&C -->
+                                <HorizontalStackLayout>
+                                    <CheckBox IsChecked="{Binding IsTermsAccepted}"/>
+                                    <Label Text="I agree to the " VerticalOptions="Center" />
+                                    <Label Text="Terms and Conditions" TextColor="Blue" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
 
-                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
-                                <Entry Placeholder="Phone Number" Keyboard="Telephone" PlaceholderColor="White" Text="{Binding PhoneNumber}" />
-                            </Border>
-                            <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="370">
-                                <Entry Placeholder="Address" PlaceholderColor="White" Text="{Binding Address}"/>
-                            </Border>
-                            <!-- Checkbox for T&C -->
-                            <HorizontalStackLayout>
-                                <CheckBox IsChecked="{Binding IsTermsAccepted}"/>
-                                <Label Text="I agree to the " VerticalOptions="Center" />
-                                <Label Text="Terms and Conditions" TextColor="Blue" VerticalOptions="Center"/>
-                            </HorizontalStackLayout>
+                                <!-- Submit Button -->
+                                <Button Text="Register"
+                                        BackgroundColor="#5B4F45"
+                                        TextColor="White"
+                                        Command="{Binding RegisterCommand}"
+                                        CornerRadius="10"/>
+                            </VerticalStackLayout>
+                        </Frame>
 
-                            <!-- Submit Button -->
-                            <Button Text="Register"
-                                    BackgroundColor="#5B4F45"
-                                    TextColor="White"
-                                    Command="{Binding RegisterCommand}"
-                                    CornerRadius="10"/>
-                        </VerticalStackLayout>
-                    </Frame>
+                        <!-- Right Frame (Logo) -->
+                        <Frame BackgroundColor="#C0BBB6"
+                               Padding="45,0,45,0"
+                               CornerRadius="0"
+                               HasShadow="False"
+                               WidthRequest="420"
+                               HeightRequest="620">
+                            <Image Source="coftea_logo.png"
+                                   HeightRequest="250"
+                                   HorizontalOptions="Center"/>
+                        </Frame>
+                    </HorizontalStackLayout>
+                </Grid>
+            </HorizontalStackLayout>
+        </ScrollView>
 
-                    <!-- Right Frame (Logo) -->
-                    <Frame BackgroundColor="#C0BBB6"
-                           Padding="45,0,45,0"
-                           CornerRadius="0"
-                           HasShadow="False"
-                           WidthRequest="420"
-                           HeightRequest="620">
-                        <Image Source="coftea_logo.png"
-                               HeightRequest="250"
-                               HorizontalOptions="Center"/>
-                    </Frame>
-                </HorizontalStackLayout>
-
-
-            </Grid>
-            <!-- Retry Connection Popup -->
-            <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
-        </HorizontalStackLayout>
-    </ScrollView>
+        <!-- Retry Connection Popup - Overlay at root level -->
+        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" 
+                                         Grid.RowSpan="1" 
+                                         Grid.ColumnSpan="1" />
+    </Grid>
 </ContentPage>

@@ -31,7 +31,7 @@
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                     <Label Text="User Management" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
-                    <otherViews:NotificationDropdown Grid.Column="2" />
+                    <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                     <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
                 </Grid>
 
@@ -63,36 +63,41 @@
                             <CollectionView ItemsSource="{Binding Users}">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
+                                        <VerticalStackLayout Spacing="0">
                                             <Grid ColumnDefinitions="2*,3*,2*,2*,Auto" Padding="10" RowSpacing="0">
-                                            <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center"/>
+                                                <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center"/>
 
-                                            <VerticalStackLayout Grid.Column="1" Spacing="8">
-                                                <!-- Show access toggles only for non-admin users -->
-                                                <VerticalStackLayout IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}" Spacing="8">
-                                                    <!-- Inventory Access -->
-                                                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                                        <Label Text="Inventory Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
-                                                        <Switch IsToggled="{Binding CanAccessInventory}"/>
-                                                    </HorizontalStackLayout>
-                                                    
-                                                    <!-- Sales Report Access -->
-                                                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                                        <Label Text="Sales Report Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
-                                                        <Switch IsToggled="{Binding CanAccessSalesReport}"/>
-                                                    </HorizontalStackLayout>
+                                                <VerticalStackLayout Grid.Column="1" Spacing="8">
+                                                    <!-- Show access toggles only for non-admin users -->
+                                                    <VerticalStackLayout IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}" Spacing="8">
+                                                        <!-- Inventory Access -->
+                                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                            <Label Text="Inventory Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
+                                                            <Switch IsToggled="{Binding CanAccessInventory}"/>
+                                                        </HorizontalStackLayout>
+                                                        
+                                                        <!-- Sales Report Access -->
+                                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                            <Label Text="Sales Report Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
+                                                            <Switch IsToggled="{Binding CanAccessSalesReport}"/>
+                                                        </HorizontalStackLayout>
+                                                    </VerticalStackLayout>
                                                 </VerticalStackLayout>
-                                            </VerticalStackLayout>
 
-                                            <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center"/>
-                                            <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center"/>
+                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center"/>
+                                                <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center"/>
 
-                                            <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
-                                            <Grid Grid.Column="4" HorizontalOptions="End" VerticalOptions="Center">
-                                                <Button Text="⋮" WidthRequest="36" HeightRequest="30" CornerRadius="6"
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=OpenRowMenuCommand}"
-                                                        CommandParameter="{Binding .}"/>
+                                                <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
+                                                <Grid Grid.Column="4" HorizontalOptions="End" VerticalOptions="Center">
+                                                    <Button Text="⋮" WidthRequest="36" HeightRequest="30" CornerRadius="6"
+                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=OpenRowMenuCommand}"
+                                                            CommandParameter="{Binding .}"/>
+                                                </Grid>
                                             </Grid>
-                                        </Grid>
+                                            
+                                            <!-- Separator line between users -->
+                                            <BoxView HeightRequest="2" BackgroundColor="#D0D0D0" Margin="15,5,15,5" CornerRadius="1"/>
+                                        </VerticalStackLayout>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
@@ -123,5 +128,6 @@
         <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
         
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
     </Grid>
 </ContentPage>

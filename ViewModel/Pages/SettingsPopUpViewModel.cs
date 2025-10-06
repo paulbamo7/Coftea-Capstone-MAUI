@@ -7,6 +7,7 @@ using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -56,6 +57,9 @@ namespace Coftea_Capstone.ViewModel
             get => _inventoryAlerts;
             set => SetProperty(ref _inventoryAlerts, value);
         }
+
+        // Database IP setting
+        [ObservableProperty] private string databaseIP = string.Empty;
 
         public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
@@ -129,7 +133,11 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        public void ShowSettingsPopup() => IsSettingsPopupVisible = true;
+        public void ShowSettingsPopup() 
+        {
+            LoadCurrentDatabaseIP();
+            IsSettingsPopupVisible = true;
+        }
 
         [RelayCommand]
         private void CloseSettingsPopup() => IsSettingsPopupVisible = false;
@@ -203,6 +211,171 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        [RelayCommand]
+        private void SaveDatabaseIP()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(DatabaseIP))
+                {
+                    Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid IP address", "OK");
+                    return;
+                }
+
+                // Validate IP format (basic validation)
+                if (!IsValidIPAddress(DatabaseIP))
+                {
+                    Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid IP address format (e.g., 192.168.1.100)", "OK");
+                    return;
+                }
+
+                // Set the database host
+                NetworkConfigurationService.SetManualDatabaseHost(DatabaseIP.Trim());
+                
+                System.Diagnostics.Debug.WriteLine($"🔧 Database IP set to: {DatabaseIP}");
+                Application.Current.MainPage.DisplayAlert("Success", $"Database IP set to {DatabaseIP}\n\nYou may need to restart the app for changes to take effect.", "OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error setting database IP: {ex.Message}");
+                Application.Current.MainPage.DisplayAlert("Error", $"Failed to set database IP: {ex.Message}", "OK");
+            }
+        }
+
+        private void LoadCurrentDatabaseIP()
+        {
+            try
+            {
+                var currentSettings = NetworkConfigurationService.GetCurrentSettings();
+                if (currentSettings.ContainsKey("Database Host"))
+                {
+                    DatabaseIP = currentSettings["Database Host"];
+                }
+                else
+                {
+                    DatabaseIP = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error loading current database IP: {ex.Message}");
+                DatabaseIP = string.Empty;
+            }
+        }
+
+        private bool IsValidIPAddress(string ip)
+        {
+            if (string.IsNullOrWhiteSpace(ip)) return false;
+            
+            var parts = ip.Split('.');
+            if (parts.Length != 4) return false;
+            
+            foreach (var part in parts)
+            {
+                if (!int.TryParse(part, out int num) || num < 0 || num > 255)
+                    return false;
+            }
+            
+            return true;
+        }
+
+        [RelayCommand]
+        private async Task CreateBackup()
+        {
+            try
+            {
+                var database = new Models.Database();
+                
+                // Show loading message
+                await Application.Current.MainPage.DisplayAlert("Creating Backup", "Please wait while we create a backup of your database...", "OK");
+                
+                // Get all data from database
+                var products = await database.GetProductsAsync();
+                var inventoryItems = await database.GetInventoryItemsAsync();
+                var transactions = await database.GetTransactionsByDateRangeAsync(DateTime.MinValue, DateTime.MaxValue);
+                
+                // Create backup data structure
+                var backupData = new
+                {
+                    Timestamp = DateTime.Now,
+                    Products = products,
+                    InventoryItems = inventoryItems,
+                    Transactions = transactions
+                };
+                
+                // Convert to JSON
+                var json = System.Text.Json.JsonSerializer.Serialize(backupData, new System.Text.Json.JsonSerializerOptions 
+                { 
+                    WriteIndented = true 
+                });
+                
+                // Save to local storage
+                var fileName = $"database_backup_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+                var filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                await File.WriteAllTextAsync(filePath, json);
+                
+                System.Diagnostics.Debug.WriteLine($"💾 Backup created: {filePath}");
+                await Application.Current.MainPage.DisplayAlert("Backup Created", 
+                    $"Database backup created successfully!\n\nFile: {fileName}\nLocation: {filePath}\n\nProducts: {products.Count}\nInventory Items: {inventoryItems.Count}\nTransactions: {transactions.Count}", "OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating backup: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Backup Failed", $"Failed to create backup: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task RestoreBackup()
+        {
+            try
+            {
+                // Get all backup files
+                var backupFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "database_backup_*.json")
+                    .OrderByDescending(f => File.GetCreationTime(f))
+                    .ToList();
+                
+                if (backupFiles.Count == 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert("No Backups", "No backup files found. Please create a backup first.", "OK");
+                    return;
+                }
+                
+                // Show backup selection
+                var fileNames = backupFiles.Select(f => Path.GetFileName(f)).ToArray();
+                var selectedFile = await Application.Current.MainPage.DisplayActionSheet("Select Backup to Restore", "Cancel", null, fileNames);
+                
+                if (selectedFile == "Cancel" || string.IsNullOrEmpty(selectedFile))
+                    return;
+                
+                var selectedFilePath = backupFiles.First(f => Path.GetFileName(f) == selectedFile);
+                
+                // Confirm restore
+                var confirm = await Application.Current.MainPage.DisplayAlert("Confirm Restore", 
+                    $"Are you sure you want to restore from {selectedFile}?\n\nThis will overwrite all current data!", "Yes", "No");
+                
+                if (!confirm) return;
+                
+                // Read backup file
+                var json = await File.ReadAllTextAsync(selectedFilePath);
+                var backupData = System.Text.Json.JsonSerializer.Deserialize<dynamic>(json);
+                
+                // Show loading message
+                await Application.Current.MainPage.DisplayAlert("Restoring Backup", "Please wait while we restore your database...", "OK");
+                
+                // Note: Full restore would require implementing restore methods in Database.cs
+                // For now, just show success message
+                System.Diagnostics.Debug.WriteLine($"🔄 Restore initiated from: {selectedFilePath}");
+                await Application.Current.MainPage.DisplayAlert("Restore Initiated", 
+                    $"Backup restore initiated from {selectedFile}.\n\nNote: Full restore functionality needs to be implemented in the Database class.", "OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error restoring backup: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Restore Failed", $"Failed to restore backup: {ex.Message}", "OK");
+            }
+        }
+
         private async Task LoadTopSellingProductsAsync()
         {
             try
@@ -259,13 +432,26 @@ namespace Coftea_Capstone.ViewModel
                     .Take(5)
                     .ToList();
 
+                var database = new Models.Database();
                 foreach (var transaction in recentTransactions)
                 {
+                    // Try to get the actual product image from the products table
+                    string productImage = "drink.png"; // default fallback
+                    try
+                    {
+                        var product = await database.GetProductByNameAsync(transaction.DrinkName);
+                        if (product != null && !string.IsNullOrWhiteSpace(product.ImageSet))
+                        {
+                            productImage = product.ImageSet;
+                        }
+                    }
+                    catch { /* ignore and use default */ }
+
                     RecentOrders.Add(new RecentOrderModel
                     {
                         OrderNumber = transaction.TransactionId,
                         ProductName = transaction.DrinkName,
-                        ProductImage = "drink.png", // Default image
+                        ProductImage = productImage,
                         TotalAmount = transaction.Total,
                         OrderTime = transaction.TransactionDate,
                         Status = "Completed"
@@ -342,12 +528,36 @@ namespace Coftea_Capstone.ViewModel
                 var database = new Models.Database(); // Will use auto-detected host
                 var inventoryItems = await database.GetInventoryItemsAsync();
                 
-                // Filter items that have low stock (below minimum quantity or very low amounts)
-                var lowStockItems = inventoryItems
-                    .Where(item => item.itemQuantity <= item.minimumQuantity || item.itemQuantity <= 10)
-                    .OrderBy(item => item.itemQuantity)
-                    .Take(5) // Show top 5 lowest stock items
+                System.Diagnostics.Debug.WriteLine($"🔍 LoadInventoryAlertsAsync: Found {inventoryItems.Count} inventory items");
+                
+                // Check for duplicate item names
+                var duplicateNames = inventoryItems
+                    .GroupBy(item => item.itemName)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key)
                     .ToList();
+                
+                if (duplicateNames.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Found duplicate item names: {string.Join(", ", duplicateNames)}");
+                }
+                
+                // Compute percent of minimum threshold remaining
+                // percentOfMin = (current / minimum) * 100; if minimum is 0, skip (treated as healthy)
+                var lowStockItems = inventoryItems
+                    .Where(item => item.minimumQuantity > 0)
+                    .Select(item => new {
+                        Item = item,
+                        PercentOfMin = (item.itemQuantity / item.minimumQuantity) * 100.0
+                    })
+                    .Where(x => x.PercentOfMin <= 100.0) // at or below minimum threshold
+                    .GroupBy(x => x.Item.itemName)
+                    .Select(group => group.OrderBy(x => x.PercentOfMin).First())
+                    .OrderBy(x => x.PercentOfMin)
+                    .Take(5)
+                    .ToList();
+
+                System.Diagnostics.Debug.WriteLine($"🔍 LoadInventoryAlertsAsync: Found {lowStockItems.Count} low stock items");
 
                 if (lowStockItems.Count == 0)
                 {
@@ -355,10 +565,16 @@ namespace Coftea_Capstone.ViewModel
                 }
                 else
                 {
-                    foreach (var item in lowStockItems)
+                    foreach (var entry in lowStockItems)
                     {
-                        var stockLevel = item.itemQuantity <= item.minimumQuantity ? "CRITICAL" : "LOW";
-                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {item.unitOfMeasurement})";
+                        var item = entry.Item;
+                        var percent = entry.PercentOfMin;
+                        // Severity by percent of minimum
+                        // <= 30% => CRITICAL, 31-70% => MEDIUM, 71-100% => LOW
+                        string stockLevel = percent <= 30.0 ? "CRITICAL" : (percent <= 70.0 ? "MEDIUM" : "LOW");
+
+                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {item.unitOfMeasurement}) - {percent:F0}% of min";
+                        System.Diagnostics.Debug.WriteLine($"🔍 Adding alert: {alertText}");
                         InventoryAlerts.Add(alertText);
                     }
                 }

@@ -38,14 +38,16 @@ namespace Coftea_Capstone.Models
         {
             if (DeviceInfo.Platform == DevicePlatform.Android)
             {
-                return "10.0.2.2"; // Android emulator default
+                if (DeviceInfo.Manufacturer?.ToLower().Contains("google") == true ||
+                    DeviceInfo.DeviceType == DeviceType.Virtual)
+                {
+                    return "10.0.2.2";
+                }     
             }
-            
+
             if (DeviceInfo.Platform == DevicePlatform.iOS)
             {
-                // For iOS Simulator, use localhost
-                // For physical iOS devices, use localhost as well (will be overridden by NetworkConfigurationService)
-                return "localhost";
+                return "192.168.1.6";
             }
             
             // For Windows, Mac, and other platforms
@@ -267,17 +269,17 @@ namespace Coftea_Capstone.Models
             return results;
         }
 
-        // Get add-ons (linked inventory items) for a product
+        // Get add-ons (linked inventory items) for a product from product_addons
         public async Task<List<InventoryPageModel>> GetProductAddonsAsync(int productId)
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            const string sql = @"SELECT pi.amount, pi.unit, pi.role,
+            const string sql = @"SELECT pa.amount, pa.unit, pa.role, pa.addon_price,
                                         i.itemID, i.itemName, i.itemQuantity, i.itemCategory, i.imageSet,
                                         i.itemDescription, i.unitOfMeasurement, i.minimumQuantity
-                                   FROM product_ingredients pi
-                                   JOIN inventory i ON i.itemID = pi.itemID
-                                  WHERE pi.productID = @ProductID AND pi.role = 'addon'";
+                                   FROM product_addons pa
+                                   JOIN inventory i ON i.itemID = pa.itemID
+                                  WHERE pa.productID = @ProductID";
 
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductID", productId);
@@ -299,9 +301,10 @@ namespace Coftea_Capstone.Models
                     IsSelected = true
                 };
 
-                // Map linked amount/unit into size-specific fields (default to same across sizes)
+                // Map linked amount/unit
                 var linkAmount = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
                 var linkUnit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
+                var addonPrice = reader.IsDBNull(reader.GetOrdinal("addon_price")) ? 0m : reader.GetDecimal("addon_price");
 
                 item.InputAmountSmall = linkAmount;
                 item.InputAmountMedium = linkAmount;
@@ -309,6 +312,7 @@ namespace Coftea_Capstone.Models
                 item.InputUnitSmall = string.IsNullOrWhiteSpace(linkUnit) ? item.DefaultUnit : linkUnit;
                 item.InputUnitMedium = item.InputUnitSmall;
                 item.InputUnitLarge = item.InputUnitSmall;
+                item.AddonPrice = addonPrice;
 
                 // If you later add cost computation, populate PriceUsed* here
                 item.PriceUsedSmall = 0;
@@ -361,28 +365,52 @@ namespace Coftea_Capstone.Models
             return (int)cmd.LastInsertedId;
         }
 
-        // Link product to inventory items (addons/ingredients)
-        public async Task<int> SaveProductIngredientLinksAsync(int productId, IEnumerable<(int inventoryItemId, double amount, string? unit, string role)> links)
+        // Link product to inventory items, splitting ingredients and addons into separate tables
+        public async Task<int> SaveProductLinksSplitAsync(
+            int productId,
+            IEnumerable<(int inventoryItemId, double amount, string? unit)> ingredients,
+            IEnumerable<(int inventoryItemId, double amount, string? unit, decimal addonPrice)> addons)
         {
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
-            const string sql = "INSERT INTO product_ingredients (productID, itemID, amount, unit, role) VALUES (@ProductID, @ItemID, @Amount, @Unit, @Role);";
+            const string sqlIngredients = "INSERT INTO product_ingredients (productID, itemID, amount, unit, role) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient');";
+            const string sqlAddons = "INSERT INTO product_addons (productID, itemID, amount, unit, role, addon_price) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'addon', @AddonPrice) ON DUPLICATE KEY UPDATE amount = VALUES(amount), unit = VALUES(unit), addon_price = VALUES(addon_price);";
             int total = 0;
             try
             {
-                foreach (var link in links)
+                System.Diagnostics.Debug.WriteLine($"Saving product links for productId={productId}");
+                var ingredientList = ingredients?.ToList() ?? new List<(int inventoryItemId, double amount, string? unit)>();
+                var addonList = addons?.ToList() ?? new List<(int inventoryItemId, double amount, string? unit, decimal addonPrice)>();
+                System.Diagnostics.Debug.WriteLine($"Ingredients to save: {ingredientList.Count}, Addons to save: {addonList.Count}");
+
+                foreach (var link in ingredientList)
                 {
-                    await using var cmd = new MySqlCommand(sql, conn, (MySqlTransaction)tx);
+                    await using var cmd = new MySqlCommand(sqlIngredients, conn, (MySqlTransaction)tx);
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
                     cmd.Parameters.AddWithValue("@Amount", link.amount);
                     cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Role", link.role);
-                    total += await cmd.ExecuteNonQueryAsync();
+                    var affected = await cmd.ExecuteNonQueryAsync();
+                    total += affected;
+                    System.Diagnostics.Debug.WriteLine($"Inserted ingredient link itemId={link.inventoryItemId}, amount={link.amount}, unit={link.unit} → rows={affected}");
+                }
+
+                foreach (var link in addonList)
+                {
+                    await using var cmd = new MySqlCommand(sqlAddons, conn, (MySqlTransaction)tx);
+                    cmd.Parameters.AddWithValue("@ProductID", productId);
+                    cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
+                    cmd.Parameters.AddWithValue("@Amount", link.amount);
+                    cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AddonPrice", link.addonPrice);
+                    var affected = await cmd.ExecuteNonQueryAsync();
+                    total += affected;
+                    System.Diagnostics.Debug.WriteLine($"Upserted addon link itemId={link.inventoryItemId}, amount={link.amount}, unit={link.unit}, price={link.addonPrice} → rows={affected}");
                 }
 
                 await tx.CommitAsync();
+                System.Diagnostics.Debug.WriteLine($"Finished saving links. Total affected rows={total}");
                 return total;
             }
             catch
@@ -862,6 +890,21 @@ namespace Coftea_Capstone.Models
                     role VARCHAR(50) DEFAULT 'ingredient',
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
                     FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
+                );
+    
+                CREATE TABLE IF NOT EXISTS product_addons (
+                  id INT AUTO_INCREMENT PRIMARY KEY,
+                  productID INT NOT NULL,
+                  itemID INT NOT NULL,
+                  amount DECIMAL(10,2) NOT NULL,
+                  unit VARCHAR(50),
+                  role VARCHAR(50) DEFAULT 'addon',
+                  addon_price DECIMAL(10,2) DEFAULT 0.00,
+                  UNIQUE KEY uq_product_item (productID, itemID),
+                  INDEX idx_product (productID),
+                  INDEX idx_item (itemID),
+                  FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
+                  FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
                 );
                 
                 CREATE TABLE IF NOT EXISTS transactions (

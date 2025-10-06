@@ -5,12 +5,14 @@
     x:Class="Coftea_Capstone.Views.Controls.RetryConnectionPopup"
     x:Name="RetryConnectionPopupView"
     BackgroundColor="#80000000"
-    VerticalOptions="Fill"
-    HorizontalOptions="Fill"
+    VerticalOptions="FillAndExpand"
+    HorizontalOptions="FillAndExpand"
     IsVisible="{Binding IsRetryPopupVisible}"
     InputTransparent="False">
 
-    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+    <Grid VerticalOptions="FillAndExpand" 
+          HorizontalOptions="FillAndExpand" 
+          InputTransparent="False">
         <Grid.GestureRecognizers>
             <TapGestureRecognizer Command="{Binding CloseRetryPopupCommand}" />
         </Grid.GestureRecognizers>

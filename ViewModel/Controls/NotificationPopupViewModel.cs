@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
     public partial class NotificationPopupViewModel : ObservableObject
     {
+        public ObservableCollection<NotificationItem> Notifications { get; } = new();
         [ObservableProperty] private bool isNotificationVisible = false;
         [ObservableProperty] private string notificationMessage = "";
         [ObservableProperty] private string notificationType = "Success"; // Success, Error, Info
@@ -38,6 +40,26 @@ namespace Coftea_Capstone.ViewModel.Controls
                     });
                 });
             }
+        }
+
+        public void AddSuccess(string title, string entityName, string idText)
+        {
+            Notifications.Insert(0, new NotificationItem
+            {
+                Title = title,
+                Message = $"Successfully {entityName}. {idText}",
+                IdText = idText
+            });
+            // keep last 10
+            while (Notifications.Count > 10)
+                Notifications.RemoveAt(Notifications.Count - 1);
+            IsNotificationVisible = true;
+        }
+
+        [RelayCommand]
+        private void Toggle()
+        {
+            IsNotificationVisible = !IsNotificationVisible;
         }
 
         // Convenience for short-lived toast on bottom-left

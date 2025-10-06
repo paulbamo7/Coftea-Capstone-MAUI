@@ -62,7 +62,6 @@
                         <!-- Filter / Sort Controls -->
                         <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
                             <HorizontalStackLayout Spacing="10" Padding="5,0">
-                                <Button Text="Addons" Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons" StyleClass="FilterButton"/>
                                 <Button Text="Ingredients" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients" StyleClass="FilterButton"/>
                                 <Button Text="Supplies" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies" StyleClass="FilterButton"/>
                                 <Button Text="Refresh" BackgroundColor="#EEE" TextColor="Black" Command="{Binding RefreshInventoryCommand}"/>
@@ -89,6 +88,7 @@
                                 </Frame>
 
                                 <Button Text="Select All" Command="{Binding SelectAllVisibleCommand}" BackgroundColor="#E6DE9D" TextColor="#333"/>
+                                <Button Text="Unselect All" Command="{Binding UnselectAllVisibleCommand}" BackgroundColor="#F0C0C0" TextColor="#333"/>
                             </HorizontalStackLayout>
                         </ScrollView>
 

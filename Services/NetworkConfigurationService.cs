@@ -9,14 +9,21 @@ namespace Coftea_Capstone.Services
 
         public static async Task<string> GetDatabaseHostAsync()
         {
+            System.Diagnostics.Debug.WriteLine($"🔍 NetworkConfigurationService.GetDatabaseHostAsync called");
+            
             // Check if user has manually set a host
             if (_settings.ContainsKey("DatabaseHost"))
             {
-                return _settings["DatabaseHost"].ToString();
+                var manualHost = _settings["DatabaseHost"].ToString();
+                System.Diagnostics.Debug.WriteLine($"📝 Using manual database host: {manualHost}");
+                return manualHost;
             }
 
             // Otherwise use auto-detection
-            return await NetworkDetectionService.GetDatabaseHostAsync();
+            System.Diagnostics.Debug.WriteLine($"🔍 No manual host set, using auto-detection");
+            var detectedHost = await NetworkDetectionService.GetDatabaseHostAsync();
+            System.Diagnostics.Debug.WriteLine($"🔍 Auto-detected database host: {detectedHost}");
+            return detectedHost;
         }
 
         public static async Task<string> GetEmailHostAsync()
@@ -84,6 +91,19 @@ namespace Coftea_Capstone.Services
         public static async Task<string> GetNetworkDiagnosticsAsync()
         {
             return await NetworkDetectionService.GetCurrentNetworkInfoAsync();
+        }
+
+        // Helper method to set your PC's IP address manually for testing
+        public static void SetManualDatabaseHost(string ipAddress)
+        {
+            System.Diagnostics.Debug.WriteLine($"🔧 Manually setting database host to: {ipAddress}");
+            SetDatabaseHost(ipAddress);
+        }
+
+        // Helper method to get all possible IPs for debugging
+        public static async Task<List<string>> GetAllPossibleHostsAsync()
+        {
+            return await NetworkDetectionService.GetPossibleHostsAsync();
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Models.Service;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -103,6 +104,13 @@ namespace Coftea_Capstone.ViewModel
             {
                 AddItemToPOSViewModel.IsAddItemToPOSVisible = true;
             };
+        }
+
+        [RelayCommand]
+        private void ShowNotificationBell()
+        {
+            // Toggle the global notification popup. Data should be added by callers using NotificationPopup.Notifications.
+            NotificationPopup?.ToggleCommand.Execute(null);
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
@@ -341,29 +349,20 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            var existing = CartItems.FirstOrDefault(p => p.ProductID == product.ProductID);
-            if (existing != null)
+            // Always create a new cart line entry even if the same product already exists
+            var copy = new POSPageModel
             {
-                existing.SmallQuantity += product.SmallQuantity;
-                existing.MediumQuantity += product.MediumQuantity;
-                existing.LargeQuantity += product.LargeQuantity;
-            }
-            else
-            {
-                var copy = new POSPageModel
-                {
-                    ProductID = product.ProductID,
-                    ProductName = product.ProductName,
-                    SmallPrice = product.SmallPrice,
-                    MediumPrice = product.MediumPrice,
-                    LargePrice = product.LargePrice,
-                    ImageSet = product.ImageSet,
-                    SmallQuantity = product.SmallQuantity,
-                    MediumQuantity = product.MediumQuantity,
-                    LargeQuantity = product.LargeQuantity
-                };
-                CartItems.Add(copy);
-            }
+                ProductID = product.ProductID,
+                ProductName = product.ProductName,
+                SmallPrice = product.SmallPrice,
+                MediumPrice = product.MediumPrice,
+                LargePrice = product.LargePrice,
+                ImageSet = product.ImageSet,
+                SmallQuantity = product.SmallQuantity,
+                MediumQuantity = product.MediumQuantity,
+                LargeQuantity = product.LargeQuantity
+            };
+            CartItems.Add(copy);
 
             // Reset selection quantities
             product.SmallQuantity = 0;
@@ -448,14 +447,51 @@ namespace Coftea_Capstone.ViewModel
             {
                 foreach (var product in Products)
                 {
-                    var ingredients = await _database.GetProductAddonsAsync(product.ProductID);
-                    
-                    // Check if any ingredient has low stock (below minimum quantity)
-                    bool hasLowStock = ingredients.Any(ingredient => 
-                        ingredient.minimumQuantity > 0 && 
+                    // Load core ingredients for the product (not addons) to validate sufficiency
+                    var ingredients = await _database.GetProductIngredientsAsync(product.ProductID);
+
+                    bool insufficientForRecipe = false;
+                    foreach (var tuple in ingredients)
+                    {
+                        var item = tuple.item;
+                        var requiredAmount = tuple.amount;
+                        var requiredUnit = tuple.unit;
+
+                        // Normalize units
+                        var inventoryUnit = UnitConversionService.Normalize(item.unitOfMeasurement);
+                        var recipeUnit = UnitConversionService.Normalize(requiredUnit);
+
+                        double requiredInInventoryUnit;
+                        if (string.IsNullOrWhiteSpace(inventoryUnit) || string.IsNullOrWhiteSpace(recipeUnit))
+                        {
+                            // Unknown unit, treat as insufficient to be safe
+                            insufficientForRecipe = true;
+                            break;
+                        }
+
+                        if (!UnitConversionService.AreCompatibleUnits(recipeUnit, inventoryUnit))
+                        {
+                            // Incompatible units, treat as insufficient
+                            insufficientForRecipe = true;
+                            break;
+                        }
+
+                        requiredInInventoryUnit = UnitConversionService.Convert(requiredAmount, recipeUnit, inventoryUnit);
+
+                        if (requiredInInventoryUnit > item.itemQuantity)
+                        {
+                            insufficientForRecipe = true;
+                            break;
+                        }
+                    }
+
+                    // Also consider low stock based on minimum thresholds for any linked ingredient (including addons)
+                    var addons = await _database.GetProductAddonsAsync(product.ProductID);
+                    bool belowMinimum = addons.Any(ingredient =>
+                        ingredient.minimumQuantity > 0 &&
                         ingredient.itemQuantity < ingredient.minimumQuantity);
-                    
-                    product.IsLowStock = hasLowStock;
+
+                    product.IsLowStock = insufficientForRecipe || belowMinimum;
                 }
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
 using Coftea_Capstone.ViewModel;
+using Coftea_Capstone.ViewModel.Controls;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -23,5 +24,13 @@ public partial class Inventory : ContentPage
         RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
 
         Appearing += async (_, __) => await vm.InitializeAsync();
+    }
+
+    private void OnBellClicked(object sender, EventArgs e)
+    {
+		var popup = ((App)Application.Current).NotificationPopup;
+		popup?.AddSuccess("Inventory", "Listed Item: Caramel Syrup (ID: CS7890)", "ID: CS7890");
+		popup?.AddSuccess("Inventory", "Updated Stock: Arabica Beans (ID: AB4567)", "ID: AB4567");
+		popup?.ToggleCommand.Execute(null);
     }
 }

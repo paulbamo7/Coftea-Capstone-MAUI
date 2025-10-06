@@ -21,6 +21,9 @@ namespace Coftea_Capstone.ViewModel
 
         private readonly Database _database;
 
+        // Full set loaded from database, used for applying filters
+        private ObservableCollection<InventoryPageModel> allInventoryItems = new();
+
         [ObservableProperty]
         private ObservableCollection<InventoryPageModel> inventoryItems = new();
 
@@ -86,7 +89,8 @@ namespace Coftea_Capstone.ViewModel
                 }
 
                 var inventoryList = await _database.GetInventoryItemsAsync();
-                InventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
+                allInventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
+                ApplyCategoryFilter();
 
                 StatusMessage = InventoryItems.Any() ? "Inventory items loaded successfully." : "No inventory items found.";
             }
@@ -128,7 +132,44 @@ namespace Coftea_Capstone.ViewModel
         private void RemoveInventoryItem(InventoryPageViewModel inventory)
         {
 
-        }   
+        }  
+
+        // Selected category from UI buttons: "Ingredients" or "Supplies"
+        [ObservableProperty]
+        private string selectedCategory = "";
+
+        [RelayCommand]
+        private void FilterByCategory(string category)
+        {
+            SelectedCategory = category ?? string.Empty;
+            ApplyCategoryFilter();
+        }
+
+        private void ApplyCategoryFilter()
+        {
+            IEnumerable<InventoryPageModel> query = allInventoryItems;
+
+            var category = (SelectedCategory ?? string.Empty).Trim();
+            if (string.Equals(category, "Supplies", StringComparison.OrdinalIgnoreCase))
+            {
+                // For supplies, show only Others category
+                query = query.Where(i => string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));
+            }
+            else if (string.Equals(category, "Ingredients", StringComparison.OrdinalIgnoreCase))
+            {
+                // For ingredients, show specific categories
+                var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "Syrups",
+                    "Powdered",
+                    "Fruit Series",
+                    "Sinkers"
+                };
+                query = query.Where(i => allowed.Contains((i.itemCategory ?? string.Empty).Trim()));
+            }
+
+            InventoryItems = new ObservableCollection<InventoryPageModel>(query);
+        }
         
     }
 }

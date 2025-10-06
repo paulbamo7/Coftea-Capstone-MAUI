@@ -8,8 +8,6 @@
              IsVisible="{Binding IsPreviewVisible}">
 
     <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
-        <!-- Addons Selection Popup -->
-        <controls:AddonsSelectionPopup BindingContext="{Binding AddonsPopup}" />
         <Frame BackgroundColor="#F8E8D7"
                CornerRadius="20"
                Padding="20"
@@ -39,17 +37,16 @@
                     <!-- Product Info -->
                     <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="22"/>
                     <Label Text="Add-ons Used" FontAttributes="Bold"/>
-                    <!-- Show only selected addons with editable inputs below the Add-ons text -->
+                    <!-- Show only selected addons: Name - ₱Price (no quantity controls in preview) -->
                     <CollectionView ItemsSource="{Binding SelectedAddons}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnDefinitions="*,Auto,Auto" Padding="8" Margin="0,4">
-                                    <HorizontalStackLayout>
-                                        <Label Grid.Column="0" Text="{Binding itemName}"/>
-                                        <Entry Grid.Column="1" WidthRequest="90" Keyboard="Numeric" Placeholder="Price"
-                                               Text="{Binding AddonPrice}"/>
-                                        <Picker Grid.Column="2" WidthRequest="80" ItemsSource="{Binding AllowedUnits}"
-                                                SelectedItem="{Binding AddonUnit}"/>
+                                <Grid ColumnDefinitions="Auto,*" Padding="6" Margin="0,4">
+                                    <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
+                                        <Label Text="•" FontSize="12" VerticalOptions="Center"/>
+                                        <Label Text="{Binding itemName}" FontAttributes="Bold" FontSize="14"/>
+                                        <Label Text="-" FontSize="14"/>
+                                        <Label Text="{Binding AddonPrice, StringFormat='₱{0:F0}'}" FontAttributes="Bold" FontSize="14"/>
                                     </HorizontalStackLayout>
                                 </Grid>
                             </DataTemplate>
@@ -87,13 +84,16 @@
                     <HorizontalStackLayout HorizontalOptions="End" Spacing="20">
                         <Button Text="Close" BackgroundColor="#D3D3D3" TextColor="Black"
                             Command="{Binding ClosePreviewCommand}"/>
+                        <!-- Single working Add Addons button -->
                         <Button Text="Add Addons" BackgroundColor="#D3D3D3" TextColor="Black"
-                            Command="{Binding OpenAddonPopupCommand}"/>
+                                Command="{Binding AddonsPopup.OpenAddonsPopupCommand}"/>
                         <Button Text="Confirm" BackgroundColor="#E6DE9D" TextColor="Black"
                             Command="{Binding ConfirmPreviewCommand}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>
         </Frame>
+        <!-- AddonsSelectionPopup (full-featured) bound to AddonsPopup VM -->
+        <controls:AddonsSelectionPopup BindingContext="{Binding AddonsPopup}" ZIndex="1100" />
     </Grid>
 </ContentView>

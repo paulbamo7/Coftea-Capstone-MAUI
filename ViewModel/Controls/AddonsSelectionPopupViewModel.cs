@@ -25,18 +25,28 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         public async Task OpenAddonsPopup()
         {
-            await LoadAddonsAsync();
-            IsAddonsPopupVisible = true;
+            System.Diagnostics.Debug.WriteLine($"🔍 AddonsSelectionPopupViewModel.OpenAddonsPopup called");
+            try
+            {
+                await LoadAddonsAsync();
+                System.Diagnostics.Debug.WriteLine($"✅ Addons loaded, setting IsAddonsPopupVisible = true");
+                IsAddonsPopupVisible = true;
+                System.Diagnostics.Debug.WriteLine($"✅ IsAddonsPopupVisible set to: {IsAddonsPopupVisible}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in OpenAddonsPopup: {ex.Message}");
+            }
         }
 
         [RelayCommand]
-        private void CloseAddonsPopupCommand()
+        private void CloseAddonsPopup()
         {
             IsAddonsPopupVisible = false;
         }
 
         [RelayCommand]
-        private void ConfirmAddonSelectionCommand()
+        private void ConfirmAddonSelection()
         {
             // Get selected addons
             var selectedAddons = AvailableAddons.Where(a => a.IsSelected).ToList();
@@ -56,24 +66,18 @@ namespace Coftea_Capstone.ViewModel.Controls
                 AvailableAddons.Clear();
                 SelectedAddons.Clear();
 
-                foreach (var item in inventoryItems)
-                {
-                    var category = (item.itemCategory ?? string.Empty).Trim();
-                    bool isAddonCategory = string.Equals(category, "Addons", StringComparison.OrdinalIgnoreCase);
-                    bool isSinkersCategory = category.Contains("Sinker", StringComparison.OrdinalIgnoreCase)
-                                             || string.Equals(category, "Sinkers & etc.", StringComparison.OrdinalIgnoreCase);
+                // Only include items in the "Sinkers & etc." category
+                var filtered = inventoryItems.Where(i => string.Equals((i.itemCategory ?? string.Empty).Trim(), "Sinkers & etc.", StringComparison.OrdinalIgnoreCase));
 
-                    if (isAddonCategory || isSinkersCategory)
-                    {
-                        // Initialize addon properties
-                        item.AddonPrice = 0;
-                        item.AddonUnit = item.DefaultUnit;
-                        item.IsSelected = false; // Start unchecked as requested
-                        item.InputAmount = 1; // Default amount
-                        item.InputUnit = item.DefaultUnit; // Default unit
-                        
-                        AvailableAddons.Add(item);
-                    }
+                foreach (var item in filtered)
+                {
+                    // Initialize addon-related defaults
+                    item.AddonPrice = 0;
+                    item.AddonUnit = item.DefaultUnit;
+                    item.IsSelected = false;
+                    item.InputAmount = 1;
+                    item.InputUnit = item.DefaultUnit;
+                    AvailableAddons.Add(item);
                 }
 
                 // Sort by name for easy browsing
@@ -84,7 +88,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                     AvailableAddons.Add(addon);
                 }
 
-                ApplyFilters();
+                // Force available list to remain filtered to Sinkers & etc.; clear any category filter
+                SelectedFilter = "All";
+                SearchText = string.Empty;
+                // No further filtering required; AvailableAddons already filtered
             }
             catch (Exception ex)
             {

@@ -3,6 +3,7 @@ using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Controls.Shapes;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Maui.Controls.Xaml;
 
 namespace Coftea_Capstone.Views.Controls
 {
@@ -115,6 +116,25 @@ namespace Coftea_Capstone.Views.Controls
                     UpdateChart();
                 }
             };
+
+            // Ensure the chart remains a perfect circle regardless of layout constraints
+            SizeChanged += (s, e) =>
+            {
+                EnsureSquareAndRedraw();
+
+                // Redraw slices using the new square size to avoid elliptical distortion
+                if (ItemsSource != null && ItemsSource.Any())
+                {
+                    UpdatePieChart(ItemsSource.Take(3).ToList());
+                }
+            };
+
+            // Set drawable for GraphicsView
+            if (PieChartCanvas != null)
+            {
+                PieChartCanvas.Drawable = new DonutDrawable(this);
+                PieChartCanvas.Invalidate();
+            }
         }
 
         private static void OnItemsSourceChanged(BindableObject bindable, object oldValue, object newValue)
@@ -138,8 +158,8 @@ namespace Coftea_Capstone.Views.Controls
                 Item1HasTrend = false;
                 Item2HasTrend = false;
                 Item3HasTrend = false;
-                HideAllSlices();
-                return;
+            InvalidateCanvas();
+            return;
             }
 
             var items = ItemsSource.Take(3).ToList();
@@ -165,43 +185,25 @@ namespace Coftea_Capstone.Views.Controls
             }
 
             // Update slice visibility and create proper pie chart
+            EnsureSquareAndRedraw();
             UpdatePieChart(items);
+            InvalidateCanvas();
         }
 
-        private void HideAllSlices()
-        {
-            Slice1.IsVisible = false;
-            Slice2.IsVisible = false;
-            Slice3.IsVisible = false;
-        }
+        private void HideAllSlices() { }
 
         private void UpdatePieChart(List<object> items)
         {
-            if (items.Count == 0)
-            {
-                HideAllSlices();
-                return;
-            }
+            if (items.Count == 0) return;
 
             // Get trend items and calculate total
             var trendItems = items.OfType<Coftea_Capstone.Models.TrendItem>().ToList();
-            if (trendItems.Count == 0)
-            {
-                HideAllSlices();
-                return;
-            }
+            if (trendItems.Count == 0) return;
 
             var totalCount = trendItems.Sum(item => item.Count);
-            if (totalCount == 0)
-            {
-                HideAllSlices();
-                return;
-            }
+            if (totalCount == 0) return;
 
-            // Show slices based on data availability
-            Slice1.IsVisible = trendItems.Count >= 1;
-            Slice2.IsVisible = trendItems.Count >= 2;
-            Slice3.IsVisible = trendItems.Count >= 3;
+            // No-op: visibility handled by drawing
 
             // Calculate pie slice angles based on data proportions
             // Ensure all angles add up to 360 degrees
@@ -211,7 +213,8 @@ namespace Coftea_Capstone.Views.Controls
             {
                 var item1Percentage = (double)trendItems[0].Count / totalCount;
                 var angle1 = item1Percentage * 360;
-                UpdateSlicePath(Slice1, currentAngle, angle1);
+                _slice1Start = currentAngle;
+                _slice1Sweep = angle1;
                 currentAngle += angle1;
             }
 
@@ -219,7 +222,8 @@ namespace Coftea_Capstone.Views.Controls
             {
                 var item2Percentage = (double)trendItems[1].Count / totalCount;
                 var angle2 = item2Percentage * 360;
-                UpdateSlicePath(Slice2, currentAngle, angle2);
+                _slice2Start = currentAngle;
+                _slice2Sweep = angle2;
                 currentAngle += angle2;
             }
 
@@ -227,7 +231,8 @@ namespace Coftea_Capstone.Views.Controls
             {
                 var item3Percentage = (double)trendItems[2].Count / totalCount;
                 var angle3 = item3Percentage * 360;
-                UpdateSlicePath(Slice3, currentAngle, angle3);
+                _slice3Start = currentAngle;
+                _slice3Sweep = angle3;
                 currentAngle += angle3;
             }
 
@@ -237,83 +242,43 @@ namespace Coftea_Capstone.Views.Controls
                 var remainingAngle = 360 - currentAngle;
                 if (trendItems.Count == 1)
                 {
-                    // Single item takes full circle
-                    UpdateSlicePath(Slice1, 0, 360);
-                    Slice2.IsVisible = false;
-                    Slice3.IsVisible = false;
+                    _slice1Start = 0;
+                    _slice1Sweep = 360;
                 }
                 else if (trendItems.Count == 2)
                 {
-                    // Two items - distribute remaining angle to second item
                     var item2Percentage = (double)trendItems[1].Count / totalCount;
                     var angle2 = item2Percentage * 360;
-                    UpdateSlicePath(Slice2, currentAngle - angle2, angle2);
-                    Slice3.IsVisible = false;
+                    _slice2Start = currentAngle - angle2;
+                    _slice2Sweep = angle2;
                 }
             }
         }
 
-        private void UpdateSlicePath(Microsoft.Maui.Controls.Shapes.Path slice, double startAngle, double sweepAngle)
+        private void InvalidateCanvas()
         {
-            // Convert angles to radians
-            var startRad = startAngle * Math.PI / 180;
-            var endRad = (startAngle + sweepAngle) * Math.PI / 180;
+            PieChartCanvas?.Invalidate();
+        }
 
-            // Center point
-            var centerX = 80.0;
-            var centerY = 80.0;
-            var outerRadius = 60.0;
-            var innerRadius = 30.0; // Inner radius for donut hole
+        private void EnsureSquareAndRedraw()
+        {
+            // Keep the chart area square to avoid ellipse distortion from parent layout
+            if (ChartContainer == null || PieChartGrid == null)
+                return;
 
-            // Calculate outer arc points with proper circular positioning
-            var outerStartX = centerX + outerRadius * Math.Cos(startRad - Math.PI / 2);
-            var outerStartY = centerY + outerRadius * Math.Sin(startRad - Math.PI / 2);
-            var outerEndX = centerX + outerRadius * Math.Cos(endRad - Math.PI / 2);
-            var outerEndY = centerY + outerRadius * Math.Sin(endRad - Math.PI / 2);
+            var availableWidth = ChartContainer.Width > 0 ? ChartContainer.Width : ChartContainer.WidthRequest;
+            var availableHeight = ChartContainer.Height > 0 ? ChartContainer.Height : ChartContainer.HeightRequest;
 
-            // Calculate inner arc points with proper circular positioning
-            var innerStartX = centerX + innerRadius * Math.Cos(startRad - Math.PI / 2);
-            var innerStartY = centerY + innerRadius * Math.Sin(startRad - Math.PI / 2);
-            var innerEndX = centerX + innerRadius * Math.Cos(endRad - Math.PI / 2);
-            var innerEndY = centerY + innerRadius * Math.Sin(endRad - Math.PI / 2);
+            if (availableWidth <= 0 || availableHeight <= 0)
+                return;
 
-            // Create PathGeometry for donut slice
-            var pathGeometry = new PathGeometry();
-            var pathFigure = new PathFigure();
-            
-            // Start from outer arc start point
-            pathFigure.StartPoint = new Point(outerStartX, outerStartY);
-            
-            // Add outer arc
-            var outerArcSegment = new ArcSegment
-            {
-                Point = new Point(outerEndX, outerEndY),
-                Size = new Size(outerRadius, outerRadius),
-                SweepDirection = SweepDirection.Clockwise,
-                IsLargeArc = sweepAngle > 180
-            };
-            pathFigure.Segments.Add(outerArcSegment);
-            
-            // Add line to inner arc end point
-            pathFigure.Segments.Add(new LineSegment { Point = new Point(innerEndX, innerEndY) });
-            
-            // Add inner arc (reverse direction)
-            var innerArcSegment = new ArcSegment
-            {
-                Point = new Point(innerStartX, innerStartY),
-                Size = new Size(innerRadius, innerRadius),
-                SweepDirection = SweepDirection.CounterClockwise,
-                IsLargeArc = sweepAngle > 180
-            };
-            pathFigure.Segments.Add(innerArcSegment);
-            
-            // Add line back to start to close the path
-            pathFigure.Segments.Add(new LineSegment { Point = new Point(outerStartX, outerStartY) });
-            
-            // Close the path
-            pathFigure.IsClosed = true;
-            pathGeometry.Figures.Add(pathFigure);
-            slice.Data = pathGeometry;
+            var side = Math.Min(availableWidth, availableHeight);
+
+            // Set both to the same dimension to enforce 1:1 aspect
+            PieChartGrid.WidthRequest = side;
+            PieChartGrid.HeightRequest = side;
+            PieChartCanvas.WidthRequest = side;
+            PieChartCanvas.HeightRequest = side;
         }
 
         private string GetItemName(object item)
@@ -322,6 +287,89 @@ namespace Coftea_Capstone.Views.Controls
                 return trendItem.Name;
             
             return item?.ToString() ?? "Unknown";
+        }
+
+        // Store slice angles for drawing
+        private double _slice1Start, _slice1Sweep, _slice2Start, _slice2Sweep, _slice3Start, _slice3Sweep;
+
+        private class DonutDrawable : IDrawable
+        {
+            private readonly SimplePieChart _owner;
+            public DonutDrawable(SimplePieChart owner) { _owner = owner; }
+            public void Draw(ICanvas canvas, RectF dirtyRect)
+            {
+                var side = Math.Min(dirtyRect.Width, dirtyRect.Height);
+                var centerX = (float)(dirtyRect.X + dirtyRect.Width / 2);
+                var centerY = (float)(dirtyRect.Y + dirtyRect.Height / 2);
+
+                var outerRadius = (float)(side * 0.375);
+                var innerRadius = (float)(side * 0.1875);
+
+                // Draw slices in order
+                DrawSlice(canvas, centerX, centerY, outerRadius, innerRadius, (float)_owner._slice1Start, (float)_owner._slice1Sweep, Color.FromArgb("#90EE90"));
+                DrawSlice(canvas, centerX, centerY, outerRadius, innerRadius, (float)_owner._slice2Start, (float)_owner._slice2Sweep, Color.FromArgb("#F5DEB3"));
+                DrawSlice(canvas, centerX, centerY, outerRadius, innerRadius, (float)_owner._slice3Start, (float)_owner._slice3Sweep, Color.FromArgb("#8B4513"));
+            }
+
+			private void DrawSlice(ICanvas canvas, float cx, float cy, float outerR, float innerR, float startDeg, float sweepDeg, Color color)
+			{
+				if (sweepDeg <= 0) return;
+				canvas.SaveState();
+				canvas.FillColor = color;
+				
+				// Build a donut slice path by approximating arcs with line segments
+				var path = CreateDonutSlicePath(cx, cy, outerR, innerR, startDeg - 90f, sweepDeg, 48);
+				canvas.FillPath(path);
+				canvas.RestoreState();
+			}
+
+			private static PathF CreateDonutSlicePath(float cx, float cy, float outerR, float innerR, float startDeg, float sweepDeg, int segments)
+			{
+				var path = new PathF();
+				float startRad = DegreesToRadians(startDeg);
+				float endRad = DegreesToRadians(startDeg + sweepDeg);
+				if (endRad < startRad)
+				{
+					endRad += MathF.Tau;
+				}
+				float sweepRad = endRad - startRad;
+				int steps = Math.Max(1, segments);
+				
+				// Outer arc (start to end)
+				for (int i = 0; i <= steps; i++)
+				{
+					float t = (float)i / steps;
+					float a = startRad + sweepRad * t;
+					float x = cx + outerR * MathF.Cos(a);
+					float y = cy + outerR * MathF.Sin(a);
+					if (i == 0)
+					{
+						path.MoveTo(x, y);
+					}
+					else
+					{
+						path.LineTo(x, y);
+					}
+				}
+				
+				// Inner arc (end back to start)
+				for (int i = steps; i >= 0; i--)
+				{
+					float t = (float)i / steps;
+					float a = startRad + sweepRad * t;
+					float x = cx + innerR * MathF.Cos(a);
+					float y = cy + innerR * MathF.Sin(a);
+					path.LineTo(x, y);
+				}
+				
+				path.Close();
+				return path;
+			}
+
+			private static float DegreesToRadians(float degrees)
+			{
+				return degrees * (MathF.PI / 180f);
+			}
         }
     }
 }

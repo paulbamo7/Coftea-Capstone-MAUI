@@ -18,7 +18,7 @@
             <!-- Top Bar -->
             <Grid ColumnDefinitions="*, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                 <Label Text="Home" FontSize="32" FontAttributes="Bold" VerticalOptions="Center" TextColor="#3E2723"/>
-                <otherViews:NotificationDropdown Grid.Column="1" />
+                <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                 <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40"/>
             </Grid>
 
@@ -66,11 +66,11 @@
                 </Grid>
 
                 <!-- Right Side: Inventory Alert -->
-                <Frame Grid.Column="1" CornerRadius="25" Padding="20" BackgroundColor="White" HasShadow="True" Grid.RowSpan="2" VerticalOptions="Fill">
+                <Frame Grid.Column="1" CornerRadius="25" Padding="20" BackgroundColor="White" HasShadow="True" Grid.RowSpan="2" VerticalOptions="Start">
                     <VerticalStackLayout>
                         <Label Text="Inventory Alert" FontAttributes="Bold" FontSize="20" TextColor="#5B4F45"/>
                         <Frame CornerRadius="20" Padding="10" BackgroundColor="#F9F9F9" Margin="5">
-                            <CollectionView ItemsSource="{Binding InventoryAlerts}" Margin="0,10,0,0" HeightRequest="200">
+                            <CollectionView ItemsSource="{Binding InventoryAlerts}" Margin="0,10,0,0" HeightRequest="120">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Frame BackgroundColor="White" CornerRadius="10" Padding="8" Margin="0,2" HasShadow="True">
@@ -84,8 +84,8 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </Frame>
-                        <HorizontalStackLayout HorizontalOptions="Center" Spacing="12">
-                            <Button Text="Request Restock" CornerRadius="20" BackgroundColor="#897564" TextColor="White" WidthRequest="150" HeightRequest="40"/>
+                        <HorizontalStackLayout HorizontalOptions="Center" Spacing="12" Margin="0,5,0,0">
+                            <Button Text="Request Restock" CornerRadius="20" BackgroundColor="#897564" TextColor="White" WidthRequest="150" HeightRequest="35"/>
                             <Label Text="See More" TextColor="#5B4F45" VerticalOptions="Center"/>
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
@@ -103,13 +103,13 @@
                             <CollectionView ItemsSource="{Binding RecentOrders}" ItemsLayout="HorizontalList">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <Frame BackgroundColor="#FAFAFA" CornerRadius="20" Padding="12" Margin="5" WidthRequest="120" HeightRequest="140" HasShadow="True">
-                                            <VerticalStackLayout Spacing="8">
-                                                <Frame CornerRadius="25" Padding="8" BackgroundColor="White" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center">
-                                                    <Image Source="{Binding ProductImage}" Aspect="AspectFill" WidthRequest="35" HeightRequest="35"/>
+                                        <Frame BackgroundColor="#FAFAFA" CornerRadius="24" Padding="16" Margin="6" WidthRequest="170" HeightRequest="190" HasShadow="True">
+                                            <VerticalStackLayout Spacing="10">
+                                                <Frame CornerRadius="35" Padding="0" BackgroundColor="White" WidthRequest="70" HeightRequest="70" HorizontalOptions="Center" IsClippedToBounds="True">
+                                                    <Image Source="{Binding ProductImage}" Aspect="AspectFill" WidthRequest="70" HeightRequest="70"/>
                                                 </Frame>
-                                                <Label Text="{Binding OrderDisplay}" FontSize="12" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center"/>
-                                                <Label Text="{Binding Status}" FontSize="10" TextColor="{Binding StatusColor}" HorizontalOptions="Center"/>
+                                                <Label Text="{Binding OrderDisplay}" FontSize="13" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center"/>
+                                                <Label Text="{Binding Status}" FontSize="11" TextColor="{Binding StatusColor}" HorizontalOptions="Center"/>
                                             </VerticalStackLayout>
                                         </Frame>
                                     </DataTemplate>
@@ -168,7 +168,8 @@
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
-        <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}}" Grid.ColumnSpan="2"/>
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
 
     </Grid>
 </ContentPage>
