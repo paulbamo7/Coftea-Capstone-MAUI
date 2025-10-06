@@ -99,13 +99,13 @@ namespace Coftea_Capstone.ViewModel
         private string productName;
 
         [ObservableProperty]
-        private decimal smallPrice;
+        private string smallPrice = string.Empty;
 
         [ObservableProperty]
-        private decimal mediumPrice;
+        private string mediumPrice = string.Empty;
 
         [ObservableProperty]
-        private decimal largePrice;
+        private string largePrice = string.Empty;
 
         [ObservableProperty]
         private string imagePath;
@@ -146,9 +146,9 @@ namespace Coftea_Capstone.ViewModel
             IsAddItemToPOSVisible = false;
             IsEditMode = false;
             ProductName = string.Empty;
-            SmallPrice = 0;
-            MediumPrice = 0;
-            LargePrice = 0;
+            SmallPrice = string.Empty;
+            MediumPrice = string.Empty;
+            LargePrice = string.Empty;
             SelectedCategory = string.Empty;
             SelectedSubcategory = null;
             ImagePath = string.Empty;
@@ -162,9 +162,9 @@ namespace Coftea_Capstone.ViewModel
             IsEditMode = true;
             EditingProductId = product.ProductID;
             ProductName = product.ProductName;
-            SmallPrice = product.SmallPrice;
-            MediumPrice = product.MediumPrice;
-            LargePrice = product.LargePrice;
+            SmallPrice = product.SmallPrice > 0 ? product.SmallPrice.ToString() : string.Empty;
+            MediumPrice = product.MediumPrice > 0 ? product.MediumPrice.ToString() : string.Empty;
+            LargePrice = product.LargePrice > 0 ? product.LargePrice.ToString() : string.Empty;
             ImagePath = product.ImageSet;
             SelectedImageSource = !string.IsNullOrEmpty(product.ImageSet) ? ImageSource.FromFile(product.ImageSet) : null;
             ProductDescription = product.ProductDescription ?? string.Empty;
@@ -265,20 +265,39 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            // Parse and validate prices
+            if (!decimal.TryParse(SmallPrice, out decimal smallPriceValue) && string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid small price.", "OK");
+                return;
+            }
+
+            if (!decimal.TryParse(MediumPrice, out decimal mediumPriceValue))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid medium price.", "OK");
+                return;
+            }
+
+            if (!decimal.TryParse(LargePrice, out decimal largePriceValue))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid large price.", "OK");
+                return;
+            }
+
             // Only validate Small price if it's visible (Coffee category)
-            if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase) && SmallPrice <= 0)
+            if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase) && smallPriceValue <= 0)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Small price must be greater than 0.", "OK");
                 return;
             }
 
-            if (MediumPrice <= 0)
+            if (mediumPriceValue <= 0)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Medium price must be greater than 0.", "OK");
                 return;
             }
 
-            if (LargePrice <= 0)
+            if (largePriceValue <= 0)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Large price must be greater than 0.", "OK");
                 return;
@@ -300,9 +319,9 @@ namespace Coftea_Capstone.ViewModel
             var product = new POSPageModel
             {
                 ProductName = ProductName,
-                SmallPrice = SmallPrice,
-                MediumPrice = MediumPrice,
-                LargePrice = LargePrice,
+                SmallPrice = smallPriceValue,
+                MediumPrice = mediumPriceValue,
+                LargePrice = largePriceValue,
                 Category = SelectedCategory,
                 Subcategory = EffectiveCategory,
                 ImageSet = ImagePath,
@@ -653,9 +672,9 @@ namespace Coftea_Capstone.ViewModel
         private void ResetForm()
         {
             ProductName = string.Empty;
-            SmallPrice = 0;
-            MediumPrice = 0;
-            LargePrice = 0;
+            SmallPrice = string.Empty;
+            MediumPrice = string.Empty;
+            LargePrice = string.Empty;
             SelectedCategory = string.Empty;
             SelectedSubcategory = null;
             ImagePath = string.Empty;

@@ -58,7 +58,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task LoadAddonsAsync()
+        public async Task LoadAddonsAsync()
         {
             try
             {

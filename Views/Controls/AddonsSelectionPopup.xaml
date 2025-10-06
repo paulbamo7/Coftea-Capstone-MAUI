@@ -4,11 +4,10 @@
              x:Class="Coftea_Capstone.Views.Controls.AddonsSelectionPopup"
              x:Name="Root"
              BackgroundColor="#80000000"
-             BindingContext="{Binding AddonsPopup}"
-             IsVisible="{Binding IsAddonsPopupVisible}"
              HorizontalOptions="FillAndExpand"
              VerticalOptions="FillAndExpand"
-             ZIndex="1000">
+             ZIndex="2000"
+             IsVisible="{Binding IsAddonsPopupVisible}">
 
     <!-- Overlay Grid to emulate ConnectPOSItemToInventory layout -->
     <Grid HorizontalOptions="FillAndExpand"
@@ -22,6 +21,7 @@
                 <TapGestureRecognizer Command="{Binding CloseAddonsPopupCommand}" />
             </BoxView.GestureRecognizers>
         </BoxView>
+
 
         <!-- Center Popup -->
         <Frame Grid.Row="1" Grid.Column="1" Style="{StaticResource CenteredPopupFrame}">

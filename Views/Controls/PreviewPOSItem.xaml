@@ -5,19 +5,24 @@
              x:Class="Coftea_Capstone.Views.Controls.PreviewPOSItem"
              x:Name="Root"
              BackgroundColor="#80000000"
-             IsVisible="{Binding IsPreviewVisible}">
+             IsVisible="{Binding IsPreviewVisible}"
+             ZIndex="1500">
 
     <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
-        <Frame Style="{StaticResource CenteredPopupFrame}">
+        <Frame Style="{StaticResource CenteredPopupFrame}" 
+               WidthRequest="600" 
+               HeightRequest="500" 
+               MaximumWidthRequest="700" 
+               MaximumHeightRequest="600">
             <ScrollView>
-                <VerticalStackLayout Spacing="15">
+                <VerticalStackLayout Spacing="10">
                     <!-- Header -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Label Text="Preview Product" FontAttributes="Bold" FontSize="24" Grid.Column="0"/>
+                        <Label Text="Preview Product" FontAttributes="Bold" FontSize="20" Grid.Column="0"/>
                         <ImageButton Source="close.png"
                                  WidthRequest="25" HeightRequest="25"
                                  Grid.Column="1"
@@ -25,11 +30,11 @@
                     </Grid>
 
                     <!-- Product Image (frame removed as requested) -->
-                    <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit" HeightRequest="150"/>
+                    <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit" HeightRequest="100"/>
 
 
                     <!-- Product Info -->
-                    <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="22"/>
+                    <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="18"/>
                     <Label Text="Add-ons Used" FontAttributes="Bold"/>
                     <!-- Show only selected addons: Name - ₱Price (no quantity controls in preview) -->
                     <CollectionView ItemsSource="{Binding SelectedAddons}">
@@ -69,8 +74,8 @@
                     </HorizontalStackLayout>
 
                     <Label Text="Description" FontAttributes="Bold"/>
-                    <ScrollView HeightRequest="80">
-                        <Label Text="{Binding ProductDescription}" FontSize="16"/>
+                    <ScrollView HeightRequest="60">
+                        <Label Text="{Binding ProductDescription}" FontSize="14"/>
                     </ScrollView>
                     <!-- Inline Addons section removed; selection will be via popup -->
 
@@ -80,14 +85,15 @@
                             Command="{Binding ClosePreviewCommand}"/>
                         <!-- Single working Add Addons button -->
                         <Button Text="Add Addons" BackgroundColor="#D3D3D3" TextColor="Black"
-                                Command="{Binding AddonsPopup.OpenAddonsPopupCommand}"/>
+                                Command="{Binding OpenAddonPopupCommand}"/>
                         <Button Text="Confirm" BackgroundColor="#E6DE9D" TextColor="Black"
                             Command="{Binding ConfirmPreviewCommand}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>
         </Frame>
+        
         <!-- AddonsSelectionPopup (full-featured) bound to AddonsPopup VM -->
-        <controls:AddonsSelectionPopup BindingContext="{Binding AddonsPopup}" ZIndex="1100" />
+        <controls:AddonsSelectionPopup BindingContext="{Binding AddonsPopup}" IsVisible="{Binding IsAddonPopupVisible}" ZIndex="2000" />
     </Grid>
 </ContentView>

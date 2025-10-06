@@ -83,9 +83,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private ImageSource selectedImageSource;
         [ObservableProperty] private string productName;
         [ObservableProperty] private string selectedCategory;
-        [ObservableProperty] private decimal smallPrice;
-        [ObservableProperty] private decimal mediumPrice;
-        [ObservableProperty] private decimal largePrice;
+        [ObservableProperty] private string smallPrice = string.Empty;
+        [ObservableProperty] private string mediumPrice = string.Empty;
+        [ObservableProperty] private string largePrice = string.Empty;
 
         // Dynamic cup sizes from database
         [ObservableProperty] private string smallSizeText = "Small";
@@ -713,17 +713,23 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 if (AddonsPopup == null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"🔍 Creating new AddonsPopup ViewModel");
                     AddonsPopup = new AddonsSelectionPopupViewModel();
                     AddonsPopup.AddonsSelected += OnAddonsSelected;
                 }
 
-                // Open the bound AddonsSelectionPopup (this VM controls its own IsAddonsPopupVisible)
-                await AddonsPopup.OpenAddonsPopup();
-                System.Diagnostics.Debug.WriteLine($"✅ AddonsSelectionPopup opened (IsVisible={AddonsPopup.IsAddonsPopupVisible})");
+                // Load addons and show popup
+                System.Diagnostics.Debug.WriteLine($"🔍 Loading addons...");
+                await AddonsPopup.LoadAddonsAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 Setting IsAddonPopupVisible = true");
+                IsAddonPopupVisible = true;
+                AddonsPopup.IsAddonsPopupVisible = true;
+                System.Diagnostics.Debug.WriteLine($"✅ AddonsSelectionPopup opened (IsAddonPopupVisible={IsAddonPopupVisible}, AddonsPopup.IsAddonsPopupVisible={AddonsPopup.IsAddonsPopupVisible})");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error opening addon popup: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -731,7 +737,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void CloseAddonPopup()
         {
             IsAddonPopupVisible = false;
+            AddonsPopup.IsAddonsPopupVisible = false;
         }
+
 
         [RelayCommand]
         private void ConfirmAddonSelection()
@@ -756,6 +764,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
 
             IsAddonPopupVisible = false;
+            AddonsPopup.IsAddonsPopupVisible = false;
             OnPropertyChanged(nameof(HasSelectedIngredients));
             OnPropertyChanged(nameof(SelectedInventoryItems));
             OnPropertyChanged(nameof(SelectedIngredientsOnly));
