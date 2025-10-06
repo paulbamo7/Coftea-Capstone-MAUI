@@ -24,8 +24,8 @@
     <Grid>
         <ScrollView VerticalOptions="Center" HorizontalOptions="Center">
             <HorizontalStackLayout HorizontalOptions="Center">
-                <Grid RowDefinitions="*,*">
-                    <HorizontalStackLayout  Grid.Row="0" >
+                <Grid RowDefinitions="Auto">
+                    <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Start" JustifyContent="Center" AlignContent="Start">
                         <Frame BackgroundColor="#BDAEA2"
                                Padding="25,60,25,0"
                                CornerRadius="0"
@@ -114,7 +114,7 @@
                                    HeightRequest="250"
                                    HorizontalOptions="Center"/>
                         </Frame>
-                    </HorizontalStackLayout>
+                    </FlexLayout>
                 </Grid>
             </HorizontalStackLayout>
         </ScrollView>

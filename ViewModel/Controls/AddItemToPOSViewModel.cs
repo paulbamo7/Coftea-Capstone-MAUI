@@ -188,7 +188,54 @@ namespace Coftea_Capstone.ViewModel
                     SelectedSubcategory = null;
                 }
             }
+            // Preload existing linked ingredients and mark them selected
+            _ = PreloadLinkedIngredientsAsync(product.ProductID);
+        }
 
+        private async Task PreloadLinkedIngredientsAsync(int productId)
+        {
+            try
+            {
+                // Ensure inventory is loaded
+                if (ConnectPOSToInventoryVM.AllInventoryItems == null || !ConnectPOSToInventoryVM.AllInventoryItems.Any())
+                {
+                    await ConnectPOSToInventoryVM.LoadInventoryAsync();
+                }
+
+                var links = await _database.GetProductIngredientsAsync(productId);
+                foreach (var (item, amount, unit, role) in links)
+                {
+                    // Find matching inventory item
+                    var inv = ConnectPOSToInventoryVM.AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
+                    if (inv == null)
+                    {
+                        // If not found yet, add it to collections
+                        inv = item;
+                        ConnectPOSToInventoryVM.AllInventoryItems.Add(inv);
+                        ConnectPOSToInventoryVM.InventoryItems.Add(inv);
+                    }
+
+                    // Mark as selected and set input fields from link
+                    inv.IsSelected = true;
+                    inv.InputAmount = amount > 0 ? amount : 1;
+                    inv.InputUnit = string.IsNullOrWhiteSpace(unit) ? inv.DefaultUnit : unit;
+
+                    // Initialize per-size to same amount by default
+                    inv.InputAmountSmall = inv.InputAmount;
+                    inv.InputAmountMedium = inv.InputAmount;
+                    inv.InputAmountLarge = inv.InputAmount;
+                    inv.InputUnitSmall = inv.InputUnit;
+                    inv.InputUnitMedium = inv.InputUnit;
+                    inv.InputUnitLarge = inv.InputUnit;
+                }
+
+                // Update derived collections and flags using public method
+                ConnectPOSToInventoryVM.RefreshSelectionAndFilter();
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Warning", $"Failed to preload ingredients: {ex.Message}", "OK");
+            }
         }
 
         [RelayCommand]

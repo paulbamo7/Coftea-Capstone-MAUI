@@ -65,8 +65,9 @@ namespace Coftea_Capstone.ViewModel
             // Pull latest from DB by ID to mirror Add flow behavior
             var fresh = await _database.GetInventoryItemByIdAsync(item.itemID) ?? item;
 
-            // Seed AddItemToInventory with DB values and open in edit mode
-            _addItemToInventoryViewModel.IsAddItemToInventoryVisible = true;
+            // Seed AddItemToInventory with DB values and open UpdateInventoryDetails panel
+            _addItemToInventoryViewModel.IsAddItemToInventoryVisible = false;
+            _addItemToInventoryViewModel.IsUpdateInventoryDetailsVisible = true;
             _addItemToInventoryViewModel.ItemName = fresh.itemName;
             _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory;
             _addItemToInventoryViewModel.ItemDescription = fresh.itemDescription;

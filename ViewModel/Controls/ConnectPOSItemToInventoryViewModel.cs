@@ -550,7 +550,17 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private void ApplyFilters()
+        // Public helper to refresh filters and selection-related bindings after external updates
+        public void RefreshSelectionAndFilter()
+        {
+            ApplyFilters();
+            UpdateSelectedIngredientsOnly();
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+        }
+
+        public void ApplyFilters()
         {
             var query = AllInventoryItems.AsEnumerable();
 

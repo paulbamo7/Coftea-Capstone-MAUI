@@ -12,6 +12,50 @@ namespace Coftea_Capstone.Models
 {
     public partial class InventoryPageModel : ObservableObject
     {
+        public InventoryPageModel()
+        {
+            // Initialize commands used by POS addons UI
+            ToggleSelectedCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(() =>
+            {
+                IsSelected = !IsSelected;
+                if (IsSelected && AddonQuantity < 1)
+                {
+                    AddonQuantity = 1;
+                }
+                else if (!IsSelected)
+                {
+                    AddonQuantity = 0;
+                }
+            });
+
+            IncreaseAddonQtyCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(() =>
+            {
+                if (AddonQuantity < 1)
+                {
+                    AddonQuantity = 1;
+                }
+                else
+                {
+                    AddonQuantity += 1;
+                }
+                IsSelected = true;
+            });
+
+            DecreaseAddonQtyCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(() =>
+            {
+                var next = AddonQuantity - 1;
+                if (next <= 0)
+                {
+                    AddonQuantity = 0;
+                    IsSelected = false;
+                }
+                else
+                {
+                    AddonQuantity = next;
+                }
+            });
+        }
+
         public int itemID { get; set; }
         public string itemName { get; set; }
         private double _itemQuantity;
@@ -122,12 +166,51 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private decimal addonPrice;
 
+        partial void OnAddonPriceChanged(decimal value)
+        {
+            OnPropertyChanged(nameof(AddonTotalPrice));
+        }
+
         [ObservableProperty]
         private string addonUnit;
 
         // Quantity for addon selections in preview/cart
         [ObservableProperty]
         private int addonQuantity = 0;
+
+        partial void OnAddonQuantityChanged(int value)
+        {
+            OnPropertyChanged(nameof(AddonTotalPrice));
+        }
+
+        partial void OnIsSelectedChanged(bool value)
+        {
+            if (!value)
+            {
+                // When unchecked, reset quantity to 0
+                if (AddonQuantity != 0)
+                {
+                    AddonQuantity = 0;
+                }
+            }
+            else
+            {
+                // When checked, ensure at least quantity 1
+                if (AddonQuantity < 1)
+                {
+                    AddonQuantity = 1;
+                }
+            }
+            OnPropertyChanged(nameof(AddonTotalPrice));
+        }
+
+        // Subtotal used for display in POS: base price when unselected, subtotal when selected
+        public decimal AddonTotalPrice => (IsSelected && AddonQuantity > 0) ? (AddonPrice * AddonQuantity) : AddonPrice;
+
+        // Commands for POS addons interaction
+        public CommunityToolkit.Mvvm.Input.IRelayCommand ToggleSelectedCommand { get; }
+        public CommunityToolkit.Mvvm.Input.IRelayCommand IncreaseAddonQtyCommand { get; }
+        public CommunityToolkit.Mvvm.Input.IRelayCommand DecreaseAddonQtyCommand { get; }
 
         public IList<string> AllowedUnits
         {

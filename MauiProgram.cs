@@ -16,7 +16,8 @@ namespace Coftea_Capstone
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                    fonts.AddFont("Montserrat-Black.ttf", "OpenSansSemibold");
+                    // Use a unique alias for Montserrat to avoid alias collisions breaking text in Release
+                    fonts.AddFont("Montserrat-Black.ttf", "MontserratBlack");
                 });
 
 #if DEBUG

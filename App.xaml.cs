@@ -112,6 +112,9 @@ namespace Coftea_Capstone
 
         private void InitializeViewModels()
         {
+            // Initialize shared popups first so dependent VMs can reference them safely
+            NotificationPopup = new NotificationPopupViewModel();
+
             AddItemPopup = new AddItemToPOSViewModel();
             var editProductPopup = new EditProductPopupViewModel(AddItemPopup);
             ManagePOSPopup = new ManagePOSOptionsViewModel(AddItemPopup, editProductPopup);
@@ -121,7 +124,6 @@ namespace Coftea_Capstone
             SettingsPopup = new SettingsPopUpViewModel(AddItemPopup, ManagePOSPopup, ManageInventoryPopup);
             POSVM = new POSPageViewModel(AddItemPopup, SettingsPopup);
             RetryConnectionPopup = new RetryConnectionPopupViewModel();
-            NotificationPopup = new NotificationPopupViewModel();
             PasswordResetPopup = new PasswordResetPopupViewModel();
             PaymentPopup = new PaymentPopupViewModel();
             OrderCompletePopup = new OrderCompletePopupViewModel();

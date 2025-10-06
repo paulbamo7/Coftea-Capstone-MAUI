@@ -13,7 +13,7 @@ using Coftea_Capstone.Models.Service;
 
 namespace Coftea_Capstone.ViewModel
 {
-    public partial class POSPageViewModel : ObservableObject
+    public partial class POSPageViewModel : BaseViewModel
     {
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
@@ -24,6 +24,7 @@ namespace Coftea_Capstone.ViewModel
         public PaymentPopupViewModel PaymentPopup { get; set; }
         public OrderCompletePopupViewModel OrderCompletePopup { get; set; }
         public SuccessCardPopupViewModel SuccessCardPopup { get; set; }
+        public AddonsSelectionPopupViewModel AddonsPopup { get; set; }
 
 
         private readonly Database _database;
@@ -63,15 +64,6 @@ namespace Coftea_Capstone.ViewModel
         private bool isAdmin;
 
         [ObservableProperty]
-        private bool isLoading;
-
-        [ObservableProperty]
-        private string statusMessage;
-
-        [ObservableProperty]
-        private bool hasError;
-
-        [ObservableProperty]
         private bool isCategoryLoading;
 
         [ObservableProperty]
@@ -97,6 +89,30 @@ namespace Coftea_Capstone.ViewModel
             PaymentPopup = ((App)Application.Current).PaymentPopup;
             OrderCompletePopup = ((App)Application.Current).OrderCompletePopup;
             SuccessCardPopup = ((App)Application.Current).SuccessCardPopup;
+            AddonsPopup = new AddonsSelectionPopupViewModel();
+
+            // When addons are selected from the popup, attach them to the currently selected product
+            AddonsPopup.AddonsSelected += (selectedAddons) =>
+            {
+                try
+                {
+                    if (SelectedProduct == null || selectedAddons == null)
+                        return;
+
+                    // Replace existing addons with selected ones
+                    SelectedProduct.InventoryItems.Clear();
+                    foreach (var addon in selectedAddons)
+                    {
+                        SelectedProduct.InventoryItems.Add(addon);
+                    }
+                    // Notify price/summary recalculation on UI if bound
+                    OnPropertyChanged(nameof(SelectedProduct));
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error applying selected addons: {ex.Message}");
+                }
+            };
 
             AddItemToPOSViewModel.ProductAdded += OnProductAdded;
             AddItemToPOSViewModel.ProductUpdated += OnProductUpdated;
@@ -113,10 +129,7 @@ namespace Coftea_Capstone.ViewModel
             NotificationPopup?.ToggleCommand.Execute(null);
         }
 
-        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
-        {
-            return ((App)Application.Current).RetryConnectionPopup;
-        }
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
 
         private async void OnProductAdded(POSPageModel newProduct)
         {
@@ -192,74 +205,23 @@ namespace Coftea_Capstone.ViewModel
             try
             {
                 System.Diagnostics.Debug.WriteLine($"ApplyFilters: Products count = {Products?.Count ?? -1}");
-                
-                // Check if Products collection is null or empty to prevent crashes
+
                 if (Products == null || !Products.Any())
                 {
-                    System.Diagnostics.Debug.WriteLine("ApplyFilters: Products is null or empty, clearing FilteredProducts");
                     FilteredProducts?.Clear();
                     return;
                 }
 
-                IEnumerable<POSPageModel> filteredSequence = Products;
-                System.Diagnostics.Debug.WriteLine($"ApplyFilters: Starting with {filteredSequence.Count()} products");
+                var filteredSequence = ProductFilterService.Apply(Products, SelectedMainCategory, SelectedSubcategory);
 
-                // Main category filtering
-                if (!string.IsNullOrWhiteSpace(SelectedMainCategory) &&
-                    !string.Equals(SelectedMainCategory, "All", StringComparison.OrdinalIgnoreCase))
+                FilteredProducts?.Clear();
+                if (FilteredProducts != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"ApplyFilters: Filtering by category '{SelectedMainCategory}'");
-                    
-                    if (string.Equals(SelectedMainCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
-                    {
-                        System.Diagnostics.Debug.WriteLine("ApplyFilters: Applying Fruit/Soda specific filtering");
-                        // Include items categorized under Fruit/Soda via either Subcategory or Category
-                        filteredSequence = filteredSequence.Where(p =>
-                            p != null && (
-                                (
-                                    !string.IsNullOrWhiteSpace(p.Subcategory) &&
-                                    (p.Subcategory.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
-                                     p.Subcategory.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase))
-                                )
-                                ||
-                                (
-                                    !string.IsNullOrWhiteSpace(p.Category) &&
-                                    (p.Category.Trim().Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
-                                     p.Category.Trim().Equals("Soda", StringComparison.OrdinalIgnoreCase) ||
-                                     p.Category.Trim().Equals("Fruit/Soda", StringComparison.OrdinalIgnoreCase))
-                                )
-                            ));
-
-                        // Optional subcategory refinement
-                        if (!string.IsNullOrWhiteSpace(SelectedSubcategory))
-                        {
-                            filteredSequence = filteredSequence.Where(p =>
-                                p != null && (
-                                    (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
-                                    || (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedSubcategory, StringComparison.OrdinalIgnoreCase))
-                                )
-                            );
-                        }
-                    }
-                    else
-                    {
-                        filteredSequence = filteredSequence.Where(p =>
-                            p != null && (
-                                (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
-                                || (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(SelectedMainCategory, StringComparison.OrdinalIgnoreCase))
-                            )
-                        );
-                    }
+                    foreach (var product in filteredSequence)
+                        FilteredProducts.Add(product);
                 }
 
-            FilteredProducts?.Clear();
-            if (FilteredProducts != null)
-            {
-                foreach (var product in filteredSequence)
-                    FilteredProducts.Add(product);
-            }
-            
-            System.Diagnostics.Debug.WriteLine($"ApplyFilters: Final filtered count = {FilteredProducts?.Count ?? -1}");
+                System.Diagnostics.Debug.WriteLine($"ApplyFilters: Final filtered count = {FilteredProducts?.Count ?? -1}");
             }
             catch (Exception ex)
             {
@@ -271,61 +233,39 @@ namespace Coftea_Capstone.ViewModel
 
         public async Task LoadDataAsync()
         {
-            try
+            await RunWithLoading(async () =>
             {
-                IsLoading = true;
                 StatusMessage = "Loading products...";
-                HasError = false;
 
-                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                if (!EnsureInternetOrShowRetry(LoadDataAsync, "No internet connection detected. Please check your network settings and try again."))
+                    return;
+
+                try
+                {
+                var productList = await _database.GetProductsAsyncCached();
+                    Products = new ObservableCollection<POSPageModel>(productList ?? new List<POSPageModel>());
+                    FilteredProducts = new ObservableCollection<POSPageModel>(productList ?? new List<POSPageModel>());
+
+                    // Check stock levels for all products
+                    await CheckStockLevelsForAllProducts();
+
+                    System.Diagnostics.Debug.WriteLine($"LoadDataAsync: Loaded {Products.Count} products");
+                    foreach (var product in Products.Take(5))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Product: {product.ProductName}, Category: '{product.Category}', Subcategory: '{product.Subcategory}'");
+                    }
+
+                    StatusMessage = Products.Any()
+                        ? "Products loaded successfully!"
+                        : "No products found. Please add some products to the database.";
+                }
+                catch (Exception ex)
                 {
                     HasError = true;
-                    StatusMessage = "No internet connection. Please check your network.";
-                    var retryPopup = GetRetryConnectionPopup();
-                    if (retryPopup != null)
-                    {
-                        retryPopup.ShowRetryPopup(LoadDataAsync, "No internet connection detected. Please check your network settings and try again.");
-                    }
-                    return;
+                    StatusMessage = $"Failed to load products: {ex.Message}";
+                    GetRetryConnectionPopup()?.ShowRetryPopup(LoadDataAsync, $"Failed to load products: {ex.Message}");
                 }
-
-                var productList = await _database.GetProductsAsync();
-                Products = new ObservableCollection<POSPageModel>(productList ?? new List<POSPageModel>());
-                FilteredProducts = new ObservableCollection<POSPageModel>(productList ?? new List<POSPageModel>());
-
-                // Check stock levels for all products
-                await CheckStockLevelsForAllProducts();
-
-                System.Diagnostics.Debug.WriteLine($"LoadDataAsync: Loaded {Products.Count} products");
-                foreach (var product in Products.Take(5)) // Log first 5 products for debugging
-                {
-                    System.Diagnostics.Debug.WriteLine($"Product: {product.ProductName}, Category: '{product.Category}', Subcategory: '{product.Subcategory}'");
-                }
-
-                if (Products.Any())
-                {
-                    StatusMessage = "Products loaded successfully!";
-                }
-                else
-                {
-                    StatusMessage = "No products found. Please add some products to the database.";
-                }
-            }
-            catch (Exception ex)
-            {
-                HasError = true;
-                StatusMessage = $"Failed to load products: {ex.Message}";
-                
-                var retryPopup = GetRetryConnectionPopup();
-                if (retryPopup != null)
-                {
-                    retryPopup.ShowRetryPopup(LoadDataAsync, $"Failed to load products: {ex.Message}");
-                }
-            }
-            finally
-            {
-                IsLoading = false;
-            }
+            });
         }
 
 
@@ -369,11 +309,7 @@ namespace Coftea_Capstone.ViewModel
             product.MediumQuantity = 0;
             product.LargeQuantity = 0;
 
-            // Show success notification
-            if (NotificationPopup != null)
-            {
-                NotificationPopup.ShowNotification("Item(s) added to cart successfully!", "Added to Cart");
-            }
+            // Do not auto-open notifications; bell controls visibility
         }
 
         [RelayCommand]
@@ -462,21 +398,21 @@ namespace Coftea_Capstone.ViewModel
                         var recipeUnit = UnitConversionService.Normalize(requiredUnit);
 
                         double requiredInInventoryUnit;
+                        // If either unit is missing, treat both as quantity-type and compare raw numbers
                         if (string.IsNullOrWhiteSpace(inventoryUnit) || string.IsNullOrWhiteSpace(recipeUnit))
                         {
-                            // Unknown unit, treat as insufficient to be safe
-                            insufficientForRecipe = true;
-                            break;
+                            requiredInInventoryUnit = requiredAmount;
                         }
-
-                        if (!UnitConversionService.AreCompatibleUnits(recipeUnit, inventoryUnit))
+                        else if (!UnitConversionService.AreCompatibleUnits(recipeUnit, inventoryUnit))
                         {
-                            // Incompatible units, treat as insufficient
+                            // Incompatible units — conservatively mark insufficient
                             insufficientForRecipe = true;
                             break;
                         }
-
-                        requiredInInventoryUnit = UnitConversionService.Convert(requiredAmount, recipeUnit, inventoryUnit);
+                        else
+                        {
+                            requiredInInventoryUnit = UnitConversionService.Convert(requiredAmount, recipeUnit, inventoryUnit);
+                        }
 
                         if (requiredInInventoryUnit > item.itemQuantity)
                         {
@@ -485,13 +421,9 @@ namespace Coftea_Capstone.ViewModel
                         }
                     }
 
-                    // Also consider low stock based on minimum thresholds for any linked ingredient (including addons)
-                    var addons = await _database.GetProductAddonsAsync(product.ProductID);
-                    bool belowMinimum = addons.Any(ingredient =>
-                        ingredient.minimumQuantity > 0 &&
-                        ingredient.itemQuantity < ingredient.minimumQuantity);
-
-                    product.IsLowStock = insufficientForRecipe || belowMinimum;
+                    // Rule: If inventory for each required ingredient is enough for ONE serving, product is available.
+                    // Ignore minimum thresholds for availability; they can be surfaced elsewhere as warnings.
+                    product.IsLowStock = insufficientForRecipe;
                 }
             }
             catch (Exception ex)

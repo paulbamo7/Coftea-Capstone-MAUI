@@ -19,10 +19,14 @@
             <converters:NotificationColorConverter x:Key="NotificationColorConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
-    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+    <Grid RowDefinitions="*">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="SidebarColumn" Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
         <!-- Sidebar Navigation -->
-        <view:NavigationBar Grid.Column="0" />
+        <view:NavigationBar x:Name="Sidebar" Grid.Column="0" />
 
         <!-- Main Content -->
         <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto, Auto, *">
@@ -93,7 +97,11 @@
             </HorizontalStackLayout>
 
             <!-- Products + Cart -->
-            <Grid ColumnDefinitions="3*,2*" RowDefinitions="*" ColumnSpacing="15" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" Grid.Row="2">
+            <Grid RowDefinitions="*" ColumnSpacing="15" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition x:Name="CartColumn" Width="2*" />
+                </Grid.ColumnDefinitions>
                 <!-- Products -->
                 <Border Grid.Column="0" StrokeShape="RoundRectangle 20" BackgroundColor="White" Margin="0,15,0,0"
                         VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
@@ -107,9 +115,9 @@
                         </VerticalStackLayout>
                         
                         <!-- Products Collection -->
-                        <CollectionView ItemsSource="{Binding FilteredProducts}" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                        <CollectionView x:Name="ProductsCollectionView" ItemsSource="{Binding FilteredProducts}" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
                         <CollectionView.ItemsLayout>
-                            <GridItemsLayout Orientation="Vertical" Span="3" />
+                            <GridItemsLayout x:Name="ProductsGridLayout" Orientation="Vertical" Span="3" />
                         </CollectionView.ItemsLayout>
 
                         <CollectionView.ItemTemplate>
@@ -173,39 +181,60 @@
                                    FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" />
                                 <Label Text="Add-ons" FontAttributes="Bold" FontSize="20" HorizontalOptions="Start" />
                                 <!-- Add-ons list: two-column selectable entries with quantity selector -->
-                                <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,0,0,10">
-                                    <CollectionView.ItemsLayout>
-                                        <GridItemsLayout Orientation="Vertical" Span="2" />
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid Padding="6" Margin="0,4" BackgroundColor="#F5F1ED">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center" Grid.Column="0">
-                                                    <CheckBox IsChecked="{Binding IsSelected}"/>
-                                                    <Label>
-                                                        <Label.FormattedText>
-                                                            <FormattedString>
-                                                                <Span Text="{Binding itemName}" />
-                                                                <Span Text="  -  ₱" />
-                                                                <Span Text="{Binding AddonPrice, StringFormat='{0:F0}'}" />
-                                                            </FormattedString>
-                                                        </Label.FormattedText>
-                                                    </Label>
-                                                </HorizontalStackLayout>
-                                                <!-- Quantity selector (defaults to 0) -->
-                                                <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
-                                                    <Label Text="Qty:" />
-                                                    <Stepper Minimum="0" Maximum="99" Increment="1"
-                                                             Value="{Binding AddonQuantity, Mode=TwoWay}" WidthRequest="120" />
-                                                </HorizontalStackLayout>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
+                                    <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,0,0,10">
+                                        <CollectionView.ItemsLayout>
+                                            <LinearItemsLayout Orientation="Vertical" />
+                                        </CollectionView.ItemsLayout>
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Padding="6" Margin="0,4">
+                                                    <Grid.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding ToggleSelectedCommand}" />
+                                                    </Grid.GestureRecognizers>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="2*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Left side: name -->
+                                                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center" Grid.Column="0">
+                                                        <CheckBox IsChecked="{Binding IsSelected}" />
+                                                        <Label Text="{Binding itemName}" FontSize="14" VerticalOptions="Center" HorizontalOptions="StartAndExpand" LineBreakMode="TailTruncation" />
+                                                    </HorizontalStackLayout>
+
+                                                    <!-- Right side: quantity buttons -->
+                                                    <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                                        <!-- Decrease (match size controls) -->
+                                                        <Frame BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False">
+                                                            <Frame.GestureRecognizers>
+                                                                <TapGestureRecognizer Command="{Binding DecreaseAddonQtyCommand}" CommandParameter="{Binding .}" />
+                                                            </Frame.GestureRecognizers>
+                                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseAddonQtyCommand}" CommandParameter="{Binding .}"/>
+                                                        </Frame>
+
+                                                        <!-- Quantity (match size controls) -->
+                                                        <Frame BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False">
+                                                            <Label Text="{Binding AddonQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center" />
+                                                        </Frame>
+
+                                                        <!-- Increase (match size controls) -->
+                                                        <Frame BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False">
+                                                            <Frame.GestureRecognizers>
+                                                                <TapGestureRecognizer Command="{Binding IncreaseAddonQtyCommand}" CommandParameter="{Binding .}" />
+                                                            </Frame.GestureRecognizers>
+                                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseAddonQtyCommand}" CommandParameter="{Binding .}"/>
+                                                        </Frame>
+                                                    </HorizontalStackLayout>
+
+                                                    <!-- Subtotal price shown after controls -->
+                                                    <Label Grid.Column="2" Text="{Binding AddonTotalPrice, StringFormat='₱{0:F0}'}" FontSize="14" VerticalOptions="Center" Margin="10,0,0,0" />
+
+                                                </Grid>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
 
                                     <!-- Select Size Section -->
                                     <Label Text="Select Size:" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>
@@ -282,7 +311,7 @@
                                     </Grid>
 
 
-                                    <!-- Price Labels -->
+                                    <!-- Size Summary -->
                                 <Grid ColumnDefinitions="*,*,*" HorizontalOptions="Center" Margin="25,0,0,0" >
                                     <Label Grid.Column="0" Text="{Binding SelectedProduct.SmallQuantity, StringFormat='Small: {0} pcs'}" 
                                            IsVisible="{Binding IsSmallSizeVisibleInCart}" HorizontalOptions="Center"/>
@@ -290,6 +319,10 @@
                                            IsVisible="{Binding IsMediumSizeVisibleInCart}" HorizontalOptions="Center"/>
                                     <Label Grid.Column="2" Text="{Binding SelectedProduct.LargeQuantity, StringFormat='Large: {0} pcs'}" 
                                            IsVisible="{Binding IsLargeSizeVisibleInCart}" HorizontalOptions="Center"/>
+                                </Grid>
+                                <!-- Add-ons Summary (match style with size summary) -->
+                                <Grid ColumnDefinitions="*" HorizontalOptions="Center" Margin="25,6,0,0">
+                                    <Label Grid.Column="0" Text="{Binding SelectedAddons, Converter={StaticResource NotificationTextIconConverter}}"/>
                                 </Grid>
                                 <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="Total:" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
@@ -331,6 +364,8 @@
         <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM}" Grid.ColumnSpan="2"/>
+        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:UpdateInventoryDetails BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:EditProductPopup BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM.EditProductPopupVM}" Grid.ColumnSpan="2"/>

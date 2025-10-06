@@ -23,6 +23,9 @@ namespace Coftea_Capstone.ViewModel
         private bool isAddItemToInventoryVisible = false;
 
         [ObservableProperty]
+        private bool isUpdateInventoryDetailsVisible = false;
+
+        [ObservableProperty]
         private string itemName = string.Empty;
 
         [ObservableProperty]
@@ -254,6 +257,12 @@ namespace Coftea_Capstone.ViewModel
         {
             IsAddItemToInventoryVisible = false;
             ResetForm();
+        }
+
+        [RelayCommand]
+        private void CloseUpdateInventoryDetails()
+        {
+            IsUpdateInventoryDetailsVisible = false;
         }
 
         [RelayCommand]

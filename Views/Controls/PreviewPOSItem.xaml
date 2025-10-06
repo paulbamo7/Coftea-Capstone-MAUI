@@ -8,13 +8,7 @@
              IsVisible="{Binding IsPreviewVisible}">
 
     <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
-        <Frame BackgroundColor="#F8E8D7"
-               CornerRadius="20"
-               Padding="20"
-               HorizontalOptions="Center"
-               VerticalOptions="Center"
-               WidthRequest="500"
-               HeightRequest="600">
+        <Frame Style="{StaticResource CenteredPopupFrame}">
             <ScrollView>
                 <VerticalStackLayout Spacing="15">
                     <!-- Header -->

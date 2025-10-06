@@ -19,6 +19,9 @@ public partial class SalesReport : ContentPage
 		
 		// Initialize the view model
 		_ = viewModel.InitializeAsync();
+
+		// Responsive behavior
+		SizeChanged += OnSizeChanged;
 	}
 
     private void OnBellClicked(object sender, EventArgs e)
@@ -27,5 +30,25 @@ public partial class SalesReport : ContentPage
         popup?.AddSuccess("Sales Report", "Generated Daily Report (ID: DR20251006)", "ID: DR20251006");
         popup?.AddSuccess("Sales Report", "Exported to CSV (ID: CSV106)", "ID: CSV106");
         popup?.ToggleCommand.Execute(null);
+    }
+
+    private void OnSizeChanged(object sender, EventArgs e)
+    {
+        double pageWidth = Width;
+        if (double.IsNaN(pageWidth) || pageWidth <= 0)
+        {
+            return;
+        }
+
+        bool isPhoneLike = pageWidth < 800;
+
+        if (SidebarColumn is not null)
+        {
+            SidebarColumn.Width = isPhoneLike ? new GridLength(0) : new GridLength(200);
+        }
+        if (Sidebar is not null)
+        {
+            Sidebar.IsVisible = !isPhoneLike;
+        }
     }
 }

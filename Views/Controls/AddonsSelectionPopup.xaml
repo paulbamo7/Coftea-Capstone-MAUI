@@ -24,14 +24,7 @@
         </BoxView>
 
         <!-- Center Popup -->
-        <Frame Grid.Row="1" Grid.Column="1"
-               BackgroundColor="#FFF9F4"
-               CornerRadius="28"
-               Padding="30"
-               WidthRequest="1000"
-               HeightRequest="700"
-               HasShadow="True"
-               BorderColor="#DDDDDD">
+        <Frame Grid.Row="1" Grid.Column="1" Style="{StaticResource CenteredPopupFrame}">
 
             <!-- MAIN GRID FOR HEADER, CONTENT, FOOTER -->
             <Grid RowSpacing="20" RowDefinitions="Auto,*,Auto">

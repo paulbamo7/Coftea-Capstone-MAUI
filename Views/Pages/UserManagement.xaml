@@ -19,9 +19,13 @@
     </ContentPage.BindingContext>
 
 
-    <Grid ColumnDefinitions="200, *" RowDefinitions="*">
+    <Grid RowDefinitions="*">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="SidebarColumn" Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <!-- Sidebar Navigation -->
-        <views:NavigationBar Grid.Column="0"/>
+        <views:NavigationBar x:Name="Sidebar" Grid.Column="0"/>
 
         <!-- Main Content -->
         <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto,*">
@@ -38,14 +42,14 @@
                 <VerticalStackLayout Padding="20" Spacing="16">
 
 
-                    <!-- Search & Sort -->
-                    <Grid ColumnDefinitions="*, Auto,Auto" ColumnSpacing="10">
+                    <!-- Search & Sort (wrap on narrow screens) -->
+                    <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="SpaceBetween" AlignContent="Start">
                         <Label Text="{Binding Users.Count, StringFormat='Users: {0}'}"
                                FontSize="20"
                                FontAttributes="Bold"/>
-                        <Entry Placeholder="Search" Text="{Binding SearchText}" WidthRequest="250" HorizontalOptions="Center"/>
-                        <Button Text="Sort By" Command="{Binding SortByCommand}" WidthRequest="100" HorizontalOptions="End"/>
-                    </Grid>
+                        <Entry Placeholder="Search" Text="{Binding SearchText}" WidthRequest="250"/>
+                        <Button Text="Sort By" Command="{Binding SortByCommand}" WidthRequest="100"/>
+                    </FlexLayout>
 
                     <!-- Users Table -->
                     <Frame BackgroundColor="White" CornerRadius="10" Padding="0" HasShadow="True">

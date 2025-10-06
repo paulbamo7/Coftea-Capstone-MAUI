@@ -21,14 +21,7 @@
           VerticalOptions="FillAndExpand"
           Padding="20">
 
-        <Frame BackgroundColor="#FFF9F4"
-               CornerRadius="28"
-               HasShadow="True"
-               Padding="30"
-               WidthRequest="1000"
-               HeightRequest="700"
-               HorizontalOptions="Center"
-               VerticalOptions="Center"
+        <Frame Style="{StaticResource CenteredPopupFrame}"
                IsVisible="{Binding IsPreviewVisible, Converter={StaticResource InvertBoolConverter}}">
 
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="20">

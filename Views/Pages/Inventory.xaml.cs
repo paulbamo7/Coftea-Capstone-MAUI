@@ -24,6 +24,7 @@ public partial class Inventory : ContentPage
         RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
 
         Appearing += async (_, __) => await vm.InitializeAsync();
+
     }
 
     private void OnBellClicked(object sender, EventArgs e)

@@ -13,7 +13,7 @@ using Microsoft.Maui.Networking;
 
 namespace Coftea_Capstone.ViewModel
 {
-    public partial class InventoryPageViewModel : ObservableObject
+    public partial class InventoryPageViewModel : BaseViewModel
     {
         public AddItemToPOSViewModel AddItemToInventoryPopup { get; } = new AddItemToPOSViewModel();
         public SettingsPopUpViewModel SettingsPopup { get; set; }
@@ -26,15 +26,6 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private ObservableCollection<InventoryPageModel> inventoryItems = new();
-
-        [ObservableProperty]
-        private bool isLoading;
-
-        [ObservableProperty]
-        private string statusMessage;
-
-        [ObservableProperty]
-        private bool hasError;
 
         // Demo controls for showing inventory progress behavior
         [ObservableProperty]
@@ -63,10 +54,7 @@ namespace Coftea_Capstone.ViewModel
             SettingsPopup = settingsPopup;
         }
 
-        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
-        {
-            return ((App)Application.Current).RetryConnectionPopup;
-        }
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
         public async Task InitializeAsync()
         {
             await LoadDataAsync();
@@ -74,36 +62,30 @@ namespace Coftea_Capstone.ViewModel
 
         public async Task LoadDataAsync()
         {
-            try
+            await RunWithLoading(async () =>
             {
-                IsLoading = true;
                 StatusMessage = "Loading inventory items...";
-                HasError = false;
 
-                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                if (!EnsureInternetOrShowRetry(LoadDataAsync, "No internet connection detected. Please check your network settings and try again."))
+                    return;
+
+                try
+                {
+                var inventoryList = await _database.GetInventoryItemsAsyncCached();
+                    allInventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
+                    ApplyCategoryFilter();
+
+                    StatusMessage = InventoryItems.Any()
+                        ? "Inventory items loaded successfully."
+                        : "No inventory items found.";
+                }
+                catch (Exception ex)
                 {
                     HasError = true;
-                    StatusMessage = "No internet connection. Please check your network.";
-                    GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, "No internet connection detected. Please check your network settings and try again.");
-                    return;
+                    StatusMessage = $"Failed to load inventory items: {ex.Message}";
+                    GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load inventory items: {ex.Message}");
                 }
-
-                var inventoryList = await _database.GetInventoryItemsAsync();
-                allInventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
-                ApplyCategoryFilter();
-
-                StatusMessage = InventoryItems.Any() ? "Inventory items loaded successfully." : "No inventory items found.";
-            }
-            catch (Exception ex)
-            {
-                HasError = true;
-                StatusMessage = $"Failed to load inventory items: {ex.Message}";
-                GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load inventory items: {ex.Message}");
-            }
-            finally
-            {
-                IsLoading = false;
-            }
+            });
         }
 
         partial void OnDemoQuantityChanged(double value)

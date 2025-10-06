@@ -35,11 +35,11 @@
                    HasShadow="False"
                    HorizontalOptions="Center"
                    VerticalOptions="Center"
-                   WidthRequest="{OnPlatform Default=350, Android=350, iOS=350, WinUI=420}"  
-                   MinimumWidthRequest="420"
-                   MaximumWidthRequest="500"
-                   MinimumHeightRequest="650"
-                   MaximumHeightRequest="700">
+                   WidthRequest="{OnPlatform Default=350, Android=320, iOS=320, WinUI=420}"
+                   MinimumWidthRequest="300"
+                   MaximumWidthRequest="520"
+                   MinimumHeightRequest="580"
+                   MaximumHeightRequest="720">
 
                 <VerticalStackLayout Spacing="15"
                                      VerticalOptions="Center"

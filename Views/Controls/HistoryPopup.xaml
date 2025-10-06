@@ -20,7 +20,7 @@
             <TapGestureRecognizer Command="{Binding CloseHistoryCommand}" />
         </Grid.GestureRecognizers>
 
-        <!-- History Frame -->
+        <!-- Main Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
                Padding="0"
@@ -56,22 +56,18 @@
                 </Grid>
 
                 <!-- Filter Buttons -->
-                <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,20,5" HorizontalOptions="Center" >
+                <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,20,5" HorizontalOptions="Center">
                     <HorizontalStackLayout Spacing="10">
-                        <Button Text="Today" 
-                                Command="{Binding FilterByTimePeriodCommand}" 
-                                CommandParameter="Today"
-                                FontAttributes="Bold" 
-                                FontFamily="Roboto" 
-                                FontSize="14" 
-                                WidthRequest="100" 
-                                HeightRequest="40">
+                        <!-- Filter Buttons Template -->
+                        <Button Text="Today" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Today" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="100" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Today}" Value="True">
+                                        <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Today}"
+                                                     Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
                                         </DataTrigger>
@@ -79,20 +75,16 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="Yesterday" 
-                                Command="{Binding FilterByTimePeriodCommand}" 
-                                CommandParameter="Yesterday"
-                                FontAttributes="Bold" 
-                                FontFamily="Roboto" 
-                                FontSize="14" 
-                                WidthRequest="100" 
-                                HeightRequest="40">
+
+                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="100" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Yesterday}" Value="True">
+                                        <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Yesterday}"
+                                                     Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
                                         </DataTrigger>
@@ -100,20 +92,16 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="3 Days Ago" 
-                                Command="{Binding FilterByTimePeriodCommand}" 
-                                CommandParameter="3 Days Ago"
-                                FontAttributes="Bold" 
-                                FontFamily="Roboto" 
-                                FontSize="14" 
-                                WidthRequest="100" 
-                                HeightRequest="40">
+
+                        <Button Text="3 Days Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="3 Days Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=3 Days Ago}" Value="True">
+                                        <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=3 Days Ago}"
+                                                     Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
                                         </DataTrigger>
@@ -121,20 +109,16 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="1 Week Ago" 
-                                Command="{Binding FilterByTimePeriodCommand}" 
-                                CommandParameter="1 Week Ago"
-                                FontAttributes="Bold" 
-                                FontFamily="Roboto" 
-                                FontSize="14" 
-                                WidthRequest="100" 
-                                HeightRequest="40">
+
+                        <Button Text="1 Week Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Week Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Week Ago}" Value="True">
+                                        <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Week Ago}"
+                                                     Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
                                         </DataTrigger>
@@ -142,20 +126,16 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="2 Weeks Ago" 
-                                Command="{Binding FilterByTimePeriodCommand}" 
-                                CommandParameter="2 Weeks Ago"
-                                FontAttributes="Bold" 
-                                FontFamily="Roboto" 
-                                FontSize="14" 
-                                WidthRequest="100" 
-                                HeightRequest="40">
+
+                        <Button Text="2 Weeks Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="2 Weeks Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=2 Weeks Ago}" Value="True">
+                                        <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=2 Weeks Ago}"
+                                                     Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
                                         </DataTrigger>
@@ -163,20 +143,16 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="1 Month Ago" 
-                                Command="{Binding FilterByTimePeriodCommand}" 
-                                CommandParameter="1 Month Ago"
-                                FontAttributes="Bold" 
-                                FontFamily="Roboto" 
-                                FontSize="14" 
-                                WidthRequest="100" 
-                                HeightRequest="40">
+
+                        <Button Text="1 Month Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Month Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Month Ago}" Value="True">
+                                        <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Month Ago}"
+                                                     Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
                                         </DataTrigger>
@@ -184,20 +160,16 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="All Time" 
-                                Command="{Binding FilterByTimePeriodCommand}" 
-                                CommandParameter="All Time"
-                                FontAttributes="Bold" 
-                                FontFamily="Roboto" 
-                                FontSize="14" 
-                                WidthRequest="100" 
-                                HeightRequest="40">
+
+                        <Button Text="All Time" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="All Time" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="100" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=All Time}" Value="True">
+                                        <DataTrigger TargetType="Button"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=All Time}"
+                                                     Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
                                         </DataTrigger>
@@ -208,124 +180,63 @@
                     </HorizontalStackLayout>
                 </ScrollView>
 
-                <!-- Transaction History Table -->
-                <Grid Grid.Row="2" Padding="20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <!-- Fixed Table Header -->
-                    <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,10" Margin="0,0,0,0">
-                        <Grid ColumnDefinitions="40, *, 50, 60, 80, 80, 60, 80, 60">
-                            <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="40" HorizontalOptions="Center"/>
-                            <Label Grid.Column="1" Text="Drink Name" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Start"/>
-                            <Label Grid.Column="2" Text="Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="50" HorizontalOptions="Center"/>
-                            <Label Grid.Column="3" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" HorizontalOptions="Center"/>
-                            <Label Grid.Column="4" Text="Add On" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalOptions="Center"/>
-                            <Label Grid.Column="5" Text="Price" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalOptions="Center"/>
-                            <Label Grid.Column="6" Text="VAT" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" HorizontalOptions="Center"/>
-                            <Label Grid.Column="7" Text="Total" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalOptions="Center"/>
-                            <Label Grid.Column="8" Text="Date" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" HorizontalOptions="Center"/>
+                <!-- Transaction Table -->
+                <Frame Grid.Row="2"
+                       Margin="20,0,20,20"
+                       Padding="0"
+                       CornerRadius="15"
+                       BackgroundColor="White"
+                       HasShadow="False">
+                    <Grid RowDefinitions="Auto, *">
+                        <!-- Header -->
+                        <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,10">
+                            <Grid ColumnDefinitions="40,*,50,60,80,80,60,80,100">
+                                <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="1" Text="Drink Name" FontAttributes="Bold" FontSize="14" TextColor="Black"/>
+                                <Label Grid.Column="2" Text="Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="3" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="4" Text="Add On" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="5" Text="Price" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="6" Text="VAT" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="7" Text="Total" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="8" Text="Date" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            </Grid>
                         </Grid>
+
+                        <!-- Scrollable Data -->
+                        <ScrollView Grid.Row="1">
+                            <CollectionView ItemsSource="{Binding FilteredTransactions}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="15,8" Margin="0,0,0,1" BackgroundColor="#F9F9F9">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="40"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="50"/>
+                                                <ColumnDefinition Width="60"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="60"/>
+                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="100"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Label Grid.Column="0" Text="{Binding TransactionId}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="1" Text="{Binding DrinkName}" FontSize="12"/>
+                                            <Label Grid.Column="2" Text="{Binding Quantity}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="3" Text="{Binding Size}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="4" Text="{Binding AddOns}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="5" Text="{Binding FormattedPrice}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="6" Text="{Binding FormattedVAT}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="7" Text="{Binding FormattedTotal}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="8" Text="{Binding FormattedDate}" FontSize="12" HorizontalOptions="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </ScrollView>
                     </Grid>
-
-                    <!-- Scrollable Transaction Data -->
-                    <ScrollView Grid.Row="1" Padding="20,0">
-                        <CollectionView ItemsSource="{Binding FilteredTransactions}">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid BackgroundColor="White" Padding="20,8" Margin="0,0,0,1">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="40" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="50" />
-                                            <ColumnDefinition Width="60" />
-                                            <ColumnDefinition Width="80" />
-                                            <ColumnDefinition Width="80" />
-                                            <ColumnDefinition Width="60" />
-                                            <ColumnDefinition Width="80" />
-                                            <ColumnDefinition Width="60" />
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- ID -->
-                                        <Label Grid.Column="0" 
-                                               Text="{Binding TransactionId}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
-                                        <!-- Drink Name -->
-                                        <Label Grid.Column="1" 
-                                               Text="{Binding DrinkName}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Start" />
-
-                                        <!-- Quantity -->
-                                        <Label Grid.Column="2" 
-                                               Text="{Binding Quantity}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
-                                        <!-- Size -->
-                                        <Label Grid.Column="3" 
-                                               Text="{Binding Size}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
-                                        <!-- Add Ons -->
-                                        <Label Grid.Column="4" 
-                                               Text="{Binding AddOns}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
-                                        <!-- Price -->
-                                        <Label Grid.Column="5" 
-                                               Text="{Binding FormattedPrice}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
-                                        <!-- VAT -->
-                                        <Label Grid.Column="6" 
-                                               Text="{Binding FormattedVAT}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
-                                        <!-- Total -->
-                                        <Label Grid.Column="7" 
-                                               Text="{Binding FormattedTotal}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-
-                                        <!-- Date -->
-                                        <Label Grid.Column="8" 
-                                               Text="{Binding FormattedDate}" 
-                                               FontSize="12" 
-                                               TextColor="Black" 
-                                               VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
-                                    </Grid>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
-                    </ScrollView>
-                </Grid>
-
+                </Frame>
             </Grid>
         </Frame>
     </Grid>

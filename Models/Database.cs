@@ -13,6 +13,12 @@ namespace Coftea_Capstone.Models
     public class Database
     {
         private readonly string _db;
+        // In-memory caches to reduce repeated DB calls during UI updates
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(60);
+        private static (DateTime ts, List<POSPageModel> items)? _productsCache;
+        private static (DateTime ts, List<InventoryPageModel> items)? _inventoryCache;
+        private static readonly Dictionary<int, (DateTime ts, List<(InventoryPageModel item, double amount, string unit, string role)> items)> _productIngredientsCache = new();
+        private static readonly Dictionary<int, (DateTime ts, List<InventoryPageModel> items)> _productAddonsCache = new();
 
         public Database(string host = null,
                         string database = "coftea_db",
@@ -76,6 +82,63 @@ namespace Coftea_Capstone.Models
             await conn.OpenAsync();
             return conn;
         }
+
+		// Cache helpers
+		private static bool IsFresh(DateTime ts) => (DateTime.UtcNow - ts) < CacheDuration;
+		private static void InvalidateProductsCache() => _productsCache = null;
+		private static void InvalidateInventoryCache() => _inventoryCache = null;
+		private static void InvalidateProductLinksCache(int productId)
+		{
+			_productIngredientsCache.Remove(productId);
+			_productAddonsCache.Remove(productId);
+		}
+
+		// Shared DB helpers to reduce redundancy
+		private static object DbValue(object? value)
+		{
+			return value ?? DBNull.Value;
+		}
+
+		private static void AddParameters(MySqlCommand cmd, IDictionary<string, object?>? parameters)
+		{
+			if (parameters == null) return;
+			foreach (var kvp in parameters)
+			{
+				cmd.Parameters.AddWithValue(kvp.Key, DbValue(kvp.Value));
+			}
+		}
+
+		private async Task<int> ExecuteNonQueryAsync(string sql, IDictionary<string, object?>? parameters = null)
+		{
+			await using var conn = await GetOpenConnectionAsync();
+			await using var cmd = new MySqlCommand(sql, conn);
+			AddParameters(cmd, parameters);
+			return await cmd.ExecuteNonQueryAsync();
+		}
+
+		private async Task<T?> ExecuteScalarAsync<T>(string sql, IDictionary<string, object?>? parameters = null)
+		{
+			await using var conn = await GetOpenConnectionAsync();
+			await using var cmd = new MySqlCommand(sql, conn);
+			AddParameters(cmd, parameters);
+			var result = await cmd.ExecuteScalarAsync();
+			if (result == null || result is DBNull) return default;
+			return (T)Convert.ChangeType(result, typeof(T));
+		}
+
+		private async Task<List<T>> QueryAsync<T>(string sql, Func<MySqlDataReader, T> map, IDictionary<string, object?>? parameters = null)
+		{
+			await using var conn = await GetOpenConnectionAsync();
+			await using var cmd = new MySqlCommand(sql, conn);
+			AddParameters(cmd, parameters);
+			var list = new List<T>();
+			await using var reader = await cmd.ExecuteReaderAsync();
+			while (await reader.ReadAsync())
+			{
+				list.Add(map(reader));
+			}
+			return list;
+		}
         public async Task<UserInfoModel> GetUserByEmailAsync(string email)
         {
             await using var conn = await GetOpenConnectionAsync();
@@ -106,45 +169,33 @@ namespace Coftea_Capstone.Models
             return null;
         } 
 
-        public async Task<int> UpdateUserPasswordAsync(int userId, string newHashedPassword)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "UPDATE users SET password = @Password WHERE id = @Id;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Password", newHashedPassword);
-            cmd.Parameters.AddWithValue("@Id", userId);
-            return await cmd.ExecuteNonQueryAsync();
-        }
+		public async Task<int> UpdateUserPasswordAsync(int userId, string newHashedPassword)
+		{
+			var sql = "UPDATE users SET password = @Password WHERE id = @Id;";
+			return await ExecuteNonQueryAsync(sql, new Dictionary<string, object?>
+			{
+				{"@Password", newHashedPassword},
+				{"@Id", userId}
+			});
+		}
         public async Task<List<UserInfoModel>> GetAllUsersAsync()
         {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
-            await using var cmd = new MySqlCommand(sql, conn);
-
-            var users = new List<UserInfoModel>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                var user = new UserInfoModel
-                {
-                    ID = reader.GetInt32("id"),
-                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
-                    Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
-                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
-                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
-                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
-                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
-                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
-                    CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
-                    CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report")
-                };
-                users.Add(user);
-            }
-            return users;
+			var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
+			return await QueryAsync(sql, reader => new UserInfoModel
+			{
+				ID = reader.GetInt32("id"),
+				Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
+				Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
+				FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
+				LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
+				Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
+				PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
+				Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
+				IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
+				Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
+				CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
+				CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report")
+			});
         }
         public async Task<bool> IsFirstUserAsync()
         {
@@ -180,32 +231,32 @@ namespace Coftea_Capstone.Models
         }
 
         // POS Database
-        public async Task<List<POSPageModel>> GetProductsAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
+		public async Task<List<POSPageModel>> GetProductsAsync()
+		{
+			var sql = "SELECT * FROM products;";
+			return await QueryAsync(sql, reader => new POSPageModel
+			{
+				ProductID = reader.GetInt32("productID"),
+				ProductName = reader.GetString("productName"),
+				SmallPrice = reader.GetDecimal("smallPrice"),
+				MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
+				LargePrice = reader.GetDecimal("largePrice"),
+				ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+				Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
+				Subcategory = reader.IsDBNull(reader.GetOrdinal("subcategory")) ? null : reader.GetString("subcategory"),
+				ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
+			});
+		}
 
-            var sql = "SELECT * FROM products;"; 
-            await using var cmd = new MySqlCommand(sql, conn);
+		public async Task<List<POSPageModel>> GetProductsAsyncCached()
+		{
+			if (_productsCache.HasValue && IsFresh(_productsCache.Value.ts))
+				return _productsCache.Value.items;
 
-            var products = new List<POSPageModel>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                products.Add(new POSPageModel
-                {
-                    ProductID = reader.GetInt32("productID"),
-                    ProductName = reader.GetString("productName"),
-                    SmallPrice = reader.GetDecimal("smallPrice"),
-                    MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
-                    LargePrice = reader.GetDecimal("largePrice"),
-                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
-                    Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
-                    Subcategory = reader.IsDBNull(reader.GetOrdinal("subcategory")) ? null : reader.GetString("subcategory"),
-                    ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
-                });
-            }
-            return products;
-        }
+			var items = await GetProductsAsync();
+			_productsCache = (DateTime.UtcNow, items);
+			return items;
+		}
 
         // Get all ingredients and addons (linked inventory items) for a product
         public async Task<List<(InventoryPageModel item, double amount, string unit, string role)>> GetProductIngredientsAsync(int productId)
@@ -235,8 +286,7 @@ namespace Coftea_Capstone.Models
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? string.Empty : reader.GetString("imageSet"),
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? string.Empty : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? string.Empty : reader.GetString("unitOfMeasurement"),
-                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    IsSelected = true
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
                 };
 
                 // Map linked amount/unit into size-specific fields (default to same across sizes)
@@ -264,6 +314,16 @@ namespace Coftea_Capstone.Models
 
             return results;
         }
+
+		public async Task<List<(InventoryPageModel item, double amount, string unit, string role)>> GetProductIngredientsAsyncCached(int productId)
+		{
+			if (_productIngredientsCache.TryGetValue(productId, out var cache) && IsFresh(cache.ts))
+				return cache.items;
+
+			var items = await GetProductIngredientsAsync(productId);
+			_productIngredientsCache[productId] = (DateTime.UtcNow, items);
+			return items;
+		}
 
         // Get add-ons (linked inventory items) for a product from product_addons
         public async Task<List<InventoryPageModel>> GetProductAddonsAsync(int productId)
@@ -294,7 +354,7 @@ namespace Coftea_Capstone.Models
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? string.Empty : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? string.Empty : reader.GetString("unitOfMeasurement"),
                     minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    IsSelected = true
+                    IsSelected = false
                 };
 
                 // Map linked amount/unit
@@ -321,6 +381,16 @@ namespace Coftea_Capstone.Models
             return results;
         }
 
+		public async Task<List<InventoryPageModel>> GetProductAddonsAsyncCached(int productId)
+		{
+			if (_productAddonsCache.TryGetValue(productId, out var cache) && IsFresh(cache.ts))
+				return cache.items;
+
+			var items = await GetProductAddonsAsync(productId);
+			_productAddonsCache[productId] = (DateTime.UtcNow, items);
+			return items;
+		}
+
         public async Task<int> SaveProductAsync(POSPageModel product)
         {
             await using var conn = await GetOpenConnectionAsync();
@@ -337,7 +407,9 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
 
-            return await cmd.ExecuteNonQueryAsync();
+            var rows = await cmd.ExecuteNonQueryAsync();
+            InvalidateProductsCache();
+            return rows;
         }
 
         // Save product and return its new ID
@@ -358,6 +430,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
 
             await cmd.ExecuteNonQueryAsync();
+            InvalidateProductsCache();
             return (int)cmd.LastInsertedId;
         }
 
@@ -406,6 +479,7 @@ namespace Coftea_Capstone.Models
                 }
 
                 await tx.CommitAsync();
+                InvalidateProductLinksCache(productId);
                 System.Diagnostics.Debug.WriteLine($"Finished saving links. Total affected rows={total}");
                 return total;
             }
@@ -439,6 +513,12 @@ namespace Coftea_Capstone.Models
             }
             return null;
         }
+
+		public async Task<POSPageModel?> GetProductByNameAsyncCached(string name)
+		{
+			var list = await GetProductsAsyncCached();
+			return list.FirstOrDefault(p => string.Equals(p.ProductName?.Trim(), name?.Trim(), StringComparison.OrdinalIgnoreCase));
+		}
 
         public async Task<POSPageModel?> GetProductByIdAsync(int productId)
         {
@@ -482,7 +562,10 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
 
-            return await cmd.ExecuteNonQueryAsync();
+            var rows = await cmd.ExecuteNonQueryAsync();
+            InvalidateProductsCache();
+            InvalidateProductLinksCache(product.ProductID);
+            return rows;
         }
 
         public async Task<int> DeleteProductAsync(int productId)
@@ -493,35 +576,38 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductID", productId);
 
-            return await cmd.ExecuteNonQueryAsync();
+            var rows = await cmd.ExecuteNonQueryAsync();
+            InvalidateProductsCache();
+            InvalidateProductLinksCache(productId);
+            return rows;
         }
 
         // Inventory Database Methods
-        public async Task<List<InventoryPageModel>> GetInventoryItemsAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
+		public async Task<List<InventoryPageModel>> GetInventoryItemsAsync()
+		{
+			var sql = "SELECT * FROM inventory;";
+			return await QueryAsync(sql, reader => new InventoryPageModel
+			{
+				itemID = reader.GetInt32("itemID"),
+				itemName = reader.GetString("itemName"),
+				itemQuantity = reader.GetDouble("itemQuantity"),
+				itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
+				ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+				itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
+				unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
+				minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
+			});
+		}
 
-            var sql = "SELECT * FROM inventory;";
-            await using var cmd = new MySqlCommand(sql, conn);
+		public async Task<List<InventoryPageModel>> GetInventoryItemsAsyncCached()
+		{
+			if (_inventoryCache.HasValue && IsFresh(_inventoryCache.Value.ts))
+				return _inventoryCache.Value.items;
 
-            var inventoryItems = new List<InventoryPageModel>();
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                inventoryItems.Add(new InventoryPageModel
-                {
-                    itemID = reader.GetInt32("itemID"),
-                    itemName = reader.GetString("itemName"),
-                    itemQuantity = reader.GetDouble("itemQuantity"),
-                    itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
-                    ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
-                    itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
-                    unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
-                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
-                });
-            }
-            return inventoryItems;
-        }
+			var items = await GetInventoryItemsAsync();
+			_inventoryCache = (DateTime.UtcNow, items);
+			return items;
+		}
 
         public async Task<InventoryPageModel?> GetInventoryItemByIdAsync(int itemId)
         {
@@ -575,6 +661,12 @@ namespace Coftea_Capstone.Models
             return null;
         }
 
+		public async Task<InventoryPageModel?> GetInventoryItemByNameCachedAsync(string itemName)
+		{
+			var list = await GetInventoryItemsAsyncCached();
+			return list.FirstOrDefault(i => string.Equals(i.itemName?.Trim(), itemName?.Trim(), StringComparison.OrdinalIgnoreCase));
+		}
+
         // Deduct inventory quantities by item name and amount
         public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions)
         {
@@ -594,6 +686,7 @@ namespace Coftea_Capstone.Models
                 }
 
                 await tx.CommitAsync();
+                InvalidateInventoryCache();
                 return totalAffected;
             }
             catch
@@ -618,7 +711,9 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
 
-            return await cmd.ExecuteNonQueryAsync();
+            var rows = await cmd.ExecuteNonQueryAsync();
+            InvalidateInventoryCache();
+            return rows;
         }
 
         public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction)
@@ -750,7 +845,9 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
 
-            return await cmd.ExecuteNonQueryAsync();
+            var rows = await cmd.ExecuteNonQueryAsync();
+            InvalidateInventoryCache();
+            return rows;
         }
 
         public async Task<int> DeleteInventoryItemAsync(int itemId)
@@ -761,7 +858,9 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemID", itemId);
 
-            return await cmd.ExecuteNonQueryAsync();
+            var rows = await cmd.ExecuteNonQueryAsync();
+            InvalidateInventoryCache();
+            return rows;
         }
 
         // User Management

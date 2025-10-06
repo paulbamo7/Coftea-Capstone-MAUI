@@ -125,11 +125,11 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Save transaction to database and shared store
             await SaveTransaction();
 
-            // Show success: full order-complete popup and a short toast
+            // Show success: full order-complete popup only; do not auto-open notification toast
             PaymentStatus = "Payment Confirmed";
             var appInstance = (App)Application.Current;
             appInstance?.OrderCompletePopup?.Show();
-            appInstance?.NotificationPopup?.ShowToast($"Payment confirmed! Change: ₱{Change:F2}", 1500);
+            // No automatic toast here; user can open notifications manually via bell
 
             // Add to recent orders
             var app = (App)Application.Current;
@@ -205,7 +205,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 // Get product by name to get the product ID
-                var product = await database.GetProductByNameAsync(cartItem.ProductName);
+                var product = await database.GetProductByNameAsyncCached(cartItem.ProductName);
                 if (product == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"Product not found: {cartItem.ProductName}");
@@ -285,14 +285,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ => "Medium Cup" // Default to medium
                 };
 
-                var cupItem = await database.GetInventoryItemByNameAsync(cupName);
+                var cupItem = await database.GetInventoryItemByNameCachedAsync(cupName);
                 if (cupItem != null)
                 {
                     deductions.Add((cupName, quantity));
                 }
 
                 // Add straw (1 per item)
-                var strawItem = await database.GetInventoryItemByNameAsync("Straw");
+                var strawItem = await database.GetInventoryItemByNameCachedAsync("Straw");
                 if (strawItem != null)
                 {
                     deductions.Add(("Straw", quantity));
@@ -396,7 +396,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 foreach (var item in CartItems)
                 {
                     // Get product by name to get the product ID
-                    var product = await database.GetProductByNameAsync(item.ProductName);
+                var product = await database.GetProductByNameAsyncCached(item.ProductName);
                     if (product == null)
                     {
                         issues.Add($"Product not found: {item.ProductName}");
@@ -469,7 +469,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ => "Medium Cup" // Default to medium
                 };
 
-                var cupItem = await database.GetInventoryItemByNameAsync(cupName);
+                var cupItem = await database.GetInventoryItemByNameCachedAsync(cupName);
                 if (cupItem != null && cupItem.itemQuantity < quantity)
                 {
                     var shortage = quantity - cupItem.itemQuantity;
@@ -477,7 +477,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
 
                 // Check straw (1 per item)
-                var strawItem = await database.GetInventoryItemByNameAsync("Straw");
+                var strawItem = await database.GetInventoryItemByNameCachedAsync("Straw");
                 if (strawItem != null && strawItem.itemQuantity < quantity)
                 {
                     var shortage = quantity - strawItem.itemQuantity;

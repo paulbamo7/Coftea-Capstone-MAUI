@@ -116,6 +116,10 @@
 	  <MauiXaml Update="Views\Controls\PreviewPOSItem.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  
+	  <MauiXaml Update="Views\Controls\UpdateInventoryDetails.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Pages\EmployeeDashboard.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

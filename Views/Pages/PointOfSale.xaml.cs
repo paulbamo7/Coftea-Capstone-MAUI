@@ -36,6 +36,9 @@ public partial class PointOfSale : ContentPage
 
             // Start timer
             StartTimer();
+
+            // Hook size changed for responsive behavior
+            SizeChanged += OnSizeChanged;
         }
         catch (Exception ex)
         {
@@ -45,6 +48,52 @@ public partial class PointOfSale : ContentPage
                 await DisplayAlert("POS Error", $"Failed to initialize POS page: {ex.Message}", "OK");
                 await Navigation.PopAsync();
             });
+        }
+    }
+
+    private void OnSizeChanged(object sender, EventArgs e)
+    {
+        // Basic breakpoints for responsiveness
+        double pageWidth = Width;
+        if (double.IsNaN(pageWidth) || pageWidth <= 0)
+        {
+            return;
+        }
+
+        bool isPhoneLike = pageWidth < 800; // collapse sidebar and cart
+        bool isVeryNarrow = pageWidth < 500; // reduce product span further
+
+        // Sidebar collapse: set column width to 0 when narrow
+        if (SidebarColumn is not null)
+        {
+            SidebarColumn.Width = isPhoneLike ? new GridLength(0) : new GridLength(200);
+        }
+        if (Sidebar is not null)
+        {
+            Sidebar.IsVisible = !isPhoneLike;
+        }
+
+        // Cart collapse: hide cart column on phone-like widths
+        if (CartColumn is not null)
+        {
+            CartColumn.Width = isPhoneLike ? new GridLength(0) : new GridLength(2, GridUnitType.Star);
+        }
+
+        // Adjust product grid span by width
+        if (ProductsGridLayout is not null)
+        {
+            if (isVeryNarrow)
+            {
+                ProductsGridLayout.Span = 1;
+            }
+            else if (isPhoneLike)
+            {
+                ProductsGridLayout.Span = 2;
+            }
+            else
+            {
+                ProductsGridLayout.Span = 3;
+            }
         }
     }
 
@@ -136,6 +185,61 @@ public partial class PointOfSale : ContentPage
         {
             System.Diagnostics.Debug.WriteLine("PaymentPopup is null in test button");
         }
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        try
+        {
+            var app = (App)Application.Current;
+
+            // Close visible popups first
+            if (app?.PaymentPopup?.IsPaymentVisible == true)
+            {
+                app.PaymentPopup.ClosePaymentCommand?.Execute(null);
+                return true; // consumed
+            }
+
+            if (POSViewModel?.AddItemToPOSViewModel?.IsAddItemToPOSVisible == true)
+            {
+                POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
+                return true;
+            }
+
+            if (POSViewModel?.SettingsPopup?.IsAddItemToPOSVisible == true)
+            {
+                POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
+                return true;
+            }
+
+            // Addons popup (if available)
+            var addonsPopup = POSViewModel?.AddonsPopup;
+            if (addonsPopup != null)
+            {
+                var isVisibleProp = addonsPopup.GetType().GetProperty("IsAddonsPopupVisible");
+                var closeCmdProp = addonsPopup.GetType().GetProperty("CloseAddonsPopupCommand");
+                if (isVisibleProp != null && closeCmdProp != null)
+                {
+                    var isVisible = isVisibleProp.GetValue(addonsPopup) as bool?;
+                    if (isVisible == true)
+                    {
+                        var closeCmd = closeCmdProp.GetValue(addonsPopup) as System.Windows.Input.ICommand;
+                        closeCmd?.Execute(null);
+                        return true;
+                    }
+                }
+            }
+
+            // If we have a navigation stack, go back
+            if (Navigation?.NavigationStack?.Count > 1)
+            {
+                MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
+                return true;
+            }
+        }
+        catch { }
+
+        return base.OnBackButtonPressed();
     }
 
 }
