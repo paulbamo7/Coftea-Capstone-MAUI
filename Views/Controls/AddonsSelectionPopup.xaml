@@ -4,6 +4,7 @@
              x:Class="Coftea_Capstone.Views.Controls.AddonsSelectionPopup"
              x:Name="Root"
              BackgroundColor="#80000000"
+             BindingContext="{Binding AddonsPopup}"
              IsVisible="{Binding IsAddonsPopupVisible}"
              HorizontalOptions="FillAndExpand"
              VerticalOptions="FillAndExpand"

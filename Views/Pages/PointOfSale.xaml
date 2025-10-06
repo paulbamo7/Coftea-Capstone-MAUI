@@ -171,45 +171,36 @@
 
                                 <Label Text="{Binding SelectedProduct.ProductName, StringFormat='Product Name: {0}'}"
                                    FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" />
-                                <Label Text="Addons:" FontAttributes="Bold" FontSize="20" HorizontalOptions="Start" />
-                                <!-- Addons -->
+                                <Label Text="Add-ons" FontAttributes="Bold" FontSize="20" HorizontalOptions="Start" />
+                                <!-- Add-ons list: two-column selectable entries with quantity selector -->
                                 <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,0,0,10">
+                                    <CollectionView.ItemsLayout>
+                                        <GridItemsLayout Orientation="Vertical" Span="2" />
+                                    </CollectionView.ItemsLayout>
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" Padding="6" BackgroundColor="#F5F1ED" Margin="0,4">
-                                                <Grid.IsVisible>
-                                                    <Binding Path="IsSelected"/>
-                                                </Grid.IsVisible>
-                                                <Label Grid.Column="0" Text="{Binding itemName}" FontAttributes="Bold"/>
-                                                <!-- Small details: amount, unit, price - Only for Coffee -->
-                                                <HorizontalStackLayout Grid.Column="1" Spacing="4" 
-                                                                       IsVisible="{Binding BindingContext.IsSmallSizeVisibleInCart, Source={x:Reference POS}}">
-                                                    <Label Text="S:" FontAttributes="Bold"/>
-                                                    <Label Text="{Binding InputAmountSmall}"/>
-                                                    <Label Text="{Binding InputUnitSmall}"/>
-                                                    <Label Text="-"/>
-                                                    <Label Text="₱"/>
-                                                    <Label Text="{Binding PriceUsedSmall, StringFormat='{0:F2}'}"/>
+                                            <Grid Padding="6" Margin="0,4" BackgroundColor="#F5F1ED">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center" Grid.Column="0">
+                                                    <CheckBox IsChecked="{Binding IsSelected}"/>
+                                                    <Label>
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="{Binding itemName}" />
+                                                                <Span Text="  -  ₱" />
+                                                                <Span Text="{Binding AddonPrice, StringFormat='{0:F0}'}" />
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
                                                 </HorizontalStackLayout>
-                                                <!-- Medium details: amount, unit, price - For all categories -->
-                                                <HorizontalStackLayout Grid.Column="2" Spacing="4" 
-                                                                       IsVisible="{Binding BindingContext.IsMediumSizeVisibleInCart, Source={x:Reference POS}}">
-                                                    <Label Text="M:" FontAttributes="Bold"/>
-                                                    <Label Text="{Binding InputAmountMedium}"/>
-                                                    <Label Text="{Binding InputUnitMedium}"/>
-                                                    <Label Text="-"/>
-                                                    <Label Text="₱"/>
-                                                    <Label Text="{Binding PriceUsedMedium, StringFormat='{0:F2}'}"/>
-                                                </HorizontalStackLayout>
-                                                <!-- Large details: amount, unit, price - For all categories -->
-                                                <HorizontalStackLayout Grid.Column="3" Spacing="4" 
-                                                                       IsVisible="{Binding BindingContext.IsLargeSizeVisibleInCart, Source={x:Reference POS}}">
-                                                    <Label Text="L:" FontAttributes="Bold"/>
-                                                    <Label Text="{Binding InputAmountLarge}"/>
-                                                    <Label Text="{Binding InputUnitLarge}"/>
-                                                    <Label Text="-"/>
-                                                    <Label Text="₱"/>
-                                                    <Label Text="{Binding PriceUsedLarge, StringFormat='{0:F2}'}"/>
+                                                <!-- Quantity selector (defaults to 0) -->
+                                                <HorizontalStackLayout Grid.Column="1" Spacing="6" VerticalOptions="Center">
+                                                    <Label Text="Qty:" />
+                                                    <Stepper Minimum="0" Maximum="99" Increment="1"
+                                                             Value="{Binding AddonQuantity, Mode=TwoWay}" WidthRequest="120" />
                                                 </HorizontalStackLayout>
                                             </Grid>
                                         </DataTemplate>

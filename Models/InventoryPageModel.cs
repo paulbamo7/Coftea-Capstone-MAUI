@@ -14,12 +14,41 @@ namespace Coftea_Capstone.Models
     {
         public int itemID { get; set; }
         public string itemName { get; set; }
-        public double itemQuantity { get; set; } 
+        private double _itemQuantity;
+        public double itemQuantity
+        {
+            get { return _itemQuantity; }
+            set
+            {
+                if (SetProperty(ref _itemQuantity, value))
+                {
+                    OnPropertyChanged(nameof(StockProgress));
+                    OnPropertyChanged(nameof(StockFillColor));
+                    OnPropertyChanged(nameof(StockDisplay));
+                    OnPropertyChanged(nameof(StockText));
+                    OnPropertyChanged(nameof(StockProgressWidth));
+                }
+            }
+        }
         public string itemCategory { get; set; }
         public string ImageSet { get; set; }
         public string itemDescription { get; set; }
         public string unitOfMeasurement { get; set; }
-        public double minimumQuantity { get; set; }
+        private double _minimumQuantity;
+        public double minimumQuantity
+        {
+            get { return _minimumQuantity; }
+            set
+            {
+                if (SetProperty(ref _minimumQuantity, value))
+                {
+                    OnPropertyChanged(nameof(StockProgress));
+                    OnPropertyChanged(nameof(StockFillColor));
+                    OnPropertyChanged(nameof(MinimumDisplay));
+                    OnPropertyChanged(nameof(StockProgressWidth));
+                }
+            }
+        }
         [ObservableProperty]
         private bool isSelected;
 
@@ -98,7 +127,7 @@ namespace Coftea_Capstone.Models
 
         // Quantity for addon selections in preview/cart
         [ObservableProperty]
-        private int addonQuantity = 1;
+        private int addonQuantity = 0;
 
         public IList<string> AllowedUnits
         {

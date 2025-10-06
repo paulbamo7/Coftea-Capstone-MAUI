@@ -38,11 +38,7 @@ namespace Coftea_Capstone.Models
         {
             if (DeviceInfo.Platform == DevicePlatform.Android)
             {
-                if (DeviceInfo.Manufacturer?.ToLower().Contains("google") == true ||
-                    DeviceInfo.DeviceType == DeviceType.Virtual)
-                {
-                    return "10.0.2.2";
-                }     
+                return "192.168.1.6";  
             }
 
             if (DeviceInfo.Platform == DevicePlatform.iOS)
