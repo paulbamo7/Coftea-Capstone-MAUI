@@ -11,10 +11,10 @@
     <Grid ColumnDefinitions="200, *" RowDefinitions="*" InputTransparent="False">
 
         <VerticalStackLayout Grid.Column="1" Padding="40,60,40,60" Spacing="25">
-            <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Start" JustifyContent="Start" Padding="0,0,25,0">
+            <FlexLayout Direction="Row" Wrap="NoWrap" AlignItems="Start" JustifyContent="SpaceBetween" Padding="0,0,0,0">
 
                 <!-- Left Panel: Product Details -->
-                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="0,0,25,0">
+                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="0,0,20,0">
                     <VerticalStackLayout Spacing="20">
 
                         <!-- Header -->
@@ -79,7 +79,8 @@
                             </VerticalStackLayout>
                         </Grid>
 
-                        <!-- Color Code -->
+                        <!-- Color Code - COMMENTED OUT -->
+                        <!--
                         <Label Text="Color Code" FontSize="18" TextColor="#4B3832" FontFamily="OpenSans-Regular"/>
                         <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                             <Entry Placeholder="Enter Color Code"
@@ -91,11 +92,12 @@
                                    TextColor="#4B3832"
                                    FontFamily="OpenSans-Regular"/>
                         </Frame>
+                        -->
                     </VerticalStackLayout>
                 </Frame>
 
                 <!-- Right Panel: Pricing & Description -->
-                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1">
+                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="20,0,0,0">
                     <VerticalStackLayout Spacing="20">
 
                         <!-- Header -->
@@ -105,32 +107,34 @@
                         </Grid>
 
                         <!-- Pricing Grid -->
-                        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="20" HorizontalOptions="Center">
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" HorizontalOptions="Fill">
                             <!-- Small Price - Only visible for Coffee -->
                             <VerticalStackLayout Spacing="8" Grid.Column="0" IsVisible="{Binding IsSmallPriceVisible}">
-                                <Label Text="Small Price" FontSize="18" TextColor="#4B3832" FontFamily="OpenSans-Regular"/>
+                                <Label Text="Small Price" FontSize="16" TextColor="#4B3832" FontFamily="OpenSans-Regular" HorizontalOptions="Center"/>
                                 <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                                    <Entry Placeholder="Enter Small Price"
+                                    <Entry Placeholder="Small Price"
                                            Keyboard="Numeric"
                                            Text="{Binding SmallPrice}"
                                            BackgroundColor="Transparent"
                                            TextColor="#4B3832"
-                                           FontSize="16"
-                                           FontFamily="OpenSans-Regular"/>
+                                           FontSize="14"
+                                           FontFamily="OpenSans-Regular"
+                                           HorizontalOptions="Fill"/>
                                 </Frame>
                             </VerticalStackLayout>
 
                             <!-- Medium Price - Always visible -->
                             <VerticalStackLayout Spacing="8" Grid.Column="1" IsVisible="{Binding IsMediumPriceVisible}">
-                                <Label Text="Medium Price" FontSize="18" TextColor="#4B3832" FontFamily="OpenSans-Regular"/>
+                                <Label Text="Medium Price" FontSize="16" TextColor="#4B3832" FontFamily="OpenSans-Regular" HorizontalOptions="Center"/>
                                 <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                                    <Entry Placeholder="Enter Medium Price"
+                                    <Entry Placeholder="Medium Price"
                                            Keyboard="Numeric"
                                            Text="{Binding MediumPrice}"
                                            BackgroundColor="Transparent"
                                            TextColor="#4B3832"
-                                           FontSize="16"
-                                           FontFamily="OpenSans-Regular">
+                                           FontSize="14"
+                                           FontFamily="OpenSans-Regular"
+                                           HorizontalOptions="Fill">
                                         <Entry.Triggers>
                                             <DataTrigger TargetType="Entry" Binding="{Binding IsSmallPriceVisible}" Value="False">
                                                 <Setter Property="Text" Value="" />
@@ -142,15 +146,16 @@
 
                             <!-- Large Price - Always visible -->
                             <VerticalStackLayout Spacing="8" Grid.Column="2" IsVisible="{Binding IsLargePriceVisible}">
-                                <Label Text="Large Price" FontSize="18" TextColor="#4B3832" FontFamily="OpenSans-Regular"/>
+                                <Label Text="Large Price" FontSize="16" TextColor="#4B3832" FontFamily="OpenSans-Regular" HorizontalOptions="Center"/>
                                 <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                                    <Entry Placeholder="Enter Large Price"
+                                    <Entry Placeholder="Large Price"
                                            Keyboard="Numeric"
                                            Text="{Binding LargePrice}"
                                            BackgroundColor="Transparent"
                                            TextColor="#4B3832"
-                                           FontSize="16"
-                                           FontFamily="OpenSans-Regular">
+                                           FontSize="14"
+                                           FontFamily="OpenSans-Regular"
+                                           HorizontalOptions="Fill">
                                         <Entry.Triggers>
                                             <DataTrigger TargetType="Entry" Binding="{Binding IsSmallPriceVisible}" Value="False">
                                                 <Setter Property="Text" Value="" />

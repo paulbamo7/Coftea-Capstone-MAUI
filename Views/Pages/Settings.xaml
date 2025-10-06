@@ -106,7 +106,8 @@
 
                 </FlexLayout>
 
-                <!-- Database IP Setting Section -->
+                <!-- Database IP Setting Section - COMMENTED OUT -->
+                <!--
                 <Frame BackgroundColor="#F0F0F0" CornerRadius="15" Padding="15" Margin="0,10,0,0">
                     <VerticalStackLayout Spacing="10">
                         <Label Text="Database Connection" FontSize="16" FontAttributes="Bold" TextColor="#4B3832" HorizontalOptions="Center"/>
@@ -133,8 +134,10 @@
                                HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Frame>
+                -->
 
-                <!-- Database Backup Section -->
+                <!-- Database Backup Section - COMMENTED OUT -->
+                <!--
                 <Frame BackgroundColor="#E8F5E8" CornerRadius="15" Padding="15" Margin="0,10,0,0">
                     <VerticalStackLayout Spacing="10">
                         <Label Text="Database Backup" FontSize="16" FontAttributes="Bold" TextColor="#4B3832" HorizontalOptions="Center"/>
@@ -160,6 +163,7 @@
                                HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Frame>
+                -->
 
                 <!-- Close button at bottom -->
                 <Button Text="Close"

@@ -1,6 +1,8 @@
 ﻿using Coftea_Capstone.Models;
 using MySqlConnector;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Linq;
@@ -26,7 +28,7 @@ namespace Coftea_Capstone.Models
                         string password = "")
         {
             // Use provided host or auto-detect
-            var server = host ?? GetDefaultHostForPlatform();
+            var server = host ?? GetDefaultHostForPlatform().FirstOrDefault() ?? "localhost";
             
             _db = new MySqlConnectionStringBuilder
             {
@@ -40,20 +42,20 @@ namespace Coftea_Capstone.Models
 
         }
 
-        private static string GetDefaultHostForPlatform()
+        private static string[] GetDefaultHostForPlatform()
         {
             if (DeviceInfo.Platform == DevicePlatform.Android)
             {
-                return "192.168.1.6";  
+                return new string[] { "192.168.1.6", "192.168.1.7" };
             }
 
             if (DeviceInfo.Platform == DevicePlatform.iOS)
             {
-                return "192.168.1.6";
+                return new string[] { "192.168.1.6" };
             }
             
             // For Windows, Mac, and other platforms
-            return "localhost";
+            return new string[] { "localhost" };
         }
 
         // Ensure server is reachable and the database exists; create DB if missing

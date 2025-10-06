@@ -58,8 +58,8 @@ namespace Coftea_Capstone.ViewModel
             set => SetProperty(ref _inventoryAlerts, value);
         }
 
-        // Database IP setting
-        [ObservableProperty] private string databaseIP = string.Empty;
+        // Database IP setting - COMMENTED OUT
+        // [ObservableProperty] private string databaseIP = string.Empty;
 
         public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
@@ -135,7 +135,7 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         public void ShowSettingsPopup() 
         {
-            LoadCurrentDatabaseIP();
+            // LoadCurrentDatabaseIP(); // COMMENTED OUT
             IsSettingsPopupVisible = true;
         }
 
@@ -211,6 +211,8 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // COMMENTED OUT - Database IP functionality
+        /*
         [RelayCommand]
         private void SaveDatabaseIP()
         {
@@ -241,7 +243,10 @@ namespace Coftea_Capstone.ViewModel
                 Application.Current.MainPage.DisplayAlert("Error", $"Failed to set database IP: {ex.Message}", "OK");
             }
         }
+        */
 
+        // COMMENTED OUT - Database IP functionality
+        /*
         private void LoadCurrentDatabaseIP()
         {
             try
@@ -262,7 +267,10 @@ namespace Coftea_Capstone.ViewModel
                 DatabaseIP = string.Empty;
             }
         }
+        */
 
+        // COMMENTED OUT - Database IP functionality
+        /*
         private bool IsValidIPAddress(string ip)
         {
             if (string.IsNullOrWhiteSpace(ip)) return false;
@@ -278,7 +286,10 @@ namespace Coftea_Capstone.ViewModel
             
             return true;
         }
+        */
 
+        // COMMENTED OUT - Database backup functionality
+        /*
         [RelayCommand]
         private async Task CreateBackup()
         {
@@ -324,7 +335,10 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Backup Failed", $"Failed to create backup: {ex.Message}", "OK");
             }
         }
+        */
 
+        // COMMENTED OUT - Database backup functionality
+        /*
         [RelayCommand]
         private async Task RestoreBackup()
         {
@@ -375,6 +389,7 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Restore Failed", $"Failed to restore backup: {ex.Message}", "OK");
             }
         }
+        */
 
         private async Task LoadTopSellingProductsAsync()
         {
