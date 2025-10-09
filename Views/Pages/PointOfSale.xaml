@@ -17,6 +17,7 @@
             <converters:NotificationIconConverter x:Key="NotificationIconConverter"/>
             <converters:NotificationTextIconConverter x:Key="NotificationTextIconConverter"/>
             <converters:NotificationColorConverter x:Key="NotificationColorConverter"/>
+            <converters:IsPositiveConverter x:Key="IsPositiveConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
     <Grid RowDefinitions="*">
@@ -35,7 +36,15 @@
             <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
                 <Label Text="Point Of Sale" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
                 <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="20" FontAttributes="Bold"/>
-                <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Command="{Binding ShowNotificationBellCommand}"/>
+                <!-- Notification with badge -->
+                <Grid Grid.Column="2">
+                    <ImageButton Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Command="{Binding ShowNotificationBellCommand}"/>
+                    <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
+                           HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
+                           IsVisible="{Binding NotificationPopup.NotificationCount, Converter={StaticResource IsPositiveConverter}}">
+                        <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
+                    </Frame>
+                </Grid>
                 <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="35" HeightRequest="35"/>
             </Grid>
 
@@ -45,17 +54,45 @@
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
                     <HorizontalStackLayout Spacing="10">
                         <Button Text="Frappe" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14" 
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"  
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Frappe">
+                                    <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                         <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Fruit/Soda">
+                                    <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                         <Button Text="Milktea" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Milktea">
+                                    <Setter Property="BackgroundColor" Value="#F4E1D2" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                         <Button Text="Coffee" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14" 
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40" 
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40" 
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Coffee">
+                                    <Setter Property="BackgroundColor" Value="#E3C2A6" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                     </HorizontalStackLayout>
                 </ScrollView>
 
@@ -66,34 +103,70 @@
                             <TapGestureRecognizer Command="{Binding ShowHistoryCommand}" />
                         </Image.GestureRecognizers>
                     </Image>
-                    <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding CartCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
+                    <!-- Cart with badge -->
+                    <Grid>
+                        <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
+                            <Image.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CartCommand}" />
+                            </Image.GestureRecognizers>
+                        </Image>
+                        <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
+                               HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
+                               IsVisible="{Binding CartItems.Count, Converter={StaticResource IsPositiveConverter}}">
+                            <Label Text="{Binding CartItems.Count}" FontSize="10" TextColor="White" Margin="4,0"/>
+                        </Frame>
+                    </Grid>
                 </HorizontalStackLayout>
             </Grid>
 
             <!-- Subcategories for Fruit/Soda - Left Side -->
             <HorizontalStackLayout Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
                                    IsVisible="{Binding IsFruitSodaSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Fruit" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
-                        BackgroundColor="#6B8E23" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit"/>
-                <Button Text="Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
-                        BackgroundColor="#FF6347" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda"/>
+                <Button Text="Fruit" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Fruit">
+                            <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                            <Setter Property="TextColor" Value="#2b2b2b" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Text="Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Soda">
+                            <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                            <Setter Property="TextColor" Value="#2b2b2b" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
             </HorizontalStackLayout>
 
             <!-- Subcategories for Coffee - Left Side -->
             <HorizontalStackLayout Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
                                    IsVisible="{Binding IsCoffeeSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Americano" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
-                        BackgroundColor="#8B4513" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano"/>
-                <Button Text="Latte" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14"
-                        BackgroundColor="#D2691E" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte"/>
+                <Button Text="Americano" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Americano">
+                            <Setter Property="BackgroundColor" Value="#E3C2A6" />
+                            <Setter Property="TextColor" Value="#2b2b2b" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <Button Text="Latte" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Latte">
+                            <Setter Property="BackgroundColor" Value="#E3C2A6" />
+                            <Setter Property="TextColor" Value="#2b2b2b" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
             </HorizontalStackLayout>
 
             <!-- Products + Cart -->
@@ -131,7 +204,12 @@
                                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
                                             <Frame CornerRadius="20" Padding="0">
                                                 <!-- Bind to ImageSource property -->
-                                                <Image Source="{Binding ImageSource}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+                                                <Image Source="{Binding ImageSource}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill">
+                                                    <Image.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" 
+                                                                             CommandParameter="{Binding .}" />
+                                                    </Image.GestureRecognizers>
+                                                </Image>
                                             </Frame>
                                             <Frame CornerRadius="15" BackgroundColor="White" Padding="5,2" Margin="0,5,0,0" HasShadow="False" HorizontalOptions="Center">
                                                 <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>

@@ -13,6 +13,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private string notificationType = "Success"; // Success, Error, Info
         [ObservableProperty] private bool isAutoHide = true;
         [ObservableProperty] private int autoHideDelay = 3000; // 3 seconds
+        // Badge count for notification bell
+        [ObservableProperty] private int notificationCount = 0;
 
         public NotificationPopupViewModel()
         {
@@ -27,19 +29,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             NotificationType = type;
             IsAutoHide = autoHide;
             AutoHideDelay = delay;
-            IsNotificationVisible = true;
-
-            if (IsAutoHide)
-            {
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(AutoHideDelay);
-                    await MainThread.InvokeOnMainThreadAsync(() =>
-                    {
-                        IsNotificationVisible = false;
-                    });
-                });
-            }
+            NotificationCount++;
         }
 
         public void AddSuccess(string title, string entityName, string idText)
@@ -53,13 +43,18 @@ namespace Coftea_Capstone.ViewModel.Controls
             // keep last 10
             while (Notifications.Count > 10)
                 Notifications.RemoveAt(Notifications.Count - 1);
-            IsNotificationVisible = true;
+            NotificationCount++;
         }
 
         [RelayCommand]
         private void Toggle()
         {
             IsNotificationVisible = !IsNotificationVisible;
+            if (IsNotificationVisible)
+            {
+                // Clear badge when the user views notifications
+                NotificationCount = 0;
+            }
         }
 
         // Convenience for short-lived toast on bottom-left

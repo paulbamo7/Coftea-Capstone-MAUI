@@ -134,7 +134,9 @@ public partial class PointOfSale : ContentPage
             // Subscribe to property changes (removed loading animation)
             POSViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
+            // Ensure products and persisted cart are loaded
             await POSViewModel.LoadDataAsync();
+            await POSViewModel.LoadCartFromStorageAsync();
         }
         catch (Exception ex)
         {
@@ -233,7 +235,11 @@ public partial class PointOfSale : ContentPage
             // If we have a navigation stack, go back
             if (Navigation?.NavigationStack?.Count > 1)
             {
-                MainThread.BeginInvokeOnMainThread(async () => await Navigation.PopAsync());
+                if (Navigation.NavigationStack.Count == 0) return true;
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try { await Navigation.PopAsync(); } catch { }
+                });
                 return true;
             }
         }

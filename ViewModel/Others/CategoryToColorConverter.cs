@@ -10,16 +10,16 @@ namespace Coftea_Capstone.ViewModel.Others
             {
                 return category switch
                 {
-                    "Transaction" => "#5B4F45",
-                    "Ingredients" => "#A57C5C",
-                    "Addons" => "#8B4513",
-                    "Supplies" => "#D2691E",
-                    "Syrups" => "#CD853F",
-                    "Powdered" => "#DEB887",
-                    "Fruit Series" => "#F4A460",
-                    "Sinkers & etc." => "#BC8F8F",
-                    "Others" => "#D2B48C",
-                    _ => "#5B4F45" // Default color
+                    "Transaction" => "#EAD7C6",
+                    "Ingredients" => "#EBCFBF",
+                    "Addons" => "#E3C2A6",
+                    "Supplies" => "#F0D2B8",
+                    "Syrups" => "#F2D9C1",
+                    "Powdered" => "#F4E1D2",
+                    "Fruit Series" => "#FFEAD6",
+                    "Sinkers & etc." => "#F3D9D0",
+                    "Others" => "#F1DEC7",
+                    _ => "#FFEAD6" // Default lighter accent
                 };
             }
             return "#5B4F45";

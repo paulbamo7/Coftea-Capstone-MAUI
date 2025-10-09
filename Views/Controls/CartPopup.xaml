@@ -2,11 +2,18 @@
 <ContentView 
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
     x:Class="Coftea_Capstone.Views.Controls.CartPopup"
     x:Name="CartPopupView"
     BackgroundColor="#80000000"
     IsVisible="{Binding IsCartVisible}"
     InputTransparent="False">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:IndexOfInCollectionMultiConverter x:Key="IndexOfConverter" />
+        </ResourceDictionary>
+    </ContentView.Resources>
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
         <Grid.GestureRecognizers>
@@ -57,13 +64,14 @@
                     
                     <!-- Fixed Table Header -->
                     <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="10" Margin="0,0,0,10">
-                        <Grid ColumnDefinitions="80, *, 150, 60, 50, 80, 80">
-                            <Label Grid.Column="0" Text="Image" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalTextAlignment="Center"/>
-                            <Label Grid.Column="1" Text="Drink Details" FontAttributes="Bold" FontSize="14" TextColor="Black" />
-                            <Label Grid.Column="2" Text="Add-ons" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="150" />
-                            <Label Grid.Column="3" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" />
-                            <Label Grid.Column="4" Text="Cost" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
-                            <Label Grid.Column="5" Text="Action" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                        <Grid ColumnDefinitions="40, 80, *, 150, 60, 80, 80">
+                            <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="40" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="14" TextColor="Black" />
+                            <Label Grid.Column="3" Text="Add-ons" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="150" />
+                            <Label Grid.Column="4" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" />
+                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
                         </Grid>
                     </Grid>
 
@@ -74,6 +82,7 @@
                                 <DataTemplate>
                                     <Grid BackgroundColor="White" Padding="10" Margin="0,0,0,5">
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
                                             <ColumnDefinition Width="80" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="150" />
@@ -82,8 +91,24 @@
                                             <ColumnDefinition Width="80" />
                                         </Grid.ColumnDefinitions>
 
+                                        <!-- Row Number -->
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Source={x:Reference CartPopupView}, Path=BindingContext.CartItems, Converter={StaticResource SelectedCountToHeightConverter}}"
+                                               IsVisible="False" />
+                                        <Label Grid.Column="0"
+                                               Text="{Binding Source={x:Reference CartPopupView}, Path=BindingContext.CartItems, Converter={StaticResource NotificationTextIconConverter}}"
+                                               IsVisible="False" />
+                                        <Label Grid.Column="0" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center">
+                                            <Label.Text>
+                                                <MultiBinding Converter="{StaticResource IndexOfConverter}">
+                                                    <Binding Path="BindingContext.CartItems" Source="{x:Reference CartPopupView}" />
+                                                    <Binding />
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+
                                         <!-- Product Image -->
-                                        <Frame Grid.Column="0" 
+                                        <Frame Grid.Column="1" 
                                                CornerRadius="10" 
                                                Padding="5" 
                                                BackgroundColor="#F0F0F0"
@@ -96,21 +121,21 @@
                                         </Frame>
 
                                         <!-- Drink Details -->
-                                        <VerticalStackLayout Grid.Column="1" Spacing="2" Padding="10,0">
+                                        <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="10,0">
                                             <Label Text="{Binding ProductName, StringFormat='Drink: {0}'}" 
                                                    FontSize="12" 
                                                    TextColor="Black" />
                                         </VerticalStackLayout>
 
                                         <!-- Add-ons -->
-                                        <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="5,0">
+                                        <VerticalStackLayout Grid.Column="3" Spacing="2" Padding="5,0">
                                             <Label Text="{Binding AddOnsDisplay}" 
                                                    FontSize="11" 
                                                    TextColor="Black" />
                                         </VerticalStackLayout>
 
                                         <!-- Size -->
-                                        <Label Grid.Column="3" 
+                                        <Label Grid.Column="4" 
                                                Text="{Binding SizeDisplay}" 
                                                FontSize="12" 
                                                TextColor="Black" 
@@ -118,7 +143,7 @@
                                                HorizontalOptions="Center" />
 
                                         <!-- Cost -->
-                                        <Label Grid.Column="4" 
+                                        <Label Grid.Column="5" 
                                                Text="{Binding TotalPrice, StringFormat='P{0:F0}'}" 
                                                FontSize="12" 
                                                TextColor="Black" 
@@ -126,7 +151,7 @@
                                                HorizontalOptions="Center" />
 
                                         <!-- Action Buttons -->
-                                        <VerticalStackLayout Grid.Column="5" Spacing="15">
+                                        <VerticalStackLayout Grid.Column="6" Spacing="15">
                                             <Button
                                                 Text="Edit" 
                                                 FontSize="12" 

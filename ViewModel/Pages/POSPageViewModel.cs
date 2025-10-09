@@ -10,11 +10,13 @@ using System.Linq;
 using System;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Models.Service;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel
 {
     public partial class POSPageViewModel : BaseViewModel
     {
+        private readonly CartStorageService _cartStorage = new CartStorageService();
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
@@ -170,6 +172,13 @@ namespace Coftea_Capstone.ViewModel
                 IsAdmin = App.CurrentUser.IsAdmin;
 
             await LoadDataAsync();
+
+        // Load persisted cart
+        var loadedCart = await _cartStorage.LoadCartAsync();
+        if (loadedCart != null && loadedCart.Any())
+        {
+            CartItems = loadedCart;
+        }
         }
 
         [RelayCommand]
@@ -310,6 +319,9 @@ namespace Coftea_Capstone.ViewModel
             product.LargeQuantity = 0;
 
             // Do not auto-open notifications; bell controls visibility
+
+        // Persist cart update
+        _ = _cartStorage.SaveCartAsync(CartItems);
         }
 
         [RelayCommand]
@@ -375,6 +387,9 @@ namespace Coftea_Capstone.ViewModel
 
             if (SelectedProduct?.ProductID == product.ProductID)
                 SelectedProduct = null;
+
+        // Persist cart update
+        _ = _cartStorage.SaveCartAsync(CartItems);
         }
 
         private async Task CheckStockLevelsForAllProducts()
@@ -479,6 +494,14 @@ namespace Coftea_Capstone.ViewModel
         {
             CartPopup.ShowCart(CartItems);
         }
+
+    public Task SaveCartToStorageAsync() => _cartStorage.SaveCartAsync(CartItems);
+    public async Task LoadCartFromStorageAsync()
+    {
+        var loaded = await _cartStorage.LoadCartAsync();
+        if (loaded != null)
+            CartItems = loaded;
+    }
 
         [RelayCommand]
         private async Task ShowHistory()

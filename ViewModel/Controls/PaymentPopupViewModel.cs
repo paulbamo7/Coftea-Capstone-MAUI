@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
     public partial class PaymentPopupViewModel : ObservableObject
     {
+        private readonly CartStorageService _cartStorage = new CartStorageService();
         [ObservableProperty]
         private bool isPaymentVisible = false;
 
@@ -123,13 +125,30 @@ namespace Coftea_Capstone.ViewModel.Controls
             await Task.Delay(1000);
 
             // Save transaction to database and shared store
-            await SaveTransaction();
+            var savedTransactions = await SaveTransaction();
+
+            // Clear persisted cart on successful payment
+            try
+            {
+                await _cartStorage.SaveCartAsync(new System.Collections.ObjectModel.ObservableCollection<Coftea_Capstone.C_.POSPageModel>());
+            }
+            catch { }
 
             // Show success: full order-complete popup only; do not auto-open notification toast
             PaymentStatus = "Payment Confirmed";
             var appInstance = (App)Application.Current;
             appInstance?.OrderCompletePopup?.Show();
             // No automatic toast here; user can open notifications manually via bell
+
+            // Add notifications for each saved transaction (badge only; panel shows details when opened)
+            var notif = ((App)Application.Current)?.NotificationPopup;
+            if (notif != null && savedTransactions != null)
+            {
+                foreach (var t in savedTransactions)
+                {
+                    notif.AddSuccess("Transaction", $"Completed: {t.DrinkName}", $"ID: {t.TransactionId}");
+                }
+            }
 
             // Add to recent orders
             var app = (App)Application.Current;
@@ -150,7 +169,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsPaymentVisible = false;
         }
 
-        private async Task SaveTransaction()
+        private async Task<List<TransactionHistoryModel>> SaveTransaction()
         {
             try
             {
@@ -161,6 +180,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (transactions != null)
                 {
                     int nextId = (transactions.Count > 0 ? transactions.Max(t => t.TransactionId) : 0) + 1;
+                    var saved = new List<TransactionHistoryModel>();
 
                     foreach (var item in CartItems)
                     {
@@ -188,7 +208,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                         
                         // Also add to in-memory collection for history popup
                         transactions.Add(transaction);
+                        saved.Add(transaction);
                     }
+
+                    return saved;
                 }
             }
             catch (System.Exception ex)
@@ -198,6 +221,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     $"Failed to save transaction: {ex.Message}",
                     "OK");
             }
+            return null;
         }
 
         private async Task DeductInventoryForItemAsync(Models.Database database, CartItem cartItem)

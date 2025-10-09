@@ -95,7 +95,7 @@
                                          BackgroundColor="Transparent"
                                          HeightRequest="90"
                                          WidthRequest="90"
-                                         Command="{Binding LogoutCommand}" />
+                                         Clicked="OnLogoutClicked" />
                         </Frame>
                         <Label Text="Logout"
                                HorizontalOptions="Center"

@@ -9,6 +9,7 @@ using Microsoft.Maui.Storage;
 using System;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace Coftea_Capstone
 {
@@ -108,6 +109,8 @@ namespace Coftea_Capstone
 
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
+            // Persist cart when app goes to background (platform lifecycle events handled elsewhere)
         }
 
         private void InitializeViewModels()

@@ -6,7 +6,7 @@ namespace Coftea_Capstone.Services
     public static class NavigationAnimationService
     {
         private static LoadingOverlay _loadingOverlay;
-        public static async Task PushWithAnimationAsync(this NavigationPage navigationPage, Page page, bool animated = true)
+        public static async Task PushWithAnimationAsync(this NavigationPage navigationPage, Page page, bool animated = false)
         {
             if (!animated)
             {
@@ -31,7 +31,7 @@ namespace Coftea_Capstone.Services
             );
         }
 
-        public static async Task PopWithAnimationAsync(this NavigationPage navigationPage, bool animated = true)
+        public static async Task PopWithAnimationAsync(this NavigationPage navigationPage, bool animated = false)
         {
             if (!animated)
             {
@@ -52,7 +52,7 @@ namespace Coftea_Capstone.Services
             await navigationPage.PopAsync(false);
         }
 
-        public static async Task PopToRootWithAnimationAsync(this NavigationPage navigationPage, bool animated = true)
+        public static async Task PopToRootWithAnimationAsync(this NavigationPage navigationPage, bool animated = false)
         {
             if (!animated)
             {
@@ -73,7 +73,7 @@ namespace Coftea_Capstone.Services
             await navigationPage.PopToRootAsync(false);
         }
 
-        public static async Task ReplaceWithAnimationAsync(this NavigationPage navigationPage, Page newPage, bool animated = true)
+        public static async Task ReplaceWithAnimationAsync(this NavigationPage navigationPage, Page newPage, bool animated = false)
         {
             if (!animated)
             {

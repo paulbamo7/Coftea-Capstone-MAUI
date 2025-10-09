@@ -27,6 +27,10 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<InventoryPageModel> inventoryItems = new();
 
+        // Search text entered by user to filter by item name
+        [ObservableProperty]
+        private string searchText = string.Empty;
+
         // Demo controls for showing inventory progress behavior
         [ObservableProperty]
         private double demoQuantity = 50;
@@ -150,7 +154,19 @@ namespace Coftea_Capstone.ViewModel
                 query = query.Where(i => allowed.Contains((i.itemCategory ?? string.Empty).Trim()));
             }
 
+            // Apply search by name if provided
+            var nameQuery = (SearchText ?? string.Empty).Trim();
+            if (!string.IsNullOrWhiteSpace(nameQuery))
+            {
+                query = query.Where(i => (i.itemName ?? string.Empty).IndexOf(nameQuery, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
             InventoryItems = new ObservableCollection<InventoryPageModel>(query);
+        }
+
+        partial void OnSearchTextChanged(string value)
+        {
+            ApplyCategoryFilter();
         }
         
     }

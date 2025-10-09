@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.Models;
 using System;
+using System.IO;
+using Microsoft.Maui.Storage;
 
 namespace Coftea_Capstone.C_
 {
@@ -30,16 +32,30 @@ namespace Coftea_Capstone.C_
                 try
                 {
                     if (string.IsNullOrWhiteSpace(ImageSet))
-                        return ImageSource.FromFile("placeholder.png");
+                        return ImageSource.FromFile("coftea_logo.png");
                     
                     if (ImageSet.StartsWith("http"))
                         return ImageSource.FromUri(new Uri(ImageSet));
-                    
-                    return ImageSource.FromFile(ImageSet);
+
+                    // Normalize to just the filename
+                    var fileName = Path.GetFileName(ImageSet);
+
+                    // 1) Absolute/local path
+                    if (Path.IsPathRooted(ImageSet) && File.Exists(ImageSet))
+                        return ImageSource.FromFile(ImageSet);
+
+                    // 2) App data location (e.g., previously downloaded images)
+                    var appDataFolder = Path.Combine(FileSystem.AppDataDirectory, "ProductImages");
+                    var appDataPath = Path.Combine(appDataFolder, fileName);
+                    if (File.Exists(appDataPath))
+                        return ImageSource.FromFile(appDataPath);
+
+                    // 3) Bundled resource in Resources/Images by filename
+                    return ImageSource.FromFile(fileName);
                 }
                 catch
                 {
-                    return ImageSource.FromFile("placeholder.png");
+                    return ImageSource.FromFile("coftea_logo.png");
                 }
             }
         }
