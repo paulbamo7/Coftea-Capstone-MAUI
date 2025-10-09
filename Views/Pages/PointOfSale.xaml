@@ -53,7 +53,7 @@
                 <!-- Categories -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
                     <HorizontalStackLayout Spacing="10">
-                        <Button Text="Frappe" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14" 
+                        <Button Text="Frappe" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
                             <Button.Triggers>
@@ -63,7 +63,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda">
                             <Button.Triggers>
@@ -73,7 +73,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Milktea" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                        <Button Text="Milktea" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea">
                             <Button.Triggers>
@@ -83,7 +83,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Coffee" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14" 
+                        <Button Text="Coffee" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40" 
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee">
                             <Button.Triggers>
@@ -122,7 +122,7 @@
             <!-- Subcategories for Fruit/Soda - Left Side -->
             <HorizontalStackLayout Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
                                    IsVisible="{Binding IsFruitSodaSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Fruit" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit">
                     <Button.Triggers>
@@ -132,7 +132,7 @@
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
-                <Button Text="Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda">
                     <Button.Triggers>
@@ -147,7 +147,7 @@
             <!-- Subcategories for Coffee - Left Side -->
             <HorizontalStackLayout Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
                                    IsVisible="{Binding IsCoffeeSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Americano" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano">
                     <Button.Triggers>
@@ -157,7 +157,7 @@
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
-                <Button Text="Latte" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte">
                     <Button.Triggers>

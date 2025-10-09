@@ -40,20 +40,55 @@
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
                     <HorizontalStackLayout Spacing="10">
                         <Button Text="Overview" FontAttributes="Bold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
-                                Command="{Binding SelectCategoryCommand}" CommandParameter="Overview"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
+                                Command="{Binding SelectCategoryCommand}" CommandParameter="Overview">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Overview">
+                                    <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                         <Button Text="Frappe" FontAttributes="Bold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
-                                Command="{Binding SelectCategoryCommand}" CommandParameter="Frappe"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
+                                Command="{Binding SelectCategoryCommand}" CommandParameter="Frappe">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Frappe">
+                                    <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                         <Button Text="Fruit/Soda" FontAttributes="Bold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
-                                Command="{Binding SelectCategoryCommand}" CommandParameter="Fruit/Soda"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
+                                Command="{Binding SelectCategoryCommand}" CommandParameter="Fruit/Soda">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Fruit/Soda">
+                                    <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                         <Button Text="Milktea" FontAttributes="Bold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
-                                Command="{Binding SelectCategoryCommand}" CommandParameter="Milktea"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
+                                Command="{Binding SelectCategoryCommand}" CommandParameter="Milktea">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Milktea">
+                                    <Setter Property="BackgroundColor" Value="#F4E1D2" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                         <Button Text="Coffee" FontAttributes="Bold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
-                                Command="{Binding SelectCategoryCommand}" CommandParameter="Coffee"/>
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
+                                Command="{Binding SelectCategoryCommand}" CommandParameter="Coffee">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Coffee">
+                                    <Setter Property="BackgroundColor" Value="#E3C2A6" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
                     </HorizontalStackLayout>
                 </ScrollView>
 

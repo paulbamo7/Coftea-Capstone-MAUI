@@ -36,19 +36,19 @@
                        Grid.Row="0"
                        Margin="0,0,0,20" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" Margin="10">
-                    <Button Text="All" FontAttributes="Bold" FontFamily="Roboto" TextColor="White" FontSize="14" 
+                    <Button Text="All" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14" 
                             BackgroundColor="#5B4F45" WidthRequest="100" HeightRequest="40"  
                             Command="{Binding FilterByCategoryCommand}" CommandParameter="All"/>
-                    <Button Text="Frappe" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14" 
+                    <Button Text="Frappe" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
                             BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"  
                             Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe"/>
-                    <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                    <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                             BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"
                             Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda"/>
-                    <Button Text="Milktea" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14"
+                    <Button Text="Milktea" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                             BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"
                             Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea"/>
-                    <Button Text="Coffee" FontAttributes="Bold" FontFamily="Roboto" TextColor="Black" FontSize="14" 
+                    <Button Text="Coffee" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                             BackgroundColor="#897564" WidthRequest="100" HeightRequest="40" 
                             Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee"/>
                 </HorizontalStackLayout>

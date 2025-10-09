@@ -18,8 +18,12 @@
         <Grid VerticalOptions="Start" HorizontalOptions="End" Margin="0,60,20,0" InputTransparent="False">
             <Frame Padding="12" BackgroundColor="#FFFFFF" CornerRadius="14" HasShadow="True" WidthRequest="360">
                 <VerticalStackLayout Spacing="10">
-                    <!-- Individual notification items -->
-                    <CollectionView ItemsSource="{Binding Notifications}" SelectionMode="None">
+                    <!-- Individual notification items (limited height ~3 items, scrollable) -->
+                    <CollectionView ItemsSource="{Binding Notifications}"
+                                    SelectionMode="None"
+                                    ItemsLayout="VerticalList"
+                                    HeightRequest="240"
+                                    VerticalScrollBarVisibility="Always">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Frame BackgroundColor="#E9E1D9" CornerRadius="15" Padding="12" HasShadow="False">

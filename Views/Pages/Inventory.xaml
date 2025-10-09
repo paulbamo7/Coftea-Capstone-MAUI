@@ -42,25 +42,46 @@
                                 <Button Text="Ingredients" 
                                         TextColor="Black" 
                                         FontAttributes="Bold" 
-                                        BackgroundColor="#D9D9D9" 
+                                        BackgroundColor="#FFEAD6" 
                                         WidthRequest="120" 
                                         HeightRequest="40" 
                                         CornerRadius="7" 
                                         Command="{Binding FilterByCategoryCommand}" 
-                                        CommandParameter="Ingredients"/>
+                                        CommandParameter="Ingredients">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Ingredients">
+                                            <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                            <Setter Property="TextColor" Value="#2b2b2b" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
                                 <Button Text="Supplies" 
                                         TextColor="Black" 
                                         FontAttributes="Bold" 
-                                        BackgroundColor="#D9D9D9" 
+                                        BackgroundColor="#FFEAD6" 
                                         WidthRequest="120" 
                                         HeightRequest="40" 
                                         CornerRadius="7" 
                                         Command="{Binding FilterByCategoryCommand}" 
-                                        CommandParameter="Supplies"/>
+                                        CommandParameter="Supplies">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Supplies">
+                                            <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                                            <Setter Property="TextColor" Value="#2b2b2b" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
                                 <!-- Search by name -->
                                 <Grid ColumnDefinitions="Auto, *" VerticalOptions="Center" Padding="10,0,0,0">
                                     <Label Text="Search:" VerticalOptions="Center"/>
-                                    <Entry Grid.Column="1" WidthRequest="220" Placeholder="Type item name..." Text="{Binding SearchText}"/>
+                                    <Entry Grid.Column="1"
+                                           WidthRequest="220"
+                                           BackgroundColor="Transparent"
+                                           TextColor="Black"
+                                           PlaceholderColor="#AAAAAA"
+                                           ClearButtonVisibility="WhileEditing"
+                                           Placeholder="Type item name..."
+                                           Text="{Binding SearchText}"/>
                                 </Grid>
                             </HorizontalStackLayout>
 
@@ -68,11 +89,17 @@
                             <Frame Grid.Column="1"
                                    CornerRadius="10" 
                                    BackgroundColor="White" 
-                                   Padding="5" 
-                                   WidthRequest="180" 
+                                   Padding="0" 
+                                   WidthRequest="200" 
                                    HeightRequest="40"
                                    HorizontalOptions="End">
-                                <Picker Title="Sort By" VerticalOptions="Center">
+                                <Picker Title="Sort By"
+                                        VerticalOptions="Center"
+                                        Margin="10,0"
+                                        BackgroundColor="Transparent"
+                                        TextColor="Black"
+                                        TitleColor="#666666"
+                                        FontSize="14">
                                     <Picker.Items>
                                         <x:String>Name (A-Z)</x:String>
                                         <x:String>Name (Z-A)</x:String>

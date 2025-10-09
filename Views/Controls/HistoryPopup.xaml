@@ -59,7 +59,7 @@
                 <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,20,5" HorizontalOptions="Center">
                     <HorizontalStackLayout Spacing="10">
                         <!-- Filter Buttons Template -->
-                        <Button Text="Today" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Today" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="100" HeightRequest="40">
+                        <Button Text="Today" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Today" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="100" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
@@ -76,7 +76,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="100" HeightRequest="40">
+                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="100" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
@@ -93,7 +93,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Text="3 Days Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="3 Days Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
+                        <Button Text="3 Days Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="3 Days Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
@@ -110,7 +110,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Text="1 Week Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Week Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
+                        <Button Text="1 Week Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Week Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
@@ -127,7 +127,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Text="2 Weeks Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="2 Weeks Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
+                        <Button Text="2 Weeks Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="2 Weeks Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
@@ -144,7 +144,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Text="1 Month Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Month Ago" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="120" HeightRequest="40">
+                        <Button Text="1 Month Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Month Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />
@@ -161,7 +161,7 @@
                             </Button.Style>
                         </Button>
 
-                        <Button Text="All Time" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="All Time" FontAttributes="Bold" FontFamily="Roboto" FontSize="14" WidthRequest="100" HeightRequest="40">
+                        <Button Text="All Time" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="All Time" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="100" HeightRequest="40">
                             <Button.Style>
                                 <Style TargetType="Button">
                                     <Setter Property="BackgroundColor" Value="LightGray" />

@@ -15,8 +15,7 @@ namespace Coftea_Capstone.Models
 {
     public class Database
     {
-        private static string _resolvedHost; // cached once resolved
-        private static readonly object _hostLock = new();
+        private readonly string _db;
         // In-memory caches to reduce repeated DB calls during UI updates
         private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(60);
         private static (DateTime ts, List<POSPageModel> items)? _productsCache;
@@ -29,92 +28,49 @@ namespace Coftea_Capstone.Models
                         string user = "root",
                         string password = "")
         {
-            // Optional: allow preselection of host (used rarely)
-            if (!string.IsNullOrWhiteSpace(host))
+            // Use provided host or auto-detect
+            var server = host ?? GetDefaultHostForPlatform().FirstOrDefault() ?? "localhost";
+            
+            _db = new MySqlConnectionStringBuilder
             {
-                lock (_hostLock)
-                {
-                    _resolvedHost = host;
-                }
-            }
+                Server = server,
+                Port = 3306,
+                Database = "coftea_db",
+                UserID = "root",
+                Password = "",
+                SslMode = MySqlSslMode.None
+            }.ConnectionString;
+
         }
 
         private static string[] GetDefaultHostForPlatform()
         {
-            if (DeviceInfo.Platform == DevicePlatform.Android)
-            {
-                // Android emulator reaches host via 10.0.2.2; Genymotion via 10.0.3.2
-                return new string[] { "10.0.2.2", "10.0.3.2", "192.168.1.6", "192.168.1.7" };
-            }
-
-            if (DeviceInfo.Platform == DevicePlatform.iOS)
-            {
-                // iOS simulator can use localhost; devices use LAN IP
-                return new string[] { "localhost", "127.0.0.1", "192.168.1.6", "192.168.1.7" };
-            }
-            
-            // For Windows, Mac, and other platforms
-            return new string[] { "localhost", "127.0.0.1" };
-        }
-
-        private static async Task<string> ResolveHostAsync()
-        {
-            lock (_hostLock)
-            {
-                if (!string.IsNullOrWhiteSpace(_resolvedHost))
-                    return _resolvedHost;
-            }
-
-            // Priority: Manual override → Detected host → Platform defaults
-            var candidates = new List<string>();
             try
             {
-                var manual = await NetworkConfigurationService.GetDatabaseHostAsync();
-                if (!string.IsNullOrWhiteSpace(manual))
-                    candidates.Add(manual);
-            }
-            catch { }
-
-            foreach (var h in GetDefaultHostForPlatform())
-            {
-                if (!candidates.Contains(h)) candidates.Add(h);
-            }
-
-            // Try connect to each host quickly (no database specified to probe server reachability)
-            foreach (var host in candidates)
-            {
-                try
+                if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    var probe = new MySqlConnectionStringBuilder
-                    {
-                        Server = host,
-                        Port = 3306,
-                        UserID = "root",
-                        Password = "",
-                        SslMode = MySqlSslMode.None,
-                        ConnectionTimeout = 2
-                    };
-                    await using var conn = new MySqlConnection(probe.ConnectionString);
-                    await conn.OpenAsync();
-                    await conn.CloseAsync();
-                    lock (_hostLock)
-                    {
-                        _resolvedHost = host;
-                    }
-                    return host;
+                    // 10.0.2.2 = Android emulator loopback to host; 10.0.3.2 = Genymotion
+                    return new string[] { "10.0.2.2", "10.0.3.2", "192.168.1.6", "192.168.1.7", "localhost" };
                 }
-                catch
+
+                if (DeviceInfo.Platform == DevicePlatform.iOS)
                 {
-                    // Try next candidate
+                    // iOS simulator can reach host via localhost; real devices via LAN IPs
+                    return new string[] { "127.0.0.1", "localhost", "192.168.1.6", "192.168.1.7" };
+                }
+
+                if (DeviceInfo.Platform == DevicePlatform.WinUI || DeviceInfo.Platform == DevicePlatform.macOS || DeviceInfo.Platform == DevicePlatform.MacCatalyst)
+                {
+                    return new string[] { "localhost", "127.0.0.1" };
                 }
             }
-
-            // Fallback to localhost
-            lock (_hostLock)
+            catch
             {
-                _resolvedHost = "localhost";
-                return _resolvedHost;
+                // If DeviceInfo is unavailable (e.g., during tests), fall back to localhost
             }
+
+            // Fallback for other/unknown platforms
+            return new string[] { "localhost", "127.0.0.1" };
         }
 
         // Ensure server is reachable and the database exists; create DB if missing
@@ -139,18 +95,7 @@ namespace Coftea_Capstone.Models
         }
         private async Task<MySqlConnection> GetOpenConnectionAsync()
         {
-            var host = await ResolveHostAsync();
-            var builder = new MySqlConnectionStringBuilder
-            {
-                Server = host,
-                Port = 3306,
-                Database = "coftea_db",
-                UserID = "root",
-                Password = "",
-                SslMode = MySqlSslMode.None,
-                ConnectionTimeout = 5
-            };
-            var conn = new MySqlConnection(builder.ConnectionString);
+            var conn = new MySqlConnection(_db);
             await conn.OpenAsync();
             return conn;
         }
