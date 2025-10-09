@@ -28,11 +28,11 @@
                             <Label Grid.Column="1" Text="Add Item To Inventory" FontAttributes="Bold" FontSize="28" HorizontalOptions="Start" TextColor="Black"/>
                         </Grid>
 
-                        <Label Text="STOCK NAME" FontSize="18" FontAttributes="Bold" TextColor="#8B4513"/>
+                        <Label Text="STOCK NAME" FontSize="18" FontAttributes="Bold" TextColor="Black"/>
                         <Entry Placeholder="Enter stock name" PlaceholderColor="Gray" Text="{Binding ItemName}" 
                                TextColor="Black" FontSize="16"/>
 
-                        <Label Text="STOCK IMAGE" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,0"/>
+                        <Label Text="STOCK IMAGE" FontSize="18" FontAttributes="Bold" TextColor="Black" Margin="0,20,0,0"/>
                         <Frame BorderColor="#D0D0D0" CornerRadius="15" HeightRequest="120" WidthRequest="450" BackgroundColor="White" 
                                HorizontalOptions="Center" HasShadow="True">
                             <Grid>
@@ -53,7 +53,7 @@
                             </Grid>
                         </Frame>
 
-                        <Label Text="PRODUCT CATEGORY" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,0"/>
+                        <Label Text="PRODUCT CATEGORY" FontSize="18" FontAttributes="Bold" TextColor="Black" Margin="0,20,0,0"/>
                         <Picker Title="Select Category" 
                                 ItemsSource="{Binding Categories}" 
                                 SelectedItem="{Binding ItemCategory}"
@@ -81,8 +81,8 @@
                             <!-- UoM-only stock input -->
                             <VerticalStackLayout IsVisible="{Binding IsUoMOnlyCategory}">
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="STOCK QUANTITY" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
-                                    <Label Grid.Column="1" Text="UNIT OF MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
+                                    <Label Grid.Column="0" Text="STOCK QUANTITY" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
+                                    <Label Grid.Column="1" Text="UNIT OF MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
                                 </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
                                     <Entry Grid.Column="0"
@@ -113,8 +113,8 @@
                             <!-- Pieces-only categories -->
                             <VerticalStackLayout IsVisible="{Binding IsPiecesOnlyCategory}">
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="STOCK QUANTITY" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
-                                    <Label Grid.Column="1" Text="MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
+                                    <Label Grid.Column="0" Text="STOCK QUANTITY" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
+                                    <Label Grid.Column="1" Text="MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
                                 </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
                                     <Entry Grid.Column="0"
@@ -133,8 +133,8 @@
                             <!-- Pieces-only: minimum quantity -->
                             <VerticalStackLayout IsVisible="{Binding IsPiecesOnlyCategory}" Margin="0,20,0,0">
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="MINIMUM QUANTITY LEVEL" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
-                                    <Label Grid.Column="1" Text="MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
+                                    <Label Grid.Column="0" Text="MINIMUM QUANTITY LEVEL" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
+                                    <Label Grid.Column="1" Text="MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
                                 </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
                                     <Entry Grid.Column="0"
@@ -153,8 +153,8 @@
                             <!-- UoM-only: minimum UoM -->
                             <VerticalStackLayout IsVisible="{Binding IsUoMOnlyCategory}" Margin="0,20,0,0">
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="MINIMUM UoM LEVEL" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
-                                    <Label Grid.Column="1" Text="UNIT OF MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
+                                    <Label Grid.Column="0" Text="MINIMUM UoM LEVEL" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
+                                    <Label Grid.Column="1" Text="UNIT OF MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
                                 </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
                                     <Entry Grid.Column="0"
@@ -183,7 +183,7 @@
                             </VerticalStackLayout>
 
                             <!-- Description -->
-                            <Label Text="DESCRIPTION (OPTIONAL)" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,10"/>
+                            <Label Text="DESCRIPTION (OPTIONAL)" FontSize="18" FontAttributes="Bold" TextColor="Black" Margin="0,20,0,10"/>
                             <Frame BackgroundColor="White" CornerRadius="10" Padding="15" HasShadow="False">
                                 <Editor Placeholder="Enter item description..." 
                                         HeightRequest="120" 

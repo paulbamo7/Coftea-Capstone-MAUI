@@ -30,7 +30,7 @@
 
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
-                    <Label Text="" Grid.Column="0" />
+                    <Label Text="" Grid.Column="0" TextColor="Black"/>
 
                     <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                     <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40" CornerRadius="20"/>

@@ -28,8 +28,8 @@
                             <DataTemplate>
                                 <Frame BackgroundColor="#E9E1D9" CornerRadius="15" Padding="12" HasShadow="False">
                                     <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*">
-                                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
-                                        <Label Grid.Row="1" Text="{Binding Message}" FontSize="13"/>
+                                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" TextColor="Black"/>
+                                        <Label Grid.Row="1" Text="{Binding Message}" FontSize="13" TextColor="Black"/>
                                     </Grid>
                                 </Frame>
                             </DataTemplate>

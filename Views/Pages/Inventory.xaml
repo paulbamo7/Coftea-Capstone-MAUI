@@ -25,7 +25,7 @@
 
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
-                    <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
+                    <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center" TextColor="Black"/>
                     <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                     <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
                 </Grid>
@@ -73,7 +73,7 @@
                                 </Button>
                                 <!-- Search by name -->
                                 <Grid ColumnDefinitions="Auto, *" VerticalOptions="Center" Padding="10,0,0,0">
-                                    <Label Text="Search:" VerticalOptions="Center" TextColor="White"/>
+                                    <Label Text="Search:" VerticalOptions="Center" TextColor="Black"/>
                                     <Entry Grid.Column="1"
                                            WidthRequest="220"
                                            BackgroundColor="Transparent"
@@ -116,15 +116,15 @@
                             <!-- Loading Indicator -->
                             <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Start" IsVisible="{Binding IsLoading}">
                                 <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
-                                <Label Text="{Binding StatusMessage}" TextColor="{Binding HasError}" FontSize="14" HorizontalOptions="Center" />
+                                <Label Text="{Binding StatusMessage}" TextColor="Black" FontSize="14" HorizontalOptions="Center" />
                             </VerticalStackLayout>
 
                             <!-- Fixed Header Row -->
                             <Frame Grid.Row="0" BackgroundColor="White" Padding="10" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
                                 <Grid ColumnDefinitions="2*, 1*, 2*">
-                                    <Label Text="ITEMS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start"/>
-                                    <Label Text="CATEGORY" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1"/>
-                                    <Label Text="STOCKS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2"/>
+                                    <Label Text="ITEMS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start" TextColor="Black"/>
+                                    <Label Text="CATEGORY" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1" TextColor="Black"/>
+                                    <Label Text="STOCKS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2" TextColor="Black"/>
                                 </Grid>
                             </Frame>
 
@@ -146,11 +146,11 @@
                                                             <Frame WidthRequest="50" HeightRequest="50" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
                                                                 <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
                                                             </Frame>
-                                                            <Label Text="{Binding itemName}" FontSize="16" VerticalOptions="Center"/>
+                                                            <Label Text="{Binding itemName}" FontSize="16" VerticalOptions="Center" TextColor="Black"/>
                                                         </HorizontalStackLayout>
 
                                                         <!-- Category -->
-                                                        <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center"/>
+                                                        <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Black"/>
 
                                                         <!-- Stock Progress -->
                                                         <VerticalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">

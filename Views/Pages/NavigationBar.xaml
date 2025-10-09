@@ -16,28 +16,28 @@
             <Button ImageSource="home.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="HomeButton"
                     Clicked="HomeButton_Clicked"/>
-            <Label Text="Home" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Text="Home" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="pos.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="POSButton"
                     Clicked="POSButton_Clicked"/>
-            <Label Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="inventory.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="InventoryButton"
                     Clicked="InventoryButton_Clicked"/>
-            <Label Text="Inventory" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Text="Inventory" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="sales_report.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="SalesReportButton"
                     Clicked="SalesReportButton_Clicked"/>
-            <Label Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="settings2.png"
                     Background="#FFEAD6"
                     HeightRequest="80"
                     Command="{Binding Source={x:Static Application.Current}, Path=SettingsPopup.ShowSettingsPopupCommand}" />
-            <Label Text="Settings" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Text="Settings" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
         </VerticalStackLayout>
     </StackLayout>
 </ContentView>

@@ -18,17 +18,17 @@
                     <VerticalStackLayout Spacing="20">
 
                         <!-- Header -->
-                        <Label Text="Product Details" FontAttributes="Bold" FontSize="30" TextColor="#4B3832" FontFamily="OpenSansSemibold" HorizontalOptions="Start"/>
+                        <Label Text="Product Details" FontAttributes="Bold" FontSize="30" TextColor="Black" FontFamily="OpenSansSemibold" HorizontalOptions="Start"/>
 
                         <!-- Product Name -->
-                        <Label Text="Product Name" FontSize="18" TextColor="#4B3832" FontFamily="OpenSansRegular"/>
+                        <Label Text="Product Name" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
                         <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                             <Entry Placeholder="Enter Product Name"
                                    PlaceholderColor="#4B3832"
                                    Text="{Binding ProductName}"
                                    BackgroundColor="Transparent"
                                    FontSize="16"
-                                   TextColor="#4B3832"
+                                   TextColor="Black"
                                    FontFamily="OpenSansRegular"/>
                         </Frame>
 
@@ -37,7 +37,7 @@
                             <Grid>
                                 <Grid RowDefinitions="*,Auto">
                                     <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit"/>
-                                    <Label Grid.Row="1" Text="No image selected (optional)" FontSize="12" TextColor="#4B3832" HorizontalOptions="Center" IsVisible="False">
+                                    <Label Grid.Row="1" Text="No image selected (optional)" FontSize="12" TextColor="Black" HorizontalOptions="Center" IsVisible="False">
                                         <Label.Triggers>
                                             <DataTrigger TargetType="Label" Binding="{Binding SelectedImageSource}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="True" />
@@ -52,36 +52,36 @@
                         <!-- Category & Subcategory -->
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
                             <VerticalStackLayout Spacing="8" Grid.Column="0">
-                                <Label Text="Category" FontSize="18" TextColor="#4B3832" FontFamily="OpenSansRegular"/>
+                                <Label Text="Category" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
                                 <Picker Title="Select Category"
                                         ItemsSource="{Binding Categories}"
                                         SelectedItem="{Binding SelectedCategory}"
                                         FontSize="16"
-                                        TextColor="#4B3832"
+                                        TextColor="Black"
                                         BackgroundColor="Transparent"
                                         FontFamily="OpenSansRegular"
                                         TitleColor="#4B3832"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Spacing="8" Grid.Column="1" IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
-                                <Label Text="Subcategory" FontSize="18" TextColor="#4B3832" FontFamily="OpenSansRegular"/>
+                                <Label Text="Subcategory" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
                                 <Picker Title="Select Subcategory"
                                         ItemsSource="{Binding FruitSodaSubcategories}"
                                         SelectedItem="{Binding SelectedSubcategory}"
                                         FontSize="16"
-                                        TextColor="#4B3832"
+                                        TextColor="Black"
                                         BackgroundColor="Transparent"
                                         FontFamily="OpenSansRegular"
                                         TitleColor="#4B3832"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Spacing="8" Grid.Column="1" IsVisible="{Binding IsCoffeeSubcategoryVisible}">
-                                <Label Text="Subcategory" FontSize="18" TextColor="#4B3832" FontFamily="OpenSansRegular"/>
+                                <Label Text="Subcategory" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
                                 <Picker Title="Select Subcategory"
                                         ItemsSource="{Binding CoffeeSubcategories}"
                                         SelectedItem="{Binding SelectedSubcategory}"
                                         FontSize="16"
-                                        TextColor="#4B3832"
+                                        TextColor="Black"
                                         BackgroundColor="Transparent"
                                         FontFamily="OpenSansRegular"
                                         TitleColor="#4B3832"/>
@@ -90,7 +90,7 @@
 
                         <!-- Color Code - COMMENTED OUT -->
                         <!--
-                        <Label Text="Color Code" FontSize="18" TextColor="#4B3832" FontFamily="OpenSansRegular"/>
+                        <Label Text="Color Code" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
                         <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                             <Entry Placeholder="Enter Color Code"
                                    PlaceholderColor="#4B3832"
@@ -98,7 +98,7 @@
                                    Text="{Binding ProductColorCode}"
                                    BackgroundColor="Transparent"
                                    FontSize="16"
-                                   TextColor="#4B3832"
+                                   TextColor="Black"
                                    FontFamily="OpenSansRegular"/>
                         </Frame>
                         -->
@@ -111,7 +111,7 @@
 
                         <!-- Header -->
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="Product Size" FontAttributes="Bold" FontSize="30" Grid.Column="0" VerticalOptions="Center" TextColor="#4B3832" FontFamily="OpenSans-SemiBold"/>
+                            <Label Text="Product Size" FontAttributes="Bold" FontSize="30" Grid.Column="0" VerticalOptions="Center" TextColor="Black" FontFamily="OpenSansSemibold"/>
                             <ImageButton Source="close.png" WidthRequest="30" HeightRequest="30" Grid.Column="1" VerticalOptions="Center" Command="{Binding CloseAddItemToPOSCommand}"/>
                         </Grid>
 
@@ -119,13 +119,13 @@
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" HorizontalOptions="Fill">
                             <!-- Small Price - Only visible for Coffee -->
                             <VerticalStackLayout Spacing="8" Grid.Column="0" IsVisible="{Binding IsSmallPriceVisible}">
-                                <Label Text="Small Price" FontSize="16" TextColor="#4B3832" FontFamily="OpenSans-Regular" HorizontalOptions="Center"/>
+                                <Label Text="Small Price" FontSize="16" TextColor="Black" FontFamily="OpenSansRegular" HorizontalOptions="Center"/>
                                 <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                                     <Entry Placeholder="Small Price"
                                            Keyboard="Numeric"
                                            Text="{Binding SmallPrice}"
                                            BackgroundColor="Transparent"
-                                           TextColor="#4B3832"
+                                           TextColor="Black"
                                            FontSize="14"
                                            FontFamily="OpenSans-Regular"
                                            HorizontalOptions="Fill"/>
@@ -134,13 +134,13 @@
 
                             <!-- Medium Price - Always visible -->
                             <VerticalStackLayout Spacing="8" Grid.Column="1" IsVisible="{Binding IsMediumPriceVisible}">
-                                <Label Text="Medium Price" FontSize="16" TextColor="#4B3832" FontFamily="OpenSans-Regular" HorizontalOptions="Center"/>
+                                <Label Text="Medium Price" FontSize="16" TextColor="Black" FontFamily="OpenSansRegular" HorizontalOptions="Center"/>
                                 <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                                     <Entry Placeholder="Medium Price"
                                            Keyboard="Numeric"
                                            Text="{Binding MediumPrice}"
                                            BackgroundColor="Transparent"
-                                           TextColor="#4B3832"
+                                           TextColor="Black"
                                            FontSize="14"
                                            FontFamily="OpenSans-Regular"
                                            HorizontalOptions="Fill">
@@ -155,13 +155,13 @@
 
                             <!-- Large Price - Always visible -->
                             <VerticalStackLayout Spacing="8" Grid.Column="2" IsVisible="{Binding IsLargePriceVisible}">
-                                <Label Text="Large Price" FontSize="16" TextColor="#4B3832" FontFamily="OpenSans-Regular" HorizontalOptions="Center"/>
+                                <Label Text="Large Price" FontSize="16" TextColor="Black" FontFamily="OpenSansRegular" HorizontalOptions="Center"/>
                                 <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                                     <Entry Placeholder="Large Price"
                                            Keyboard="Numeric"
                                            Text="{Binding LargePrice}"
                                            BackgroundColor="Transparent"
-                                           TextColor="#4B3832"
+                                           TextColor="Black"
                                            FontSize="14"
                                            FontFamily="OpenSans-Regular"
                                            HorizontalOptions="Fill">
@@ -176,12 +176,12 @@
                         </Grid>
 
                         <!-- Description -->
-                        <Label Text="Description (Optional)" FontSize="18" TextColor="#4B3832" FontFamily="OpenSans-Regular"/>
+                        <Label Text="Description (Optional)" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
                         <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
                             <Editor Placeholder="Enter product description..."
                                     Text="{Binding ProductDescription}"
                                     BackgroundColor="Transparent"
-                                    TextColor="#4B3832"
+                                    TextColor="Black"
                                     FontSize="16"
                                     HeightRequest="160"
                                     FontFamily="OpenSans-Regular"/>
@@ -191,12 +191,12 @@
                         <HorizontalStackLayout HorizontalOptions="End" Spacing="20">
                             <Button Text="Close" WidthRequest="130" HeightRequest="50"
                                     BackgroundColor="#D3D3D3"
-                                    TextColor="#4B3832"
+                                    TextColor="Black"
                                     CornerRadius="25"
                                     Command="{Binding CloseAddItemToPOSCommand}"/>
                             <Button Text="Next" WidthRequest="160" HeightRequest="50"
                                     BackgroundColor="#E6DE9D"
-                                    TextColor="#4B3832"
+                                    TextColor="Black"
                                     CornerRadius="25"
                                     Command="{Binding OpenConnectPOSToInventoryCommand}"/>
                         </HorizontalStackLayout>

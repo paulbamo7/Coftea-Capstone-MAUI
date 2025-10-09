@@ -44,9 +44,10 @@
 
                     <!-- Search & Sort (wrap on narrow screens) -->
                     <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="SpaceBetween" AlignContent="Start">
-                        <Label Text="{Binding Users.Count, StringFormat='Users: {0}'}"
-                               FontSize="20"
-                               FontAttributes="Bold"/>
+                    <Label Text="{Binding Users.Count, StringFormat='Users: {0}'}"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="Black"/>
                         <Entry Placeholder="Search" Text="{Binding SearchText}" WidthRequest="250"/>
                         <Button Text="Sort By" Command="{Binding SortByCommand}" WidthRequest="100"/>
                     </FlexLayout>
@@ -57,10 +58,10 @@
 
                             <!-- Table Header -->
                             <Grid ColumnDefinitions="2*,3*,2*,2*" BackgroundColor="#D2B892" Padding="10">
-                                <Label Text="Username" FontAttributes="Bold" FontSize="18"/>
-                                <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="18"/>
-                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="18"/>
-                                <Label Text="Date Added" Grid.Column="3" FontAttributes="Bold" FontSize="18"/>
+                                <Label Text="Username" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
+                                <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
+                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
+                                <Label Text="Date Added" Grid.Column="3" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
                             </Grid>
 
                             <!-- Users List -->
@@ -69,7 +70,7 @@
                                     <DataTemplate>
                                         <VerticalStackLayout Spacing="0">
                                             <Grid ColumnDefinitions="2*,3*,2*,2*,Auto" Padding="10" RowSpacing="0">
-                                                <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center"/>
+                                                <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center" TextColor="Black"/>
 
                                                 <VerticalStackLayout Grid.Column="1" Spacing="8">
                                                     <!-- Show access toggles only for non-admin users -->
@@ -88,8 +89,8 @@
                                                     </VerticalStackLayout>
                                                 </VerticalStackLayout>
 
-                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center"/>
-                                                <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center"/>
+                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center" TextColor="Black"/>
+                                                <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center" TextColor="Black"/>
 
                                                 <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
                                                 <Grid Grid.Column="4" HorizontalOptions="End" VerticalOptions="Center">

@@ -146,7 +146,10 @@
 
                                                     <!-- Checkbox + Image + Name -->
                                                     <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
-                                                        <CheckBox IsChecked="{Binding IsSelected}" />
+                                                        <CheckBox IsChecked="{Binding IsSelected}" 
+                                                                  Color="Black" 
+                                                                  MinimumWidthRequest="24" 
+                                                                  MinimumHeightRequest="24" />
                                                         <Frame WidthRequest="36" HeightRequest="36" CornerRadius="8" Padding="0" HasShadow="False" BackgroundColor="#EFEFEF">
                                                             <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
                                                         </Frame>
