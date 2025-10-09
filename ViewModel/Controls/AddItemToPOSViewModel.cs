@@ -303,11 +303,7 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(ImagePath))
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please select an image.", "OK");
-                return;
-            }
+            // Image is optional; no validation required
 
             // Validate inventory sufficiency for selected ingredients
             var inventoryOk = await ValidateInventorySufficiencyAsync();
@@ -324,7 +320,8 @@ namespace Coftea_Capstone.ViewModel
                 LargePrice = largePriceValue,
                 Category = SelectedCategory,
                 Subcategory = EffectiveCategory,
-                ImageSet = ImagePath,
+                // Persist empty string when no image is provided to avoid provider null issues
+                ImageSet = string.IsNullOrWhiteSpace(ImagePath) ? string.Empty : ImagePath,
                 ProductDescription = ProductDescription
             };
 

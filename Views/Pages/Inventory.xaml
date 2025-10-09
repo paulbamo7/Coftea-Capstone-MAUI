@@ -73,12 +73,12 @@
                                 </Button>
                                 <!-- Search by name -->
                                 <Grid ColumnDefinitions="Auto, *" VerticalOptions="Center" Padding="10,0,0,0">
-                                    <Label Text="Search:" VerticalOptions="Center"/>
+                                    <Label Text="Search:" VerticalOptions="Center" TextColor="White"/>
                                     <Entry Grid.Column="1"
                                            WidthRequest="220"
                                            BackgroundColor="Transparent"
                                            TextColor="Black"
-                                           PlaceholderColor="#AAAAAA"
+                                           PlaceholderColor="White"
                                            ClearButtonVisibility="WhileEditing"
                                            Placeholder="Type item name..."
                                            Text="{Binding SearchText}"/>
