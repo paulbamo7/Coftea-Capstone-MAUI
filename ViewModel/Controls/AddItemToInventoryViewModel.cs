@@ -386,7 +386,9 @@ namespace Coftea_Capstone.ViewModel
                     // Notify listeners (e.g., Inventory page) to refresh
                     MessagingCenter.Send(this, "InventoryChanged");
                     ResetForm();
+                    // Close both add and update overlays after successful save
                     IsAddItemToInventoryVisible = false;
+                    IsUpdateInventoryDetailsVisible = false;
                     _editingItemId = null;
                 }
                 else

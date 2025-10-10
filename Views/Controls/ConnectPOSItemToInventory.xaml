@@ -83,6 +83,7 @@
                                     <SearchBar Placeholder="Search"
                                                WidthRequest="220"
                                                Text="{Binding SearchText}"
+                                               TextColor="Black"
                                                BackgroundColor="Transparent"
                                                FontSize="14"/>
                                 </Frame>
@@ -153,11 +154,11 @@
                                                         <Frame WidthRequest="36" HeightRequest="36" CornerRadius="8" Padding="0" HasShadow="False" BackgroundColor="#EFEFEF">
                                                             <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
                                                         </Frame>
-                                                        <Label Text="{Binding itemName}" VerticalOptions="Center" FontSize="14"/>
+                                                        <Label Text="{Binding itemName}" VerticalOptions="Center" FontSize="14" TextColor="Black"/>
                                                     </HorizontalStackLayout>
 
                                                     <!-- Category -->
-                                                    <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13"/>
+                                                    <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13" TextColor="Black"/>
 
                                                     <!-- Stock info (progress removed) -->
                                                     <Grid Grid.Column="2" HeightRequest="22" VerticalOptions="Center">

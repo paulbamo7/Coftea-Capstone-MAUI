@@ -53,8 +53,8 @@
                     </CollectionView>
                     <HorizontalStackLayout Spacing="12">
 
-                        <Label Text="Category:" FontSize="18" FontAttributes="Bold"/>
-                        <Label Text="{Binding SelectedCategory}" FontSize="18" FontAttributes="Bold"/>
+                        <Label Text="Category:" FontSize="18" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="{Binding SelectedCategory}" FontSize="18" FontAttributes="Bold" TextColor="Black"/>
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout Spacing="20">
@@ -73,7 +73,7 @@
                         </VerticalStackLayout>
                     </HorizontalStackLayout>
 
-                    <Label Text="Description" FontAttributes="Bold"/>
+                    <Label Text="Description" FontAttributes="Bold" TextColor="Black"/>
                     <ScrollView HeightRequest="60">
                         <Label Text="{Binding ProductDescription}" FontSize="14" TextColor="Black"/>
                     </ScrollView>

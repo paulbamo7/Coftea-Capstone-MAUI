@@ -103,19 +103,12 @@
                             <TapGestureRecognizer Command="{Binding ShowHistoryCommand}" />
                         </Image.GestureRecognizers>
                     </Image>
-                    <!-- Cart with badge -->
-                    <Grid>
-                        <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
-                            <Image.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding CartCommand}" />
-                            </Image.GestureRecognizers>
-                        </Image>
-                        <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
-                               HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
-                               IsVisible="{Binding CartItems.Count, Converter={StaticResource IsPositiveConverter}}">
-                            <Label Text="{Binding CartItems.Count}" FontSize="10" TextColor="White" Margin="4,0"/>
-                        </Frame>
-                    </Grid>
+                    <!-- Cart icon (badge removed to prevent crashes) -->
+                    <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding CartCommand}" />
+                        </Image.GestureRecognizers>
+                    </Image>
                 </HorizontalStackLayout>
             </Grid>
 
