@@ -100,9 +100,26 @@ namespace Coftea_Capstone.ViewModel
                 foreach (var it in AllItems) Items.Add(it);
                 return;
             }
+            // Special rules:
+            // - Ingredients: show all categories EXCEPT "Others"
+            // - Supplies: show ONLY category "Others"
+            bool isIngredients = string.Equals(category, "Ingredients", StringComparison.OrdinalIgnoreCase);
+            bool isSupplies = string.Equals(category, "Supplies", StringComparison.OrdinalIgnoreCase);
+
             foreach (var it in AllItems)
             {
-                if (string.Equals(it.itemCategory, category, StringComparison.OrdinalIgnoreCase))
+                var cat = (it.itemCategory ?? string.Empty).Trim();
+                if (isIngredients)
+                {
+                    if (!string.Equals(cat, "Others", StringComparison.OrdinalIgnoreCase))
+                        Items.Add(it);
+                }
+                else if (isSupplies)
+                {
+                    if (string.Equals(cat, "Others", StringComparison.OrdinalIgnoreCase))
+                        Items.Add(it);
+                }
+                else if (string.Equals(cat, category, StringComparison.OrdinalIgnoreCase))
                 {
                     Items.Add(it);
                 }

@@ -39,14 +39,14 @@
                         <Button Text="All" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14"
                                 BackgroundColor="#5B4F45" WidthRequest="100" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="All"/>
-                        <Button Text="Addons" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"
+                        <Button Text="Addons" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14"
+                                BackgroundColor="#5B4F45" WidthRequest="100" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Addons"/>
-                        <Button Text="Ingredients" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="120" HeightRequest="40"
+                        <Button Text="Ingredients" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14"
+                                BackgroundColor="#5B4F45" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
-                        <Button Text="Supplies" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"
+                        <Button Text="Supplies" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14"
+                                BackgroundColor="#5B4F45" WidthRequest="100" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>

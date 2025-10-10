@@ -73,7 +73,7 @@
                                 </Button>
                                 <!-- Search by name -->
                                 <Grid ColumnDefinitions="Auto, *" VerticalOptions="Center" Padding="10,0,0,0">
-                                    <Label Text="Search:" VerticalOptions="Center" TextColor="Black"/>
+                                    <Label Text="Search:" VerticalOptions="Center" TextColor="White"/>
                                     <Entry Grid.Column="1"
                                            WidthRequest="220"
                                            BackgroundColor="Transparent"
