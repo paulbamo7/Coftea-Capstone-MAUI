@@ -22,7 +22,7 @@
             <HorizontalStackLayout Spacing="20">
 
                 <!-- Left Column -->
-                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7" CornerRadius="20">
+                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="400" BackgroundColor="#F8E8D7" CornerRadius="20">
                     <VerticalStackLayout Spacing="15" Padding="20">
                         <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,20">
                             <Label Grid.Column="1" Text="Add Item To Inventory" FontAttributes="Bold" FontSize="28" HorizontalOptions="Start" TextColor="Black"/>
@@ -63,7 +63,7 @@
                 </Frame>
 
                 <!-- Right Column -->
-                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="500" BackgroundColor="#F8E8D7" CornerRadius="20">
+                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="400" BackgroundColor="#F8E8D7" CornerRadius="20">
                     <ScrollView>
                         <VerticalStackLayout Spacing="7" Padding="20">
 

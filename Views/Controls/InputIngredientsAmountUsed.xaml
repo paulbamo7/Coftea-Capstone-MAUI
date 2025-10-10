@@ -175,6 +175,7 @@
                                                Text="{Binding InputAmount}" 
                                                FontSize="12" 
                                                Keyboard="Numeric" 
+                                               TextColor="Black"
                                                HorizontalTextAlignment="Center"
                                                Margin="0"
                                                BackgroundColor="#F8F8F8"
@@ -186,6 +187,7 @@
                                                 ItemsSource="{Binding AllowedUnits}"
                                                 FontSize="12" 
                                                 HorizontalOptions="Center"
+                                                TextColor="Black"
                                                 VerticalOptions="Center"
                                                 WidthRequest="70" />
 

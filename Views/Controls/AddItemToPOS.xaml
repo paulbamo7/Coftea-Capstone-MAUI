@@ -11,10 +11,10 @@
     <Grid ColumnDefinitions="200, *" RowDefinitions="*" InputTransparent="False">
 
         <VerticalStackLayout Grid.Column="1" Padding="40,60,40,60" Spacing="25">
-            <FlexLayout Direction="Row" Wrap="NoWrap" AlignItems="Start" JustifyContent="SpaceBetween" Padding="0,0,0,0">
+            <FlexLayout Direction="Row" Wrap="NoWrap" AlignItems="Start" JustifyContent="SpaceBetween" Padding="20,0,0,0">
 
                 <!-- Left Panel: Product Details -->
-                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="0,0,20,0">
+                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="400" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="0,0,20,0">
                     <VerticalStackLayout Spacing="20">
 
                         <!-- Header -->
@@ -106,7 +106,7 @@
                 </Frame>
 
                 <!-- Right Panel: Pricing & Description -->
-                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="5,0,0,0">
+                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="400" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="5,0,0,0">
                     <VerticalStackLayout Spacing="20">
 
                         <!-- Header -->

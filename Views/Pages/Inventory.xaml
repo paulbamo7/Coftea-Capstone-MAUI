@@ -95,7 +95,7 @@
                                    HorizontalOptions="End">
                                 <Picker Title="Sort By"
                                         VerticalOptions="Center"
-                                        Margin="10,0"
+                                        Margin="0"                               
                                         BackgroundColor="Transparent"
                                         TextColor="Black"
                                         TitleColor="#666666"

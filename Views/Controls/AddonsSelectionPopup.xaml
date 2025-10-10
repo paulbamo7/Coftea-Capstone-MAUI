@@ -115,13 +115,13 @@
                                         <Label Grid.Column="6" Text="{Binding StockText}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
 
                                         <!-- Amount Input -->
-                                        <Entry Grid.Column="7" Text="{Binding InputAmount}" FontSize="12" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
+                                        <Entry Grid.Column="7" Text="{Binding InputAmount}" TextColor="Black" FontSize="12" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
 
                                         <!-- UoM Picker -->
-                                        <Picker Grid.Column="8" SelectedItem="{Binding InputUnit}" ItemsSource="{Binding AllowedUnits}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="70" />
+                                        <Picker Grid.Column="8" SelectedItem="{Binding InputUnit}" TextColor="Black" ItemsSource="{Binding AllowedUnits}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="70" />
 
                                         <!-- Addon Price (extra vs ingredients UI) -->
-                                        <Entry Grid.Column="9" Text="{Binding AddonPrice}" FontSize="12" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
+                                        <Entry Grid.Column="9" Text="{Binding AddonPrice}" FontSize="12" TextColor="Black" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>

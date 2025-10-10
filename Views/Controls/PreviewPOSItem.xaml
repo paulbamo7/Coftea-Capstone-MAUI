@@ -22,7 +22,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Label Text="Preview Product" FontAttributes="Bold" FontSize="20" Grid.Column="0"/>
+                        <Label Text="Preview Product" FontAttributes="Bold" FontSize="20" Grid.Column="0" TextColor="Black"/>
                         <ImageButton Source="close.png"
                                  WidthRequest="25" HeightRequest="25"
                                  Grid.Column="1"
@@ -34,18 +34,18 @@
 
 
                     <!-- Product Info -->
-                    <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="18"/>
-                    <Label Text="Add-ons Used" FontAttributes="Bold"/>
+                    <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="18" TextColor="Black" />
+                    <Label Text="Add-ons Used" FontAttributes="Bold" TextColor="Black"/>
                     <!-- Show only selected addons: Name - ₱Price (no quantity controls in preview) -->
                     <CollectionView ItemsSource="{Binding SelectedAddons}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="Auto,*" Padding="6" Margin="0,4">
                                     <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
-                                        <Label Text="•" FontSize="12" VerticalOptions="Center"/>
-                                        <Label Text="{Binding itemName}" FontAttributes="Bold" FontSize="14"/>
-                                        <Label Text="-" FontSize="14"/>
-                                        <Label Text="{Binding AddonPrice, StringFormat='₱{0:F0}'}" FontAttributes="Bold" FontSize="14"/>
+                                        <Label Text="•" FontSize="12" VerticalOptions="Center" TextColor="Black"/>
+                                        <Label Text="{Binding itemName}" FontAttributes="Bold" FontSize="14" TextColor="Black"/>
+                                        <Label Text="-" FontSize="14" TextColor="Black"/>
+                                        <Label Text="{Binding AddonPrice, StringFormat='₱{0:F0}'}" FontAttributes="Bold" FontSize="14" TextColor="Black"/>
                                     </HorizontalStackLayout>
                                 </Grid>
                             </DataTemplate>
@@ -60,22 +60,22 @@
                     <HorizontalStackLayout Spacing="20">
                         <Label Text="Prices:" FontAttributes="Bold"/>
                         <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
-                            <Label Text="Small Price" FontAttributes="Bold"/>
-                            <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                            <Label Text="Small Price" FontAttributes="Bold" TextColor="Black"/>
+                            <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="Black"/>
                         </VerticalStackLayout>
                         <VerticalStackLayout IsVisible="{Binding IsMediumPriceVisible}">
-                            <Label Text="Medium Price" FontAttributes="Bold"/>
-                            <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                            <Label Text="Medium Price" FontAttributes="Bold" TextColor="Black"/>
+                            <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="Black"/>
                         </VerticalStackLayout>
                         <VerticalStackLayout IsVisible="{Binding IsLargePriceVisible}">
-                            <Label Text="Large Price" FontAttributes="Bold"/>
-                            <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
+                            <Label Text="Large Price" FontAttributes="Bold" TextColor="Black"/>
+                            <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="Black"/>
                         </VerticalStackLayout>
                     </HorizontalStackLayout>
 
                     <Label Text="Description" FontAttributes="Bold"/>
                     <ScrollView HeightRequest="60">
-                        <Label Text="{Binding ProductDescription}" FontSize="14"/>
+                        <Label Text="{Binding ProductDescription}" FontSize="14" TextColor="Black"/>
                     </ScrollView>
                     <!-- Inline Addons section removed; selection will be via popup -->
 
