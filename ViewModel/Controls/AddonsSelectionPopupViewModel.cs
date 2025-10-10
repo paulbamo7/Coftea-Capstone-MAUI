@@ -40,7 +40,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void CloseAddonsPopup()
+        private void CloseAddonPopup()
         {
             IsAddonsPopupVisible = false;
         }

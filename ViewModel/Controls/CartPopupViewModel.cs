@@ -143,15 +143,29 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (item == null) return;
             
-            // Reset quantities in the original POSPageModel
+            // Remove matching line from the underlying POS cart and persist
             if (_originalItems != null)
             {
-                var originalItem = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
-                if (originalItem != null)
+                // Try to match the exact cart line by product and quantities/prices
+                var matching = _originalItems.FirstOrDefault(x =>
+                    x.ProductID == item.ProductId &&
+                    x.SmallQuantity == item.SmallQuantity &&
+                    x.MediumQuantity == item.MediumQuantity &&
+                    x.LargeQuantity == item.LargeQuantity &&
+                    x.SmallPrice == item.SmallPrice &&
+                    x.MediumPrice == item.MediumPrice &&
+                    x.LargePrice == item.LargePrice);
+
+                if (matching != null)
                 {
-                    originalItem.SmallQuantity = 0;
-                    originalItem.MediumQuantity = 0;
-                    originalItem.LargeQuantity = 0;
+                    _originalItems.Remove(matching);
+                }
+
+                // Persist the updated cart via POS view model
+                var nav = Application.Current.MainPage as NavigationPage;
+                if (nav?.CurrentPage is PointOfSale posPage && posPage.BindingContext is POSPageViewModel posViewModel)
+                {
+                    _ = posViewModel.SaveCartToStorageAsync();
                 }
             }
             

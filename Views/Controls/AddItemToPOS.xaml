@@ -106,7 +106,7 @@
                 </Frame>
 
                 <!-- Right Panel: Pricing & Description -->
-                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="20,0,0,0">
+                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="500" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="5,0,0,0">
                     <VerticalStackLayout Spacing="20">
 
                         <!-- Header -->
@@ -206,10 +206,7 @@
             </FlexLayout>
         </VerticalStackLayout>
 
-        <!-- Subcomponents -->
-        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding ConnectPOSToInventoryVM}" Grid.Column="2"/>
-        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding ConnectPOSToInventoryVM}" Grid.Column="2"/>
-        <otherViews:PreviewPOSItem BindingContext="{Binding ConnectPOSToInventoryVM}" Grid.Column="2"/>
+        <!-- Subcomponents moved to page level in PointOfSale.xaml -->
 
         <!-- History popup for selected items -->
         <otherViews:HistoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=HistoryPopup}" Grid.ColumnSpan="2"/>

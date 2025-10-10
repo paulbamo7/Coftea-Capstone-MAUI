@@ -8,6 +8,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
+using System.IO;
+using System.Text.Json;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -288,24 +290,18 @@ namespace Coftea_Capstone.ViewModel
         }
         */
 
-        // COMMENTED OUT - Database backup functionality
-        /*
         [RelayCommand]
         private async Task CreateBackup()
         {
             try
             {
                 var database = new Models.Database();
-                
-                // Show loading message
-                await Application.Current.MainPage.DisplayAlert("Creating Backup", "Please wait while we create a backup of your database...", "OK");
-                
-                // Get all data from database
+
+                // Fetch data
                 var products = await database.GetProductsAsync();
                 var inventoryItems = await database.GetInventoryItemsAsync();
                 var transactions = await database.GetTransactionsByDateRangeAsync(DateTime.MinValue, DateTime.MaxValue);
-                
-                // Create backup data structure
+
                 var backupData = new
                 {
                     Timestamp = DateTime.Now,
@@ -313,29 +309,22 @@ namespace Coftea_Capstone.ViewModel
                     InventoryItems = inventoryItems,
                     Transactions = transactions
                 };
-                
-                // Convert to JSON
-                var json = System.Text.Json.JsonSerializer.Serialize(backupData, new System.Text.Json.JsonSerializerOptions 
-                { 
-                    WriteIndented = true 
-                });
-                
-                // Save to local storage
+
+                var json = JsonSerializer.Serialize(backupData, new JsonSerializerOptions { WriteIndented = true });
+
                 var fileName = $"database_backup_{DateTime.Now:yyyyMMdd_HHmmss}.json";
                 var filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
                 await File.WriteAllTextAsync(filePath, json);
-                
-                System.Diagnostics.Debug.WriteLine($"💾 Backup created: {filePath}");
-                await Application.Current.MainPage.DisplayAlert("Backup Created", 
-                    $"Database backup created successfully!\n\nFile: {fileName}\nLocation: {filePath}\n\nProducts: {products.Count}\nInventory Items: {inventoryItems.Count}\nTransactions: {transactions.Count}", "OK");
+
+                await Application.Current.MainPage.DisplayAlert("Backup Created",
+                    $"Saved to:\n{filePath}\n\nProducts: {products.Count}\nInventory Items: {inventoryItems.Count}\nTransactions: {transactions.Count}",
+                    "OK");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error creating backup: {ex.Message}");
-                await Application.Current.MainPage.DisplayAlert("Backup Failed", $"Failed to create backup: {ex.Message}", "OK");
+                await Application.Current.MainPage.DisplayAlert("Backup Failed", ex.Message, "OK");
             }
         }
-        */
 
         // COMMENTED OUT - Database backup functionality
         /*

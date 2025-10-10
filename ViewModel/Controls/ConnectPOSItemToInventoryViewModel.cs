@@ -93,23 +93,45 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private string largeSizeText = "Large";
 
         // Size button visibility properties based on category
-        public bool IsSmallSizeVisible => !string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
+        public bool IsSmallSizeVisible => IsCoffeeCategory(SelectedCategory);
         public bool IsMediumSizeVisible => true; // Always visible
         public bool IsLargeSizeVisible => true; // Always visible
 
+        // Price visibility (used by PreviewPOSItem)
+        public bool IsSmallPriceVisible => IsCoffeeCategory(SelectedCategory);
+        public bool IsMediumPriceVisible => true; // Always visible
+        public bool IsLargePriceVisible => true; // Always visible
+
         partial void OnSelectedCategoryChanged(string value)
         {
-            // Notify visibility change for size buttons
+            // Notify visibility change for size buttons and price fields
             OnPropertyChanged(nameof(IsSmallSizeVisible));
             OnPropertyChanged(nameof(IsMediumSizeVisible));
             OnPropertyChanged(nameof(IsLargeSizeVisible));
+            OnPropertyChanged(nameof(IsSmallPriceVisible));
+            OnPropertyChanged(nameof(IsMediumPriceVisible));
+            OnPropertyChanged(nameof(IsLargePriceVisible));
 
-            // If category is Coffee and current size is Small, switch to Medium
-            if (string.Equals(value, "Coffee", StringComparison.OrdinalIgnoreCase) && 
+            // If category is NOT Coffee and current size is Small, switch to Medium
+            if (!IsCoffeeCategory(value) && 
                 string.Equals(SelectedSize, "Small", StringComparison.OrdinalIgnoreCase))
             {
                 SetSize("Medium");
             }
+
+            // Ensure preview re-evaluates price visibility
+            OnPropertyChanged(nameof(IsSmallPriceVisible));
+            OnPropertyChanged(nameof(IsMediumPriceVisible));
+            OnPropertyChanged(nameof(IsLargePriceVisible));
+        }
+
+        private static bool IsCoffeeCategory(string category)
+        {
+            var c = (category ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(c)) return false;
+            return string.Equals(c, "Coffee", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c, "Americano", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c, "Latte", StringComparison.OrdinalIgnoreCase);
         }
 
         // Size selection for ingredient inputs
@@ -141,6 +163,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void ReturnToAddItemToPOS()
         {
             IsConnectPOSToInventoryVisible = false;
+            // Ensure any addon popup is closed when returning
+            IsAddonPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
+            // Show parent overlay again
+            var app = (App)Application.Current;
+            (app?.POSVM?.AddItemToPOSViewModel)?.SetIsAddItemToPOSVisibleTrue();
             ReturnRequested?.Invoke();
         }
 
@@ -148,6 +176,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void CloseConnectPOSToInventory()
         {
             IsConnectPOSToInventoryVisible = false;
+            // Ensure any addon popup is closed
+            IsAddonPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
         }
 
         [RelayCommand]
@@ -155,6 +186,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             IsInputIngredientsVisible = false;
             IsConnectPOSToInventoryVisible = true;
+            // Ensure any addon popup is closed
+            IsAddonPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
         }
         [RelayCommand]
         private void ShowPreview()
@@ -166,6 +200,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void ClosePreview()
         {
             IsPreviewVisible = false;
+            // Ensure addons popup is closed when preview closes
+            IsAddonPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
         }
 
         [RelayCommand]
@@ -175,6 +212,9 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsConnectPOSToInventoryVisible = false;
             IsInputIngredientsVisible = false;
             IsPreviewVisible = false;
+            // Ensure addons popup is closed on confirm
+            IsAddonPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
             ConfirmPreviewRequested?.Invoke();
         }
 
@@ -706,7 +746,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         // Popup controls
         [RelayCommand]
-        private async Task OpenAddonPopupCommand()
+        private async Task OpenAddonPopup()
         {
             System.Diagnostics.Debug.WriteLine($"🔍 OpenAddonPopupCommand called");
             try
@@ -737,7 +777,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void CloseAddonPopup()
         {
             IsAddonPopupVisible = false;
-            AddonsPopup.IsAddonsPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
         }
 
 
@@ -764,7 +804,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
 
             IsAddonPopupVisible = false;
-            AddonsPopup.IsAddonsPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
             OnPropertyChanged(nameof(HasSelectedIngredients));
             OnPropertyChanged(nameof(SelectedInventoryItems));
             OnPropertyChanged(nameof(SelectedIngredientsOnly));

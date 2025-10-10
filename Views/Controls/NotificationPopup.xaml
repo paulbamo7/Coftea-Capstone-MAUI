@@ -15,8 +15,8 @@
         </Grid.GestureRecognizers>
 
         <!-- Dropdown positioned below the bell (top-right) -->
-        <Grid VerticalOptions="Start" HorizontalOptions="End" Margin="0,60,20,0" InputTransparent="False">
-            <Frame Padding="12" BackgroundColor="#FFFFFF" CornerRadius="14" HasShadow="True" WidthRequest="360">
+        <Grid VerticalOptions="Start" HorizontalOptions="End" Margin="0,60,45,0" InputTransparent="False">
+            <Frame Padding="12" BackgroundColor="#FFFFFF" CornerRadius="14" HasShadow="True" WidthRequest="250">
                 <VerticalStackLayout Spacing="10">
                     <!-- Individual notification items (limited height ~3 items, scrollable) -->
                     <CollectionView ItemsSource="{Binding Notifications}"

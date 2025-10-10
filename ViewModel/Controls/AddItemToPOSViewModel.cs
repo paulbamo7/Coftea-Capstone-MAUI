@@ -192,6 +192,12 @@ namespace Coftea_Capstone.ViewModel
             _ = PreloadLinkedIngredientsAsync(product.ProductID);
         }
 
+        // Helper to show the AddItemToPOS overlay when returning from child popups
+        public void SetIsAddItemToPOSVisibleTrue()
+        {
+            IsAddItemToPOSVisible = true;
+        }
+
         private async Task PreloadLinkedIngredientsAsync(int productId)
         {
             try
@@ -684,11 +690,12 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void OpenConnectPOSToInventory()
         {
-            // Keep parent view visible and show the popup from the child VM
-            IsAddItemToPOSVisible = true;
+            // Hide parent view and show the popup from the child VM
+            IsAddItemToPOSVisible = false;
             // Populate preview data on child VM
             ConnectPOSToInventoryVM.ProductName = ProductName;
-            ConnectPOSToInventoryVM.SelectedCategory = EffectiveCategory;
+            // Use main category so Coffee immediately enables Small without requiring subcategory
+            ConnectPOSToInventoryVM.SelectedCategory = SelectedCategory;
             ConnectPOSToInventoryVM.SmallPrice = SmallPrice;
             ConnectPOSToInventoryVM.MediumPrice = MediumPrice;
             ConnectPOSToInventoryVM.LargePrice = LargePrice;

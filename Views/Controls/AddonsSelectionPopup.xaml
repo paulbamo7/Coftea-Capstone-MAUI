@@ -18,7 +18,7 @@
         <!-- Transparent background click close -->
         <BoxView Grid.RowSpan="3" Grid.ColumnSpan="3" BackgroundColor="#80000000">
             <BoxView.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding CloseAddonsPopupCommand}" />
+                <TapGestureRecognizer Command="{Binding CloseAddonPopupCommand}" />
             </BoxView.GestureRecognizers>
         </BoxView>
 
@@ -139,7 +139,7 @@
                             CornerRadius="14"
                             WidthRequest="120"
                             HeightRequest="45"
-                            Command="{Binding CloseAddonsPopupCommand}"/>
+                            Command="{Binding CloseAddonPopupCommand}"/>
                     <Button Text="Preview"
                             BackgroundColor="#E6DE9D"
                             TextColor="Black"

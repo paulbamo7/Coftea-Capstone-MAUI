@@ -52,7 +52,7 @@
             <Grid Grid.Row="1" ColumnDefinitions="*, Auto" VerticalOptions="Center" Margin="70,10,0,0">
                 <!-- Categories -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
-                    <HorizontalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="10" Margin="25,0,0,0">
                         <Button Text="Frappe" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
@@ -444,7 +444,12 @@
         <otherViews:ManageInventoryOptions BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM}" Grid.ColumnSpan="2"/>
         <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
-        <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2" ZIndex="1000"/>
+        <!-- Page-level overlays so Next hides previous and shows next cleanly -->
+        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1100"/>
+        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200"/>
+        <otherViews:PreviewPOSItem BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1300"/>
+        <otherViews:AddonsSelectionPopup BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToInventory BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:EditProductPopup BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>

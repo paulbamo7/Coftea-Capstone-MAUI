@@ -59,15 +59,15 @@
 
                     <HorizontalStackLayout Spacing="20">
                         <Label Text="Prices:" FontAttributes="Bold"/>
-                        <VerticalStackLayout>
+                        <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
                             <Label Text="Small Price" FontAttributes="Bold"/>
                             <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
                         </VerticalStackLayout>
-                        <VerticalStackLayout>
+                        <VerticalStackLayout IsVisible="{Binding IsMediumPriceVisible}">
                             <Label Text="Medium Price" FontAttributes="Bold"/>
                             <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
                         </VerticalStackLayout>
-                        <VerticalStackLayout>
+                        <VerticalStackLayout IsVisible="{Binding IsLargePriceVisible}">
                             <Label Text="Large Price" FontAttributes="Bold"/>
                             <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18"/>
                         </VerticalStackLayout>
@@ -92,8 +92,5 @@
                 </VerticalStackLayout>
             </ScrollView>
         </Frame>
-        
-        <!-- AddonsSelectionPopup (full-featured) bound to AddonsPopup VM -->
-        <controls:AddonsSelectionPopup BindingContext="{Binding AddonsPopup}" IsVisible="{Binding IsAddonPopupVisible}" ZIndex="2000" />
     </Grid>
 </ContentView>
