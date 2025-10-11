@@ -45,7 +45,17 @@
                         <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
                     </Frame>
                 </Grid>
-                <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="35" HeightRequest="35" Command="{Binding ShowProfileCommand}"/>
+                <Grid Grid.Column="3" WidthRequest="35" HeightRequest="35">
+                    <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImage}" 
+                           WidthRequest="35" 
+                           HeightRequest="35" 
+                           Aspect="AspectFill" />
+                    <ImageButton Source="usericon.png" 
+                                 WidthRequest="35" 
+                                 HeightRequest="35" 
+                                 BackgroundColor="Transparent"
+                                 Command="{Binding ShowProfileCommand}"/>
+                </Grid>
             </Grid>
 
             <!-- Menu Categories + History/Cart -->

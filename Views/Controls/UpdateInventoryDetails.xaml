@@ -113,6 +113,7 @@
                                             Grid.Column="1"
                                             WidthRequest="100"
                                             ItemsSource="{Binding UoMOptions}"
+                                            TextColor="Black"
                                             SelectedItem="{Binding SelectedUoM}" />
                                     <Button Grid.Column="2" Text="Add" Clicked="OnApplyAddStockClicked" />
                                 </Grid>

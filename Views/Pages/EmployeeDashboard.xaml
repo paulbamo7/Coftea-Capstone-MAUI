@@ -19,7 +19,17 @@
             <Grid ColumnDefinitions="*, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                 <Label Text="Home" FontSize="32" FontAttributes="Bold" VerticalOptions="Center" TextColor="#3E2723"/>
                 <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
-                <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40" Clicked="OnProfileClicked"/>
+                <Grid Grid.Column="2" WidthRequest="40" HeightRequest="40">
+                    <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImage}" 
+                           WidthRequest="40" 
+                           HeightRequest="40" 
+                           Aspect="AspectFill" />
+                    <ImageButton Source="usericon.png" 
+                                 WidthRequest="40" 
+                                 HeightRequest="40" 
+                                 BackgroundColor="Transparent"
+                                 Clicked="OnProfileClicked"/>
+                </Grid>
             </Grid>
 
             <!-- Dashboard Grid -->

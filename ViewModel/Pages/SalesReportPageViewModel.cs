@@ -46,6 +46,16 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int totalOrdersThisWeek;
 
+        // Payment method totals
+        [ObservableProperty]
+        private decimal cashTotal;
+
+        [ObservableProperty]
+        private decimal gcashTotal;
+
+        [ObservableProperty]
+        private decimal bankTotal;
+
         // Top items lists
         [ObservableProperty]
         private ObservableCollection<TrendItem> topCoffeeToday = new();
@@ -187,6 +197,39 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private async Task CalculatePaymentMethodTotalsAsync()
+        {
+            try
+            {
+                // Get today's transactions
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+                var todayTransactions = await _database.GetTransactionsByDateRangeAsync(today, tomorrow);
+
+                // Calculate totals by payment method
+                CashTotal = todayTransactions
+                    .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                    .Sum(t => t.Total);
+
+                GCashTotal = todayTransactions
+                    .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                    .Sum(t => t.Total);
+
+                BankTotal = todayTransactions
+                    .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                    .Sum(t => t.Total);
+
+                System.Diagnostics.Debug.WriteLine($"Payment totals - Cash: {CashTotal}, GCash: {GCashTotal}, Bank: {BankTotal}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to calculate payment method totals: {ex.Message}");
+                CashTotal = 0;
+                GCashTotal = 0;
+                BankTotal = 0;
+            }
+        }
+
         public async Task InitializeAsync()
         {
             await LoadDataAsync();
@@ -225,6 +268,9 @@ namespace Coftea_Capstone.ViewModel
 
                 // Load recent orders
                 await LoadRecentOrdersAsync();
+
+                // Calculate payment method totals for today
+                await CalculatePaymentMethodTotalsAsync();
 
                 TopCoffeeToday = new ObservableCollection<TrendItem>(summary.TopCoffeeToday ?? new List<TrendItem>());
                 TopMilkteaToday = new ObservableCollection<TrendItem>(summary.TopMilkteaToday ?? new List<TrendItem>());

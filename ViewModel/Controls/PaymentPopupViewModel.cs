@@ -33,6 +33,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         private string paymentStatus = "Pending";
 
         [ObservableProperty]
+        private string selectedPaymentMethod = "Cash";
+
+        [ObservableProperty]
         private List<CartItem> cartItems = new();
 
         public PaymentPopupViewModel()
@@ -67,6 +70,13 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void ClosePayment()
         {
             IsPaymentVisible = false;
+        }
+
+        [RelayCommand]
+        private void SelectPaymentMethod(string method)
+        {
+            SelectedPaymentMethod = method;
+            System.Diagnostics.Debug.WriteLine($"Payment method selected: {method}");
         }
 
         public void UpdateAmountPaid(string amount)
@@ -195,7 +205,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                             Total = item.TotalPrice,
                             AddOns = item.AddOnsDisplay,
                             CustomerName = item.CustomerName,
-                            PaymentMethod = "Cash",
+                            PaymentMethod = SelectedPaymentMethod,
                             Status = "Completed",
                             TransactionDate = DateTime.Now
                         };

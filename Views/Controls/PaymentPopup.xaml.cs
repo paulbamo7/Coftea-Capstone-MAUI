@@ -26,4 +26,13 @@ public partial class PaymentPopup : ContentView
             viewModel.UpdateAmountPaid(amountText);
         }
     }
+
+    private void OnPaymentMethodChanged(object sender, CheckedChangedEventArgs e)
+    {
+        if (sender is RadioButton radioButton && e.Value && BindingContext is PaymentPopupViewModel viewModel)
+        {
+            string method = radioButton.Content.ToString();
+            viewModel.SelectPaymentMethodCommand.Execute(method);
+        }
+    }
 }

@@ -25,7 +25,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         private ObservableCollection<TransactionHistoryModel> allTransactions = new();
 
         [ObservableProperty]
-        private string selectedFilter = "All Time";
+        private string selectedFilter = "Today";
 
 
         public ObservableCollection<string> FilterOptions { get; } = new()
@@ -38,6 +38,8 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public HistoryPopupViewModel()
         {
+            // Set default filter to Today
+            SelectedFilter = "Today";
         }
 
         public void ShowSelectedItems(ObservableCollection<InventoryPageModel> items)
@@ -55,6 +57,9 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             try
             {
+                // Ensure Today filter is selected by default
+                SelectedFilter = "Today";
+                
                 // Load all transactions from database
                 await LoadAllTransactionsAsync();
                 

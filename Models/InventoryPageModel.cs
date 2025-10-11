@@ -244,14 +244,31 @@ namespace Coftea_Capstone.Models
             get
             {
                 var unit = NormalizeUnit(unitOfMeasurement);
-                if (string.IsNullOrWhiteSpace(unit)) return "pcs";
+                if (string.IsNullOrWhiteSpace(unit)) 
+                {
+                    // Set default unit based on category
+                    return GetDefaultUnitForCategory(itemCategory);
+                }
                 return unit.Equals("kg", StringComparison.OrdinalIgnoreCase)
                     || unit.Equals("g", StringComparison.OrdinalIgnoreCase)
                     || unit.Equals("l", StringComparison.OrdinalIgnoreCase)
                     || unit.Equals("ml", StringComparison.OrdinalIgnoreCase)
                     ? unit
-                    : "pcs";
+                    : GetDefaultUnitForCategory(itemCategory);
             }
+        }
+
+        private string GetDefaultUnitForCategory(string category)
+        {
+            return category?.ToLowerInvariant() switch
+            {
+                "fruit/soda" => "kg",
+                "coffee" => "kg",
+                "milktea" => "kg",
+                "frappe" => "kg",
+                "supplies" => "pcs",
+                _ => "pcs"
+            };
         }
         
         public ImageSource ImageSource =>

@@ -754,6 +754,13 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
+            // Set default UoM based on category if not specified
+            var unitOfMeasurement = inventory.unitOfMeasurement;
+            if (string.IsNullOrWhiteSpace(unitOfMeasurement))
+            {
+                unitOfMeasurement = GetDefaultUnitForCategory(inventory.itemCategory);
+            }
+
             var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity) " +
                       "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity);";
             await using var cmd = new MySqlCommand(sql, conn);
@@ -762,12 +769,25 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
             cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
             cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UnitOfMeasurement", unitOfMeasurement);
             cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
 
             var rows = await cmd.ExecuteNonQueryAsync();
             InvalidateInventoryCache();
             return rows;
+        }
+
+        private string GetDefaultUnitForCategory(string category)
+        {
+            return category?.ToLowerInvariant() switch
+            {
+                "fruit/soda" => "kg",
+                "coffee" => "kg",
+                "milktea" => "kg",
+                "frappe" => "kg",
+                "supplies" => "pcs",
+                _ => "pcs"
+            };
         }
 
         public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction)
@@ -781,12 +801,13 @@ namespace Coftea_Capstone.Models
                 int userId = App.CurrentUser?.ID ?? 1;
                 
                 // Insert into transactions table
-                var transactionSql = "INSERT INTO transactions (userID, total, transactionDate, status) VALUES (@UserID, @Total, @TransactionDate, @Status);";
+                var transactionSql = "INSERT INTO transactions (userID, total, transactionDate, status, paymentMethod) VALUES (@UserID, @Total, @TransactionDate, @Status, @PaymentMethod);";
                 await using var transactionCmd = new MySqlCommand(transactionSql, conn, (MySqlTransaction)tx);
                 transactionCmd.Parameters.AddWithValue("@UserID", userId);
                 transactionCmd.Parameters.AddWithValue("@Total", transaction.Total);
                 transactionCmd.Parameters.AddWithValue("@TransactionDate", transaction.TransactionDate);
                 transactionCmd.Parameters.AddWithValue("@Status", transaction.Status);
+                transactionCmd.Parameters.AddWithValue("@PaymentMethod", transaction.PaymentMethod ?? "Cash");
 
                 await transactionCmd.ExecuteNonQueryAsync();
                 int transactionId = (int)transactionCmd.LastInsertedId;
@@ -839,7 +860,7 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = @"SELECT t.transactionID, t.total, t.transactionDate, t.status,
+            var sql = @"SELECT t.transactionID, t.total, t.transactionDate, t.status, t.paymentMethod,
                         ti.productName, ti.quantity, ti.price, ti.size
                         FROM transactions t
                         LEFT JOIN transaction_items ti ON t.transactionID = ti.transactionID
@@ -860,7 +881,8 @@ namespace Coftea_Capstone.Models
                     TransactionId = reader.GetInt32("transactionID"),
                     Total = reader.GetDecimal("total"),
                     TransactionDate = reader.GetDateTime("transactionDate"),
-                    Status = reader.GetString("status")
+                    Status = reader.GetString("status"),
+                    PaymentMethod = reader.IsDBNull(reader.GetOrdinal("paymentMethod")) ? "Cash" : reader.GetString("paymentMethod")
                 };
 
                 if (!reader.IsDBNull(reader.GetOrdinal("productName")))
@@ -996,6 +1018,102 @@ namespace Coftea_Capstone.Models
         }
 
         // User Management
+        public async Task<UserInfoModel> GetUserByIdAsync(int userId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = "SELECT * FROM users WHERE id = @UserId LIMIT 1;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new UserInfoModel
+                    {
+                        ID = reader.GetInt32("id"),
+                        Email = reader.GetString("email"),
+                        FirstName = reader.GetString("firstName"),
+                        LastName = reader.GetString("lastName"),
+                        Password = reader.GetString("password"),
+                        IsAdmin = reader.GetBoolean("isAdmin"),
+                        Birthday = reader.GetDateTime("birthday"),
+                        PhoneNumber = reader.GetString("phoneNumber"),
+                        Address = reader.GetString("address"),
+                        Status = reader.GetString("status"),
+                        CanAccessInventory = reader.GetBoolean("can_access_inventory"),
+                        CanAccessSalesReport = reader.GetBoolean("can_access_sales_report"),
+                        Username = reader.GetString("username") ?? string.Empty,
+                        FullName = reader.GetString("fullName") ?? string.Empty,
+                        Department = reader.GetString("department") ?? string.Empty,
+                        Position = reader.GetString("position") ?? string.Empty,
+                        ProfileImage = reader.GetString("profileImage") ?? "usericon.png"
+                    };
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting user by ID: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<int> UpdateUserProfileAsync(int userId, string username, string email, string fullName, string phoneNumber, string profileImage, bool canAccessInventory, bool canAccessSalesReport)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = @"UPDATE users SET 
+                           username = @Username, 
+                           email = @Email, 
+                           fullName = @FullName, 
+                           phoneNumber = @PhoneNumber, 
+                           profileImage = @ProfileImage,
+                           can_access_inventory = @CanAccessInventory,
+                           can_access_sales_report = @CanAccessSalesReport
+                           WHERE id = @UserId;";
+                
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@Username", username);
+                cmd.Parameters.AddWithValue("@Email", email);
+                cmd.Parameters.AddWithValue("@FullName", fullName);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
+                cmd.Parameters.AddWithValue("@ProfileImage", profileImage);
+                cmd.Parameters.AddWithValue("@CanAccessInventory", canAccessInventory);
+                cmd.Parameters.AddWithValue("@CanAccessSalesReport", canAccessSalesReport);
+
+                return await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating user profile: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<int> UpdateUserProfileImageAsync(int userId, string profileImage)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = "UPDATE users SET profileImage = @ProfileImage WHERE id = @UserId;";
+                
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ProfileImage", profileImage);
+
+                return await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating user profile image: {ex.Message}");
+                throw;
+            }
+        }
+
         public async Task<string> RequestPasswordResetAsync(string email)
         {
             await using var conn = await GetOpenConnectionAsync();
@@ -1133,7 +1251,12 @@ namespace Coftea_Capstone.Models
                     can_access_sales_report BOOLEAN DEFAULT FALSE,
                     reset_token VARCHAR(255),
                     reset_expiry DATETIME,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    username VARCHAR(100),
+                    fullName VARCHAR(200),
+                    department VARCHAR(100),
+                    position VARCHAR(100),
+                    profileImage VARCHAR(255) DEFAULT 'usericon.png'
                 );
                 
                 CREATE TABLE IF NOT EXISTS products (
@@ -1193,6 +1316,7 @@ namespace Coftea_Capstone.Models
                     total DECIMAL(10,2) NOT NULL,
                     transactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                     status VARCHAR(50) DEFAULT 'completed',
+                    paymentMethod VARCHAR(50) DEFAULT 'Cash',
                     FOREIGN KEY (userID) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
                 );
                 
@@ -1229,7 +1353,15 @@ namespace Coftea_Capstone.Models
                 ALTER TABLE users 
                 ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'approved',
                 ADD COLUMN IF NOT EXISTS can_access_inventory BOOLEAN DEFAULT FALSE,
-                ADD COLUMN IF NOT EXISTS can_access_sales_report BOOLEAN DEFAULT FALSE;
+                ADD COLUMN IF NOT EXISTS can_access_sales_report BOOLEAN DEFAULT FALSE,
+                ADD COLUMN IF NOT EXISTS username VARCHAR(100),
+                ADD COLUMN IF NOT EXISTS fullName VARCHAR(200),
+                ADD COLUMN IF NOT EXISTS department VARCHAR(100),
+                ADD COLUMN IF NOT EXISTS position VARCHAR(100),
+                ADD COLUMN IF NOT EXISTS profileImage VARCHAR(255) DEFAULT 'usericon.png';
+                
+                ALTER TABLE transactions 
+                ADD COLUMN IF NOT EXISTS paymentMethod VARCHAR(50) DEFAULT 'Cash';
             ";
             await using var alterCmd = new MySqlCommand(alterTableSql, conn);
             await alterCmd.ExecuteNonQueryAsync();
@@ -1249,8 +1381,24 @@ namespace Coftea_Capstone.Models
                 SELECT * FROM (SELECT 'Straw' AS itemName, 200 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 50 AS minimumQuantity) AS tmp
                 WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Straw') LIMIT 1;
             ";
+            
+            // Fix Fruit series UoM from ml/L to kg/g
+            var fixFruitUoMSql = @"
+                UPDATE inventory 
+                SET unitOfMeasurement = CASE 
+                    WHEN unitOfMeasurement = 'ml' THEN 'g'
+                    WHEN unitOfMeasurement = 'L' THEN 'kg'
+                    ELSE unitOfMeasurement
+                END
+                WHERE itemCategory = 'Fruit/Soda' 
+                AND (unitOfMeasurement = 'ml' OR unitOfMeasurement = 'L');
+            ";
             await using var seedCmd = new MySqlCommand(seedSql, conn);
             await seedCmd.ExecuteNonQueryAsync();
+            
+            // Execute the Fruit UoM fix
+            await using var fixFruitCmd = new MySqlCommand(fixFruitUoMSql, conn);
+            await fixFruitCmd.ExecuteNonQueryAsync();
         }
 
         // Update user access flags

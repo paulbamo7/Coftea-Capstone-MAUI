@@ -103,15 +103,41 @@
                             </VerticalStackLayout>
                         </Frame>
 
-                        <Frame BackgroundColor="#F5E6D8" CornerRadius="12" HeightRequest="110" Padding="12" HasShadow="True">
-                            <VerticalStackLayout>
-                                <Label Text="Trending Today" FontAttributes="Bold" FontSize="14" TextColor="#5B4F45"/>
-                                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="4">
-                                    <Label Text="{Binding TrendingToday}" FontSize="20" TextColor="#5B4F45"/>
-                                    <Label Text="{Binding TrendingPercentage, StringFormat='{0:+0%;-0%;0%}'}" FontSize="16" TextColor="Green" Grid.Column="1"/>
+                        <!-- Payment Method Breakdown -->
+                        <Grid RowDefinitions="Auto,Auto,Auto" Spacing="8">
+                            <!-- Cash Payment -->
+                            <Frame BackgroundColor="#E8F5E8" CornerRadius="12" HeightRequest="80" Padding="12" HasShadow="True">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Label Text="💵" FontSize="24" VerticalOptions="Center" Grid.Column="0"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                        <Label Text="Cash" FontAttributes="Bold" FontSize="14" TextColor="#2E7D32"/>
+                                        <Label Text="{Binding CashTotal, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="#2E7D32" FontAttributes="Bold"/>
+                                    </VerticalStackLayout>
                                 </Grid>
-                            </VerticalStackLayout>
-                        </Frame>
+                            </Frame>
+
+                            <!-- GCash Payment -->
+                            <Frame BackgroundColor="#E3F2FD" CornerRadius="12" HeightRequest="80" Padding="12" HasShadow="True">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Label Text="📱" FontSize="24" VerticalOptions="Center" Grid.Column="0"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                        <Label Text="GCash" FontAttributes="Bold" FontSize="14" TextColor="#1976D2"/>
+                                        <Label Text="{Binding GCashTotal, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="#1976D2" FontAttributes="Bold"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Frame>
+
+                            <!-- Bank Payment -->
+                            <Frame BackgroundColor="#F3E5F5" CornerRadius="12" HeightRequest="80" Padding="12" HasShadow="True">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Label Text="🏦" FontSize="24" VerticalOptions="Center" Grid.Column="0"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                        <Label Text="Bank" FontAttributes="Bold" FontSize="14" TextColor="#7B1FA2"/>
+                                        <Label Text="{Binding BankTotal, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="#7B1FA2" FontAttributes="Bold"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Frame>
+                        </Grid>
                     </VerticalStackLayout>
 
                     <!-- Top 3 Picks Today - Pie Chart -->

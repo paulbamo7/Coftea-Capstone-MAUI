@@ -44,6 +44,15 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private bool hasError = false;
 
+        [ObservableProperty]
+        private bool isImagePickerVisible = false;
+
+        [ObservableProperty]
+        private bool canAccessInventory = false;
+
+        [ObservableProperty]
+        private bool canAccessSalesReport = false;
+
         public ProfilePopupViewModel()
         {
             LoadUserProfile();
@@ -95,12 +104,19 @@ namespace Coftea_Capstone.ViewModel.Controls
                     App.CurrentUser.Email = Email;
                     App.CurrentUser.FullName = FullName;
                     App.CurrentUser.PhoneNumber = PhoneNumber;
-                    App.CurrentUser.Department = Department;
-                    App.CurrentUser.Position = Position;
+                    App.CurrentUser.ProfileImage = ProfileImage;
+                    App.CurrentUser.CanAccessInventory = CanAccessInventory;
+                    App.CurrentUser.CanAccessSalesReport = CanAccessSalesReport;
                 }
+
+                // Save to database
+                await SaveProfileToDatabase();
 
                 StatusMessage = "Profile saved successfully!";
                 HasError = false;
+
+                // Refresh profile display across the app
+                RefreshProfileDisplay();
 
                 // Close popup after successful save
                 await Task.Delay(1000);
@@ -118,20 +134,15 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+
         [RelayCommand]
-        private async Task ChangePassword()
+        private void ToggleImagePicker()
         {
-            try
+            IsImagePickerVisible = !IsImagePickerVisible;
+            if (IsImagePickerVisible)
             {
-                // This would typically open a password change dialog
-                // For now, we'll just show a message
-                StatusMessage = "Password change feature coming soon!";
+                StatusMessage = "Select a new profile image";
                 HasError = false;
-            }
-            catch (Exception ex)
-            {
-                StatusMessage = $"Error: {ex.Message}";
-                HasError = true;
             }
         }
 
@@ -140,19 +151,86 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
-                // This would typically open an image picker
-                // For now, we'll just show a message
-                StatusMessage = "Profile image change feature coming soon!";
+                IsLoading = true;
                 HasError = false;
+
+                // Use the device's file picker to select an image
+                var customFileType = new FilePickerFileType(
+                    new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        { DevicePlatform.iOS, new[] { "public.image" } },
+                        { DevicePlatform.Android, new[] { "image/*" } },
+                        { DevicePlatform.WinUI, new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" } },
+                        { DevicePlatform.macOS, new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" } }
+                    });
+
+                var options = new PickOptions
+                {
+                    PickerTitle = "Select Profile Image",
+                    FileTypes = customFileType
+                };
+
+                var result = await FilePicker.Default.PickAsync(options);
+                if (result != null)
+                {
+                    // Copy the selected image to app data directory
+                    var fileName = $"profile_{Guid.NewGuid()}{Path.GetExtension(result.FileName)}";
+                    var targetPath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                    
+                    using var stream = await result.OpenReadAsync();
+                    using var fileStream = File.Create(targetPath);
+                    await stream.CopyToAsync(fileStream);
+                    
+                    ProfileImage = fileName;
+
+                    // Update the global user profile
+                    if (App.CurrentUser != null)
+                    {
+                        App.CurrentUser.ProfileImage = ProfileImage;
+                    }
+
+                    // Save to database
+                    await SaveProfileImageToDatabase();
+
+                    StatusMessage = "Profile image updated successfully!";
+                    HasError = false;
+                    IsImagePickerVisible = false;
+
+                    // Refresh profile display across the app
+                    RefreshProfileDisplay();
+
+                    await Task.Delay(2000);
+                    StatusMessage = string.Empty;
+                }
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error: {ex.Message}";
+                StatusMessage = $"Error changing profile image: {ex.Message}";
                 HasError = true;
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        private void LoadUserProfile()
+        private async Task SaveProfileImageToDatabase()
+        {
+            try
+            {
+                var database = new Models.Database();
+                var currentUserId = App.CurrentUser?.ID ?? 1;
+                
+                // Update user profile image in database
+                await database.UpdateUserProfileImageAsync(currentUserId, ProfileImage);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving profile image to database: {ex.Message}");
+            }
+        }
+
+        private async void LoadUserProfile()
         {
             try
             {
@@ -163,20 +241,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                     Email = App.CurrentUser.Email ?? string.Empty;
                     FullName = App.CurrentUser.FullName ?? string.Empty;
                     PhoneNumber = App.CurrentUser.PhoneNumber ?? string.Empty;
-                    Department = App.CurrentUser.Department ?? string.Empty;
-                    Position = App.CurrentUser.Position ?? string.Empty;
                     IsAdmin = App.CurrentUser.IsAdmin;
+                    ProfileImage = App.CurrentUser.ProfileImage ?? "usericon.png";
+                    CanAccessInventory = App.CurrentUser.CanAccessInventory;
+                    CanAccessSalesReport = App.CurrentUser.CanAccessSalesReport;
                 }
                 else
                 {
-                    // Load from preferences as fallback
-                    Username = Preferences.Get("Username", string.Empty);
-                    Email = Preferences.Get("Email", string.Empty);
-                    FullName = Preferences.Get("FullName", string.Empty);
-                    PhoneNumber = Preferences.Get("PhoneNumber", string.Empty);
-                    Department = Preferences.Get("Department", string.Empty);
-                    Position = Preferences.Get("Position", string.Empty);
-                    IsAdmin = Preferences.Get("IsAdmin", false);
+                    // Load from database as fallback
+                    await LoadUserFromDatabase();
                 }
 
                 StatusMessage = string.Empty;
@@ -190,6 +263,33 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+        private async Task LoadUserFromDatabase()
+        {
+            try
+            {
+                var database = new Models.Database();
+                var currentUserId = App.CurrentUser?.ID ?? 1; // Default to user ID 1 if not set
+                
+                // Load user details from database
+                var user = await database.GetUserByIdAsync(currentUserId);
+                if (user != null)
+                {
+                    Username = user.Username ?? string.Empty;
+                    Email = user.Email ?? string.Empty;
+                    FullName = user.FullName ?? string.Empty;
+                    PhoneNumber = user.PhoneNumber ?? string.Empty;
+                    IsAdmin = user.IsAdmin;
+                    ProfileImage = user.ProfileImage ?? "usericon.png";
+                    CanAccessInventory = user.CanAccessInventory;
+                    CanAccessSalesReport = user.CanAccessSalesReport;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading user from database: {ex.Message}");
+            }
+        }
+
         private async Task SaveUserProfileToStorage()
         {
             try
@@ -199,9 +299,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 Preferences.Set("Email", Email);
                 Preferences.Set("FullName", FullName);
                 Preferences.Set("PhoneNumber", PhoneNumber);
-                Preferences.Set("Department", Department);
-                Preferences.Set("Position", Position);
                 Preferences.Set("IsAdmin", IsAdmin);
+                Preferences.Set("ProfileImage", ProfileImage);
+                Preferences.Set("CanAccessInventory", CanAccessInventory);
+                Preferences.Set("CanAccessSalesReport", CanAccessSalesReport);
 
                 System.Diagnostics.Debug.WriteLine("Profile saved to preferences successfully");
             }
@@ -212,12 +313,52 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+        private async Task SaveProfileToDatabase()
+        {
+            try
+            {
+                var database = new Models.Database();
+                var currentUserId = App.CurrentUser?.ID ?? 1;
+                
+                // Update user profile in database
+                await database.UpdateUserProfileAsync(currentUserId, Username, Email, FullName, PhoneNumber, ProfileImage, CanAccessInventory, CanAccessSalesReport);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving profile to database: {ex.Message}");
+                throw;
+            }
+        }
+
         [RelayCommand]
         private void ResetProfile()
         {
             LoadUserProfile();
             StatusMessage = "Profile reset to saved values";
             HasError = false;
+        }
+
+        // Method to refresh profile display across the app
+        public void RefreshProfileDisplay()
+        {
+            try
+            {
+                // Trigger property change notifications
+                OnPropertyChanged(nameof(Username));
+                OnPropertyChanged(nameof(Email));
+                OnPropertyChanged(nameof(FullName));
+                OnPropertyChanged(nameof(PhoneNumber));
+                OnPropertyChanged(nameof(IsAdmin));
+                OnPropertyChanged(nameof(ProfileImage));
+                OnPropertyChanged(nameof(CanAccessInventory));
+                OnPropertyChanged(nameof(CanAccessSalesReport));
+                
+                System.Diagnostics.Debug.WriteLine("Profile display refreshed");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error refreshing profile display: {ex.Message}");
+            }
         }
     }
 }
