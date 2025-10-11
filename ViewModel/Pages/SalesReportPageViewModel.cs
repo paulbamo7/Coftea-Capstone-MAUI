@@ -173,6 +173,8 @@ namespace Coftea_Capstone.ViewModel
 
         private async Task LoadRecentOrdersAsync()
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            
             try
             {
                 // Get recent transactions from today
@@ -189,6 +191,12 @@ namespace Coftea_Capstone.ViewModel
                 RecentOrders = new ObservableCollection<TransactionHistoryModel>(sortedTransactions);
                 RecentOrdersCount = sortedTransactions.Count;
             }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("⏰ LoadRecentOrdersAsync timeout");
+                RecentOrders = new ObservableCollection<TransactionHistoryModel>();
+                RecentOrdersCount = 0;
+            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load recent orders: {ex.Message}");
@@ -199,6 +207,8 @@ namespace Coftea_Capstone.ViewModel
 
         private async Task CalculatePaymentMethodTotalsAsync()
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            
             try
             {
                 // Get today's transactions
@@ -221,6 +231,13 @@ namespace Coftea_Capstone.ViewModel
 
                 System.Diagnostics.Debug.WriteLine($"Payment totals - Cash: {CashTotal}, GCash: {GCashTotal}, Bank: {BankTotal}");
             }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("⏰ CalculatePaymentMethodTotalsAsync timeout");
+                CashTotal = 0;
+                GCashTotal = 0;
+                BankTotal = 0;
+            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to calculate payment method totals: {ex.Message}");
@@ -237,6 +254,8 @@ namespace Coftea_Capstone.ViewModel
 
         public async Task LoadDataAsync()
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            
             try
             {
                 IsLoading = true;
@@ -288,10 +307,24 @@ namespace Coftea_Capstone.ViewModel
 
                 ApplyCategoryFilter();
             }
+            catch (OperationCanceledException)
+            {
+                HasError = true;
+                StatusMessage = "Loading timeout. Please try again.";
+                System.Diagnostics.Debug.WriteLine("⏰ Sales Report - LoadDataAsync timeout");
+                
+                // Set fallback data
+                SetFallbackData();
+            }
             catch (Exception ex)
             {
                 HasError = true;
                 StatusMessage = $"Failed to load sales reports: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"❌ Sales Report error: {ex.Message}");
+                
+                // Set fallback data
+                SetFallbackData();
+                
                 GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load sales reports: {ex.Message}");
             }
             finally
@@ -455,6 +488,39 @@ namespace Coftea_Capstone.ViewModel
         {
             // Update combined collections when category changes
             UpdateCombinedCollections();
+        }
+
+        private void SetFallbackData()
+        {
+            // Set fallback data when loading fails
+            MostBoughtToday = "No data available";
+            TrendingToday = "No data available";
+            TrendingPercentage = 0;
+            TotalSalesToday = 0;
+            TotalOrdersToday = 0;
+            TotalOrdersThisWeek = 0;
+            ActiveDays = 0;
+            
+            // Set empty collections
+            TopCoffeeToday = new ObservableCollection<TrendItem>();
+            TopMilkteaToday = new ObservableCollection<TrendItem>();
+            TopCoffeeWeekly = new ObservableCollection<TrendItem>();
+            TopMilkteaWeekly = new ObservableCollection<TrendItem>();
+            TopItemsToday = new ObservableCollection<TrendItem>();
+            TopItemsWeekly = new ObservableCollection<TrendItem>();
+            TopItemsMonthly = new ObservableCollection<TrendItem>();
+            
+            // Set payment totals to zero
+            CashTotal = 0;
+            GCashTotal = 0;
+            BankTotal = 0;
+            
+            // Update combined collections
+            UpdateCombinedCollections();
+            
+            // Notify property changes
+            OnPropertyChanged(nameof(TopCoffeeTodayOrders));
+            OnPropertyChanged(nameof(TopMilkteaTodayOrders));
         }
     }
 }

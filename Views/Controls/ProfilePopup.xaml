@@ -156,17 +156,23 @@
                                 <!-- Inventory Access (for non-admin users) -->
                                 <VerticalStackLayout Spacing="5" IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}">
                                     <Label Text="Inventory Access" FontSize="14" FontAttributes="Bold" TextColor="Black" />
-                                    <Switch IsToggled="{Binding CanAccessInventory}" 
-                                            OnColor="#5B4F45" 
-                                            ThumbColor="White" />
+                                    <Frame BackgroundColor="#E9E1D9" CornerRadius="10" Padding="10">
+                                        <Label Text="{Binding CanAccessInventory, StringFormat='Access: {0}'}" 
+                                               FontSize="14" 
+                                               TextColor="Black" 
+                                               HorizontalOptions="Center" />
+                                    </Frame>
                                 </VerticalStackLayout>
 
                                 <!-- Sales Report Access (for non-admin users) -->
                                 <VerticalStackLayout Spacing="5" IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}">
                                     <Label Text="Sales Report Access" FontSize="14" FontAttributes="Bold" TextColor="Black" />
-                                    <Switch IsToggled="{Binding CanAccessSalesReport}" 
-                                            OnColor="#5B4F45" 
-                                            ThumbColor="White" />
+                                    <Frame BackgroundColor="#E9E1D9" CornerRadius="10" Padding="10">
+                                        <Label Text="{Binding CanAccessSalesReport, StringFormat='Access: {0}'}" 
+                                               FontSize="14" 
+                                               TextColor="Black" 
+                                               HorizontalOptions="Center" />
+                                    </Frame>
                                 </VerticalStackLayout>
                             </VerticalStackLayout>
                         </Frame>

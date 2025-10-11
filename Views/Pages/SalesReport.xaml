@@ -188,7 +188,7 @@
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <Label Text="{Binding Name}" FontSize="12"/>
+                                            <Label Text="{Binding Name}" FontSize="12" TextColor="Gray"/>
                                             <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Gray" Grid.Column="1"/>
                                         </Grid>
                                     </DataTemplate>
@@ -224,7 +224,7 @@
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <Label Text="{Binding Name}" FontSize="12"/>
+                                            <Label Text="{Binding Name}" FontSize="12" TextColor="Gray"/>
                                             <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Gray" Grid.Column="1"/>
                                         </Grid>
                                     </DataTemplate>

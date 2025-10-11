@@ -40,10 +40,15 @@ namespace Coftea_Capstone.Services
 
         public async Task<SalesReportSummary> GetSummaryAsync(DateTime startDate, DateTime endDate)
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔍 SalesReportService: Getting summary from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+                
                 // Get all transactions for the date range
                 var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                System.Diagnostics.Debug.WriteLine($"📊 Found {transactions.Count} transactions");
                 
                 // Calculate basic metrics
                 var totalSales = transactions.Sum(t => t.Total);
@@ -52,6 +57,7 @@ namespace Coftea_Capstone.Services
 
                 // Get top products (increase limit to ensure we get comprehensive data)
                 var topProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 50);
+                System.Diagnostics.Debug.WriteLine($"🏆 Found {topProducts.Count} top products");
                 
                 // Separate by category
                 var coffeeProducts = new List<TrendItem>();
@@ -116,6 +122,8 @@ namespace Coftea_Capstone.Services
                 // Calculate trending item based on recent demand patterns
                 var trending = await GetTrendingItemAsync(startDate, endDate);
 
+                System.Diagnostics.Debug.WriteLine($"✅ SalesReportService: Successfully processed data - Most bought: {mostBought.Key}, Total sales: {totalSales:C}");
+
                 return new SalesReportSummary
                 {
                     ActiveDays = activeDays,
@@ -132,14 +140,36 @@ namespace Coftea_Capstone.Services
                     Reports = new List<SalesReportPageModel>()
                 };
             }
-            catch (Exception ex)
+            catch (OperationCanceledException)
             {
-                // Return empty data on error
+                System.Diagnostics.Debug.WriteLine("⏰ SalesReportService: Operation canceled/timeout");
                 return new SalesReportSummary
                 {
                     ActiveDays = 0,
-                    MostBoughtToday = "Error loading data",
-                    TrendingToday = "Error loading data",
+                    MostBoughtToday = "No data available",
+                    TrendingToday = "No data available",
+                    TrendingPercentage = 0,
+                    TotalSalesToday = 0,
+                    TotalOrdersToday = 0,
+                    TotalOrdersThisWeek = 0,
+                    TopCoffeeToday = new List<TrendItem>(),
+                    TopMilkteaToday = new List<TrendItem>(),
+                    TopCoffeeWeekly = new List<TrendItem>(),
+                    TopMilkteaWeekly = new List<TrendItem>(),
+                    Reports = new List<SalesReportPageModel>()
+                };
+            }
+            catch (Exception ex)
+            {
+                // Return empty data on error
+                System.Diagnostics.Debug.WriteLine($"❌ SalesReportService error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                return new SalesReportSummary
+                {
+                    ActiveDays = 0,
+                    MostBoughtToday = "No data available",
+                    TrendingToday = "No data available",
+                    TrendingPercentage = 0,
                     TotalSalesToday = 0,
                     TotalOrdersToday = 0,
                     TotalOrdersThisWeek = 0,
@@ -262,6 +292,7 @@ namespace Coftea_Capstone.Services
             };
             return Task.FromResult(summary);
         }
+
     }
 }
 

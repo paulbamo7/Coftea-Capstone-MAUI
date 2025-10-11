@@ -109,7 +109,7 @@ namespace Coftea_Capstone.Models
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
                     // 10.0.2.2 = Android emulator loopback to host; 10.0.3.2 = Genymotion
-                    return "192.168.1.7";
+                    return "192.168.1.7" /*, "192.168.0.202"*/;
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
@@ -829,8 +829,8 @@ namespace Coftea_Capstone.Models
 
             try
             {
-                // Get current user ID or use default
-                int userId = App.CurrentUser?.ID ?? 1;
+                // Get current user ID with proper validation
+                int userId = await GetValidUserIdAsync(conn, tx);
                 
                 // Insert into transactions table
                 var transactionSql = "INSERT INTO transactions (userID, total, transactionDate, status, paymentMethod) VALUES (@UserID, @Total, @TransactionDate, @Status, @PaymentMethod);";
@@ -867,6 +867,97 @@ namespace Coftea_Capstone.Models
                 await tx.RollbackAsync();
                 System.Diagnostics.Debug.WriteLine($"Transaction save error: {ex.Message}");
                 throw;
+            }
+        }
+
+        private async Task<int> GetValidUserIdAsync(MySqlConnection conn, MySqlTransaction tx)
+        {
+            try
+            {
+                // First, try to use the current user's ID if available
+                if (App.CurrentUser?.ID > 0)
+                {
+                    // Verify the user exists in the database
+                    var checkSql = "SELECT id FROM users WHERE id = @UserId LIMIT 1;";
+                    await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
+                    checkCmd.Parameters.AddWithValue("@UserId", App.CurrentUser.ID);
+                    
+                    var result = await checkCmd.ExecuteScalarAsync();
+                    if (result != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"✅ Using current user ID: {App.CurrentUser.ID}");
+                        return App.CurrentUser.ID;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Current user ID {App.CurrentUser.ID} not found in database");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ App.CurrentUser is null or has invalid ID");
+                }
+
+                // Fallback: Get the first available user ID
+                var fallbackSql = "SELECT id FROM users WHERE status = 'approved' ORDER BY id ASC LIMIT 1;";
+                await using var fallbackCmd = new MySqlCommand(fallbackSql, conn, tx);
+                var fallbackResult = await fallbackCmd.ExecuteScalarAsync();
+                
+                if (fallbackResult != null)
+                {
+                    int fallbackUserId = Convert.ToInt32(fallbackResult);
+                    System.Diagnostics.Debug.WriteLine($"✅ Using fallback user ID: {fallbackUserId}");
+                    return fallbackUserId;
+                }
+
+                // Last resort: Create a default system user if no users exist
+                System.Diagnostics.Debug.WriteLine($"⚠️ No users found, creating default system user");
+                var createUserSql = @"INSERT INTO users (firstName, lastName, email, password, isAdmin, status) 
+                                     VALUES ('System', 'User', 'system@coftea.com', '$2a$11$default', 1, 'approved');";
+                await using var createCmd = new MySqlCommand(createUserSql, conn, tx);
+                await createCmd.ExecuteNonQueryAsync();
+                
+                int newUserId = (int)createCmd.LastInsertedId;
+                System.Diagnostics.Debug.WriteLine($"✅ Created default system user with ID: {newUserId}");
+                return newUserId;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting valid user ID: {ex.Message}");
+                // Return 1 as absolute fallback (will be handled by foreign key constraint)
+                return 1;
+            }
+        }
+
+        private async Task EnsureDefaultUserExistsAsync(MySqlConnection conn)
+        {
+            try
+            {
+                // Check if any users exist
+                var checkSql = "SELECT COUNT(*) FROM users;";
+                await using var checkCmd = new MySqlCommand(checkSql, conn);
+                var userCount = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+                
+                if (userCount == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ No users found, creating default admin user");
+                    
+                    // Create a default admin user
+                    var createUserSql = @"INSERT INTO users (firstName, lastName, email, password, isAdmin, status, can_access_inventory, can_access_sales_report) 
+                                         VALUES ('Admin', 'User', 'admin@coftea.com', '$2a$11$default', 1, 'approved', 1, 1);";
+                    await using var createCmd = new MySqlCommand(createUserSql, conn);
+                    await createCmd.ExecuteNonQueryAsync();
+                    
+                    System.Diagnostics.Debug.WriteLine("✅ Default admin user created successfully");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"✅ Found {userCount} existing users");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error ensuring default user exists: {ex.Message}");
             }
         }
 
@@ -1397,6 +1488,9 @@ namespace Coftea_Capstone.Models
             ";
             await using var alterCmd = new MySqlCommand(alterTableSql, conn);
             await alterCmd.ExecuteNonQueryAsync();
+
+            // Ensure at least one user exists to prevent foreign key constraint errors
+            await EnsureDefaultUserExistsAsync(conn);
 
             // Seed default cups and straws if not present
             var seedSql = @"

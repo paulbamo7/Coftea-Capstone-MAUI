@@ -226,10 +226,24 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             catch (System.Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert(
-                    "Error",
-                    $"Failed to save transaction: {ex.Message}",
-                    "OK");
+                System.Diagnostics.Debug.WriteLine($"❌ PaymentPopupViewModel error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                
+                string errorMessage = "Failed to save transaction";
+                if (ex.Message.Contains("foreign key constraint"))
+                {
+                    errorMessage = "Database error: User session invalid. Please log in again.";
+                }
+                else if (ex.Message.Contains("Connection"))
+                {
+                    errorMessage = "Database connection error. Please check your network.";
+                }
+                else
+                {
+                    errorMessage = $"Failed to save transaction: {ex.Message}";
+                }
+                
+                await Application.Current.MainPage.DisplayAlert("Error", errorMessage, "OK");
             }
             return null;
         }
