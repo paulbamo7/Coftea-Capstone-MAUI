@@ -47,30 +47,48 @@ namespace Coftea_Capstone.Models
         {
             try
             {
+                // Use the automatic IP detection system instead of hardcoded values
+                var detectedIPs = Services.NetworkDetectionService.GetLocalIPAddresses();
+                var primaryIP = Services.NetworkDetectionService.GetPrimaryIPAddress();
+                
+                var hosts = new List<string>();
+                
+                // Add primary IP first if available
+                if (!string.IsNullOrEmpty(primaryIP))
+                {
+                    hosts.Add(primaryIP);
+                }
+                
+                // Add all detected IPs
+                hosts.AddRange(detectedIPs);
+                
+                // Platform-specific fallbacks
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    // 10.0.2.2 = Android emulator loopback to host; 10.0.3.2 = Genymotion
-                    return new string[] { "10.0.2.2", "10.0.3.2", "192.168.1.6", "192.168.1.7", "localhost" };
+                    // Android emulator loopback addresses
+                    hosts.Add("10.0.2.2"); // Android emulator default
+                    hosts.Add("10.0.3.2"); // Genymotion
                 }
-
+                
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
                 {
-                    // iOS simulator can reach host via localhost; real devices via LAN IPs
-                    return new string[] { "127.0.0.1", "localhost", "192.168.1.6", "192.168.1.7" };
+                    // iOS simulator can reach host via localhost
+                    hosts.Add("127.0.0.1");
                 }
-
-                if (DeviceInfo.Platform == DevicePlatform.WinUI || DeviceInfo.Platform == DevicePlatform.macOS || DeviceInfo.Platform == DevicePlatform.MacCatalyst)
-                {
-                    return new string[] { "localhost", "127.0.0.1" };
-                }
+                
+                // Always add localhost as final fallback
+                hosts.Add("localhost");
+                hosts.Add("127.0.0.1");
+                
+                // Remove duplicates and return
+                return hosts.Distinct().ToArray();
             }
-            catch
+            catch (Exception ex)
             {
-                // If DeviceInfo is unavailable (e.g., during tests), fall back to localhost
+                System.Diagnostics.Debug.WriteLine($"Error getting default hosts for platform: {ex.Message}");
+                // Fallback for other/unknown platforms or errors
+                return new string[] { "localhost", "127.0.0.1" };
             }
-
-            // Fallback for other/unknown platforms
-            return new string[] { "localhost", "127.0.0.1" };
         }
 
         // Ensure server is reachable and the database exists; create DB if missing

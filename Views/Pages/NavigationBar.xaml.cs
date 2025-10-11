@@ -8,6 +8,10 @@ namespace Coftea_Capstone.Views.Pages;
 
 public partial class NavigationBar : ContentView
 {
+    private bool _isNavigating = false;
+    private DateTime _lastNavigationTime = DateTime.MinValue;
+    private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(500); // 500ms cooldown
+
     public NavigationBar()
     {
         InitializeComponent();
@@ -63,71 +67,184 @@ public partial class NavigationBar : ContentView
             SalesReportButton.Background = active;
         }
     }
+
+    private bool CanNavigate()
+    {
+        // Check if we're already navigating
+        if (_isNavigating)
+        {
+            System.Diagnostics.Debug.WriteLine("🚫 Navigation blocked: Already navigating");
+            return false;
+        }
+
+        // Check cooldown period
+        var timeSinceLastNavigation = DateTime.Now - _lastNavigationTime;
+        if (timeSinceLastNavigation < _navigationCooldown)
+        {
+            System.Diagnostics.Debug.WriteLine($"🚫 Navigation blocked: Cooldown active ({timeSinceLastNavigation.TotalMilliseconds:F0}ms remaining)");
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<bool> StartNavigationAsync()
+    {
+        if (!CanNavigate())
+            return false;
+
+        _isNavigating = true;
+        _lastNavigationTime = DateTime.Now;
+        
+        // Disable all navigation buttons to prevent multiple clicks
+        DisableNavigationButtons();
+        
+        System.Diagnostics.Debug.WriteLine("✅ Navigation started");
+        return true;
+    }
+
+    private void EndNavigation()
+    {
+        _isNavigating = false;
+        System.Diagnostics.Debug.WriteLine("✅ Navigation completed");
+        
+        // Re-enable all navigation buttons
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            HomeButton.IsEnabled = true;
+            POSButton.IsEnabled = true;
+            InventoryButton.IsEnabled = true;
+            SalesReportButton.IsEnabled = true;
+        });
+    }
+
+    private void DisableNavigationButtons()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            HomeButton.IsEnabled = false;
+            POSButton.IsEnabled = false;
+            InventoryButton.IsEnabled = false;
+            SalesReportButton.IsEnabled = false;
+        });
+    }
     private async void POSButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return; // do nothing if logged out
 
-        var nav = Application.Current.MainPage as NavigationPage;
-        if (nav == null) return;
+        if (!await StartNavigationAsync()) return;
 
-        // Replace current page with POS using animation
-        await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false);
-        UpdateActiveIndicator();
+        try
+        {
+            var nav = Application.Current.MainPage as NavigationPage;
+            if (nav == null) return;
+
+            // Replace current page with POS using animation
+            await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false);
+            UpdateActiveIndicator();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
+        }
+        finally
+        {
+            EndNavigation();
+        }
     }
 
     private async void HomeButton_Clicked(object sender, EventArgs e)
     {
-        var nav = Application.Current.MainPage as NavigationPage;
-        if (nav == null) return;
+        if (!await StartNavigationAsync()) return;
 
-        if (App.CurrentUser == null)
+        try
         {
-        await nav.ReplaceWithAnimationAsync(new LoginPage(), animated: false);
-            return;
-        }
+            var nav = Application.Current.MainPage as NavigationPage;
+            if (nav == null) return;
 
-        await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false);
-        UpdateActiveIndicator();
+            if (App.CurrentUser == null)
+            {
+                await nav.ReplaceWithAnimationAsync(new LoginPage(), animated: false);
+                return;
+            }
+
+            await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false);
+            UpdateActiveIndicator();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
+        }
+        finally
+        {
+            EndNavigation();
+        }
     }
 
     private async void InventoryButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return;
 
-        // Admin users (ID = 1) always have access, or check individual permission
-        bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessInventory ?? false);
-        
-        if (!hasAccess)
+        if (!await StartNavigationAsync()) return;
+
+        try
         {
-            await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Inventory.", "OK");
-            return;
+            // Admin users (ID = 1) always have access, or check individual permission
+            bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessInventory ?? false);
+            
+            if (!hasAccess)
+            {
+                await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Inventory.", "OK");
+                return;
+            }
+
+            var nav = Application.Current.MainPage as NavigationPage;
+            if (nav == null) return;
+
+            await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false);
+            UpdateActiveIndicator();
         }
-
-        var nav = Application.Current.MainPage as NavigationPage;
-        if (nav == null) return;
-
-        await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false);
-        UpdateActiveIndicator();
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
+        }
+        finally
+        {
+            EndNavigation();
+        }
     }
 
     private async void SalesReportButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return;
 
-        // Admin users (ID = 1) always have access, or check individual permission
-        bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessSalesReport ?? false);
-        
-        if (!hasAccess)
+        if (!await StartNavigationAsync()) return;
+
+        try
         {
-            await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Sales Reports.", "OK");
-            return;
+            // Admin users (ID = 1) always have access, or check individual permission
+            bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessSalesReport ?? false);
+            
+            if (!hasAccess)
+            {
+                await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Sales Reports.", "OK");
+                return;
+            }
+
+            var nav = Application.Current.MainPage as NavigationPage;
+            if (nav == null) return;
+
+            await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false);
+            UpdateActiveIndicator();
         }
-
-        var nav = Application.Current.MainPage as NavigationPage;
-        if (nav == null) return;
-
-        await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false);
-        UpdateActiveIndicator();
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
+        }
+        finally
+        {
+            EndNavigation();
+        }
     }
 
 

@@ -105,5 +105,26 @@ namespace Coftea_Capstone.Services
         {
             return await NetworkDetectionService.GetPossibleHostsAsync();
         }
+
+        // Get the current PC's primary IP address
+        public static string GetCurrentPCIPAddress()
+        {
+            return NetworkDetectionService.GetCurrentPCIPAddress();
+        }
+
+        // Set the database host to the current PC's IP address
+        public static void SetDatabaseHostToCurrentPC()
+        {
+            var currentIP = GetCurrentPCIPAddress();
+            if (!string.IsNullOrEmpty(currentIP))
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 Setting database host to current PC IP: {currentIP}");
+                SetDatabaseHost(currentIP);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("❌ Could not detect current PC IP address");
+            }
+        }
     }
 }

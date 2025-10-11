@@ -205,65 +205,98 @@ namespace Coftea_Capstone.Services
 
             try
             {
-                // For physical devices, prioritize network IPs over localhost
-                if (DeviceInfo.DeviceType == DeviceType.Physical)
+                // Platform-specific prioritization
+                if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    // Get local IP addresses first for physical devices
-                    var localIPs = GetLocalIPAddresses();
-                    hosts.AddRange(localIPs);
-
-                    // Try common development server IPs
-                    var commonIPs = new[]
-                    {
-                        "192.168.1.4",    // Your current hardcoded IP
-                        "192.168.254.104", // Your email service IP
-                        "192.168.0.1",
-                        "192.168.1.1",
-                        "10.0.0.1",
-                        "172.16.0.1"
-                    };
-
-                    hosts.AddRange(commonIPs);
+                    // For Android emulators, use 10.0.2.2 which maps to host localhost
+                    hosts.Add("10.0.2.2"); // Android emulator default - maps to host localhost
+                    hosts.Add("10.0.3.2"); // Genymotion
+                    System.Diagnostics.Debug.WriteLine("✅ Android emulator detected - using 10.0.2.2");
                     
-                    // Add localhost as last resort for physical devices
-                    hosts.Add("localhost");
+                    // Add host machine IPs as fallbacks
+                    var primaryIP = GetPrimaryIPAddress();
+                    if (!string.IsNullOrEmpty(primaryIP))
+                    {
+                        hosts.Add(primaryIP);
+                        System.Diagnostics.Debug.WriteLine($"✅ Added primary IP: {primaryIP}");
+                    }
+                }
+                else if (DeviceInfo.Platform == DevicePlatform.iOS)
+                {
+                    // For iOS simulator, use localhost
                     hosts.Add("127.0.0.1");
+                    hosts.Add("localhost");
+                    System.Diagnostics.Debug.WriteLine("✅ iOS simulator detected - using localhost");
                 }
                 else
                 {
-                    // For emulators/simulators, prioritize localhost
-                    hosts.Add("localhost");
-                    hosts.Add("127.0.0.1");
-                    
-                    // Get local IP addresses
+                    // For Windows/macOS, use host machine IPs
+                    var primaryIP = GetPrimaryIPAddress();
+                    if (!string.IsNullOrEmpty(primaryIP))
+                    {
+                        hosts.Add(primaryIP);
+                        System.Diagnostics.Debug.WriteLine($"✅ Added primary IP: {primaryIP}");
+                    }
+
+                    // Get all local IP addresses
                     var localIPs = GetLocalIPAddresses();
                     hosts.AddRange(localIPs);
-
-                    // Try common development server IPs
-                    var commonIPs = new[]
-                    {
-                        "192.168.1.4",    // Your current hardcoded IP
-                        "192.168.254.104", // Your email service IP
-                        "192.168.0.1",
-                        "192.168.1.1",
-                        "10.0.0.1",
-                        "172.16.0.1"
-                    };
-
-                    hosts.AddRange(commonIPs);
                 }
 
+                // Always add localhost as final fallback
+                hosts.Add("localhost");
+                hosts.Add("127.0.0.1");
+
                 // Remove duplicates and return
-                return hosts.Distinct().ToList();
+                var uniqueHosts = hosts.Distinct().ToList();
+                System.Diagnostics.Debug.WriteLine($"🔍 All possible hosts: {string.Join(", ", uniqueHosts)}");
+                return uniqueHosts;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error getting possible hosts: {ex.Message}");
-                return new List<string> { "localhost", "127.0.0.1" };
+                return new List<string> { "10.0.2.2", "localhost", "127.0.0.1" };
             }
         }
 
-        private static List<string> GetLocalIPAddresses()
+        public static string GetPrimaryIPAddress()
+        {
+            try
+            {
+                var localIPs = GetLocalIPAddresses();
+                
+                if (!localIPs.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ No local IP addresses found");
+                    return string.Empty;
+                }
+
+                // Find the most likely primary IP (first private IP that's not link-local)
+                var primaryIP = localIPs.FirstOrDefault(ip => 
+                {
+                    var address = IPAddress.Parse(ip);
+                    return IsPrivateIP(address) && !IsLinkLocal(address);
+                });
+
+                if (!string.IsNullOrEmpty(primaryIP))
+                {
+                    System.Diagnostics.Debug.WriteLine($"✅ Primary IP selected: {primaryIP}");
+                    return primaryIP;
+                }
+
+                // Fallback to first available IP
+                var fallbackIP = localIPs.First();
+                System.Diagnostics.Debug.WriteLine($"⚠️ Using fallback IP: {fallbackIP}");
+                return fallbackIP;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting primary IP: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        public static List<string> GetLocalIPAddresses()
         {
             var ipAddresses = new List<string>();
 
@@ -271,19 +304,40 @@ namespace Coftea_Capstone.Services
             {
                 var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces()
                     .Where(ni => ni.OperationalStatus == OperationalStatus.Up &&
-                                ni.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                                ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                                ni.NetworkInterfaceType != NetworkInterfaceType.Tunnel)
+                    .OrderBy(ni => GetInterfacePriority(ni))
                     .ToList();
+
+                System.Diagnostics.Debug.WriteLine($"Found {networkInterfaces.Count} active network interfaces");
 
                 foreach (var ni in networkInterfaces)
                 {
                     var ipProps = ni.GetIPProperties();
                     var addresses = ipProps.UnicastAddresses
-                        .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork)
-                        .Select(addr => addr.Address.ToString())
+                        .Where(addr => addr.Address.AddressFamily == AddressFamily.InterNetwork &&
+                                      !IPAddress.IsLoopback(addr.Address))
+                        .Select(addr => new { 
+                            Address = addr.Address.ToString(), 
+                            IsPrivate = IsPrivateIP(addr.Address),
+                            IsLinkLocal = IsLinkLocal(addr.Address)
+                        })
+                        .OrderBy(addr => addr.IsLinkLocal) // Prioritize non-link-local addresses
+                        .ThenBy(addr => addr.IsPrivate) // Then prioritize private addresses
+                        .Select(addr => addr.Address)
                         .ToList();
 
-                    ipAddresses.AddRange(addresses);
+                    if (addresses.Any())
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Interface {ni.Name} ({ni.NetworkInterfaceType}): {string.Join(", ", addresses)}");
+                        ipAddresses.AddRange(addresses);
+                    }
                 }
+
+                // Remove duplicates and return in priority order
+                var uniqueIPs = ipAddresses.Distinct().ToList();
+                System.Diagnostics.Debug.WriteLine($"All detected IPs: {string.Join(", ", uniqueIPs)}");
+                return uniqueIPs;
             }
             catch (Exception ex)
             {
@@ -291,6 +345,35 @@ namespace Coftea_Capstone.Services
             }
 
             return ipAddresses;
+        }
+
+        private static int GetInterfacePriority(NetworkInterface ni)
+        {
+            // Priority order for network interfaces
+            return ni.NetworkInterfaceType switch
+            {
+                NetworkInterfaceType.Ethernet => 1,      // Wired Ethernet first
+                NetworkInterfaceType.Wireless80211 => 2,  // WiFi second
+                NetworkInterfaceType.Ppp => 3,           // PPP connections third
+                _ => 4                                   // Others last
+            };
+        }
+
+        private static bool IsPrivateIP(IPAddress ip)
+        {
+            var bytes = ip.GetAddressBytes();
+            
+            // Check for private IP ranges
+            return (bytes[0] == 10) ||                                    // 10.0.0.0/8
+                   (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) || // 172.16.0.0/12
+                   (bytes[0] == 192 && bytes[1] == 168);                    // 192.168.0.0/16
+        }
+
+        private static bool IsLinkLocal(IPAddress ip)
+        {
+            var bytes = ip.GetAddressBytes();
+            // Check for link-local addresses (169.254.0.0/16)
+            return bytes[0] == 169 && bytes[1] == 254;
         }
 
         private static async Task<bool> TestDatabaseConnectionAsync(string host)
@@ -370,9 +453,13 @@ namespace Coftea_Capstone.Services
                 var access = Connectivity.Current.NetworkAccess;
                 info.Add($"Network Access: {access}");
 
+                // Primary IP address
+                var primaryIP = GetPrimaryIPAddress();
+                info.Add($"Primary IP: {primaryIP}");
+
                 // Local IP addresses
                 var localIPs = GetLocalIPAddresses();
-                info.Add($"Local IPs: {string.Join(", ", localIPs)}");
+                info.Add($"All Local IPs: {string.Join(", ", localIPs)}");
 
                 // Detected hosts
                 var dbHost = await GetDatabaseHostAsync();
@@ -386,6 +473,11 @@ namespace Coftea_Capstone.Services
             {
                 return $"Error getting network info: {ex.Message}";
             }
+        }
+
+        public static string GetCurrentPCIPAddress()
+        {
+            return GetPrimaryIPAddress();
         }
     }
 }

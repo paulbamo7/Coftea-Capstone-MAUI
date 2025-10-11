@@ -15,22 +15,26 @@
         <VerticalStackLayout Spacing="6" Margin="0,4,0,0">
             <Button ImageSource="home.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="HomeButton"
-                    Clicked="HomeButton_Clicked"/>
+                    Clicked="HomeButton_Clicked"
+                    IsEnabled="{Binding Source={x:Reference HomeButton}, Path=IsEnabled}"/>
             <Label Text="Home" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="pos.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="POSButton"
-                    Clicked="POSButton_Clicked"/>
+                    Clicked="POSButton_Clicked"
+                    IsEnabled="{Binding Source={x:Reference POSButton}, Path=IsEnabled}"/>
             <Label Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="inventory.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="InventoryButton"
-                    Clicked="InventoryButton_Clicked"/>
+                    Clicked="InventoryButton_Clicked"
+                    IsEnabled="{Binding Source={x:Reference InventoryButton}, Path=IsEnabled}"/>
             <Label Text="Inventory" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="sales_report.png" Background="#FFEAD6" HeightRequest="80"
                     x:Name="SalesReportButton"
-                    Clicked="SalesReportButton_Clicked"/>
+                    Clicked="SalesReportButton_Clicked"
+                    IsEnabled="{Binding Source={x:Reference SalesReportButton}, Path=IsEnabled}"/>
             <Label Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="settings2.png"

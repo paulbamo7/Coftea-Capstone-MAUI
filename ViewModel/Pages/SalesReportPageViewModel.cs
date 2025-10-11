@@ -51,7 +51,7 @@ namespace Coftea_Capstone.ViewModel
         private decimal cashTotal;
 
         [ObservableProperty]
-        private decimal gcashTotal;
+        private decimal gCashTotal;
 
         [ObservableProperty]
         private decimal bankTotal;
