@@ -20,7 +20,7 @@ namespace Coftea_Capstone.Services
         {
             try
             {
-                var host = _mailHogHost ?? await NetworkConfigurationService.GetEmailHostAsync();
+                var host = _mailHogHost ?? NetworkConfigurationService.GetEmailHost();
                 System.Diagnostics.Debug.WriteLine($"Attempting to send password reset email to: {email}");
                 System.Diagnostics.Debug.WriteLine($"Using MailHog host: {host}:{_mailHogPort}");
                 System.Diagnostics.Debug.WriteLine($"Reset token: {resetToken}");

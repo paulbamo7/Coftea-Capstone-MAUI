@@ -1,12 +1,9 @@
 ﻿using Coftea_Capstone.Models;
 using MySqlConnector;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Linq;
-using Coftea_Capstone.Services;
 using Microsoft.Maui.Devices;
 
 using Coftea_Capstone.C_;
@@ -28,7 +25,7 @@ namespace Coftea_Capstone.Models
                         string user = "root",
                         string password = "")
         {
-            // Use provided host or auto-detect
+            // Use provided host or auto-detect based on platform
             var server = host ?? GetDefaultHostForPlatform();
             
             _db = new MySqlConnectionStringBuilder
@@ -40,67 +37,27 @@ namespace Coftea_Capstone.Models
                 Password = "",
                 SslMode = MySqlSslMode.None
             }.ConnectionString;
-
         }
 
 
         // Ensure server is reachable and the database exists; create DB if missing
-        public async Task EnsureServerAndDatabaseAsync()
+        public async Task EnsureServerAndDatabaseAsync(CancellationToken cancellationToken = default)
         {
-            // Get the database host from NetworkConfigurationService
-            var server = await NetworkConfigurationService.GetDatabaseHostAsync();
-            var builder = new MySqlConnectionStringBuilder
-            {
-                Server = server,
-                Port = 3306,
-                UserID = "root",
-                Password = "",
-                SslMode = MySqlSslMode.None
-            };
-
-            await using var conn = new MySqlConnection(builder.ConnectionString);
-            await conn.OpenAsync();
+            // Use the configured connection string
+            await using var conn = new MySqlConnection(_db);
+            await conn.OpenAsync(cancellationToken);
             var createDbSql = "CREATE DATABASE IF NOT EXISTS coftea_db;";
             await using var cmd = new MySqlCommand(createDbSql, conn);
-            await cmd.ExecuteNonQueryAsync();
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
-        private async Task<MySqlConnection> GetOpenConnectionAsync()
+        private async Task<MySqlConnection> GetOpenConnectionAsync(CancellationToken cancellationToken = default)
         {
-            // Try to get a working connection with automatic IP detection
-            var connectionString = await GetWorkingConnectionStringAsync();
-            var conn = new MySqlConnection(connectionString);
-            await conn.OpenAsync();
+            // Use the configured connection string directly
+            var conn = new MySqlConnection(_db);
+            await conn.OpenAsync(cancellationToken);
             return conn;
         }
 
-        private async Task<string> GetWorkingConnectionStringAsync()
-        {
-            // If we already have a working connection string, use it
-            if (!string.IsNullOrEmpty(_db) && _db.Contains("localhost"))
-            {
-                // Try to detect the best database host automatically
-                try
-                {
-                    var detectedHost = await Services.NetworkDetectionService.DetectDatabaseHostAsync();
-                    System.Diagnostics.Debug.WriteLine($"🔍 Auto-detected database host: {detectedHost}");
-                    
-                    // Create new connection string with detected host
-                    var builder = new MySqlConnectionStringBuilder(_db)
-                    {
-                        Server = detectedHost
-                    };
-                    
-                    return builder.ConnectionString;
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"❌ Auto-detection failed: {ex.Message}, using fallback");
-                }
-            }
-            
-            // Fallback to original connection string
-            return _db;
-        }
 
         private static string GetDefaultHostForPlatform()
         {
@@ -157,47 +114,47 @@ namespace Coftea_Capstone.Models
 			}
 		}
 
-		private async Task<int> ExecuteNonQueryAsync(string sql, IDictionary<string, object?>? parameters = null)
+		private async Task<int> ExecuteNonQueryAsync(string sql, IDictionary<string, object?>? parameters = null, CancellationToken cancellationToken = default)
 		{
-			await using var conn = await GetOpenConnectionAsync();
+			await using var conn = await GetOpenConnectionAsync(cancellationToken);
 			await using var cmd = new MySqlCommand(sql, conn);
 			AddParameters(cmd, parameters);
-			return await cmd.ExecuteNonQueryAsync();
+			return await cmd.ExecuteNonQueryAsync(cancellationToken);
 		}
 
-		private async Task<T?> ExecuteScalarAsync<T>(string sql, IDictionary<string, object?>? parameters = null)
+		private async Task<T?> ExecuteScalarAsync<T>(string sql, IDictionary<string, object?>? parameters = null, CancellationToken cancellationToken = default)
 		{
-			await using var conn = await GetOpenConnectionAsync();
+			await using var conn = await GetOpenConnectionAsync(cancellationToken);
 			await using var cmd = new MySqlCommand(sql, conn);
 			AddParameters(cmd, parameters);
-			var result = await cmd.ExecuteScalarAsync();
+			var result = await cmd.ExecuteScalarAsync(cancellationToken);
 			if (result == null || result is DBNull) return default;
 			return (T)Convert.ChangeType(result, typeof(T));
 		}
 
-		private async Task<List<T>> QueryAsync<T>(string sql, Func<MySqlDataReader, T> map, IDictionary<string, object?>? parameters = null)
+		private async Task<List<T>> QueryAsync<T>(string sql, Func<MySqlDataReader, T> map, IDictionary<string, object?>? parameters = null, CancellationToken cancellationToken = default)
 		{
-			await using var conn = await GetOpenConnectionAsync();
+			await using var conn = await GetOpenConnectionAsync(cancellationToken);
 			await using var cmd = new MySqlCommand(sql, conn);
 			AddParameters(cmd, parameters);
 			var list = new List<T>();
-			await using var reader = await cmd.ExecuteReaderAsync();
-			while (await reader.ReadAsync())
+			await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+			while (await reader.ReadAsync(cancellationToken))
 			{
 				list.Add(map(reader));
 			}
 			return list;
 		}
-        public async Task<UserInfoModel> GetUserByEmailAsync(string email)
+        public async Task<UserInfoModel> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
-            await using var conn = await GetOpenConnectionAsync();
+            await using var conn = await GetOpenConnectionAsync(cancellationToken);
 
             var sql = "SELECT * FROM users WHERE email = @Email LIMIT 1;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Email", email);
 
-            await using var reader = await cmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            if (await reader.ReadAsync(cancellationToken))
             {
                 return new UserInfoModel
                 {
@@ -1354,9 +1311,9 @@ namespace Coftea_Capstone.Models
         }
 
         // Database initialization
-        public async Task InitializeDatabaseAsync()
+        public async Task InitializeDatabaseAsync(CancellationToken cancellationToken = default)
         {
-            await using var conn = await GetOpenConnectionAsync();
+            await using var conn = await GetOpenConnectionAsync(cancellationToken);
             
             // Create tables if they don't exist
             var createTablesSql = @"

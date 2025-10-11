@@ -51,8 +51,8 @@ namespace Coftea_Capstone
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
                     var db = new Database();
-                    await db.EnsureServerAndDatabaseAsync();
-                    await db.InitializeDatabaseAsync();
+                    await db.EnsureServerAndDatabaseAsync(cts.Token);
+                    await db.InitializeDatabaseAsync(cts.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -148,25 +148,13 @@ namespace Coftea_Capstone
             // Set your PC's IP address here for database connection
             NetworkConfigurationService.SetManualDatabaseHost("192.168.1.7");
             
-            // To use automatic detection instead, comment out the line above and uncomment below:
-            // NetworkConfigurationService.ClearManualDatabaseHost();
-            
-            // Debug: Test IP detection and database connection
+            // Simple database connection test without automatic IP detection
             _ = Task.Run(async () => {
                 try
                 {
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
-                    var detectedHost = await Services.NetworkDetectionService.DetectDatabaseHostAsync();
-                    System.Diagnostics.Debug.WriteLine($"🔍 App Startup - Detected Database Host: {detectedHost}");
-                    
-                    // Test the connection with timeout
                     var db = new Database();
                     await db.EnsureServerAndDatabaseAsync();
-                    System.Diagnostics.Debug.WriteLine($"✅ Database connection successful with host: {detectedHost}");
-                }
-                catch (OperationCanceledException)
-                {
-                    System.Diagnostics.Debug.WriteLine($"⏰ App Startup - Connection timeout");
+                    System.Diagnostics.Debug.WriteLine($"✅ Database connection successful");
                 }
                 catch (Exception ex)
                 {

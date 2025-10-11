@@ -9,11 +9,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private bool isVisible = false;
         [ObservableProperty] private string currentDatabaseHost = "localhost";
         [ObservableProperty] private string currentEmailHost = "localhost";
-        [ObservableProperty] private string detectedDatabaseHost = "Detecting...";
-        [ObservableProperty] private string detectedEmailHost = "Detecting...";
         [ObservableProperty] private string databaseHost = "";
         [ObservableProperty] private string emailHost = "";
-        [ObservableProperty] private string networkDiagnostics = "Loading...";
+        [ObservableProperty] private string networkDiagnostics = "Network settings configured";
 
         public NetworkSettingsPopupViewModel()
         {
@@ -54,9 +52,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                     NetworkConfigurationService.SetEmailHost(EmailHost.Trim());
                 }
 
-                // Clear cache to force re-detection
-                NetworkDetectionService.ClearCache();
-
                 // Reload settings
                 await LoadCurrentSettingsAsync();
 
@@ -80,20 +75,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 // Load current settings
-                CurrentDatabaseHost = await NetworkConfigurationService.GetDatabaseHostAsync();
-                CurrentEmailHost = await NetworkConfigurationService.GetEmailHostAsync();
+                CurrentDatabaseHost = NetworkConfigurationService.GetDatabaseHost();
+                CurrentEmailHost = NetworkConfigurationService.GetEmailHost();
 
-                // Load detected settings
-                var detectedHosts = await NetworkConfigurationService.GetDetectedHostsAsync();
-                DetectedDatabaseHost = detectedHosts.ContainsKey("Detected Database Host") 
-                    ? detectedHosts["Detected Database Host"] 
-                    : "Not detected";
-                DetectedEmailHost = detectedHosts.ContainsKey("Detected Email Host") 
-                    ? detectedHosts["Detected Email Host"] 
-                    : "Not detected";
-
-                // Load network diagnostics
-                NetworkDiagnostics = await NetworkConfigurationService.GetNetworkDiagnosticsAsync();
+                // Load current settings
+                var settings = NetworkConfigurationService.GetCurrentSettings();
+                NetworkDiagnostics = $"Database Host: {CurrentDatabaseHost}\nEmail Host: {CurrentEmailHost}";
 
                 // Clear input fields
                 DatabaseHost = "";
