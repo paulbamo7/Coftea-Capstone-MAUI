@@ -292,7 +292,8 @@ namespace Coftea_Capstone.Models
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? string.Empty : reader.GetString("imageSet"),
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? string.Empty : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? string.Empty : reader.GetString("unitOfMeasurement"),
-                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
+                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
                 };
 
                 // Map linked amount/unit into size-specific fields (default to same across sizes)
@@ -360,6 +361,7 @@ namespace Coftea_Capstone.Models
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? string.Empty : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? string.Empty : reader.GetString("unitOfMeasurement"),
                     minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
+                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity"),
                     IsSelected = false
                 };
 
@@ -473,6 +475,8 @@ namespace Coftea_Capstone.Models
 
                 foreach (var link in addonList)
                 {
+                    System.Diagnostics.Debug.WriteLine($"💾 Saving addon to database: itemId={link.inventoryItemId}, amount={link.amount}, unit='{link.unit}', price={link.addonPrice}");
+                    System.Diagnostics.Debug.WriteLine($"💾 Raw values: amount={link.amount} (type: {link.amount.GetType()}), unit='{link.unit}'");
                     await using var cmd = new MySqlCommand(sqlAddons, conn, (MySqlTransaction)tx);
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
@@ -638,7 +642,8 @@ namespace Coftea_Capstone.Models
 				ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
 				itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
 				unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
-				minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
+				minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
+				maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
 			});
 		}
 
@@ -672,7 +677,8 @@ namespace Coftea_Capstone.Models
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
-                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
+                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
                 };
             }
             return null;
@@ -698,7 +704,8 @@ namespace Coftea_Capstone.Models
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
-                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity")
+                    minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
+                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
                 };
             }
             return null;
@@ -750,8 +757,8 @@ namespace Coftea_Capstone.Models
                 unitOfMeasurement = GetDefaultUnitForCategory(inventory.itemCategory);
             }
 
-            var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity) " +
-                      "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity);";
+            var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity, maximumQuantity) " +
+                      "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity, @MaximumQuantity);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
             cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
@@ -760,6 +767,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", unitOfMeasurement);
             cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
+            cmd.Parameters.AddWithValue("@MaximumQuantity", inventory.maximumQuantity);
 
             var rows = await cmd.ExecuteNonQueryAsync();
             InvalidateInventoryCache();
@@ -806,13 +814,19 @@ namespace Coftea_Capstone.Models
                 int productId = await GetProductIdByNameAsync(transaction.DrinkName, conn, (MySqlTransaction)tx);
                 
                 // Insert into transaction_items table
-                var itemSql = "INSERT INTO transaction_items (transactionID, productID, productName, quantity, price, size) VALUES (@TransactionID, @ProductID, @ProductName, @Quantity, @Price, @Size);";
+                var itemSql = "INSERT INTO transaction_items (transactionID, productID, productName, quantity, price, smallPrice, mediumPrice, largePrice, addonPrice, addOns, size) VALUES (@TransactionID, @ProductID, @ProductName, @Quantity, @Price, @SmallPrice, @MediumPrice, @LargePrice, @AddonPrice, @AddOns, @Size);";
                 await using var itemCmd = new MySqlCommand(itemSql, conn, (MySqlTransaction)tx);
                 itemCmd.Parameters.AddWithValue("@TransactionID", transactionId);
                 itemCmd.Parameters.AddWithValue("@ProductID", productId > 0 ? productId : (object)DBNull.Value);
                 itemCmd.Parameters.AddWithValue("@ProductName", transaction.DrinkName);
                 itemCmd.Parameters.AddWithValue("@Quantity", transaction.Quantity);
                 itemCmd.Parameters.AddWithValue("@Price", transaction.Price);
+                itemCmd.Parameters.AddWithValue("@SmallPrice", transaction.SmallPrice);
+                itemCmd.Parameters.AddWithValue("@MediumPrice", transaction.MediumPrice);
+                itemCmd.Parameters.AddWithValue("@LargePrice", transaction.LargePrice);
+                itemCmd.Parameters.AddWithValue("@AddonPrice", transaction.AddonPrice);
+                System.Diagnostics.Debug.WriteLine($"💾 Saving AddOns to database: '{transaction.AddOns}'");
+                itemCmd.Parameters.AddWithValue("@AddOns", transaction.AddOns ?? "");
                 itemCmd.Parameters.AddWithValue("@Size", transaction.Size ?? "");
 
                 await itemCmd.ExecuteNonQueryAsync();
@@ -942,7 +956,7 @@ namespace Coftea_Capstone.Models
             await using var conn = await GetOpenConnectionAsync();
 
             var sql = @"SELECT t.transactionID, t.total, t.transactionDate, t.status, t.paymentMethod,
-                        ti.productName, ti.quantity, ti.price, ti.size
+                        ti.productName, ti.quantity, ti.price, ti.smallPrice, ti.mediumPrice, ti.largePrice, ti.addonPrice, ti.addOns, ti.size
                         FROM transactions t
                         LEFT JOIN transaction_items ti ON t.transactionID = ti.transactionID
                         WHERE t.transactionDate >= @StartDate AND t.transactionDate <= @EndDate
@@ -971,7 +985,55 @@ namespace Coftea_Capstone.Models
                     transaction.DrinkName = reader.GetString("productName");
                     transaction.Quantity = reader.GetInt32("quantity");
                     transaction.Price = reader.GetDecimal("price");
+                    
+                    // Handle new price columns with fallback for existing data
+                    try
+                    {
+                        transaction.SmallPrice = reader.IsDBNull(reader.GetOrdinal("smallPrice")) ? 0 : reader.GetDecimal("smallPrice");
+                        transaction.MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice");
+                        transaction.LargePrice = reader.IsDBNull(reader.GetOrdinal("largePrice")) ? 0 : reader.GetDecimal("largePrice");
+                        transaction.AddonPrice = reader.IsDBNull(reader.GetOrdinal("addonPrice")) ? 0 : reader.GetDecimal("addonPrice");
+                    }
+                    catch
+                    {
+                        // Fallback for old data - distribute the total price based on size
+                        var totalPrice = reader.GetDecimal("price");
+                        var size = reader.IsDBNull(reader.GetOrdinal("size")) ? "" : reader.GetString("size");
+                        var quantity = reader.GetInt32("quantity");
+                        
+                        // For existing data, we'll distribute the price based on the size string
+                        // Calculate unit price first
+                        var unitPrice = quantity > 0 ? totalPrice / quantity : totalPrice;
+                        
+                        if (size.Contains("Small") || size.Contains("S"))
+                        {
+                            transaction.SmallPrice = unitPrice;
+                            transaction.MediumPrice = 0;
+                            transaction.LargePrice = 0;
+                        }
+                        else if (size.Contains("Medium") || size.Contains("M"))
+                        {
+                            transaction.SmallPrice = 0;
+                            transaction.MediumPrice = unitPrice;
+                            transaction.LargePrice = 0;
+                        }
+                        else if (size.Contains("Large") || size.Contains("L"))
+                        {
+                            transaction.SmallPrice = 0;
+                            transaction.MediumPrice = 0;
+                            transaction.LargePrice = unitPrice;
+                        }
+                        else
+                        {
+                            // Default fallback - put all price in medium
+                            transaction.SmallPrice = 0;
+                            transaction.MediumPrice = unitPrice;
+                            transaction.LargePrice = 0;
+                        }
+                    }
+                    
                     transaction.Size = reader.IsDBNull(reader.GetOrdinal("size")) ? "" : reader.GetString("size");
+                    transaction.AddOns = reader.IsDBNull(reader.GetOrdinal("addOns")) ? "No add-ons" : reader.GetString("addOns");
                 }
 
                 transactions.Add(transaction);
@@ -1016,7 +1078,7 @@ namespace Coftea_Capstone.Models
 
             var sql = "UPDATE inventory SET itemName = @ItemName, itemQuantity = @ItemQuantity, itemCategory = @ItemCategory, " +
                       "imageSet = @ImageSet, itemDescription = @ItemDescription, unitOfMeasurement = @UnitOfMeasurement, " +
-                      "minimumQuantity = @MinimumQuantity WHERE itemID = @ItemID;";
+                      "minimumQuantity = @MinimumQuantity, maximumQuantity = @MaximumQuantity WHERE itemID = @ItemID;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemID", inventory.itemID);
             cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
@@ -1026,6 +1088,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
+            cmd.Parameters.AddWithValue("@MaximumQuantity", inventory.maximumQuantity);
 
             var rows = await cmd.ExecuteNonQueryAsync();
             InvalidateInventoryCache();
@@ -1370,6 +1433,7 @@ namespace Coftea_Capstone.Models
                     itemDescription TEXT,
                     unitOfMeasurement VARCHAR(50),
                     minimumQuantity DECIMAL(10,2) DEFAULT 0,
+                    maximumQuantity DECIMAL(10,2) DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 
@@ -1388,7 +1452,7 @@ namespace Coftea_Capstone.Models
                   id INT AUTO_INCREMENT PRIMARY KEY,
                   productID INT NOT NULL,
                   itemID INT NOT NULL,
-                  amount DECIMAL(10,2) NOT NULL,
+                  amount DECIMAL(10,4) NOT NULL,
                   unit VARCHAR(50),
                   role VARCHAR(50) DEFAULT 'addon',
                   addon_price DECIMAL(10,2) DEFAULT 0.00,
@@ -1416,10 +1480,31 @@ namespace Coftea_Capstone.Models
                     productName VARCHAR(255) NOT NULL,
                     quantity INT NOT NULL,
                     price DECIMAL(10,2) NOT NULL,
+                    smallPrice DECIMAL(10,2) DEFAULT 0.00,
+                    mediumPrice DECIMAL(10,2) DEFAULT 0.00,
+                    largePrice DECIMAL(10,2) DEFAULT 0.00,
+                    addonPrice DECIMAL(10,2) DEFAULT 0.00,
+                    addOns TEXT,
                     size VARCHAR(20),
                     FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
                 );
+                
+                -- Add new columns if they don't exist (for existing databases)
+                ALTER TABLE transaction_items 
+                ADD COLUMN IF NOT EXISTS smallPrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS mediumPrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS largePrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS addonPrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS addOns TEXT;
+                
+                -- Add maximum quantity column to inventory table
+                ALTER TABLE inventory 
+                ADD COLUMN IF NOT EXISTS maximumQuantity DECIMAL(10,2) DEFAULT 0;
+                
+                -- Update existing columns to have better precision
+                ALTER TABLE product_addons 
+                MODIFY COLUMN amount DECIMAL(10,4) NOT NULL;
                 
                 CREATE TABLE IF NOT EXISTS pending_registrations (
                     id INT AUTO_INCREMENT PRIMARY KEY,

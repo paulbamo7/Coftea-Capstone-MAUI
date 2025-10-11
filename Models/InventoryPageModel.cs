@@ -71,6 +71,9 @@ namespace Coftea_Capstone.Models
                     OnPropertyChanged(nameof(StockDisplay));
                     OnPropertyChanged(nameof(StockText));
                     OnPropertyChanged(nameof(StockProgressWidth));
+                    OnPropertyChanged(nameof(NewStockDisplay));
+                    OnPropertyChanged(nameof(NewStockDisplayFormatted));
+                    OnPropertyChanged(nameof(CurrentStockDisplay));
                 }
             }
         }
@@ -90,6 +93,24 @@ namespace Coftea_Capstone.Models
                     OnPropertyChanged(nameof(StockFillColor));
                     OnPropertyChanged(nameof(MinimumDisplay));
                     OnPropertyChanged(nameof(StockProgressWidth));
+                    OnPropertyChanged(nameof(NewStockDisplay));
+                    OnPropertyChanged(nameof(NewStockDisplayFormatted));
+                    OnPropertyChanged(nameof(MinimumStockDisplay));
+                }
+            }
+        }
+
+        private double _maximumQuantity;
+        public double maximumQuantity
+        {
+            get { return _maximumQuantity; }
+            set
+            {
+                if (SetProperty(ref _maximumQuantity, value))
+                {
+                    OnPropertyChanged(nameof(NewStockDisplay));
+                    OnPropertyChanged(nameof(NewStockDisplayFormatted));
+                    OnPropertyChanged(nameof(MaximumStockDisplay));
                 }
             }
         }
@@ -164,7 +185,7 @@ namespace Coftea_Capstone.Models
 
         // Addon properties for preview
         [ObservableProperty]
-        private decimal addonPrice;
+        private decimal addonPrice = 5.00m; // Default addon price
 
         partial void OnAddonPriceChanged(decimal value)
         {
@@ -205,7 +226,15 @@ namespace Coftea_Capstone.Models
         }
 
         // Subtotal used for display in POS: base price when unselected, subtotal when selected
-        public decimal AddonTotalPrice => (IsSelected && AddonQuantity > 0) ? (AddonPrice * AddonQuantity) : AddonPrice;
+        public decimal AddonTotalPrice 
+        { 
+            get 
+            {
+                var result = (IsSelected && AddonQuantity > 0) ? (AddonPrice * AddonQuantity) : AddonPrice;
+                System.Diagnostics.Debug.WriteLine($"💰 AddonTotalPrice for {itemName}: IsSelected={IsSelected}, AddonQuantity={AddonQuantity}, AddonPrice={AddonPrice}, Result={result}");
+                return result;
+            }
+        }
 
         // Commands for POS addons interaction
         public CommunityToolkit.Mvvm.Input.IRelayCommand ToggleSelectedCommand { get; }
@@ -340,6 +369,110 @@ namespace Coftea_Capstone.Models
             get
             {
                 return StockDisplay;
+            }
+        }
+
+        // New format: Current Stock 300 ml | Maximum Stock: 2kg | Minimum Stock: 500 g
+        public string NewStockDisplay
+        {
+            get
+            {
+                var shortUnit = NormalizeUnit(unitOfMeasurement);
+                var currentStock = string.IsNullOrWhiteSpace(shortUnit) 
+                    ? $"{itemQuantity}" 
+                    : $"{itemQuantity} {shortUnit}";
+
+                var maxStock = maximumQuantity > 0 
+                    ? (string.IsNullOrWhiteSpace(shortUnit) 
+                        ? $"{maximumQuantity}" 
+                        : $"{maximumQuantity} {shortUnit}")
+                    : "Not Set";
+
+                var minStock = minimumQuantity > 0 
+                    ? (string.IsNullOrWhiteSpace(shortUnit) 
+                        ? $"{minimumQuantity}" 
+                        : $"{minimumQuantity} {shortUnit}")
+                    : "Not Set";
+
+                return $"Current Stock: {currentStock} | Maximum Stock: {maxStock} | Minimum Stock: {minStock}";
+            }
+        }
+
+        // Color-coded single line display using FormattedString
+        public FormattedString NewStockDisplayFormatted
+        {
+            get
+            {
+                var shortUnit = NormalizeUnit(unitOfMeasurement);
+                var currentStock = string.IsNullOrWhiteSpace(shortUnit) 
+                    ? $"{itemQuantity}" 
+                    : $"{itemQuantity} {shortUnit}";
+
+                var maxStock = maximumQuantity > 0 
+                    ? (string.IsNullOrWhiteSpace(shortUnit) 
+                        ? $"{maximumQuantity}" 
+                        : $"{maximumQuantity} {shortUnit}")
+                    : "Not Set";
+
+                var minStock = minimumQuantity > 0 
+                    ? (string.IsNullOrWhiteSpace(shortUnit) 
+                        ? $"{minimumQuantity}" 
+                        : $"{minimumQuantity} {shortUnit}")
+                    : "Not Set";
+
+                var formattedString = new FormattedString();
+                
+                // Current Stock (Green)
+                formattedString.Spans.Add(new Span { Text = "Current Stock: ", TextColor = Colors.Gray });
+                formattedString.Spans.Add(new Span { Text = currentStock, TextColor = Colors.Green, FontAttributes = FontAttributes.Bold });
+                formattedString.Spans.Add(new Span { Text = " | " });
+                
+                // Maximum Stock (Blue)
+                formattedString.Spans.Add(new Span { Text = "Maximum Stock: ", TextColor = Colors.Gray });
+                formattedString.Spans.Add(new Span { Text = maxStock, TextColor = Colors.Blue, FontAttributes = FontAttributes.Bold });
+                formattedString.Spans.Add(new Span { Text = " | " });
+                
+                // Minimum Stock (Red)
+                formattedString.Spans.Add(new Span { Text = "Minimum Stock: ", TextColor = Colors.Gray });
+                formattedString.Spans.Add(new Span { Text = minStock, TextColor = Colors.Red, FontAttributes = FontAttributes.Bold });
+
+                return formattedString;
+            }
+        }
+
+        // Color-coded stock display properties
+        public string CurrentStockDisplay
+        {
+            get
+            {
+                var shortUnit = NormalizeUnit(unitOfMeasurement);
+                return string.IsNullOrWhiteSpace(shortUnit) 
+                    ? $"{itemQuantity}" 
+                    : $"{itemQuantity} {shortUnit}";
+            }
+        }
+
+        public string MaximumStockDisplay
+        {
+            get
+            {
+                if (maximumQuantity <= 0) return "Not Set";
+                var shortUnit = NormalizeUnit(unitOfMeasurement);
+                return string.IsNullOrWhiteSpace(shortUnit) 
+                    ? $"{maximumQuantity}" 
+                    : $"{maximumQuantity} {shortUnit}";
+            }
+        }
+
+        public string MinimumStockDisplay
+        {
+            get
+            {
+                if (minimumQuantity <= 0) return "Not Set";
+                var shortUnit = NormalizeUnit(unitOfMeasurement);
+                return string.IsNullOrWhiteSpace(shortUnit) 
+                    ? $"{minimumQuantity}" 
+                    : $"{minimumQuantity} {shortUnit}";
             }
         }
 

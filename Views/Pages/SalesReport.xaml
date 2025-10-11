@@ -30,10 +30,21 @@
 
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
-                    <Label Text="" Grid.Column="0" TextColor="Black"/>
-
+                    <Label Text="Sales Report" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                     <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
-                    <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40" CornerRadius="20"/>
+                    <Grid Grid.Column="2" WidthRequest="40" HeightRequest="40">
+                        <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
+                               WidthRequest="40" 
+                               HeightRequest="40" 
+                               Aspect="AspectFill" 
+                               ZIndex="1" />
+                        <ImageButton Source="usericon.png" 
+                                     WidthRequest="40" 
+                                     HeightRequest="40" 
+                                     BackgroundColor="Transparent"
+                                     CornerRadius="20"
+                                     ZIndex="0"/>
+                    </Grid>
                 </Grid>
 
                 <!-- Categories - Centered above pie chart and KPI cards -->
@@ -92,11 +103,11 @@
                     </HorizontalStackLayout>
                 </ScrollView>
 
-                <!-- KPI Cards and Pie Chart - Responsive wrap -->
-                <FlexLayout Direction="Row" Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="Start" AlignContent="Start" Margin="0,0,0,0">
-                    <!-- KPI Cards -->
-                    <VerticalStackLayout Spacing="12"  VerticalOptions="Start" WidthRequest="515">
-                        <Frame BackgroundColor="#F5E6D8" CornerRadius="12"  HeightRequest="110" Padding="12" HasShadow="True">
+                <!-- KPI Cards and Pie Chart - Two column layout -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <!-- Left Column: KPI Cards -->
+                    <VerticalStackLayout Grid.Column="0" Spacing="12" VerticalOptions="Start">
+                        <Frame BackgroundColor="#F5E6D8" CornerRadius="12" HeightRequest="110" Padding="12" HasShadow="True">
                             <VerticalStackLayout>
                                 <Label Text="Overall Most Bought Today" FontAttributes="Bold" FontSize="14" TextColor="#5B4F45"/>
                                 <Label Text="{Binding MostBoughtToday}" FontSize="20" TextColor="#5B4F45"/>
@@ -140,8 +151,8 @@
                         </Grid>
                     </VerticalStackLayout>
 
-                    <!-- Top 3 Picks Today - Pie Chart -->
-                    <Frame BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" WidthRequest="515" HeightRequest="230" HorizontalOptions="End">
+                    <!-- Right Column: Top 3 Picks Today - Pie Chart -->
+                    <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" HeightRequest="230" VerticalOptions="Start">
                         <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                             <Label Text="Top 3 Picks Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
                             <Label Text="{Binding FilteredTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1" FontSize="14" TextColor="Gray"/>
@@ -157,7 +168,7 @@
                                                       Item3HasTrend="{Binding Item3HasTrend}"/>
                         </Grid>
                     </Frame>
-                </FlexLayout>
+                </Grid>
 
                 <!-- Weekly and Monthly Picks - Two-column layout -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
@@ -238,13 +249,12 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Settings Popup (shared) -->
-        <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
-
         <!-- All Global Popups -->
+        <views:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>

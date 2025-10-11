@@ -60,14 +60,54 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     if (it != null)
                     {
-                        CartItems.Add(new CartItem
+                        // Calculate addon prices
+                        decimal addonTotalPrice = 0;
+                        var addonNames = new ObservableCollection<string>();
+                        
+                        if (it.InventoryItems != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"🛒 Processing product: {it.ProductName}, InventoryItems count: {it.InventoryItems.Count}");
+                            foreach (var addon in it.InventoryItems)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"🛒 Addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                            }
+                            
+                            var selectedAddons = it.InventoryItems.Where(a => a.IsSelected && a.AddonQuantity > 0).ToList();
+                            System.Diagnostics.Debug.WriteLine($"🛒 Selected addons count: {selectedAddons.Count}");
+                            
+                            // Also check for any addons with quantity > 0 regardless of IsSelected
+                            var addonsWithQuantity = it.InventoryItems.Where(a => a.AddonQuantity > 0).ToList();
+                            System.Diagnostics.Debug.WriteLine($"🛒 Addons with quantity > 0: {addonsWithQuantity.Count}");
+                            foreach (var addon in addonsWithQuantity)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"🛒 Addon with quantity: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                            }
+                            
+                            foreach (var addon in selectedAddons)
+                            {
+                                var addonPrice = addon.AddonTotalPrice;
+                                addonTotalPrice += addonPrice;
+                                var addonName = $"{addon.itemName} (x{addon.AddonQuantity})";
+                                addonNames.Add(addonName);
+                                System.Diagnostics.Debug.WriteLine($"🛒 Selected Addon: {addon.itemName}, Quantity: {addon.AddonQuantity}, Unit Price: {addon.AddonPrice}, Total: {addonPrice}");
+                                System.Diagnostics.Debug.WriteLine($"🛒 Addon name added to collection: '{addonName}'");
+                            }
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"🛒 Product {it.ProductName} has no InventoryItems");
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"Product: {it.ProductName}, Addon Total: {addonTotalPrice}");
+                        
+                        var cartItem = new CartItem
                         {
                             ProductId = it.ProductID,
                             ProductName = it.ProductName ?? "Unknown Product",
                             ImageSource = it.ImageSet ?? "dotnet_bot.png",
                             CustomerName = CustomerName,
                             SugarLevel = "100%",
-                            AddOns = new ObservableCollection<string>(),
+                            AddOns = addonNames,
                             SmallQuantity = it.SmallQuantity,
                             MediumQuantity = it.MediumQuantity,
                             LargeQuantity = it.LargeQuantity,
@@ -76,8 +116,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                             LargePrice = it.LargePrice,
                             SelectedSize = GetCombinedSizeDisplay(it),
                             Quantity = it.SmallQuantity + it.MediumQuantity + it.LargeQuantity,
-                            Price = it.SmallPrice + it.MediumPrice + it.LargePrice
-                        });
+                            Price = (it.SmallQuantity * it.SmallPrice) + (it.MediumQuantity * it.MediumPrice) + (it.LargeQuantity * it.LargePrice) + addonTotalPrice
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"🛒 CartItem created: {cartItem.ProductName}");
+                        System.Diagnostics.Debug.WriteLine($"🛒 AddOns collection count: {cartItem.AddOns?.Count ?? 0}");
+                        System.Diagnostics.Debug.WriteLine($"🛒 AddOnsDisplay: '{cartItem.AddOnsDisplay}'");
+                        
+                        CartItems.Add(cartItem);
                     }
                 }
                 

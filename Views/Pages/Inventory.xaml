@@ -25,15 +25,27 @@
 
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
-                    <Label Text="Inventory" FontSize="32" FontAttributes="Bold" VerticalOptions="Center" TextColor="Black"/>
+                    <Label Text="Inventory" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                     <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
-                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                    <Grid Grid.Column="3" WidthRequest="40" HeightRequest="40">
+                        <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
+                               WidthRequest="40" 
+                               HeightRequest="40" 
+                               Aspect="AspectFill" 
+                               ZIndex="1" />
+                        <ImageButton Source="usericon.png" 
+                                     WidthRequest="40" 
+                                     HeightRequest="40" 
+                                     BackgroundColor="Transparent"
+                                     ZIndex="0"/>
+                    </Grid>
                 </Grid>
 
                 <!-- Brownish Frame (Main Panel) -->
-                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="20" HasShadow="False" HeightRequest="600">
+                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="20" HasShadow="False" HeightRequest="660">
 
-                    <VerticalStackLayout Spacing="15">
+                    <ScrollView>
+                        <VerticalStackLayout Spacing="15">
 
                         <!-- Fixed Top Controls (Category Buttons, Sort By) -->
                         <Grid ColumnDefinitions="*, Auto" VerticalOptions="Start">
@@ -121,7 +133,7 @@
 
                             <!-- Fixed Header Row -->
                             <Frame Grid.Row="0" BackgroundColor="White" Padding="10" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
-                                <Grid ColumnDefinitions="2*, 1*, 2*">
+                                <Grid ColumnDefinitions="1*, 1*, 2*">
                                     <Label Text="ITEMS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start" TextColor="Black"/>
                                     <Label Text="CATEGORY" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1" TextColor="Black"/>
                                     <Label Text="STOCKS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2" TextColor="Black"/>
@@ -140,7 +152,7 @@
                                         <DataTemplate>
                                             <Frame Padding="10" Margin="0,6,0,6" CornerRadius="10" BackgroundColor="White">
                                                 <VerticalStackLayout Spacing="6">
-                                                    <Grid ColumnDefinitions="2*, 1*, 2*" VerticalOptions="Center" ColumnSpacing="10">
+                                                    <Grid ColumnDefinitions="1*, 1*, 2*" VerticalOptions="Center" ColumnSpacing="10">
                                                         <!-- Items: image + name -->
                                                         <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
                                                             <Frame WidthRequest="50" HeightRequest="50" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
@@ -152,25 +164,15 @@
                                                         <!-- Category -->
                                                         <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Black"/>
 
-                                                        <!-- Stock Progress -->
-                                                        <VerticalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
-                                                            <Frame BackgroundColor="White" CornerRadius="10" Padding="6" HasShadow="True">
-                                                                <Grid RowDefinitions="Auto,Auto" VerticalOptions="Center">
-                                                                    <Grid HeightRequest="22">
-                                                                        <BoxView Color="#E0E0E0" CornerRadius="17" />
-                                                                        <ProgressBar Progress="{Binding StockProgress}"
-                                                                                     ProgressColor="{Binding StockFillColor}"
-                                                                                     HeightRequest="34" />
-                                                                    </Grid>
-                                                                    <Label Grid.Row="1" FontSize="12" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center">
-                                                                        <Label.Text>
-                                                                            <MultiBinding StringFormat="{}{0} {1}">
-                                                                                <Binding Path="StockDisplay"/>
-                                                                                <Binding Path="MinimumDisplay"/>
-                                                                            </MultiBinding>
-                                                                        </Label.Text>
-                                                                    </Label>
-                                                                </Grid>
+                                                        <!-- Stock Information -->
+                                                        <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                                            <Frame BackgroundColor="White" CornerRadius="10" Padding="8" HasShadow="True">
+                                                                <Label FormattedText="{Binding NewStockDisplayFormatted}" 
+                                                                       FontSize="13" 
+                                                                       HorizontalOptions="Start" 
+                                                                       VerticalOptions="Center"
+                                                                       LineBreakMode="WordWrap"
+                                                                       MaxLines="1" />
                                                             </Frame>
                                                         </VerticalStackLayout>
                                                     </Grid>
@@ -180,7 +182,8 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </Grid>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </ScrollView>
                 </Frame>
             </VerticalStackLayout>
         </Grid>
@@ -190,6 +193,7 @@
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>

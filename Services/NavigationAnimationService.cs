@@ -6,6 +6,8 @@ namespace Coftea_Capstone.Services
     public static class NavigationAnimationService
     {
         private static LoadingOverlay _loadingOverlay;
+        private static readonly object _navigationLock = new object();
+        private static bool _isNavigating = false;
         public static async Task PushWithAnimationAsync(this NavigationPage navigationPage, Page page, bool animated = false)
         {
             if (!animated)
@@ -75,44 +77,102 @@ namespace Coftea_Capstone.Services
 
         public static async Task ReplaceWithAnimationAsync(this NavigationPage navigationPage, Page newPage, bool animated = false)
         {
-            if (!animated)
+            // Check if navigation is already in progress
+            lock (_navigationLock)
             {
-                await navigationPage.PopToRootAsync(false);
-                await navigationPage.PushAsync(newPage, false);
-                return;
+                if (_isNavigating)
+                {
+                    System.Diagnostics.Debug.WriteLine("🚫 NavigationAnimationService: Navigation already in progress, skipping");
+                    return;
+                }
+                _isNavigating = true;
             }
 
-            var currentPage = navigationPage.CurrentPage;
-            if (currentPage == null) return;
+            try
+            {
+                if (!animated)
+                {
+                    // Use safer navigation method
+                    await SafeReplacePageAsync(navigationPage, newPage);
+                    return;
+                }
 
-            // Show loading overlay
-            await ShowLoadingOverlayAsync(navigationPage);
+                var currentPage = navigationPage.CurrentPage;
+                if (currentPage == null) return;
 
-            // Animate current page out
-            await Task.WhenAll(
-                currentPage.FadeTo(0, 250, Easing.CubicIn),
-                currentPage.TranslateTo(-300, 0, 250, Easing.CubicIn)
-            );
+                // Show loading overlay
+                await ShowLoadingOverlayAsync(navigationPage);
 
-            // Pop to root and push new page without animation
-            await navigationPage.PopToRootAsync(false);
-            await navigationPage.PushAsync(newPage, false);
+                // Animate current page out
+                await Task.WhenAll(
+                    currentPage.FadeTo(0, 250, Easing.CubicIn),
+                    currentPage.TranslateTo(-300, 0, 250, Easing.CubicIn)
+                );
 
-            // Wait for the new page to be fully loaded
-            await Task.Delay(100);
+                // Use safer navigation method
+                await SafeReplacePageAsync(navigationPage, newPage);
 
-            // Set initial state for the new page
-            newPage.Opacity = 0;
-            newPage.TranslationX = 300;
+                // Wait for the new page to be fully loaded
+                await Task.Delay(100);
 
-            // Animate new page in
-            await Task.WhenAll(
-                newPage.FadeTo(1, 300, Easing.CubicOut),
-                newPage.TranslateTo(0, 0, 300, Easing.CubicOut)
-            );
+                // Set initial state for the new page
+                newPage.Opacity = 0;
+                newPage.TranslationX = 300;
 
-            // Hide loading overlay
-            await HideLoadingOverlayAsync();
+                // Animate new page in
+                await Task.WhenAll(
+                    newPage.FadeTo(1, 300, Easing.CubicOut),
+                    newPage.TranslateTo(0, 0, 300, Easing.CubicOut)
+                );
+
+                // Hide loading overlay
+                await HideLoadingOverlayAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
+                // Ensure loading overlay is hidden even if navigation fails
+                await HideLoadingOverlayAsync();
+                throw;
+            }
+            finally
+            {
+                lock (_navigationLock)
+                {
+                    _isNavigating = false;
+                }
+            }
+        }
+
+        private static async Task SafeReplacePageAsync(NavigationPage navigationPage, Page newPage)
+        {
+            try
+            {
+                // Check if we're already on the same page type
+                if (navigationPage.CurrentPage?.GetType() == newPage.GetType())
+                {
+                    System.Diagnostics.Debug.WriteLine("🚫 SafeReplacePageAsync: Already on the same page, skipping navigation");
+                    return;
+                }
+
+                // Clear navigation stack and push new page
+                var navigationStack = navigationPage.Navigation.NavigationStack.ToList();
+                
+                // Pop all pages except the root
+                while (navigationPage.Navigation.NavigationStack.Count > 1)
+                {
+                    await navigationPage.PopAsync(false);
+                }
+                
+                // Push the new page
+                await navigationPage.PushAsync(newPage, false);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SafeReplacePageAsync error: {ex.Message}");
+                // Fallback: try simple push
+                await navigationPage.PushAsync(newPage, false);
+            }
         }
 
         private static async Task ShowLoadingOverlayAsync(NavigationPage navigationPage)

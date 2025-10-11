@@ -10,7 +10,9 @@ public partial class NavigationBar : ContentView
 {
     private bool _isNavigating = false;
     private DateTime _lastNavigationTime = DateTime.MinValue;
-    private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(500); // 500ms cooldown
+    private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(1500); // 1.5 second cooldown
+    private readonly object _navigationLock = new object();
+    private CancellationTokenSource _currentNavigationCts;
 
     public NavigationBar()
     {
@@ -70,31 +72,43 @@ public partial class NavigationBar : ContentView
 
     private bool CanNavigate()
     {
-        // Check if we're already navigating
-        if (_isNavigating)
+        lock (_navigationLock)
         {
-            System.Diagnostics.Debug.WriteLine("🚫 Navigation blocked: Already navigating");
-            return false;
-        }
+            // Check if we're already navigating
+            if (_isNavigating)
+            {
+                System.Diagnostics.Debug.WriteLine("🚫 Navigation blocked: Already navigating");
+                return false;
+            }
 
-        // Check cooldown period
-        var timeSinceLastNavigation = DateTime.Now - _lastNavigationTime;
-        if (timeSinceLastNavigation < _navigationCooldown)
-        {
-            System.Diagnostics.Debug.WriteLine($"🚫 Navigation blocked: Cooldown active ({timeSinceLastNavigation.TotalMilliseconds:F0}ms remaining)");
-            return false;
-        }
+            // Check cooldown period
+            var timeSinceLastNavigation = DateTime.Now - _lastNavigationTime;
+            if (timeSinceLastNavigation < _navigationCooldown)
+            {
+                var remainingMs = (_navigationCooldown - timeSinceLastNavigation).TotalMilliseconds;
+                System.Diagnostics.Debug.WriteLine($"🚫 Navigation blocked: Cooldown active ({remainingMs:F0}ms remaining)");
+                return false;
+            }
 
-        return true;
+            return true;
+        }
     }
 
     private async Task<bool> StartNavigationAsync()
     {
-        if (!CanNavigate())
-            return false;
+        lock (_navigationLock)
+        {
+            if (!CanNavigate())
+                return false;
 
-        _isNavigating = true;
-        _lastNavigationTime = DateTime.Now;
+            // Cancel any existing navigation
+            _currentNavigationCts?.Cancel();
+            _currentNavigationCts?.Dispose();
+            _currentNavigationCts = new CancellationTokenSource();
+
+            _isNavigating = true;
+            _lastNavigationTime = DateTime.Now;
+        }
         
         // Disable all navigation buttons to prevent multiple clicks
         DisableNavigationButtons();
@@ -105,12 +119,18 @@ public partial class NavigationBar : ContentView
 
     private void EndNavigation()
     {
-        _isNavigating = false;
+        lock (_navigationLock)
+        {
+            _isNavigating = false;
+            _currentNavigationCts?.Dispose();
+            _currentNavigationCts = null;
+        }
         System.Diagnostics.Debug.WriteLine("✅ Navigation completed");
         
-        // Re-enable all navigation buttons
-        MainThread.BeginInvokeOnMainThread(() =>
+        // Re-enable all navigation buttons with a small delay to prevent rapid clicking
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
+            await Task.Delay(100); // Small delay to prevent rapid re-enabling
             HomeButton.IsEnabled = true;
             POSButton.IsEnabled = true;
             InventoryButton.IsEnabled = true;
@@ -139,9 +159,23 @@ public partial class NavigationBar : ContentView
             var nav = Application.Current.MainPage as NavigationPage;
             if (nav == null) return;
 
+            // Check if we're already on POS page
+            if (nav.CurrentPage is PointOfSale)
+            {
+                System.Diagnostics.Debug.WriteLine("🚫 Already on POS page, skipping navigation");
+                return;
+            }
+
+            // Use the cancellation token from StartNavigationAsync
+            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
+            
             // Replace current page with POS using animation
             await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false);
             UpdateActiveIndicator();
+        }
+        catch (OperationCanceledException)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
         }
         catch (Exception ex)
         {
@@ -162,14 +196,34 @@ public partial class NavigationBar : ContentView
             var nav = Application.Current.MainPage as NavigationPage;
             if (nav == null) return;
 
+            // Use the cancellation token from StartNavigationAsync
+            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
+
             if (App.CurrentUser == null)
             {
+                // Check if we're already on Login page
+                if (nav.CurrentPage is LoginPage)
+                {
+                    System.Diagnostics.Debug.WriteLine("🚫 Already on Login page, skipping navigation");
+                    return;
+                }
                 await nav.ReplaceWithAnimationAsync(new LoginPage(), animated: false);
+                return;
+            }
+
+            // Check if we're already on Dashboard page
+            if (nav.CurrentPage is EmployeeDashboard)
+            {
+                System.Diagnostics.Debug.WriteLine("🚫 Already on Dashboard page, skipping navigation");
                 return;
             }
 
             await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false);
             UpdateActiveIndicator();
+        }
+        catch (OperationCanceledException)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
         }
         catch (Exception ex)
         {
@@ -201,8 +255,22 @@ public partial class NavigationBar : ContentView
             var nav = Application.Current.MainPage as NavigationPage;
             if (nav == null) return;
 
+            // Check if we're already on Inventory page
+            if (nav.CurrentPage is Inventory)
+            {
+                System.Diagnostics.Debug.WriteLine("🚫 Already on Inventory page, skipping navigation");
+                return;
+            }
+
+            // Use the cancellation token from StartNavigationAsync
+            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
+
             await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false);
             UpdateActiveIndicator();
+        }
+        catch (OperationCanceledException)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
         }
         catch (Exception ex)
         {
@@ -234,8 +302,22 @@ public partial class NavigationBar : ContentView
             var nav = Application.Current.MainPage as NavigationPage;
             if (nav == null) return;
 
+            // Check if we're already on SalesReport page
+            if (nav.CurrentPage is SalesReport)
+            {
+                System.Diagnostics.Debug.WriteLine("🚫 Already on SalesReport page, skipping navigation");
+                return;
+            }
+
+            // Use the cancellation token from StartNavigationAsync
+            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
+
             await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false);
             UpdateActiveIndicator();
+        }
+        catch (OperationCanceledException)
+        {
+            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
         }
         catch (Exception ex)
         {
@@ -253,5 +335,19 @@ public partial class NavigationBar : ContentView
     {
         // Use global settings service to show popup
         GlobalSettingsService.ShowSettings();
+    }
+
+    // Cleanup method to prevent memory leaks
+    protected override void OnHandlerChanged()
+    {
+        base.OnHandlerChanged();
+        
+        if (Handler == null)
+        {
+            // Clean up when the view is being disposed
+            _currentNavigationCts?.Cancel();
+            _currentNavigationCts?.Dispose();
+            _currentNavigationCts = null;
+        }
     }
 }

@@ -190,16 +190,18 @@
                     <Grid RowDefinitions="Auto, *">
                         <!-- Header -->
                         <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,10">
-                            <Grid ColumnDefinitions="40,*,50,60,80,80,60,80,100">
+                            <Grid ColumnDefinitions="40,*,50,60,80,60,60,60,60,80,100">
                                 <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
                                 <Label Grid.Column="1" Text="Drink Name" FontAttributes="Bold" FontSize="14" TextColor="Black"/>
                                 <Label Grid.Column="2" Text="Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
                                 <Label Grid.Column="3" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
                                 <Label Grid.Column="4" Text="Add On" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                                <Label Grid.Column="5" Text="Price" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                                <Label Grid.Column="6" Text="VAT" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                                <Label Grid.Column="7" Text="Total" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                                <Label Grid.Column="8" Text="Date" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="5" Text="Small" FontAttributes="Bold" FontSize="12" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="6" Text="Medium" FontAttributes="Bold" FontSize="12" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="7" Text="Large" FontAttributes="Bold" FontSize="12" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="8" Text="Addon" FontAttributes="Bold" FontSize="12" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="9" Text="Total" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                                <Label Grid.Column="10" Text="Date" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
                             </Grid>
                         </Grid>
 
@@ -215,7 +217,9 @@
                                                 <ColumnDefinition Width="50"/>
                                                 <ColumnDefinition Width="60"/>
                                                 <ColumnDefinition Width="80"/>
-                                                <ColumnDefinition Width="80"/>
+                                                <ColumnDefinition Width="60"/>
+                                                <ColumnDefinition Width="60"/>
+                                                <ColumnDefinition Width="60"/>
                                                 <ColumnDefinition Width="60"/>
                                                 <ColumnDefinition Width="80"/>
                                                 <ColumnDefinition Width="100"/>
@@ -226,10 +230,12 @@
                                             <Label Grid.Column="2" Text="{Binding Quantity}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
                                             <Label Grid.Column="3" Text="{Binding Size}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
                                             <Label Grid.Column="4" Text="{Binding AddOns}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
-                                            <Label Grid.Column="5" Text="{Binding FormattedPrice}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
-                                            <Label Grid.Column="6" Text="{Binding FormattedVAT}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
-                                            <Label Grid.Column="7" Text="{Binding FormattedTotal}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
-                                            <Label Grid.Column="8" Text="{Binding FormattedDate}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="5" Text="{Binding FormattedSmallPrice}" FontSize="11" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="6" Text="{Binding FormattedMediumPrice}" FontSize="11" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="7" Text="{Binding FormattedLargePrice}" FontSize="11" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="8" Text="{Binding FormattedAddonPrice}" FontSize="11" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="9" Text="{Binding FormattedTotal}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="10" Text="{Binding FormattedDate}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
                                         </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>

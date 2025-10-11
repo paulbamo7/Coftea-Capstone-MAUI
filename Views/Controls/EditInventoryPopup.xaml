@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.EditInventoryPopup"
+             x:Name="EditInventoryPopupView"
+             BackgroundColor="#80000000"
+             IsVisible="{Binding IsEditInventoryPopupVisible}"
+             InputTransparent="False">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <!-- Background overlay to close on outside tap -->
+        <BoxView BackgroundColor="Transparent" Grid.RowSpan="3">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseEditInventoryPopupCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+        
+        <!-- Popup Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="20"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               WidthRequest="900"
+               HeightRequest="700"
+               HasShadow="True"
+               InputTransparent="False">
+
+            <Grid RowDefinitions="Auto, *, Auto">
+                <VerticalStackLayout>
+                    <!-- Title -->
+                <Label Text="Select Inventory Item to Edit"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       Grid.Row="0"
+                       Margin="0,0,0,20" />
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" Margin="10">
+                    <Button Text="All" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14" 
+                            BackgroundColor="#5B4F45" WidthRequest="100" HeightRequest="40"  
+                            Command="{Binding FilterByCategoryCommand}" CommandParameter="All"/>
+                    <Button Text="Ingredients" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14" 
+                            BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"  
+                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients"/>
+                        <Button Text="Supplies" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14"
+                            BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"
+                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies"/>
+                        <Button Text="Syrups" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14"
+                            BackgroundColor="#897564" WidthRequest="100" HeightRequest="40"
+                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Syrups"/>
+                        <Button Text="Powdered" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="White" FontSize="14"
+                            BackgroundColor="#897564" WidthRequest="100" HeightRequest="40" 
+                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Powdered"/>
+                </HorizontalStackLayout>
+                </VerticalStackLayout>
+                <!-- Items List -->
+                <Border Grid.Row="1" 
+                        StrokeShape="RoundRectangle 15" 
+                        BackgroundColor="White" 
+                        Padding="10">
+                    <Grid>
+                        <!-- Loading Indicator -->
+                        <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                                         IsVisible="{Binding IsLoading}" 
+                                         VerticalOptions="Center" 
+                                         HorizontalOptions="Center" />
+                        
+
+                        <!-- Items Collection -->
+                        <CollectionView ItemsSource="{Binding Items}"
+                                       IsVisible="{Binding IsLoading, Converter={StaticResource NullToBoolConverter}}">
+                            <CollectionView.ItemsLayout>
+                                <GridItemsLayout Orientation="Vertical" Span="2" />
+                            </CollectionView.ItemsLayout>
+
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame BackgroundColor="#D9D9D9" 
+                                           CornerRadius="15" 
+                                           Margin="5" 
+                                           Padding="10" 
+                                           VerticalOptions="Fill" 
+                                           HorizontalOptions="Fill">
+                                        
+                                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto">
+                                            <!-- Item Image -->
+                                            <Frame Grid.Row="0" Grid.RowSpan="4" Grid.Column="0"
+                                                   CornerRadius="10" 
+                                                   Padding="0" 
+                                                   HeightRequest="80" 
+                                                   WidthRequest="80" 
+                                                   Margin="0,0,10,0">
+                                                <Image Source="{Binding ImageSource}" 
+                                                       Aspect="AspectFill" />
+                                            </Frame>
+
+                                            <!-- Item Name -->
+                                            <Label Grid.Row="0" Grid.Column="1"
+                                                   Text="{Binding itemName}" 
+                                                   FontAttributes="Bold" 
+                                                   FontSize="16" 
+                                                   VerticalOptions="Start" />
+
+                                            <!-- Category -->
+                                            <Label Grid.Row="1" Grid.Column="1"
+                                                   Text="{Binding itemCategory, StringFormat='Category: {0}'}" 
+                                                   FontSize="12" 
+                                                   TextColor="Gray" 
+                                                   VerticalOptions="Center" />
+
+                                            <!-- Quantity -->
+                                            <HorizontalStackLayout Grid.Row="2" Grid.Column="1" 
+                                                                   Spacing="10" 
+                                                                   VerticalOptions="Center">
+                                                <Label Text="{Binding itemQuantity, StringFormat='Quantity: {0:F2}'}" 
+                                                       FontSize="12" 
+                                                       TextColor="DarkGreen" />
+                                                <Label Text="{Binding unitOfMeasurement, StringFormat='{0}'}" 
+                                                       FontSize="12" 
+                                                       TextColor="DarkGreen" />
+                                            </HorizontalStackLayout>
+
+                                            <!-- Action Buttons -->
+                                            <HorizontalStackLayout Grid.Row="3" Grid.Column="1" 
+                                                                   Spacing="10" 
+                                                                   VerticalOptions="End"
+                                                                   HorizontalOptions="Start">
+                                                <Button Text="Edit" 
+                                                        FontSize="12" 
+                                                        BackgroundColor="#4CAF50" 
+                                                        TextColor="White"
+                                                        WidthRequest="60" 
+                                                        HeightRequest="30"
+                                                        Padding="0"
+                                                        Command="{Binding BindingContext.EditItemCommand, Source={x:Reference EditInventoryPopupView}}" 
+                                                        CommandParameter="{Binding .}" />
+                                                
+                                                <Button Text="Delete" 
+                                                        FontSize="12" 
+                                                        BackgroundColor="#F44336" 
+                                                        TextColor="White"
+                                                        WidthRequest="60" 
+                                                        HeightRequest="30"
+                                                        Padding="0"
+                                                        Command="{Binding BindingContext.DeleteItemCommand, Source={x:Reference EditInventoryPopupView}}" 
+                                                        CommandParameter="{Binding .}" />
+                                                
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </Border>
+
+                <!-- Close Button -->
+                <Button Text="Close"
+                        Grid.Row="2"
+                        WidthRequest="100"
+                        HeightRequest="40"
+                        FontSize="14"
+                        BackgroundColor="Red"
+                        TextColor="White"
+                        HorizontalOptions="Center"
+                        Margin="0,20,0,0"
+                        Command="{Binding CloseEditInventoryPopupCommand}" />
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>

@@ -46,14 +46,16 @@
                     </Frame>
                 </Grid>
                 <Grid Grid.Column="3" WidthRequest="35" HeightRequest="35">
-                    <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImage}" 
+                    <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                            WidthRequest="35" 
                            HeightRequest="35" 
-                           Aspect="AspectFill" />
+                           Aspect="AspectFill" 
+                           ZIndex="1" />
                     <ImageButton Source="usericon.png" 
                                  WidthRequest="35" 
                                  HeightRequest="35" 
                                  BackgroundColor="Transparent"
+                                 ZIndex="0"
                                  Command="{Binding ShowProfileCommand}"/>
                 </Grid>
             </Grid>
@@ -443,17 +445,18 @@
         </Grid>
         <!-- Popups -->
         <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
-        <otherViews:ManagePOSOptions BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM}" Grid.ColumnSpan="2"/>
-        <otherViews:ManageInventoryOptions BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM}" Grid.ColumnSpan="2"/>
-        <otherViews:UpdateInventoryDetails BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
+        <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
+        <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
+        <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <!-- Page-level overlays so Next hides previous and shows next cleanly -->
         <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1100"/>
         <otherViews:InputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200"/>
         <otherViews:PreviewPOSItem BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1300"/>
         <otherViews:AddonsSelectionPopup BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
-        <otherViews:AddItemToInventory BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
-        <otherViews:EditProductPopup BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:CartPopup BindingContext="{Binding CartPopup}" Grid.ColumnSpan="2"/>
         <otherViews:HistoryPopup BindingContext="{Binding HistoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:PaymentPopup x:Name="PaymentPopupControl" Grid.ColumnSpan="2"/>

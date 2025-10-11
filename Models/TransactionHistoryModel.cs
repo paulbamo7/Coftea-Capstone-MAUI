@@ -18,10 +18,22 @@ namespace Coftea_Capstone.Models
         private string size;
 
         [ObservableProperty]
-        private string addOns;
+        private string addOns = "No add-ons";
 
         [ObservableProperty]
         private decimal price;
+
+        [ObservableProperty]
+        private decimal smallPrice;
+
+        [ObservableProperty]
+        private decimal mediumPrice;
+
+        [ObservableProperty]
+        private decimal largePrice;
+
+        [ObservableProperty]
+        private decimal addonPrice;
 
         [ObservableProperty]
         private decimal vat;
@@ -44,6 +56,14 @@ namespace Coftea_Capstone.Models
         public string FormattedDate => TransactionDate.ToString("dd/MM");
         
         public string FormattedPrice => $"P{Price:F2}";
+        
+        public string FormattedSmallPrice => SmallPrice > 0 ? $"P{SmallPrice:F2}" : "-";
+        
+        public string FormattedMediumPrice => MediumPrice > 0 ? $"P{MediumPrice:F2}" : "-";
+        
+        public string FormattedLargePrice => LargePrice > 0 ? $"P{LargePrice:F2}" : "-";
+        
+        public string FormattedAddonPrice => AddonPrice > 0 ? $"P{AddonPrice:F2}" : "-";
         
         public string FormattedVAT => $"P{Vat:F2}";
         

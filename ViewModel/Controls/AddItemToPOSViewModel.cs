@@ -380,12 +380,25 @@ namespace Coftea_Capstone.ViewModel
 
 						var addons = selected
 							.Where(i => IsAddonCategory(i.itemCategory))
-							.Select(i => (
-								inventoryItemId: i.itemID,
-								amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-								unit: (string?)i.unitOfMeasurement,
-								addonPrice: i.AddonPrice
-							));
+							.Select(i => {
+								System.Diagnostics.Debug.WriteLine($"🔧 Addon: {i.itemName}");
+								System.Diagnostics.Debug.WriteLine($"🔧 InputAmount: {i.InputAmount}, InputUnit: '{i.InputUnit}'");
+								System.Diagnostics.Debug.WriteLine($"🔧 InventoryUnit: '{i.unitOfMeasurement}'");
+								System.Diagnostics.Debug.WriteLine($"🔧 DefaultUnit: '{i.DefaultUnit}'");
+								
+								// Keep original values without any conversion
+								var finalAmount = i.InputAmount > 0 ? i.InputAmount : 1;
+								var finalUnit = i.InputUnit ?? "g"; // Default to grams if no unit specified
+								
+								System.Diagnostics.Debug.WriteLine($"🔧 Final values: amount={finalAmount}, unit='{finalUnit}'");
+								
+								return (
+									inventoryItemId: i.itemID,
+									amount: finalAmount,
+									unit: finalUnit,
+									addonPrice: i.AddonPrice
+								);
+							});
 
 						try
 						{

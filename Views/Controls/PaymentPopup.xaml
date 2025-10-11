@@ -193,9 +193,9 @@
                             </Grid>
                         </Grid>
 
-                        <!-- GCASH SECTION (simulation) -->
+                        <!-- GCASH SECTION (realistic simulation) -->
                         <Grid Grid.Row="1" IsVisible="{Binding Source={x:Reference GCashRadio}, Path=IsChecked}">
-                            <Grid RowDefinitions="Auto, Auto, Auto">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto">
                                 <!-- Total Amount -->
                                 <Grid Grid.Row="0" Margin="0,0,0,20">
                                     <Label Text="Total Amount:" 
@@ -209,17 +209,101 @@
                                            HorizontalOptions="End" />
                                 </Grid>
 
-                                <!-- Simple confirmation simulation (no scan, no API) -->
-                                <Frame Grid.Row="1" Padding="20" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True">
-                                    <VerticalStackLayout Spacing="8">
-                                        <Label Text="GCash Payment (Simulation)" FontSize="16" FontAttributes="Bold" TextColor="#5B4F45" />
-                                        <Label Text="No API connected. Tap the button below to simulate a successful GCash payment confirmation." FontSize="13" TextColor="#333333" />
+                                <!-- GCash QR Code Simulation -->
+                                <Frame Grid.Row="1" Padding="20" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True" Margin="0,0,0,15">
+                                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                                        <Label Text="GCash QR Payment" FontSize="16" FontAttributes="Bold" TextColor="#0EA5E9" HorizontalOptions="Center" />
+                                        
+                                        <!-- QR Code Placeholder -->
+                                        <Frame BackgroundColor="#F8F9FA" CornerRadius="8" Padding="15" HasShadow="False">
+                                            <Grid WidthRequest="120" HeightRequest="120">
+                                                <!-- QR Code Pattern Simulation -->
+                                                <Grid BackgroundColor="Black" Margin="5" />
+                                                <Grid BackgroundColor="Black" Margin="15,5,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="5,15,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="15,15,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="25,5,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="35,15,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="5,25,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="15,35,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="25,25,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="35,35,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="45,5,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="55,15,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="45,25,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="55,35,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="65,5,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="75,15,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="65,25,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="75,35,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="85,5,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="95,15,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="85,25,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="95,35,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="5,45,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="15,55,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="25,45,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="35,55,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="45,45,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="55,55,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="65,45,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="75,55,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="85,45,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="95,55,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="5,65,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="15,75,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="25,65,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="35,75,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="45,65,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="55,75,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="65,65,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="75,75,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="85,65,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="95,75,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="5,85,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="15,95,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="25,85,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="35,95,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="45,85,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="55,95,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="65,85,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="75,95,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="85,85,5,5" />
+                                                <Grid BackgroundColor="Black" Margin="95,95,5,5" />
+                                            </Grid>
+                                        </Frame>
+                                        
+                                        <Label Text="Scan QR code with GCash app" FontSize="12" TextColor="#666666" HorizontalOptions="Center" />
+                                        <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" FontSize="14" FontAttributes="Bold" TextColor="#0EA5E9" HorizontalOptions="Center" />
                                     </VerticalStackLayout>
                                 </Frame>
 
-                                <!-- Simulate Confirmation Button -->
-                                <Button Grid.Row="2"
-                                        Text="Confirm GCash Payment"
+                                <!-- Payment Status -->
+                                <Grid Grid.Row="2" Margin="0,0,0,15">
+                                    <Label Text="Payment Status:" 
+                                           FontSize="16" 
+                                           TextColor="Black" />
+                                    <Label Text="{Binding PaymentStatus}" 
+                                           FontSize="16" 
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
+                                           HorizontalOptions="End" />
+                                </Grid>
+
+                                <!-- GCash Payment Steps -->
+                                <Frame Grid.Row="3" Padding="15" BackgroundColor="#F0F9FF" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Payment Steps:" FontSize="14" FontAttributes="Bold" TextColor="#0EA5E9" />
+                                        <Label Text="1. Open GCash app on your phone" FontSize="12" TextColor="#374151" />
+                                        <Label Text="2. Tap 'Scan QR' and scan the code above" FontSize="12" TextColor="#374151" />
+                                        <Label Text="3. Enter amount and confirm payment" FontSize="12" TextColor="#374151" />
+                                        <Label Text="4. Wait for payment confirmation" FontSize="12" TextColor="#374151" />
+                                    </VerticalStackLayout>
+                                </Frame>
+
+                                <!-- Simulate Payment Button -->
+                                <Button Grid.Row="4"
+                                        Text="Simulate GCash Payment"
                                         FontSize="16"
                                         FontAttributes="Bold"
                                         BackgroundColor="#0EA5E9" 
@@ -230,9 +314,9 @@
                             </Grid>
                         </Grid>
 
-                        <!-- BANK SECTION (simulation) -->
+                        <!-- BANK SECTION (realistic simulation) -->
                         <Grid Grid.Row="1" IsVisible="{Binding Source={x:Reference BankRadio}, Path=IsChecked}">
-                            <Grid RowDefinitions="Auto, Auto, Auto">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto">
                                 <!-- Total Amount -->
                                 <Grid Grid.Row="0" Margin="0,0,0,20">
                                     <Label Text="Total Amount:" 
@@ -246,17 +330,53 @@
                                            HorizontalOptions="End" />
                                 </Grid>
 
-                                <!-- Bank payment simulation -->
-                                <Frame Grid.Row="1" Padding="20" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True">
-                                    <VerticalStackLayout Spacing="8">
-                                        <Label Text="Bank Transfer Payment (Simulation)" FontSize="16" FontAttributes="Bold" TextColor="#5B4F45" />
-                                        <Label Text="No API connected. Tap the button below to simulate a successful bank transfer confirmation." FontSize="13" TextColor="#333333" />
+                                <!-- Bank Transfer Details -->
+                                <Frame Grid.Row="1" Padding="20" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True" Margin="0,0,0,15">
+                                    <VerticalStackLayout Spacing="12">
+                                        <Label Text="Bank Transfer Payment" FontSize="16" FontAttributes="Bold" TextColor="#8B5CF6" HorizontalOptions="Center" />
+                                        
+                                        <!-- Bank Account Details -->
+                                        <Frame BackgroundColor="#F8F9FA" CornerRadius="8" Padding="15" HasShadow="False">
+                                            <VerticalStackLayout Spacing="8">
+                                                <Label Text="Transfer to:" FontSize="14" FontAttributes="Bold" TextColor="#374151" />
+                                                <Label Text="Account Name: Coftea Coffee Shop" FontSize="12" TextColor="#6B7280" />
+                                                <Label Text="Account Number: 1234-5678-9012-3456" FontSize="12" TextColor="#6B7280" />
+                                                <Label Text="Bank: BDO (Banco de Oro)" FontSize="12" TextColor="#6B7280" />
+                                                <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" FontSize="14" FontAttributes="Bold" TextColor="#8B5CF6" />
+                                            </VerticalStackLayout>
+                                        </Frame>
+                                        
+                                        <Label Text="Use your bank's mobile app or online banking" FontSize="12" TextColor="#666666" HorizontalOptions="Center" />
                                     </VerticalStackLayout>
                                 </Frame>
 
-                                <!-- Simulate Confirmation Button -->
-                                <Button Grid.Row="2"
-                                        Text="Confirm Bank Payment"
+                                <!-- Payment Status -->
+                                <Grid Grid.Row="2" Margin="0,0,0,15">
+                                    <Label Text="Payment Status:" 
+                                           FontSize="16" 
+                                           TextColor="Black" />
+                                    <Label Text="{Binding PaymentStatus}" 
+                                           FontSize="16" 
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
+                                           HorizontalOptions="End" />
+                                </Grid>
+
+                                <!-- Bank Transfer Steps -->
+                                <Frame Grid.Row="3" Padding="15" BackgroundColor="#F3F4F6" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Transfer Steps:" FontSize="14" FontAttributes="Bold" TextColor="#8B5CF6" />
+                                        <Label Text="1. Open your bank's mobile app" FontSize="12" TextColor="#374151" />
+                                        <Label Text="2. Go to 'Transfer' or 'Send Money'" FontSize="12" TextColor="#374151" />
+                                        <Label Text="3. Enter account details and amount" FontSize="12" TextColor="#374151" />
+                                        <Label Text="4. Add reference: 'Coftea Order'" FontSize="12" TextColor="#374151" />
+                                        <Label Text="5. Confirm and complete transfer" FontSize="12" TextColor="#374151" />
+                                    </VerticalStackLayout>
+                                </Frame>
+
+                                <!-- Simulate Payment Button -->
+                                <Button Grid.Row="4"
+                                        Text="Simulate Bank Transfer"
                                         FontSize="16"
                                         FontAttributes="Bold"
                                         BackgroundColor="#8B5CF6" 

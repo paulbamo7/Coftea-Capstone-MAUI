@@ -52,11 +52,11 @@ namespace Coftea_Capstone.Models
 
         public string SizeDisplay => GetSizeDisplay();
         
-        public string AddOnsDisplay => string.Join(", ", AddOns);
+        public string AddOnsDisplay => AddOns != null && AddOns.Count > 0 ? string.Join(", ", AddOns) : "No add-ons";
         
         public int TotalQuantity => SmallQuantity + MediumQuantity + LargeQuantity;
         
-        public decimal TotalPrice => (SmallPrice * SmallQuantity) + (MediumPrice * MediumQuantity) + (LargePrice * LargeQuantity);
+        public decimal TotalPrice => Price; // Price already includes addon costs from CartPopupViewModel
 
         private string GetSizeDisplay()
         {

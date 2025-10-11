@@ -121,17 +121,19 @@
                                         </Frame>
 
                                         <!-- Drink Details -->
-                                        <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="10,0">
+                                        <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="10,0" VerticalOptions="Center">
                                             <Label Text="{Binding ProductName, StringFormat='Drink: {0}'}" 
                                                    FontSize="12" 
-                                                   TextColor="Black" />
+                                                   TextColor="Black"
+                                                   VerticalOptions="Center" />
                                         </VerticalStackLayout>
 
                                         <!-- Add-ons -->
-                                        <VerticalStackLayout Grid.Column="3" Spacing="2" Padding="5,0">
+                                        <VerticalStackLayout Grid.Column="3" Spacing="2" Padding="5,0" VerticalOptions="Center">
                                             <Label Text="{Binding AddOnsDisplay}" 
                                                    FontSize="11" 
-                                                   TextColor="Black" />
+                                                   TextColor="Black"
+                                                   VerticalOptions="Center" />
                                         </VerticalStackLayout>
 
                                         <!-- Size -->

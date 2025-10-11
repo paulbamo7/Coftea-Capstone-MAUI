@@ -34,9 +34,20 @@
 
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
-                    <Label Text="User Management" FontSize="32" FontAttributes="Bold" VerticalOptions="Center"/>
+                    <Label Text="User Management" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
                     <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
-                    <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="40" HeightRequest="40"/>
+                    <Grid Grid.Column="3" WidthRequest="40" HeightRequest="40">
+                        <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
+                               WidthRequest="40" 
+                               HeightRequest="40" 
+                               Aspect="AspectFill" 
+                               ZIndex="1" />
+                        <ImageButton Source="usericon.png" 
+                                     WidthRequest="40" 
+                                     HeightRequest="40" 
+                                     BackgroundColor="Transparent"
+                                     ZIndex="0"/>
+                    </Grid>
                 </Grid>
 
                 <VerticalStackLayout Padding="20" Spacing="16">
@@ -129,13 +140,12 @@
         <!-- Delete User Popup Overlay -->
         <controls:DeleteUserPopup Grid.ColumnSpan="2" Grid.RowSpan="1" BindingContext="{Binding DeleteUserPopup}"/>
         
-        <!-- Settings Popup Overlay -->
-        <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
-        
         <!-- All Global Popups -->
+        <views:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>

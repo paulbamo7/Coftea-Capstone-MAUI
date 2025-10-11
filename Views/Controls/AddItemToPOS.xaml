@@ -33,7 +33,7 @@
                         </Frame>
 
                         <!-- Product Image (optional) -->
-                        <Frame CornerRadius="20" BackgroundColor="#F8E8D7" HeightRequest="180" Padding="8">
+                        <Frame CornerRadius="20" BackgroundColor="#F8E8D7" HeightRequest="120" WidthRequest="200" Padding="8">
                             <Grid>
                                 <Grid RowDefinitions="*,Auto">
                                     <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit"/>

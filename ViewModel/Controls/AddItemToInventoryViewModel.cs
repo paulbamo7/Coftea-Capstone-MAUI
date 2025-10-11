@@ -56,10 +56,19 @@ namespace Coftea_Capstone.ViewModel
         private double minimumUoMQuantity = 0;
 
         [ObservableProperty]
+        private double maximumQuantity = 0;
+
+        [ObservableProperty]
+        private double maximumUoMQuantity = 0;
+
+        [ObservableProperty]
         private double uoMQuantity = 0;
 
         [ObservableProperty]
         private string selectedMinimumUoM;
+
+        [ObservableProperty]
+        private string selectedMaximumUoM;
 
         [ObservableProperty]
         private string selectedUoM;
@@ -76,6 +85,9 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private string convertedMinimumDisplay = string.Empty;
+
+        [ObservableProperty]
+        private string convertedMaximumDisplay = string.Empty;
 
         [ObservableProperty]
         private bool showConversionInfo = false;
@@ -155,6 +167,11 @@ namespace Coftea_Capstone.ViewModel
             UpdateConversionDisplays();
         }
 
+        partial void OnSelectedMaximumUoMChanged(string value)
+        {
+            UpdateConversionDisplays();
+        }
+
         private void UpdateUoMOptionsForCategory(string category)
         {
             var cat = category?.Trim() ?? string.Empty;
@@ -199,6 +216,10 @@ namespace Coftea_Capstone.ViewModel
             if (!UoMOptions.Contains(SelectedMinimumUoM))
             {
                 SelectedMinimumUoM = UoMOptions.FirstOrDefault();
+            }
+            if (!UoMOptions.Contains(SelectedMaximumUoM))
+            {
+                SelectedMaximumUoM = UoMOptions.FirstOrDefault();
             }
         }
 
@@ -246,6 +267,26 @@ namespace Coftea_Capstone.ViewModel
             {
                 ConvertedMinimumDisplay = string.Empty;
             }
+
+            // Update maximum quantity conversion display
+            if (MaximumUoMQuantity > 0 && !string.IsNullOrWhiteSpace(SelectedMaximumUoM))
+            {
+                var (convertedValue, convertedUnit) = UnitConversionService.ConvertToBestUnit(MaximumUoMQuantity, SelectedMaximumUoM);
+                var originalUnit = UnitConversionService.Normalize(SelectedMaximumUoM);
+                
+                if (convertedUnit != originalUnit)
+                {
+                    ConvertedMaximumDisplay = $"{MaximumUoMQuantity} {UnitConversionService.FormatUnit(originalUnit)} = {convertedValue:F2} {UnitConversionService.FormatUnit(convertedUnit)}";
+                }
+                else
+                {
+                    ConvertedMaximumDisplay = string.Empty;
+                }
+            }
+            else
+            {
+                ConvertedMaximumDisplay = string.Empty;
+            }
         }
 
         public void BeginEdit(int itemId)
@@ -264,6 +305,8 @@ namespace Coftea_Capstone.ViewModel
         private void CloseUpdateInventoryDetails()
         {
             IsUpdateInventoryDetailsVisible = false;
+            ResetForm();
+            _editingItemId = null;
         }
 
         [RelayCommand]
@@ -322,11 +365,22 @@ namespace Coftea_Capstone.ViewModel
             var minimumThreshold = IsPiecesOnlyCategory ? MinimumQuantity : MinimumUoMQuantity;
             var minimumUnit = IsPiecesOnlyCategory ? SelectedUoM : SelectedMinimumUoM;
 
+            // Determine the relevant maximum by category type
+            var maximumThreshold = IsPiecesOnlyCategory ? MaximumQuantity : MaximumUoMQuantity;
+            var maximumUnit = IsPiecesOnlyCategory ? SelectedUoM : SelectedMaximumUoM;
+
             // Convert minimum to best unit if needed
             if (!string.IsNullOrWhiteSpace(minimumUnit) && minimumThreshold > 0)
             {
                 var (convertedMinValue, convertedMinUnit) = UnitConversionService.ConvertToBestUnit(minimumThreshold, minimumUnit);
                 minimumThreshold = convertedMinValue;
+            }
+
+            // Convert maximum to best unit if needed
+            if (!string.IsNullOrWhiteSpace(maximumUnit) && maximumThreshold > 0)
+            {
+                var (convertedMaxValue, convertedMaxUnit) = UnitConversionService.ConvertToBestUnit(maximumThreshold, maximumUnit);
+                maximumThreshold = convertedMaxValue;
             }
 
             // Enforce business rule: current stock must be greater than the relevant minimum
@@ -344,6 +398,7 @@ namespace Coftea_Capstone.ViewModel
                 itemQuantity = finalQuantity,
                 unitOfMeasurement = finalUnit,
                 minimumQuantity = minimumThreshold,
+                maximumQuantity = maximumThreshold,
                 ImageSet = ImagePath
             };
 
@@ -442,13 +497,18 @@ namespace Coftea_Capstone.ViewModel
             UoMQuantity = 0;
             MinimumQuantity = 0;
             MinimumUoMQuantity = 0;
+            MaximumQuantity = 0;
+            MaximumUoMQuantity = 0;
             SelectedUoM = null;
             SelectedMinimumUoM = null;
+            SelectedMaximumUoM = null;
             ImagePath = string.Empty;
             SelectedImageSource = null;
             ConvertedQuantityDisplay = string.Empty;
             ConvertedMinimumDisplay = string.Empty;
+            ConvertedMaximumDisplay = string.Empty;
             ShowConversionInfo = false;
+            _editingItemId = null;
         }
     }
 }

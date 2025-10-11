@@ -17,17 +17,19 @@
 
             <!-- Top Bar -->
             <Grid ColumnDefinitions="*, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
-                <Label Text="Home" FontSize="32" FontAttributes="Bold" VerticalOptions="Center" TextColor="#3E2723"/>
+                <Label Text="Home" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="#3E2723"/>
                 <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                 <Grid Grid.Column="2" WidthRequest="40" HeightRequest="40">
-                    <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImage}" 
+                    <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                            WidthRequest="40" 
                            HeightRequest="40" 
-                           Aspect="AspectFill" />
+                           Aspect="AspectFill" 
+                           ZIndex="1" />
                     <ImageButton Source="usericon.png" 
                                  WidthRequest="40" 
                                  HeightRequest="40" 
                                  BackgroundColor="Transparent"
+                                 ZIndex="0"
                                  Clicked="OnProfileClicked"/>
                 </Grid>
             </Grid>
@@ -177,6 +179,7 @@
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>

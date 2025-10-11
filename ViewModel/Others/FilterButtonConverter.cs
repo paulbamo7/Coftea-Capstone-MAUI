@@ -8,7 +8,11 @@ namespace Coftea_Capstone.ViewModel.Others
         {
             if (value is string selectedFilter && parameter is string filterOption)
             {
-                bool isSelected = selectedFilter == filterOption;
+                // Trim both values to handle any whitespace issues
+                selectedFilter = selectedFilter?.Trim() ?? string.Empty;
+                filterOption = filterOption?.Trim() ?? string.Empty;
+                
+                bool isSelected = string.Equals(selectedFilter, filterOption, StringComparison.OrdinalIgnoreCase);
                 System.Diagnostics.Debug.WriteLine($"FilterButtonConverter: selectedFilter='{selectedFilter}', filterOption='{filterOption}', isSelected={isSelected}");
                 return isSelected;
             }

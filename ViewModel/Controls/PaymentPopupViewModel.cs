@@ -130,9 +130,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (!confirm)
                 return;
 
-            // Process payment
-            PaymentStatus = "Processing...";
-            await Task.Delay(1000);
+            // Process payment with realistic steps
+            await ProcessPaymentWithSteps();
 
             // Save transaction to database and shared store
             var savedTransactions = await SaveTransaction();
@@ -161,10 +160,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart: {ex.Message}");
             }
 
-            // Show success: full order-complete popup only; do not auto-open notification toast
+            // Show success: order-complete popup with auto-disappear
             PaymentStatus = "Payment Confirmed";
             var appInstance = (App)Application.Current;
-            appInstance?.OrderCompletePopup?.Show();
+            if (appInstance?.OrderCompletePopup != null)
+            {
+                var orderNumber = new Random().Next(1000, 9999).ToString();
+                await appInstance.OrderCompletePopup.ShowOrderCompleteAsync(orderNumber);
+            }
             
             // Show order confirmation popup in bottom right
             var orderConfirmedPopup = appInstance?.OrderConfirmedPopup;
@@ -205,6 +208,62 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsPaymentVisible = false;
         }
 
+        private async Task ProcessPaymentWithSteps()
+        {
+            try
+            {
+                if (SelectedPaymentMethod == "Cash")
+                {
+                    // Cash payment - simple processing
+                    PaymentStatus = "Processing Cash Payment...";
+                    await Task.Delay(800);
+                    PaymentStatus = "Payment Successful";
+                }
+                else if (SelectedPaymentMethod == "GCash")
+                {
+                    // GCash payment simulation
+                    PaymentStatus = "Initializing GCash Payment...";
+                    await Task.Delay(1000);
+                    
+                    PaymentStatus = "Generating QR Code...";
+                    await Task.Delay(1200);
+                    
+                    PaymentStatus = "Waiting for Customer Scan...";
+                    await Task.Delay(1500);
+                    
+                    PaymentStatus = "Verifying Payment...";
+                    await Task.Delay(1000);
+                    
+                    PaymentStatus = "Payment Confirmed";
+                    await Task.Delay(500);
+                }
+                else if (SelectedPaymentMethod == "Bank")
+                {
+                    // Bank transfer simulation
+                    PaymentStatus = "Preparing Bank Transfer...";
+                    await Task.Delay(1000);
+                    
+                    PaymentStatus = "Validating Account Details...";
+                    await Task.Delay(1200);
+                    
+                    PaymentStatus = "Processing Transfer...";
+                    await Task.Delay(1500);
+                    
+                    PaymentStatus = "Verifying Transaction...";
+                    await Task.Delay(1000);
+                    
+                    PaymentStatus = "Transfer Completed";
+                    await Task.Delay(500);
+                }
+            }
+            catch (Exception ex)
+            {
+                PaymentStatus = "Payment Failed";
+                System.Diagnostics.Debug.WriteLine($"Payment processing error: {ex.Message}");
+                await Task.Delay(1000);
+            }
+        }
+
         private async Task<List<TransactionHistoryModel>> SaveTransaction()
         {
             try
@@ -224,6 +283,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                     {
                         System.Diagnostics.Debug.WriteLine($"💾 Saving transaction for: {item.ProductName}");
                         
+                        // Calculate addon price from the difference between total price and base product price
+                        var baseProductPrice = (item.SmallPrice * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity);
+                        var addonPrice = Math.Max(0, item.TotalPrice - baseProductPrice);
+                        System.Diagnostics.Debug.WriteLine($"Transaction: {item.ProductName}, Base Price: {baseProductPrice}, Total Price: {item.TotalPrice}, Addon Price: {addonPrice}");
+                        
+                        System.Diagnostics.Debug.WriteLine($"💾 Creating transaction for: {item.ProductName}");
+                        System.Diagnostics.Debug.WriteLine($"💾 AddOnsDisplay: '{item.AddOnsDisplay}'");
+                        System.Diagnostics.Debug.WriteLine($"💾 AddOns collection count: {item.AddOns?.Count ?? 0}");
+                        if (item.AddOns != null)
+                        {
+                            foreach (var addon in item.AddOns)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"💾 Addon in collection: '{addon}'");
+                            }
+                        }
+                        
                         var transaction = new TransactionHistoryModel
                         {
                             TransactionId = nextId++,
@@ -231,14 +306,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                             Size = item.SelectedSize,
                             Quantity = item.Quantity,
                             Price = item.Price,
+                            SmallPrice = item.SmallPrice, // Store unit prices, not total prices
+                            MediumPrice = item.MediumPrice, // Store unit prices, not total prices
+                            LargePrice = item.LargePrice, // Store unit prices, not total prices
+                            AddonPrice = addonPrice,
                             Vat = 0m,
                             Total = item.TotalPrice,
-                            AddOns = item.AddOnsDisplay,
+                            AddOns = string.IsNullOrWhiteSpace(item.AddOnsDisplay) || item.AddOnsDisplay == "No add-ons" ? "" : item.AddOnsDisplay,
                             CustomerName = item.CustomerName,
                             PaymentMethod = SelectedPaymentMethod,
                             Status = "Completed",
                             TransactionDate = DateTime.Now
                         };
+                        
+                        System.Diagnostics.Debug.WriteLine($"💾 Transaction AddOns: '{transaction.AddOns}'");
 
                         // Save to database with timeout
                         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));

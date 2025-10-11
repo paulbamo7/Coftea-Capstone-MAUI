@@ -107,6 +107,12 @@ namespace Coftea_Capstone.ViewModel
                     SelectedProduct.InventoryItems.Clear();
                     foreach (var addon in selectedAddons)
                     {
+                        // Ensure addon has proper quantity and selection state
+                        if (addon.IsSelected && addon.AddonQuantity <= 0)
+                        {
+                            addon.AddonQuantity = 1;
+                        }
+                        System.Diagnostics.Debug.WriteLine($"🔧 Adding addon to product: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
                         SelectedProduct.InventoryItems.Add(addon);
                     }
                     // Notify price/summary recalculation on UI if bound
@@ -281,7 +287,7 @@ namespace Coftea_Capstone.ViewModel
 
 
         [RelayCommand]
-        private void AddToCart(POSPageModel product)
+        private async void AddToCart(POSPageModel product)
         {
             if (product == null || CartItems == null) 
             {
@@ -300,6 +306,17 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            // Check if cups and straws are available before adding to cart
+            bool cupsAndStrawsAvailable = await CheckCupsAndStrawsAvailability();
+            if (cupsAndStrawsAvailable)
+            {
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ShowNotification("Cannot add items to cart: No cups or straws available in inventory.", "Out of Stock");
+                }
+                return;
+            }
+
             // Always create a new cart line entry even if the same product already exists
             var copy = new POSPageModel
             {
@@ -311,14 +328,52 @@ namespace Coftea_Capstone.ViewModel
                 ImageSet = product.ImageSet,
                 SmallQuantity = product.SmallQuantity,
                 MediumQuantity = product.MediumQuantity,
-                LargeQuantity = product.LargeQuantity
+                LargeQuantity = product.LargeQuantity,
+                InventoryItems = new ObservableCollection<InventoryPageModel>() // Create new collection
             };
+            
+            // Deep copy addon data to preserve addon selections
+            if (product.InventoryItems != null)
+            {
+                foreach (var addon in product.InventoryItems)
+                {
+                    var addonCopy = new InventoryPageModel
+                    {
+                        itemID = addon.itemID,
+                        itemName = addon.itemName,
+                        itemCategory = addon.itemCategory,
+                        itemDescription = addon.itemDescription,
+                        itemQuantity = addon.itemQuantity,
+                        unitOfMeasurement = addon.unitOfMeasurement,
+                        minimumQuantity = addon.minimumQuantity,
+                        ImageSet = addon.ImageSet,
+                        IsSelected = addon.IsSelected,
+                        AddonQuantity = addon.AddonQuantity,
+                        AddonPrice = addon.AddonPrice,
+                        AddonUnit = addon.AddonUnit,
+                        InputAmount = addon.InputAmount,
+                        InputUnit = addon.InputUnit
+                    };
+                    copy.InventoryItems.Add(addonCopy);
+                    System.Diagnostics.Debug.WriteLine($"🔧 Copied addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                }
+            }
             CartItems.Add(copy);
 
             // Reset selection quantities
             product.SmallQuantity = 0;
             product.MediumQuantity = 0;
             product.LargeQuantity = 0;
+            
+            // Reset addons to 0
+            if (product.InventoryItems != null)
+            {
+                foreach (var addon in product.InventoryItems)
+                {
+                    addon.AddonQuantity = 0;
+                    addon.IsSelected = false;
+                }
+            }
 
             // Do not auto-open notifications; bell controls visibility
 
@@ -354,6 +409,7 @@ namespace Coftea_Capstone.ViewModel
             _ = LoadAddonsForSelectedAsync();
         }
 
+
         private async Task LoadAddonsForSelectedAsync()
         {
             if (SelectedProduct == null) return;
@@ -362,7 +418,16 @@ namespace Coftea_Capstone.ViewModel
                 var addons = await _database.GetProductAddonsAsync(SelectedProduct.ProductID);
                 SelectedProduct.InventoryItems.Clear();
                 foreach (var a in addons)
+                {
+                    // Initialize addon properties for selection
+                    a.IsSelected = false;
+                    a.AddonQuantity = 0;
+                    // Keep the AddonPrice from database, don't reset it to 0
+                    a.AddonUnit = a.DefaultUnit;
+                    System.Diagnostics.Debug.WriteLine($"🔧 Loaded addon: {a.itemName}, IsSelected: {a.IsSelected}, AddonQuantity: {a.AddonQuantity}, AddonPrice: {a.AddonPrice}");
                     SelectedProduct.InventoryItems.Add(a);
+                }
+                System.Diagnostics.Debug.WriteLine($"🔧 Loaded {addons.Count} addons for product: {SelectedProduct.ProductName}");
             }
             catch (Exception ex)
             {
@@ -438,6 +503,12 @@ namespace Coftea_Capstone.ViewModel
                         }
                     }
 
+                    // Check if cups and straws are available for at least one serving
+                    if (!insufficientForRecipe)
+                    {
+                        insufficientForRecipe = await CheckCupsAndStrawsAvailability();
+                    }
+
                     // Rule: If inventory for each required ingredient is enough for ONE serving, product is available.
                     // Ignore minimum thresholds for availability; they can be surfaced elsewhere as warnings.
                     product.IsLowStock = insufficientForRecipe;
@@ -446,6 +517,29 @@ namespace Coftea_Capstone.ViewModel
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error checking stock levels: {ex.Message}");
+            }
+        }
+
+        private async Task<bool> CheckCupsAndStrawsAvailability()
+        {
+            try
+            {
+                // Check if we have at least one of each cup size and straw
+                var smallCup = await _database.GetInventoryItemByNameCachedAsync("Small Cup");
+                var mediumCup = await _database.GetInventoryItemByNameCachedAsync("Medium Cup");
+                var largeCup = await _database.GetInventoryItemByNameCachedAsync("Large Cup");
+                var straw = await _database.GetInventoryItemByNameCachedAsync("Straw");
+
+                // If any cup size or straw is at zero, products should not be available
+                bool hasCupsAndStraws = (smallCup?.itemQuantity > 0 || mediumCup?.itemQuantity > 0 || largeCup?.itemQuantity > 0) && 
+                                       (straw?.itemQuantity > 0);
+
+                return !hasCupsAndStraws;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking cups and straws availability: {ex.Message}");
+                return true; // Conservative approach - mark as unavailable if we can't check
             }
         }
 

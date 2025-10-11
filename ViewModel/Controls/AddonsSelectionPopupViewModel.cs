@@ -48,8 +48,18 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void ConfirmAddonSelection()
         {
-            // Get selected addons
+            // Get selected addons and ensure they have proper quantities
             var selectedAddons = AvailableAddons.Where(a => a.IsSelected).ToList();
+            
+            foreach (var addon in selectedAddons)
+            {
+                // Ensure addon has proper quantity
+                if (addon.AddonQuantity <= 0)
+                {
+                    addon.AddonQuantity = 1;
+                }
+                System.Diagnostics.Debug.WriteLine($"🔧 Confirming addon selection: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+            }
             
             // Notify parent with selected addons
             AddonsSelected?.Invoke(selectedAddons);
@@ -159,6 +169,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (string.IsNullOrWhiteSpace(addon.InputUnit)) addon.InputUnit = addon.DefaultUnit;
                 if (addon.AddonPrice <= 0) addon.AddonPrice = 0;
                 if (string.IsNullOrWhiteSpace(addon.AddonUnit)) addon.AddonUnit = addon.DefaultUnit;
+                // Set AddonQuantity to 1 when selected
+                if (addon.AddonQuantity <= 0) addon.AddonQuantity = 1;
+            }
+            else
+            {
+                // Reset AddonQuantity when deselected
+                addon.AddonQuantity = 0;
             }
         }
     }
