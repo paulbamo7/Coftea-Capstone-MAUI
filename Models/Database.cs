@@ -28,8 +28,8 @@ namespace Coftea_Capstone.Models
                         string user = "root",
                         string password = "")
         {
-            // Use provided host or auto-detect
-            var server = host ?? GetDefaultHostForPlatform().FirstOrDefault() ?? "localhost";
+            // Use provided host or fallback to localhost (auto-detection will be done in GetOpenConnectionAsync)
+            var server = host ?? "localhost";
             
             _db = new MySqlConnectionStringBuilder
             {
@@ -43,53 +43,6 @@ namespace Coftea_Capstone.Models
 
         }
 
-        private static string[] GetDefaultHostForPlatform()
-        {
-            try
-            {
-                // Use the automatic IP detection system instead of hardcoded values
-                var detectedIPs = Services.NetworkDetectionService.GetLocalIPAddresses();
-                var primaryIP = Services.NetworkDetectionService.GetPrimaryIPAddress();
-                
-                var hosts = new List<string>();
-                
-                // Add primary IP first if available
-                if (!string.IsNullOrEmpty(primaryIP))
-                {
-                    hosts.Add(primaryIP);
-                }
-                
-                // Add all detected IPs
-                hosts.AddRange(detectedIPs);
-                
-                // Platform-specific fallbacks
-                if (DeviceInfo.Platform == DevicePlatform.Android)
-                {
-                    // Android emulator loopback addresses
-                    hosts.Add("10.0.2.2"); // Android emulator default
-                    hosts.Add("10.0.3.2"); // Genymotion
-                }
-                
-                if (DeviceInfo.Platform == DevicePlatform.iOS)
-                {
-                    // iOS simulator can reach host via localhost
-                    hosts.Add("127.0.0.1");
-                }
-                
-                // Always add localhost as final fallback
-                hosts.Add("localhost");
-                hosts.Add("127.0.0.1");
-                
-                // Remove duplicates and return
-                return hosts.Distinct().ToArray();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error getting default hosts for platform: {ex.Message}");
-                // Fallback for other/unknown platforms or errors
-                return new string[] { "localhost", "127.0.0.1" };
-            }
-        }
 
         // Ensure server is reachable and the database exists; create DB if missing
         public async Task EnsureServerAndDatabaseAsync()
@@ -113,9 +66,40 @@ namespace Coftea_Capstone.Models
         }
         private async Task<MySqlConnection> GetOpenConnectionAsync()
         {
-            var conn = new MySqlConnection(_db);
+            // Try to get a working connection with automatic IP detection
+            var connectionString = await GetWorkingConnectionStringAsync();
+            var conn = new MySqlConnection(connectionString);
             await conn.OpenAsync();
             return conn;
+        }
+
+        private async Task<string> GetWorkingConnectionStringAsync()
+        {
+            // If we already have a working connection string, use it
+            if (!string.IsNullOrEmpty(_db) && _db.Contains("localhost"))
+            {
+                // Try to detect the best database host automatically
+                try
+                {
+                    var detectedHost = await Services.NetworkDetectionService.DetectDatabaseHostAsync();
+                    System.Diagnostics.Debug.WriteLine($"🔍 Auto-detected database host: {detectedHost}");
+                    
+                    // Create new connection string with detected host
+                    var builder = new MySqlConnectionStringBuilder(_db)
+                    {
+                        Server = detectedHost
+                    };
+                    
+                    return builder.ConnectionString;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Auto-detection failed: {ex.Message}, using fallback");
+                }
+            }
+            
+            // Fallback to original connection string
+            return _db;
         }
 
 		// Cache helpers

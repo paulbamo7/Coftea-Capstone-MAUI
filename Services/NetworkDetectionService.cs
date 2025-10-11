@@ -38,7 +38,7 @@ namespace Coftea_Capstone.Services
                    DateTime.Now - _lastCacheTime > CacheExpiry;
         }
 
-        private static async Task<string> DetectDatabaseHostAsync()
+        public static async Task<string> DetectDatabaseHostAsync()
         {
             try
             {
