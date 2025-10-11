@@ -195,20 +195,49 @@ namespace Coftea_Capstone
 
         private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"🚨 Unobserved Task Exception: {e.Exception}");
+            System.Diagnostics.Debug.WriteLine($"🚨 Stack trace: {e.Exception.StackTrace}");
+            
+            // Handle the exception gracefully
             HandleException(e.Exception);
-            e.SetObserved();
+            e.SetObserved(); // Mark as handled to prevent app crash
         }
 
         private void HandleException(Exception ex)
         {
-            string message = !NetworkService.HasInternetConnection()
-                ? "No internet connection. Please check your network."
-                : $"Unexpected error: {ex.Message}";
-
-            MainThread.BeginInvokeOnMainThread(async () =>
+            try
             {
-                await App.Current.MainPage.DisplayAlert("Error", message, "OK");
-            });
+                System.Diagnostics.Debug.WriteLine($"🚨 Handling exception: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"🚨 Exception type: {ex.GetType().Name}");
+                
+                string message = !NetworkService.HasInternetConnection()
+                    ? "No internet connection. Please check your network."
+                    : $"Unexpected error: {ex.Message}";
+
+                // Only show alert if we have a valid MainPage
+                if (MainPage != null)
+                {
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        try
+                        {
+                            await MainPage.DisplayAlert("Error", message, "OK");
+                        }
+                        catch (Exception alertEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"❌ Failed to show error alert: {alertEx.Message}");
+                        }
+                    });
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ MainPage is null, cannot show error alert");
+                }
+            }
+            catch (Exception handleEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in HandleException: {handleEx.Message}");
+            }
         }
 
         public static void SetCurrentUser(UserInfoModel user)

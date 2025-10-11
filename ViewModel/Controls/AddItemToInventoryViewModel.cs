@@ -95,6 +95,7 @@ namespace Coftea_Capstone.ViewModel
             "Powdered",
             "Fruit Series",
             "Sinkers & etc.",
+            "Liquid",
             "Others"
         };
 
@@ -109,7 +110,7 @@ namespace Coftea_Capstone.ViewModel
             // Pieces-only: only quantity field is shown
             IsPiecesOnlyCategory = value == "Others" || value == "Other";
             // UoM-only categories: show only UoM fields (e.g., Syrups, Powdered, etc.)
-            IsUoMOnlyCategory = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc.";
+            IsUoMOnlyCategory = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc." || value == "Liquid";
             // Backward compatibility flag for existing bindings using Syrups
             IsSyrupsCategory = value == "Syrups";
 
@@ -163,7 +164,7 @@ namespace Coftea_Capstone.ViewModel
             var pieces = new[] { "Pieces (pcs)" };
 
             IEnumerable<string> allowed;
-            if (cat == "Syrups" || cat == "Fruit Series")
+            if (cat == "Syrups" || cat == "Fruit Series" || cat == "Liquid")
             {
                 allowed = liquid;
             }

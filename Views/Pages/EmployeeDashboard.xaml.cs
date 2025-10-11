@@ -13,11 +13,15 @@ public partial class EmployeeDashboard : ContentPage
 	{
 		InitializeComponent();
 		
-		// Use shared SettingsPopup from App directly
+	// Use shared SettingsPopup from App directly
 		BindingContext = ((App)Application.Current).SettingsPopup;
 		
-		// Load today's metrics when dashboard loads
-		_ = LoadTodaysMetricsAsync();
+		// Load today's metrics when dashboard loads with a small delay to prevent Task exceptions
+		_ = Task.Run(async () =>
+		{
+			await Task.Delay(1000); // Wait 1 second before loading metrics
+			await LoadTodaysMetricsAsync();
+		});
 	}
 
     private void OnBellClicked(object sender, EventArgs e)
@@ -45,20 +49,27 @@ public partial class EmployeeDashboard : ContentPage
 	{
 		try
 		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // Increased timeout
 			var settingsPopup = ((App)Application.Current).SettingsPopup;
 			if (settingsPopup != null)
 			{
 				await settingsPopup.LoadTodaysMetricsAsync();
+				System.Diagnostics.Debug.WriteLine("✅ LoadTodaysMetrics completed successfully");
+			}
+			else
+			{
+				System.Diagnostics.Debug.WriteLine("⚠️ SettingsPopup is null, skipping metrics load");
 			}
 		}
 		catch (OperationCanceledException)
 		{
-			System.Diagnostics.Debug.WriteLine("⏰ LoadTodaysMetrics timeout");
+			System.Diagnostics.Debug.WriteLine("⏰ LoadTodaysMetrics timeout - this is normal on slow connections");
 		}
 		catch (Exception ex)
 		{
-			System.Diagnostics.Debug.WriteLine($"Failed to load today's metrics: {ex.Message}");
+			System.Diagnostics.Debug.WriteLine($"❌ LoadTodaysMetrics error: {ex.Message}");
+			System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+			// Don't rethrow - this is a background operation
 		}
 	}
 

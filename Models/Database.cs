@@ -817,6 +817,7 @@ namespace Coftea_Capstone.Models
                 "coffee" => "kg",
                 "milktea" => "kg",
                 "frappe" => "kg",
+                "liquid" => "L",
                 "supplies" => "pcs",
                 _ => "pcs"
             };

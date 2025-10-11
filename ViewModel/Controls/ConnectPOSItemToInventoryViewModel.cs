@@ -624,7 +624,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (string.Equals(filter, "Ingredients", StringComparison.OrdinalIgnoreCase))
                 {
                     // Show only allowed ingredient categories
-                    var allowed = new[] { "Syrups", "Powdered", "Fruit Series", "Sinkers", "Sinkers & etc." };
+                    var allowed = new[] { "Syrups", "Powdered", "Fruit Series", "Sinkers", "Sinkers & etc.", "Liquid" };
                     query = query.Where(i => allowed.Any(a => string.Equals(i.itemCategory?.Trim(), a, StringComparison.OrdinalIgnoreCase)));
                 }
                 else if (string.Equals(filter, "Supplies", StringComparison.OrdinalIgnoreCase))

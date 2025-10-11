@@ -529,6 +529,21 @@ namespace Coftea_Capstone.ViewModel
             CartItems = loaded;
     }
 
+    public async Task ClearCartAsync()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("🧹 Clearing cart in POSPageViewModel");
+            CartItems.Clear();
+            await _cartStorage.SaveCartAsync(new ObservableCollection<POSPageModel>());
+            System.Diagnostics.Debug.WriteLine("✅ Cart cleared successfully in POSPageViewModel");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart: {ex.Message}");
+        }
+    }
+
         [RelayCommand]
         private async Task ShowHistory()
         {

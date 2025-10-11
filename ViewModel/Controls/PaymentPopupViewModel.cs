@@ -137,12 +137,29 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Save transaction to database and shared store
             var savedTransactions = await SaveTransaction();
 
-            // Clear persisted cart on successful payment
+            // Clear cart on successful payment
             try
             {
-                await _cartStorage.SaveCartAsync(new System.Collections.ObjectModel.ObservableCollection<Coftea_Capstone.C_.POSPageModel>());
+                // Clear the actual cart items in the UI
+                CartItems.Clear();
+                
+                // Also clear the cart in the POS page ViewModel
+                var currentApp = (App)Application.Current;
+                if (currentApp?.MainPage is NavigationPage navPage && navPage.CurrentPage is Coftea_Capstone.Views.Pages.PointOfSale posPage)
+                {
+                    if (posPage.BindingContext is POSPageViewModel posViewModel)
+                    {
+                        await posViewModel.ClearCartAsync();
+                        System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel");
+                    }
+                }
+                
+                System.Diagnostics.Debug.WriteLine("✅ Cart cleared successfully");
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart: {ex.Message}");
+            }
 
             // Show success: full order-complete popup only; do not auto-open notification toast
             PaymentStatus = "Payment Confirmed";
@@ -183,6 +200,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔄 Starting transaction save for {CartItems.Count} items");
+                
                 var app = (App)Application.Current;
                 var transactions = app?.Transactions;
                 var database = new Models.Database(); // Will use auto-detected host
@@ -194,6 +213,8 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                     foreach (var item in CartItems)
                     {
+                        System.Diagnostics.Debug.WriteLine($"💾 Saving transaction for: {item.ProductName}");
+                        
                         var transaction = new TransactionHistoryModel
                         {
                             TransactionId = nextId++,
@@ -210,19 +231,33 @@ namespace Coftea_Capstone.ViewModel.Controls
                             TransactionDate = DateTime.Now
                         };
 
-                        // Save to database
+                        // Save to database with timeout
+                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
                         await database.SaveTransactionAsync(transaction);
+                        System.Diagnostics.Debug.WriteLine($"✅ Database save successful for: {item.ProductName}");
                         
                         // Deduct inventory for this item
                         await DeductInventoryForItemAsync(database, item);
+                        System.Diagnostics.Debug.WriteLine($"✅ Inventory deduction successful for: {item.ProductName}");
                         
                         // Also add to in-memory collection for history popup
                         transactions.Add(transaction);
                         saved.Add(transaction);
                     }
 
+                    System.Diagnostics.Debug.WriteLine($"✅ All {saved.Count} transactions saved successfully");
                     return saved;
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ App.Transactions is null");
+                    await Application.Current.MainPage.DisplayAlert("Error", "Transaction storage not available", "OK");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("⏰ Transaction save timed out");
+                await Application.Current.MainPage.DisplayAlert("Error", "Transaction save timed out. Please try again.", "OK");
             }
             catch (System.Exception ex)
             {
@@ -237,6 +272,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 else if (ex.Message.Contains("Connection"))
                 {
                     errorMessage = "Database connection error. Please check your network.";
+                }
+                else if (ex.Message.Contains("timeout"))
+                {
+                    errorMessage = "Database operation timed out. Please check your connection.";
                 }
                 else
                 {

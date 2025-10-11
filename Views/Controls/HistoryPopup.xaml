@@ -221,15 +221,15 @@
                                                 <ColumnDefinition Width="100"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <Label Grid.Column="0" Text="{Binding TransactionId}" FontSize="12" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="1" Text="{Binding DrinkName}" FontSize="12"/>
-                                            <Label Grid.Column="2" Text="{Binding Quantity}" FontSize="12" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="3" Text="{Binding Size}" FontSize="12" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="4" Text="{Binding AddOns}" FontSize="12" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="5" Text="{Binding FormattedPrice}" FontSize="12" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="6" Text="{Binding FormattedVAT}" FontSize="12" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="7" Text="{Binding FormattedTotal}" FontSize="12" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="8" Text="{Binding FormattedDate}" FontSize="12" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="0" Text="{Binding TransactionId}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="1" Text="{Binding DrinkName}" FontSize="12" TextColor="Black"/>
+                                            <Label Grid.Column="2" Text="{Binding Quantity}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="3" Text="{Binding Size}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="4" Text="{Binding AddOns}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="5" Text="{Binding FormattedPrice}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="6" Text="{Binding FormattedVAT}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="7" Text="{Binding FormattedTotal}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Label Grid.Column="8" Text="{Binding FormattedDate}" FontSize="12" HorizontalOptions="Center" TextColor="Black"/>
                                         </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>

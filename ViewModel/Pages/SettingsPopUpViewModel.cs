@@ -104,39 +104,49 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)); // Increased timeout
+                System.Diagnostics.Debug.WriteLine("🔄 Starting LoadTodaysMetricsAsync...");
                 
                 // Load top selling products for dashboard
                 await LoadTopSellingProductsAsync();
+                System.Diagnostics.Debug.WriteLine("✅ LoadTopSellingProductsAsync completed");
+                
                 var database = new Models.Database(); // Will use auto-detected host
                 var today = DateTime.Today;
                 var tomorrow = today.AddDays(1);
                 
                 var transactions = await database.GetTransactionsByDateRangeAsync(today, tomorrow);
+                System.Diagnostics.Debug.WriteLine($"✅ Loaded {transactions.Count} transactions for today");
                 
                 TotalOrdersToday = transactions.Count;
                 TotalSalesToday = transactions.Sum(t => t.Total);
                 
                 // Load recent orders
                 await LoadRecentOrdersAsync(transactions);
+                System.Diagnostics.Debug.WriteLine("✅ LoadRecentOrdersAsync completed");
                 
                 // Load most bought and trending items
                 await LoadMostBoughtAndTrendingAsync(transactions);
+                System.Diagnostics.Debug.WriteLine("✅ LoadMostBoughtAndTrendingAsync completed");
                 
                 // Load inventory alerts
                 await LoadInventoryAlertsAsync();
+                System.Diagnostics.Debug.WriteLine("✅ LoadInventoryAlertsAsync completed");
                 
                 // Set trend indicators
                 OrdersTrend = TotalOrdersToday > 0 ? "↑ Today" : "No orders today";
+                
+                System.Diagnostics.Debug.WriteLine("✅ LoadTodaysMetricsAsync completed successfully");
             }
             catch (OperationCanceledException)
             {
-                System.Diagnostics.Debug.WriteLine("⏰ LoadTodaysMetricsAsync timeout");
+                System.Diagnostics.Debug.WriteLine("⏰ LoadTodaysMetricsAsync timeout - this is normal on slow connections");
                 // Keep default values (0) if loading times out
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to load today's metrics: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ LoadTodaysMetricsAsync error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 // Keep default values (0) if loading fails
             }
         }

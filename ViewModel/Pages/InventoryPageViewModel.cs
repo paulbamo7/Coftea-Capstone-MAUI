@@ -150,7 +150,8 @@ namespace Coftea_Capstone.ViewModel
                     "Powdered",
                     "Fruit Series",
                     "Sinkers",
-                    "Sinkers & etc."
+                    "Sinkers & etc.",
+                    "Liquid"
                 };
                 query = query.Where(i => allowed.Contains((i.itemCategory ?? string.Empty).Trim()));
             }

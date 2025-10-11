@@ -105,7 +105,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task FilterByTimePeriod(string timePeriod)
         {
+            System.Diagnostics.Debug.WriteLine($"FilterByTimePeriod called with: {timePeriod}");
             SelectedFilter = timePeriod;
+            
+            // Force property change notification
+            OnPropertyChanged(nameof(SelectedFilter));
             
             // If filtering for older periods, load more data from database
             if (timePeriod == "1 Month Ago" || timePeriod == "All Time")
@@ -114,6 +118,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             
             ApplyTransactionFilter();
+            
+            System.Diagnostics.Debug.WriteLine($"SelectedFilter is now: {SelectedFilter}");
         }
 
         private void ApplyFilter()
