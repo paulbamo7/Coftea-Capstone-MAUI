@@ -116,6 +116,23 @@ namespace Coftea_Capstone.ViewModel
         {
             if (product == null) return;
 
+            // Check for dependencies first
+            try
+            {
+                bool hasDependencies = await _database.HasProductTransactionDependenciesAsync(product.ProductID);
+                if (hasDependencies)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
+                        "This product cannot be deleted because it has associated transaction records. Please contact an administrator.", "OK");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking dependencies: {ex.Message}");
+                // Continue with deletion attempt
+            }
+
             bool confirm = await Application.Current.MainPage.DisplayAlert(
                 "Confirm Delete", 
                 $"Are you sure you want to delete '{product.ProductName}'?", 
@@ -140,6 +157,12 @@ namespace Coftea_Capstone.ViewModel
                 }
 
                 await Application.Current.MainPage.DisplayAlert("Error", "Failed to delete product.", "OK");
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Handle foreign key constraint violations with user-friendly message
+                await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
+                    "This product cannot be deleted because it has associated transaction records. Please contact an administrator.", "OK");
             }
             catch (Exception ex)
             {

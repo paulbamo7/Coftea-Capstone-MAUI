@@ -33,6 +33,7 @@ namespace Coftea_Capstone
         public OrderCompletePopupViewModel OrderCompletePopup { get; private set; }
         public SuccessCardPopupViewModel SuccessCardPopup { get; private set; }
         public HistoryPopupViewModel HistoryPopup { get; private set; }
+        public ProfilePopupViewModel ProfilePopup { get; private set; }
 
         // Shared transactions store for History
         public ObservableCollection<TransactionHistoryModel> Transactions { get; private set; }
@@ -132,6 +133,7 @@ namespace Coftea_Capstone
             OrderCompletePopup = new OrderCompletePopupViewModel();
             SuccessCardPopup = new SuccessCardPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
+            ProfilePopup = new ProfilePopupViewModel();
 
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();

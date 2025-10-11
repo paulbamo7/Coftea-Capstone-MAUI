@@ -25,6 +25,22 @@ public partial class EmployeeDashboard : ContentPage
         ((App)Application.Current).NotificationPopup?.ToggleCommand.Execute(null);
     }
 
+    private void OnProfileClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var app = (App)Application.Current;
+            if (app?.ProfilePopup != null)
+            {
+                app.ProfilePopup.ShowProfile();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error opening profile: {ex.Message}");
+        }
+    }
+
 	private async Task LoadTodaysMetrics()
 	{
 		try

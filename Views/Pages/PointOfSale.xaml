@@ -45,7 +45,7 @@
                         <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
                     </Frame>
                 </Grid>
-                <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="35" HeightRequest="35"/>
+                <ImageButton Source="usericon.png" Grid.Column="3" WidthRequest="35" HeightRequest="35" Command="{Binding ShowProfileCommand}"/>
             </Grid>
 
             <!-- Menu Categories + History/Cart -->
@@ -452,6 +452,7 @@
         <otherViews:OrderCompletePopup BindingContext="{Binding OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Reference POS}, Path=BindingContext.SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
         <otherViews:NotificationPopup BindingContext="{Binding NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
+        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
 
     </Grid>
 </ContentPage>

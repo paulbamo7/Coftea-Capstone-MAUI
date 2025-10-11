@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.ProfilePopup"
+    x:Name="ProfilePopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsProfileVisible}"
+    InputTransparent="False">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding CloseProfileCommand}" />
+        </Grid.GestureRecognizers>
+        
+        <!-- Profile Frame -->
+        <Frame VerticalOptions="Center"
+               HorizontalOptions="Center"
+               Padding="0"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               MaximumWidthRequest="500"
+               MaximumHeightRequest="700"
+               MinimumWidthRequest="400"
+               MinimumHeightRequest="500"
+               WidthRequest="{OnPlatform Default=500, Android=450, iOS=450, WinUI=500}"
+               HeightRequest="{OnPlatform Default=700, Android=650, iOS=650, WinUI=700}"
+               HasShadow="True"
+               InputTransparent="False">
+
+            <Grid RowDefinitions="Auto, *, Auto">
+                <!-- Header -->
+                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Grid.Column="0" 
+                               Text="My Profile" 
+                               FontSize="24" 
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               TextColor="White" />
+                        <Button Grid.Column="1"
+                                Text="×"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                BackgroundColor="Transparent"
+                                TextColor="White"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                Padding="0"
+                                VerticalOptions="Center"
+                                Command="{Binding CloseProfileCommand}" />
+                    </Grid>
+                </Grid>
+
+                <!-- Profile Content -->
+                <ScrollView Grid.Row="1" Padding="20">
+                    <VerticalStackLayout Spacing="20">
+                        
+                        <!-- Profile Image Section -->
+                        <Frame BackgroundColor="White" CornerRadius="15" Padding="20" HasShadow="False">
+                            <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
+                                <Frame CornerRadius="50" Padding="5" BackgroundColor="#E9E1D9" WidthRequest="100" HeightRequest="100">
+                                    <Image Source="{Binding ProfileImage}" 
+                                           Aspect="AspectFill" 
+                                           WidthRequest="90" 
+                                           HeightRequest="90" />
+                                </Frame>
+                                <Button Text="Change Photo" 
+                                        BackgroundColor="#5B4F45" 
+                                        TextColor="White" 
+                                        CornerRadius="15"
+                                        WidthRequest="120"
+                                        HeightRequest="35"
+                                        Command="{Binding ChangeProfileImageCommand}" />
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Personal Information -->
+                        <Frame BackgroundColor="White" CornerRadius="15" Padding="20" HasShadow="False">
+                            <VerticalStackLayout Spacing="15">
+                                <Label Text="Personal Information" FontSize="18" FontAttributes="Bold" TextColor="#5B4F45" />
+                                
+                                <!-- Username -->
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="Username *" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Entry Text="{Binding Username}" 
+                                           Placeholder="Enter username" 
+                                           BackgroundColor="#F5F5F5" 
+                                           TextColor="Black"
+                                           PlaceholderColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <!-- Email -->
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="Email *" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Entry Text="{Binding Email}" 
+                                           Placeholder="Enter email address" 
+                                           BackgroundColor="#F5F5F5" 
+                                           TextColor="Black"
+                                           PlaceholderColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <!-- Full Name -->
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="Full Name" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Entry Text="{Binding FullName}" 
+                                           Placeholder="Enter full name" 
+                                           BackgroundColor="#F5F5F5" 
+                                           TextColor="Black"
+                                           PlaceholderColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <!-- Phone Number -->
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="Phone Number" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Entry Text="{Binding PhoneNumber}" 
+                                           Placeholder="Enter phone number" 
+                                           BackgroundColor="#F5F5F5" 
+                                           TextColor="Black"
+                                           PlaceholderColor="Gray" />
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Work Information -->
+                        <Frame BackgroundColor="White" CornerRadius="15" Padding="20" HasShadow="False">
+                            <VerticalStackLayout Spacing="15">
+                                <Label Text="Work Information" FontSize="18" FontAttributes="Bold" TextColor="#5B4F45" />
+                                
+                                <!-- Department -->
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="Department" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Entry Text="{Binding Department}" 
+                                           Placeholder="Enter department" 
+                                           BackgroundColor="#F5F5F5" 
+                                           TextColor="Black"
+                                           PlaceholderColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <!-- Position -->
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="Position" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Entry Text="{Binding Position}" 
+                                           Placeholder="Enter position" 
+                                           BackgroundColor="#F5F5F5" 
+                                           TextColor="Black"
+                                           PlaceholderColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <!-- Admin Status (Read-only) -->
+                                <VerticalStackLayout Spacing="5">
+                                    <Label Text="Admin Status" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Frame BackgroundColor="#E9E1D9" CornerRadius="10" Padding="10">
+                                        <Label Text="{Binding IsAdmin, StringFormat='Admin: {0}'}" 
+                                               FontSize="14" 
+                                               TextColor="Black" 
+                                               HorizontalOptions="Center" />
+                                    </Frame>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Status Message -->
+                        <Frame BackgroundColor="{Binding HasError, Converter={StaticResource NotificationColorConverter}}" 
+                               CornerRadius="10" 
+                               Padding="15" 
+                               IsVisible="{Binding StatusMessage, Converter={StaticResource StringToBoolConverter}}">
+                            <Label Text="{Binding StatusMessage}" 
+                                   FontSize="14" 
+                                   TextColor="White" 
+                                   HorizontalOptions="Center" />
+                        </Frame>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Footer with Action Buttons -->
+                <Grid Grid.Row="2" BackgroundColor="#E8D5C4" Padding="20,15">
+                    <Grid ColumnDefinitions="*, *, *" ColumnSpacing="10">
+                        
+                        <!-- Reset Button -->
+                        <Button Grid.Column="0" 
+                                Text="Reset" 
+                                FontSize="14" 
+                                BackgroundColor="#A57C5C" 
+                                TextColor="White" 
+                                CornerRadius="15"
+                                HeightRequest="40"
+                                Command="{Binding ResetProfileCommand}" />
+
+                        <!-- Change Password Button -->
+                        <Button Grid.Column="1" 
+                                Text="Change Password" 
+                                FontSize="14" 
+                                BackgroundColor="#8B7355" 
+                                TextColor="White" 
+                                CornerRadius="15"
+                                HeightRequest="40"
+                                Command="{Binding ChangePasswordCommand}" />
+
+                        <!-- Save Button -->
+                        <Button Grid.Column="2" 
+                                Text="Save Profile" 
+                                FontSize="14" 
+                                FontAttributes="Bold"
+                                BackgroundColor="#5B4F45" 
+                                TextColor="White" 
+                                CornerRadius="15"
+                                HeightRequest="40"
+                                Command="{Binding SaveProfileCommand}"
+                                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}" />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>

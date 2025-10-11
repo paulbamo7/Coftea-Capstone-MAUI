@@ -7,7 +7,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         public string Title { get; set; } = string.Empty; // e.g., "Point-Of-Sale"
         public string Message { get; set; } = string.Empty; // e.g., "Successfully Listed Product: Java Chip"
         public string IdText { get; set; } = string.Empty; // e.g., "ID: JC1234"
+        public string Type { get; set; } = "Info"; // Success, Error, Info, Warning
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public bool IsRead { get; set; } = false;
     }
 }
 

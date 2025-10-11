@@ -146,7 +146,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 foreach (var t in savedTransactions)
                 {
-                    notif.AddSuccess("Transaction", $"Completed: {t.DrinkName}", $"ID: {t.TransactionId}");
+                    await notif.AddSuccess("Transaction", $"Completed: {t.DrinkName}", $"ID: {t.TransactionId}");
                 }
             }
 

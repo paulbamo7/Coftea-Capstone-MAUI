@@ -20,8 +20,8 @@ public partial class UserManagement : ContentPage
     private void OnBellClicked(object sender, EventArgs e)
     {
         var popup = ((App)Application.Current).NotificationPopup;
-        popup?.AddSuccess("User Management", "Successfully created user. ID: UM1001", "ID: UM1001");
-        popup?.AddSuccess("User Management", "Approved user request. ID: UR995", "ID: UR995");
+        _ = popup?.AddSuccess("User Management", "Successfully created user. ID: UM1001", "ID: UM1001");
+        _ = popup?.AddSuccess("User Management", "Approved user request. ID: UR995", "ID: UR995");
         popup?.ToggleCommand.Execute(null);
     }
 

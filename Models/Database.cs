@@ -588,15 +588,52 @@ namespace Coftea_Capstone.Models
         public async Task<int> DeleteProductAsync(int productId)
         {
             await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
 
-            var sql = "DELETE FROM products WHERE productID = @ProductID;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@ProductID", productId);
+            try
+            {
+                // First, check if product exists
+                var checkSql = "SELECT COUNT(*) FROM products WHERE productID = @ProductID;";
+                await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
+                checkCmd.Parameters.AddWithValue("@ProductID", productId);
+                var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+                
+                if (exists == 0)
+                {
+                    await tx.RollbackAsync();
+                    return 0; // Product doesn't exist
+                }
 
-            var rows = await cmd.ExecuteNonQueryAsync();
-            InvalidateProductsCache();
-            InvalidateProductLinksCache(productId);
-            return rows;
+                // Delete related records first (foreign key constraints will handle this with CASCADE)
+                // But we'll be explicit to avoid any issues
+                var deleteIngredientsSql = "DELETE FROM product_ingredients WHERE productID = @ProductID;";
+                await using var ingredientsCmd = new MySqlCommand(deleteIngredientsSql, conn, tx);
+                ingredientsCmd.Parameters.AddWithValue("@ProductID", productId);
+                await ingredientsCmd.ExecuteNonQueryAsync();
+
+                var deleteAddonsSql = "DELETE FROM product_addons WHERE productID = @ProductID;";
+                await using var addonsCmd = new MySqlCommand(deleteAddonsSql, conn, tx);
+                addonsCmd.Parameters.AddWithValue("@ProductID", productId);
+                await addonsCmd.ExecuteNonQueryAsync();
+
+                // Now delete the product
+                var sql = "DELETE FROM products WHERE productID = @ProductID;";
+                await using var cmd = new MySqlCommand(sql, conn, tx);
+                cmd.Parameters.AddWithValue("@ProductID", productId);
+
+                var rows = await cmd.ExecuteNonQueryAsync();
+                await tx.CommitAsync();
+                
+                InvalidateProductsCache();
+                InvalidateProductLinksCache(productId);
+                return rows;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                System.Diagnostics.Debug.WriteLine($"Error deleting product: {ex.Message}");
+                throw;
+            }
         }
 
         // Inventory Database Methods
@@ -740,10 +777,13 @@ namespace Coftea_Capstone.Models
 
             try
             {
+                // Get current user ID or use default
+                int userId = App.CurrentUser?.ID ?? 1;
+                
                 // Insert into transactions table
                 var transactionSql = "INSERT INTO transactions (userID, total, transactionDate, status) VALUES (@UserID, @Total, @TransactionDate, @Status);";
                 await using var transactionCmd = new MySqlCommand(transactionSql, conn, (MySqlTransaction)tx);
-                transactionCmd.Parameters.AddWithValue("@UserID", 1); // Default user ID for now
+                transactionCmd.Parameters.AddWithValue("@UserID", userId);
                 transactionCmd.Parameters.AddWithValue("@Total", transaction.Total);
                 transactionCmd.Parameters.AddWithValue("@TransactionDate", transaction.TransactionDate);
                 transactionCmd.Parameters.AddWithValue("@Status", transaction.Status);
@@ -751,11 +791,14 @@ namespace Coftea_Capstone.Models
                 await transactionCmd.ExecuteNonQueryAsync();
                 int transactionId = (int)transactionCmd.LastInsertedId;
 
+                // Find product ID by name (safer than using hardcoded ID)
+                int productId = await GetProductIdByNameAsync(transaction.DrinkName, conn, (MySqlTransaction)tx);
+                
                 // Insert into transaction_items table
                 var itemSql = "INSERT INTO transaction_items (transactionID, productID, productName, quantity, price, size) VALUES (@TransactionID, @ProductID, @ProductName, @Quantity, @Price, @Size);";
                 await using var itemCmd = new MySqlCommand(itemSql, conn, (MySqlTransaction)tx);
                 itemCmd.Parameters.AddWithValue("@TransactionID", transactionId);
-                itemCmd.Parameters.AddWithValue("@ProductID", 1); // Default product ID for now
+                itemCmd.Parameters.AddWithValue("@ProductID", productId > 0 ? productId : (object)DBNull.Value);
                 itemCmd.Parameters.AddWithValue("@ProductName", transaction.DrinkName);
                 itemCmd.Parameters.AddWithValue("@Quantity", transaction.Quantity);
                 itemCmd.Parameters.AddWithValue("@Price", transaction.Price);
@@ -766,10 +809,29 @@ namespace Coftea_Capstone.Models
                 await tx.CommitAsync();
                 return transactionId;
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
+                System.Diagnostics.Debug.WriteLine($"Transaction save error: {ex.Message}");
                 throw;
+            }
+        }
+
+        private async Task<int> GetProductIdByNameAsync(string productName, MySqlConnection conn, MySqlTransaction tx)
+        {
+            try
+            {
+                var sql = "SELECT productID FROM products WHERE productName = @ProductName LIMIT 1;";
+                await using var cmd = new MySqlCommand(sql, conn, tx);
+                cmd.Parameters.AddWithValue("@ProductName", productName);
+                
+                var result = await cmd.ExecuteScalarAsync();
+                return result != null ? Convert.ToInt32(result) : 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting product ID: {ex.Message}");
+                return 0;
             }
         }
 
@@ -870,14 +932,67 @@ namespace Coftea_Capstone.Models
         public async Task<int> DeleteInventoryItemAsync(int itemId)
         {
             await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
 
-            var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@ItemID", itemId);
+            try
+            {
+                // First, check if item exists
+                var checkSql = "SELECT COUNT(*) FROM inventory WHERE itemID = @ItemID;";
+                await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
+                checkCmd.Parameters.AddWithValue("@ItemID", itemId);
+                var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+                
+                if (exists == 0)
+                {
+                    await tx.RollbackAsync();
+                    return 0; // Item doesn't exist
+                }
 
-            var rows = await cmd.ExecuteNonQueryAsync();
-            InvalidateInventoryCache();
-            return rows;
+                // Check if item is used in any products
+                var usageCheckSql = @"
+                    SELECT COUNT(*) FROM (
+                        SELECT 1 FROM product_ingredients WHERE itemID = @ItemID
+                        UNION ALL
+                        SELECT 1 FROM product_addons WHERE itemID = @ItemID
+                    ) as usage_check;";
+                await using var usageCmd = new MySqlCommand(usageCheckSql, conn, tx);
+                usageCmd.Parameters.AddWithValue("@ItemID", itemId);
+                var usageCount = Convert.ToInt32(await usageCmd.ExecuteScalarAsync());
+                
+                if (usageCount > 0)
+                {
+                    await tx.RollbackAsync();
+                    throw new InvalidOperationException("Cannot delete inventory item that is used in products. Please remove it from all products first.");
+                }
+
+                // Delete related records first (foreign key constraints will handle this with CASCADE)
+                var deleteIngredientsSql = "DELETE FROM product_ingredients WHERE itemID = @ItemID;";
+                await using var ingredientsCmd = new MySqlCommand(deleteIngredientsSql, conn, tx);
+                ingredientsCmd.Parameters.AddWithValue("@ItemID", itemId);
+                await ingredientsCmd.ExecuteNonQueryAsync();
+
+                var deleteAddonsSql = "DELETE FROM product_addons WHERE itemID = @ItemID;";
+                await using var addonsCmd = new MySqlCommand(deleteAddonsSql, conn, tx);
+                addonsCmd.Parameters.AddWithValue("@ItemID", itemId);
+                await addonsCmd.ExecuteNonQueryAsync();
+
+                // Now delete the inventory item
+                var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
+                await using var cmd = new MySqlCommand(sql, conn, tx);
+                cmd.Parameters.AddWithValue("@ItemID", itemId);
+
+                var rows = await cmd.ExecuteNonQueryAsync();
+                await tx.CommitAsync();
+                
+                InvalidateInventoryCache();
+                return rows;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                System.Diagnostics.Debug.WriteLine($"Error deleting inventory item: {ex.Message}");
+                throw;
+            }
         }
 
         // User Management
@@ -941,6 +1056,59 @@ namespace Coftea_Capstone.Models
 
             int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
             return rowsAffected > 0;
+        }
+
+        // Helper method to handle foreign key constraint violations
+        private bool IsForeignKeyConstraintViolation(Exception ex)
+        {
+            return ex.Message.Contains("foreign key constraint") || 
+                   ex.Message.Contains("Cannot delete or update") ||
+                   ex.Message.Contains("a foreign key constraint fails");
+        }
+
+        // Check if a product has transaction dependencies
+        public async Task<bool> HasProductTransactionDependenciesAsync(int productId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = "SELECT COUNT(*) FROM transaction_items WHERE productID = @ProductID;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ProductID", productId);
+                
+                var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking product dependencies: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Check if an inventory item has product dependencies
+        public async Task<bool> HasInventoryProductDependenciesAsync(int itemId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = @"
+                    SELECT COUNT(*) FROM (
+                        SELECT 1 FROM product_ingredients WHERE itemID = @ItemID
+                        UNION ALL
+                        SELECT 1 FROM product_addons WHERE itemID = @ItemID
+                    ) as dependencies;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ItemID", itemId);
+                
+                var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking inventory dependencies: {ex.Message}");
+                return false;
+            }
         }
 
         // Database initialization
@@ -1025,7 +1193,7 @@ namespace Coftea_Capstone.Models
                     total DECIMAL(10,2) NOT NULL,
                     transactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
                     status VARCHAR(50) DEFAULT 'completed',
-                    FOREIGN KEY (userID) REFERENCES users(id)
+                    FOREIGN KEY (userID) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
                 );
                 
                 CREATE TABLE IF NOT EXISTS transaction_items (
@@ -1037,7 +1205,7 @@ namespace Coftea_Capstone.Models
                     price DECIMAL(10,2) NOT NULL,
                     size VARCHAR(20),
                     FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
-                    FOREIGN KEY (productID) REFERENCES products(productID)
+                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
                 );
                 
                 CREATE TABLE IF NOT EXISTS pending_registrations (

@@ -561,5 +561,37 @@ namespace Coftea_Capstone.ViewModel
                 }
             }
         }
+
+        [RelayCommand]
+        private void ShowProfile()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("ShowProfile command executed");
+                var app = (App)Application.Current;
+                if (app?.ProfilePopup != null)
+                {
+                    app.ProfilePopup.ShowProfile();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("ProfilePopup is null!");
+                    if (NotificationPopup != null)
+                    {
+                        NotificationPopup.ShowNotification("Profile is not available", "Error");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ShowProfile command: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ShowNotification($"Profile error: {ex.Message}", "Error");
+                }
+            }
+        }
     }
 }

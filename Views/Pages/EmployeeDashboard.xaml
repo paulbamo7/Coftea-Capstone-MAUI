@@ -19,7 +19,7 @@
             <Grid ColumnDefinitions="*, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                 <Label Text="Home" FontSize="32" FontAttributes="Bold" VerticalOptions="Center" TextColor="#3E2723"/>
                 <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
-                <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40"/>
+                <ImageButton Source="usericon.png" Grid.Column="2" WidthRequest="40" HeightRequest="40" Clicked="OnProfileClicked"/>
             </Grid>
 
             <!-- Dashboard Grid -->
@@ -172,6 +172,7 @@
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
         <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
+        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
 
     </Grid>
 </ContentPage>

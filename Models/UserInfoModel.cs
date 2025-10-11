@@ -28,6 +28,13 @@ namespace Coftea_Capstone.Models
 
         public string Address { get; set; } = string.Empty;
 
+        // Profile fields
+        public string Username { get; set; } = string.Empty;
+        public string FullName { get; set; } = string.Empty;
+        public string Department { get; set; } = string.Empty;
+        public string Position { get; set; } = string.Empty;
+        public string ProfileImage { get; set; } = "usericon.png";
+
         public string Status { get; set; } = "approved";
 
         // Access flags managed by admin

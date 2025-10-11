@@ -130,6 +130,24 @@ namespace Coftea_Capstone.ViewModel
         private async Task DeleteItem(InventoryPageModel item)
         {
             if (item == null) return;
+
+            // Check for dependencies first
+            try
+            {
+                bool hasDependencies = await _database.HasInventoryProductDependenciesAsync(item.itemID);
+                if (hasDependencies)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
+                        "This inventory item cannot be deleted because it is currently used in one or more products. Please remove it from all products first.", "OK");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking dependencies: {ex.Message}");
+                // Continue with deletion attempt
+            }
+
             bool confirm = await Application.Current.MainPage.DisplayAlert(
                 "Confirm Delete",
                 $"Delete '{item.itemName}'?",
@@ -149,6 +167,12 @@ namespace Coftea_Capstone.ViewModel
                 {
                     await Application.Current.MainPage.DisplayAlert("Error", "Failed to delete item.", "OK");
                 }
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Handle foreign key constraint violations with user-friendly message
+                await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
+                    "This inventory item cannot be deleted because it is currently used in one or more products. Please remove it from all products first.", "OK");
             }
             catch (Exception ex)
             {

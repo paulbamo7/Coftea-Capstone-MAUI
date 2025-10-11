@@ -27,21 +27,30 @@
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Frame BackgroundColor="#E9E1D9" CornerRadius="15" Padding="12" HasShadow="False">
-                                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*">
+                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                                         <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" TextColor="Black"/>
                                         <Label Grid.Row="1" Text="{Binding Message}" FontSize="13" TextColor="Black"/>
+                                        <Label Grid.Row="2" Text="{Binding Type}" FontSize="11" TextColor="Gray" HorizontalOptions="Start"/>
+                                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding CreatedAt, StringFormat='{0:HH:mm}'}" FontSize="11" TextColor="Gray" HorizontalOptions="End"/>
                                     </Grid>
                                 </Frame>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
-                    <!-- View All link -->
-                    <Label Text="View All" TextDecorations="Underline" TextColor="#1F4E79" HorizontalOptions="Center">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding CloseNotificationCommand}"/>
-                        </Label.GestureRecognizers>
-                    </Label>
+                    <!-- Action buttons -->
+                    <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                        <Label Text="View All" TextDecorations="Underline" TextColor="#1F4E79" HorizontalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CloseNotificationCommand}"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="Clear All" TextDecorations="Underline" TextColor="#D9534F" HorizontalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ClearAllNotificationsCommand}"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </HorizontalStackLayout>
                 </VerticalStackLayout>
             </Frame>
         </Grid>
