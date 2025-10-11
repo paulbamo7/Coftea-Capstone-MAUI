@@ -100,6 +100,16 @@ namespace Coftea_Capstone.Services
             SetDatabaseHost(ipAddress);
         }
 
+        // Clear manual database host to enable automatic detection
+        public static void ClearManualDatabaseHost()
+        {
+            if (_settings.ContainsKey("DatabaseHost"))
+            {
+                _settings.Remove("DatabaseHost");
+                System.Diagnostics.Debug.WriteLine($"🧹 Cleared manual database host, enabling automatic detection");
+            }
+        }
+
         // Helper method to get all possible IPs for debugging
         public static async Task<List<string>> GetAllPossibleHostsAsync()
         {

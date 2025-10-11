@@ -69,11 +69,21 @@ namespace Coftea_Capstone.ViewModel
             _addItemToInventoryViewModel.IsAddItemToInventoryVisible = false;
             _addItemToInventoryViewModel.IsUpdateInventoryDetailsVisible = true;
             _addItemToInventoryViewModel.ItemName = fresh.itemName;
-            _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory;
             _addItemToInventoryViewModel.ItemDescription = fresh.itemDescription;
             _addItemToInventoryViewModel.UoMQuantity = fresh.itemQuantity;
             _addItemToInventoryViewModel.SelectedUoM = fresh.unitOfMeasurement;
             _addItemToInventoryViewModel.MinimumQuantity = fresh.minimumQuantity;
+            
+            // Set category last to trigger the category change logic
+            _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory;
+            
+            // For UoM-only categories, also set the minimum UoM fields after category is set
+            if (fresh.itemCategory == "Syrups" || fresh.itemCategory == "Powdered" || fresh.itemCategory == "Fruit Series" || fresh.itemCategory == "Sinkers & etc.")
+            {
+                _addItemToInventoryViewModel.MinimumUoMQuantity = fresh.minimumQuantity;
+                _addItemToInventoryViewModel.SelectedMinimumUoM = fresh.unitOfMeasurement;
+            }
+            
             _addItemToInventoryViewModel.ImagePath = fresh.ImageSet;
             _addItemToInventoryViewModel.SelectedImageSource = fresh.ImageSource;
             _addItemToInventoryViewModel.BeginEdit(fresh.itemID);

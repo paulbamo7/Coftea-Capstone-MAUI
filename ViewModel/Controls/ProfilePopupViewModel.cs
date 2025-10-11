@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
 using Coftea_Capstone.Models;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -34,6 +35,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         [ObservableProperty]
         private string profileImage = "usericon.png";
+
+        [ObservableProperty]
+        private ImageSource profileImageSource = "usericon.png";
 
         [ObservableProperty]
         private bool isLoading = false;
@@ -182,6 +186,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     await stream.CopyToAsync(fileStream);
                     
                     ProfileImage = fileName;
+                    ProfileImageSource = GetProfileImageSource(fileName);
 
                     // Update the global user profile
                     if (App.CurrentUser != null)
@@ -243,6 +248,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     PhoneNumber = App.CurrentUser.PhoneNumber ?? string.Empty;
                     IsAdmin = App.CurrentUser.IsAdmin;
                     ProfileImage = App.CurrentUser.ProfileImage ?? "usericon.png";
+                    ProfileImageSource = GetProfileImageSource(ProfileImage);
                     CanAccessInventory = App.CurrentUser.CanAccessInventory;
                     CanAccessSalesReport = App.CurrentUser.CanAccessSalesReport;
                 }
@@ -350,6 +356,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(PhoneNumber));
                 OnPropertyChanged(nameof(IsAdmin));
                 OnPropertyChanged(nameof(ProfileImage));
+                OnPropertyChanged(nameof(ProfileImageSource));
                 OnPropertyChanged(nameof(CanAccessInventory));
                 OnPropertyChanged(nameof(CanAccessSalesReport));
                 
@@ -358,6 +365,32 @@ namespace Coftea_Capstone.ViewModel.Controls
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error refreshing profile display: {ex.Message}");
+            }
+        }
+
+        private ImageSource GetProfileImageSource(string imageFileName)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imageFileName) || imageFileName == "usericon.png")
+                {
+                    return ImageSource.FromFile("usericon.png");
+                }
+
+                // Check if it's a custom profile image in app data
+                var appDataPath = Path.Combine(FileSystem.AppDataDirectory, imageFileName);
+                if (File.Exists(appDataPath))
+                {
+                    return ImageSource.FromFile(appDataPath);
+                }
+
+                // Fallback to default user icon
+                return ImageSource.FromFile("usericon.png");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading profile image: {ex.Message}");
+                return ImageSource.FromFile("usericon.png");
             }
         }
     }

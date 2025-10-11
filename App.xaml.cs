@@ -138,27 +138,28 @@ namespace Coftea_Capstone
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();
             
-            // For testing: Set your PC's IP address manually
-            // Replace "192.168.1.4" with your actual PC's IP address
-            // Uncomment the line below and replace with your PC's IP:
-            NetworkConfigurationService.SetManualDatabaseHost("192.168.1.6");
+            // Manual IP address configuration
+            // Set your PC's IP address here for database connection
+            NetworkConfigurationService.SetManualDatabaseHost("192.168.1.7");
             
-            // Common IP addresses to try (uncomment one at a time):
-            // NetworkConfigurationService.SetManualDatabaseHost("192.168.1.100");
-            // NetworkConfigurationService.SetManualDatabaseHost("192.168.0.100");
-            // NetworkConfigurationService.SetManualDatabaseHost("192.168.1.1");
-            // NetworkConfigurationService.SetManualDatabaseHost("10.0.0.1");
+            // To use automatic detection instead, comment out the line above and uncomment below:
+            // NetworkConfigurationService.ClearManualDatabaseHost();
             
-            // Debug: Print detected IPs (check debug output)
+            // Debug: Test IP detection and database connection
             _ = Task.Run(async () => {
                 try
                 {
-                    var detectedHosts = await NetworkConfigurationService.GetAllPossibleHostsAsync();
-                    System.Diagnostics.Debug.WriteLine($"🔍 All possible hosts: {string.Join(", ", detectedHosts)}");
+                    var detectedHost = await Services.NetworkDetectionService.DetectDatabaseHostAsync();
+                    System.Diagnostics.Debug.WriteLine($"🔍 App Startup - Detected Database Host: {detectedHost}");
+                    
+                    // Test the connection
+                    var db = new Database();
+                    await db.EnsureServerAndDatabaseAsync();
+                    System.Diagnostics.Debug.WriteLine($"✅ Database connection successful with host: {detectedHost}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ Error getting hosts: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"❌ App Startup - Connection Error: {ex.Message}");
                 }
             });
         }

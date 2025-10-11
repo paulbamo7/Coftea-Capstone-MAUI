@@ -68,7 +68,7 @@
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Frappe">
-                                    <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -78,7 +78,7 @@
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Fruit/Soda">
-                                    <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -88,7 +88,7 @@
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Milktea">
-                                    <Setter Property="BackgroundColor" Value="#F4E1D2" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -98,7 +98,7 @@
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="Coffee">
-                                    <Setter Property="BackgroundColor" Value="#E3C2A6" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -130,7 +130,7 @@
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit">
                     <Button.Triggers>
                         <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Fruit">
-                            <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                            <Setter Property="BackgroundColor" Value="#D4A574" />
                             <Setter Property="TextColor" Value="#2b2b2b" />
                         </DataTrigger>
                     </Button.Triggers>
@@ -140,7 +140,7 @@
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda">
                     <Button.Triggers>
                         <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Soda">
-                            <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                            <Setter Property="BackgroundColor" Value="#D4A574" />
                             <Setter Property="TextColor" Value="#2b2b2b" />
                         </DataTrigger>
                     </Button.Triggers>
@@ -445,7 +445,6 @@
         <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM}" Grid.ColumnSpan="2"/>
-        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <!-- Page-level overlays so Next hides previous and shows next cleanly -->

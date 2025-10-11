@@ -44,7 +44,7 @@
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Overview">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Overview">
-                                    <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -54,7 +54,7 @@
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Frappe">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Frappe">
-                                    <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -64,7 +64,7 @@
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Fruit/Soda">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Fruit/Soda">
-                                    <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -74,7 +74,7 @@
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Milktea">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Milktea">
-                                    <Setter Property="BackgroundColor" Value="#F4E1D2" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>
@@ -84,7 +84,7 @@
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Coffee">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Coffee">
-                                    <Setter Property="BackgroundColor" Value="#E3C2A6" />
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
                             </Button.Triggers>

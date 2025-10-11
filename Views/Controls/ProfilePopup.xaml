@@ -60,7 +60,7 @@
                         <Frame BackgroundColor="White" CornerRadius="15" Padding="20" HasShadow="False">
                             <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
                                 <Frame CornerRadius="50" Padding="5" BackgroundColor="#E9E1D9" WidthRequest="100" HeightRequest="100">
-                                    <Image Source="{Binding ProfileImage}" 
+                                    <Image Source="{Binding ProfileImageSource}" 
                                            Aspect="AspectFill" 
                                            WidthRequest="90" 
                                            HeightRequest="90" />

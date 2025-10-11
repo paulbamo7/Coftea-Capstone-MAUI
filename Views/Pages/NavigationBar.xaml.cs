@@ -40,7 +40,7 @@ public partial class NavigationBar : ContentView
         if (current == null)
             return;
 
-        Color active = Color.FromArgb("#EBCFBF");
+        Color active = Color.FromArgb("#D4A574");  // Darker brown for better visibility
         Color inactive = Color.FromArgb("#FFEAD6");
 
         // Reset all

@@ -54,22 +54,24 @@
                     <!-- Email -->
                     <Label Text="Email:"
                            FontAttributes="Bold"
+                           TextColor="Black"
                            HorizontalOptions="Start" />
                     <Entry Text="{Binding Email}"
                            Placeholder="Enter Email"
-                           PlaceholderColor="White"
+                           PlaceholderColor="Black"
                            BackgroundColor="Transparent"
                            HeightRequest="40" />
 
                     <!-- Password -->
-                    <Label Text="Enter Password:"
+                    <Label Text="Password:"
                            FontAttributes="Bold"
+                           TextColor="Black"
                            HorizontalOptions="Start" />
                     <Grid>
                         <Entry x:Name="LoginPasswordEntry"
                                Text="{Binding Password}"
                                Placeholder="Enter Password"
-                               PlaceholderColor="White"
+                               PlaceholderColor="Black"
                                IsPassword="True"
                                BackgroundColor="Transparent"
                                HeightRequest="40" />
@@ -88,7 +90,7 @@
                                            VerticalOptions="Center">
                         <CheckBox IsChecked="{Binding RememberMe}" />
                         <Label Text="Remember Me"
-                               TextColor="White"
+                               TextColor="Black"
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 

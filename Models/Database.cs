@@ -28,8 +28,8 @@ namespace Coftea_Capstone.Models
                         string user = "root",
                         string password = "")
         {
-            // Use provided host or fallback to localhost (auto-detection will be done in GetOpenConnectionAsync)
-            var server = host ?? "localhost";
+            // Use provided host or auto-detect
+            var server = host ?? GetDefaultHostForPlatform();
             
             _db = new MySqlConnectionStringBuilder
             {
@@ -100,6 +100,36 @@ namespace Coftea_Capstone.Models
             
             // Fallback to original connection string
             return _db;
+        }
+
+        private static string GetDefaultHostForPlatform()
+        {
+            try
+            {
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    // 10.0.2.2 = Android emulator loopback to host; 10.0.3.2 = Genymotion
+                    return "192.168.1.7";
+                }
+
+                if (DeviceInfo.Platform == DevicePlatform.iOS)
+                {
+                    // iOS simulator can reach host via localhost; real devices via LAN IPs
+                    return "192.168.1.7";
+                }
+
+                if (DeviceInfo.Platform == DevicePlatform.WinUI || DeviceInfo.Platform == DevicePlatform.macOS || DeviceInfo.Platform == DevicePlatform.MacCatalyst)
+                {
+                    return "192.168.1.7";
+                }
+            }
+            catch
+            {
+                // If DeviceInfo is unavailable (e.g., during tests), fall back to localhost
+            }
+
+            // Fallback for other/unknown platforms
+            return "localhost";
         }
 
 		// Cache helpers

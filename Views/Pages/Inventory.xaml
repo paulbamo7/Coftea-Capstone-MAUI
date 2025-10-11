@@ -50,7 +50,7 @@
                                         CommandParameter="Ingredients">
                                     <Button.Triggers>
                                         <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Ingredients">
-                                            <Setter Property="BackgroundColor" Value="#EBCFBF" />
+                                            <Setter Property="BackgroundColor" Value="#D4A574" />
                                             <Setter Property="TextColor" Value="#2b2b2b" />
                                         </DataTrigger>
                                     </Button.Triggers>
@@ -66,7 +66,7 @@
                                         CommandParameter="Supplies">
                                     <Button.Triggers>
                                         <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Supplies">
-                                            <Setter Property="BackgroundColor" Value="#FFE0C4" />
+                                            <Setter Property="BackgroundColor" Value="#D4A574" />
                                             <Setter Property="TextColor" Value="#2b2b2b" />
                                         </DataTrigger>
                                     </Button.Triggers>
@@ -191,7 +191,6 @@
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
-        <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
         <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
