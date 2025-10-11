@@ -20,8 +20,7 @@ public partial class Inventory : ContentPage
             await vm.LoadDataAsync();
         });
 
-        // Set RetryConnectionPopup binding context for the inline popup control
-        RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
+        // RetryConnectionPopup is now handled globally through App.xaml.cs
 
         Appearing += async (_, __) => await vm.InitializeAsync();
 

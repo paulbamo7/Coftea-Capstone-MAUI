@@ -28,8 +28,7 @@ public partial class PointOfSale : ContentPage
             // Set BindingContext
             BindingContext = POSViewModel;
 
-            // Set RetryConnectionPopup binding context
-            RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
+            // RetryConnectionPopup is now handled globally through App.xaml.cs
             
             // Set PaymentPopup binding context to shared instance
             PaymentPopupControl.BindingContext = ((App)Application.Current).PaymentPopup;

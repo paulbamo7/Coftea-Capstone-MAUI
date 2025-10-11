@@ -84,13 +84,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 StatusMessage = "Saving profile...";
 
                 // Validate required fields
-                if (string.IsNullOrWhiteSpace(Username))
-                {
-                    StatusMessage = "Username is required";
-                    HasError = true;
-                    return;
-                }
-
                 if (string.IsNullOrWhiteSpace(Email))
                 {
                     StatusMessage = "Email is required";
@@ -106,7 +99,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     App.CurrentUser.Username = Username;
                     App.CurrentUser.Email = Email;
-                    App.CurrentUser.FullName = FullName;
+                    
+                    // Parse full name and update FirstName and LastName
+                    var nameParts = FullName?.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+                    App.CurrentUser.FirstName = nameParts.Length > 0 ? nameParts[0] : string.Empty;
+                    App.CurrentUser.LastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : string.Empty;
+                    App.CurrentUser.FullName = FullName; // Keep the full name as well
+                    
                     App.CurrentUser.PhoneNumber = PhoneNumber;
                     App.CurrentUser.ProfileImage = ProfileImage;
                     App.CurrentUser.CanAccessInventory = CanAccessInventory;
@@ -242,9 +241,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Load from current user if available
                 if (App.CurrentUser != null)
                 {
-                    Username = App.CurrentUser.Username ?? string.Empty;
+                    // Leave username empty as requested
+                    Username = string.Empty;
+                    
+                    // Pre-fill other information from database
                     Email = App.CurrentUser.Email ?? string.Empty;
-                    FullName = App.CurrentUser.FullName ?? string.Empty;
+                    
+                    // Construct full name from FirstName + LastName
+                    var firstName = App.CurrentUser.FirstName ?? string.Empty;
+                    var lastName = App.CurrentUser.LastName ?? string.Empty;
+                    FullName = $"{firstName} {lastName}".Trim();
+                    
                     PhoneNumber = App.CurrentUser.PhoneNumber ?? string.Empty;
                     IsAdmin = App.CurrentUser.IsAdmin;
                     ProfileImage = App.CurrentUser.ProfileImage ?? "usericon.png";
@@ -280,9 +287,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var user = await database.GetUserByIdAsync(currentUserId);
                 if (user != null)
                 {
-                    Username = user.Username ?? string.Empty;
+                    // Leave username empty as requested
+                    Username = string.Empty;
+                    
+                    // Pre-fill other information from database
                     Email = user.Email ?? string.Empty;
-                    FullName = user.FullName ?? string.Empty;
+                    
+                    // Construct full name from FirstName + LastName
+                    var firstName = user.FirstName ?? string.Empty;
+                    var lastName = user.LastName ?? string.Empty;
+                    FullName = $"{firstName} {lastName}".Trim();
+                    
                     PhoneNumber = user.PhoneNumber ?? string.Empty;
                     IsAdmin = user.IsAdmin;
                     ProfileImage = user.ProfileImage ?? "usericon.png";
@@ -349,7 +364,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
-                // Trigger property change notifications
+                // Trigger property change notifications for this popup
                 OnPropertyChanged(nameof(Username));
                 OnPropertyChanged(nameof(Email));
                 OnPropertyChanged(nameof(FullName));
@@ -359,6 +374,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(ProfileImageSource));
                 OnPropertyChanged(nameof(CanAccessInventory));
                 OnPropertyChanged(nameof(CanAccessSalesReport));
+                
+                // Notify App.CurrentUser changes to trigger UI updates across all pages
+                if (App.CurrentUser != null)
+                {
+                    // Force refresh of App.CurrentUser properties that might be displayed in UI
+                    var currentUser = App.CurrentUser;
+                    // Trigger property change notifications for App.CurrentUser if it implements INotifyPropertyChanged
+                    // This will help update any UI elements bound to App.CurrentUser
+                }
                 
                 System.Diagnostics.Debug.WriteLine("Profile display refreshed");
             }

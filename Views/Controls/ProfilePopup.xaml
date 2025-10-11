@@ -28,37 +28,26 @@
                HasShadow="True"
                InputTransparent="False">
 
-            <Grid RowDefinitions="Auto, *, Auto">
-                <!-- Header -->
-                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15">
-                    <Grid ColumnDefinitions="*, Auto">
-                        <Label Grid.Column="0" 
-                               Text="My Profile" 
-                               FontSize="24" 
-                               FontAttributes="Bold"
-                               VerticalOptions="Center"
-                               TextColor="White" />
-                        <Button Grid.Column="1"
-                                Text="×"
-                                FontSize="24"
-                                FontAttributes="Bold"
-                                BackgroundColor="Transparent"
-                                TextColor="White"
-                                WidthRequest="40"
-                                HeightRequest="40"
-                                Padding="0"
-                                VerticalOptions="Center"
-                                Command="{Binding CloseProfileCommand}" />
-                    </Grid>
-                </Grid>
-
+            <Grid RowDefinitions="*">
                 <!-- Profile Content -->
-                <ScrollView Grid.Row="1" Padding="20">
+                <ScrollView Grid.Row="0" Padding="20">
                     <VerticalStackLayout Spacing="20">
                         
                         <!-- Profile Image Section -->
                         <Frame BackgroundColor="White" CornerRadius="15" Padding="20" HasShadow="False">
                             <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
+                                <!-- Close Button -->
+                                <Button Text="×"
+                                        FontSize="24"
+                                        FontAttributes="Bold"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#5B4F45"
+                                        WidthRequest="40"
+                                        HeightRequest="40"
+                                        Padding="0"
+                                        HorizontalOptions="End"
+                                        Command="{Binding CloseProfileCommand}" />
+                                
                                 <Frame CornerRadius="50" Padding="5" BackgroundColor="#E9E1D9" WidthRequest="100" HeightRequest="100">
                                     <Image Source="{Binding ProfileImageSource}" 
                                            Aspect="AspectFill" 
@@ -97,9 +86,9 @@
                                 
                                 <!-- Username -->
                                 <VerticalStackLayout Spacing="5">
-                                    <Label Text="Username *" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                    <Label Text="Username" FontSize="14" FontAttributes="Bold" TextColor="Black" />
                                     <Entry Text="{Binding Username}" 
-                                           Placeholder="Enter username" 
+                                           Placeholder="Enter username (optional)" 
                                            BackgroundColor="#F5F5F5" 
                                            TextColor="Black"
                                            PlaceholderColor="Gray" />
@@ -177,6 +166,31 @@
                             </VerticalStackLayout>
                         </Frame>
 
+                        <!-- Action Buttons -->
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0">
+                            
+                            <!-- Reset Button -->
+                            <Button Grid.Column="0" 
+                                    Text="Reset" 
+                                    FontSize="14" 
+                                    BackgroundColor="#A57C5C" 
+                                    TextColor="White" 
+                                    CornerRadius="15"
+                                    HeightRequest="40"
+                                    Command="{Binding ResetProfileCommand}" />
+
+                            <!-- Save Button -->
+                            <Button Grid.Column="1" 
+                                    Text="Save Profile" 
+                                    FontSize="14" 
+                                    FontAttributes="Bold"
+                                    BackgroundColor="#5B4F45" 
+                                    TextColor="White" 
+                                    CornerRadius="15"
+                                    HeightRequest="40"
+                                    Command="{Binding SaveProfileCommand}"
+                                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}" />
+                        </Grid>
 
                         <!-- Status Message -->
                         <Frame BackgroundColor="{Binding HasError, Converter={StaticResource NotificationColorConverter}}" 
@@ -191,34 +205,6 @@
 
                     </VerticalStackLayout>
                 </ScrollView>
-
-                <!-- Footer with Action Buttons -->
-                <Grid Grid.Row="2" BackgroundColor="#E8D5C4" Padding="20,15">
-                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
-                        
-                        <!-- Reset Button -->
-                        <Button Grid.Column="0" 
-                                Text="Reset" 
-                                FontSize="14" 
-                                BackgroundColor="#A57C5C" 
-                                TextColor="White" 
-                                CornerRadius="15"
-                                HeightRequest="40"
-                                Command="{Binding ResetProfileCommand}" />
-
-                        <!-- Save Button -->
-                        <Button Grid.Column="1" 
-                                Text="Save Profile" 
-                                FontSize="14" 
-                                FontAttributes="Bold"
-                                BackgroundColor="#5B4F45" 
-                                TextColor="White" 
-                                CornerRadius="15"
-                                HeightRequest="40"
-                                Command="{Binding SaveProfileCommand}"
-                                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}" />
-                    </Grid>
-                </Grid>
             </Grid>
         </Frame>
     </Grid>

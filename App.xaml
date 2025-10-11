@@ -21,6 +21,7 @@
             <converters:IsPositiveConverter x:Key="IsPositiveConverter" />
             <converters:NotificationTextIconConverter x:Key="NotificationTextIconConverter" />
             <converters:NotificationColorConverter x:Key="NotificationColorConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
             <stockConverters:StockColorConverter x:Key="StockColorConverter" />
             
             <Style TargetType="ContentPage" ApplyToDerivedTypes="True">

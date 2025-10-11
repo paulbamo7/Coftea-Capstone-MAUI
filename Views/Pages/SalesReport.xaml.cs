@@ -1,5 +1,6 @@
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Views.Controls;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -14,8 +15,7 @@ public partial class SalesReport : ContentPage
 		var viewModel = new SalesReportPageViewModel(settingsPopup);
 		BindingContext = viewModel;
 		
-		// Set RetryConnectionPopup binding context
-		RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
+		// RetryConnectionPopup is now handled globally through App.xaml.cs
 		
 		// Initialize the view model
 		_ = viewModel.InitializeAsync();

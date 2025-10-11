@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.OrderConfirmedPopup"
+    x:Name="OrderConfirmedPopupView"
+    BackgroundColor="Transparent"
+    IsVisible="{Binding IsVisible, FallbackValue=False, TargetNullValue=False}"
+    InputTransparent="True">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="True">
+        
+        <!-- Order Confirmation Card - Bottom Right -->
+        <Frame VerticalOptions="End"
+               HorizontalOptions="End"
+               Margin="20,0,20,100"
+               Padding="20"
+               BackgroundColor="#4CAF50"
+               CornerRadius="15"
+               WidthRequest="350"
+               HasShadow="True"
+               InputTransparent="True"
+               Opacity="{Binding Opacity}">
+
+            <Grid RowDefinitions="Auto, Auto, Auto">
+                
+                <!-- Success Icon -->
+                <Grid Grid.Row="0" HorizontalOptions="Center" Margin="0,0,0,10">
+                    <Label Text="✓"
+                           FontSize="32"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center" />
+                </Grid>
+
+                <!-- Order Confirmed Text -->
+                <Label Grid.Row="1" 
+                       Text="Order Confirmed!"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,5" />
+
+                <!-- Transaction Details -->
+                <Grid Grid.Row="2">
+                    <VerticalStackLayout Spacing="3">
+                        <Label Text="{Binding OrderDetails, StringFormat='Order #{0}'}"
+                               FontSize="14"
+                               TextColor="White"
+                               HorizontalOptions="Center"
+                               Opacity="0.9" />
+                        <Label Text="{Binding TotalAmount, StringFormat='Total: ₱{0:F2}'}"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalOptions="Center" />
+                        <Label Text="{Binding PaymentMethod, StringFormat='Payment: {0}'}"
+                               FontSize="12"
+                               TextColor="White"
+                               HorizontalOptions="Center"
+                               Opacity="0.8" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>

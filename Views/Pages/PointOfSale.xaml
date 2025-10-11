@@ -454,12 +454,12 @@
         <otherViews:AddonsSelectionPopup BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToInventory BindingContext="{Binding SettingsPopup.ManageInventoryOptionsVM.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:EditProductPopup BindingContext="{Binding SettingsPopup.ManagePOSOptionsVM.EditProductPopupVM}" Grid.ColumnSpan="2"/>
-        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
         <otherViews:CartPopup BindingContext="{Binding CartPopup}" Grid.ColumnSpan="2"/>
         <otherViews:HistoryPopup BindingContext="{Binding HistoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:PaymentPopup x:Name="PaymentPopupControl" Grid.ColumnSpan="2"/>
         <otherViews:OrderCompletePopup BindingContext="{Binding OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
-        <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Reference POS}, Path=BindingContext.SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
+        <otherViews:OrderConfirmedPopup BindingContext="{Binding OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
+        <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
         <otherViews:NotificationPopup BindingContext="{Binding NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
         <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
 

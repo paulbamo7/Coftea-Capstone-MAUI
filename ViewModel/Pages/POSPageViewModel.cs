@@ -25,6 +25,7 @@ namespace Coftea_Capstone.ViewModel
         public HistoryPopupViewModel HistoryPopup { get; set; }
         public PaymentPopupViewModel PaymentPopup { get; set; }
         public OrderCompletePopupViewModel OrderCompletePopup { get; set; }
+        public OrderConfirmedPopupViewModel OrderConfirmedPopup { get; set; }
         public SuccessCardPopupViewModel SuccessCardPopup { get; set; }
         public AddonsSelectionPopupViewModel AddonsPopup { get; set; }
 
@@ -90,6 +91,7 @@ namespace Coftea_Capstone.ViewModel
             HistoryPopup = new HistoryPopupViewModel();
             PaymentPopup = ((App)Application.Current).PaymentPopup;
             OrderCompletePopup = ((App)Application.Current).OrderCompletePopup;
+            OrderConfirmedPopup = ((App)Application.Current).OrderConfirmedPopup;
             SuccessCardPopup = ((App)Application.Current).SuccessCardPopup;
             AddonsPopup = new AddonsSelectionPopupViewModel();
 

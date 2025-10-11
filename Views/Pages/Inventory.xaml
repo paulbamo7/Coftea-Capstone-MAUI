@@ -193,8 +193,14 @@
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
-        <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" Grid.ColumnSpan="2"/>
+        <otherViews:CartPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=POSVM.CartPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:HistoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=HistoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:PaymentPopup x:Name="PaymentPopupControl" Grid.ColumnSpan="2"/>
+        <otherViews:OrderCompletePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
+        <otherViews:OrderConfirmedPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
         <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
+        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
+        <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="1700"/>
     </Grid>
 </ContentPage>

@@ -1146,10 +1146,17 @@ namespace Coftea_Capstone.Models
             try
             {
                 await using var conn = await GetOpenConnectionAsync();
+                
+                // Parse fullName into firstName and lastName
+                var nameParts = fullName?.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+                var firstName = nameParts.Length > 0 ? nameParts[0] : string.Empty;
+                var lastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : string.Empty;
+                
                 var sql = @"UPDATE users SET 
                            username = @Username, 
                            email = @Email, 
-                           fullName = @FullName, 
+                           firstName = @FirstName,
+                           lastName = @LastName,
                            phoneNumber = @PhoneNumber, 
                            profileImage = @ProfileImage,
                            can_access_inventory = @CanAccessInventory,
@@ -1160,7 +1167,8 @@ namespace Coftea_Capstone.Models
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@Username", username);
                 cmd.Parameters.AddWithValue("@Email", email);
-                cmd.Parameters.AddWithValue("@FullName", fullName);
+                cmd.Parameters.AddWithValue("@FirstName", firstName);
+                cmd.Parameters.AddWithValue("@LastName", lastName);
                 cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
                 cmd.Parameters.AddWithValue("@ProfileImage", profileImage);
                 cmd.Parameters.AddWithValue("@CanAccessInventory", canAccessInventory);

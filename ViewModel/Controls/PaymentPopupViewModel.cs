@@ -165,6 +165,15 @@ namespace Coftea_Capstone.ViewModel.Controls
             PaymentStatus = "Payment Confirmed";
             var appInstance = (App)Application.Current;
             appInstance?.OrderCompletePopup?.Show();
+            
+            // Show order confirmation popup in bottom right
+            var orderConfirmedPopup = appInstance?.OrderConfirmedPopup;
+            if (orderConfirmedPopup != null)
+            {
+                var orderNumber = new Random().Next(1000, 9999).ToString();
+                await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod);
+            }
+            
             // No automatic toast here; user can open notifications manually via bell
 
             // Add notifications for each saved transaction (badge only; panel shows details when opened)

@@ -31,6 +31,7 @@ namespace Coftea_Capstone
         public PasswordResetPopupViewModel PasswordResetPopup { get; private set; }
         public PaymentPopupViewModel PaymentPopup { get; private set; }
         public OrderCompletePopupViewModel OrderCompletePopup { get; private set; }
+        public OrderConfirmedPopupViewModel OrderConfirmedPopup { get; private set; }
         public SuccessCardPopupViewModel SuccessCardPopup { get; private set; }
         public HistoryPopupViewModel HistoryPopup { get; private set; }
         public ProfilePopupViewModel ProfilePopup { get; private set; }
@@ -137,6 +138,7 @@ namespace Coftea_Capstone
             PasswordResetPopup = new PasswordResetPopupViewModel();
             PaymentPopup = new PaymentPopupViewModel();
             OrderCompletePopup = new OrderCompletePopupViewModel();
+            OrderConfirmedPopup = new OrderConfirmedPopupViewModel();
             SuccessCardPopup = new SuccessCardPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
             ProfilePopup = new ProfilePopupViewModel();
