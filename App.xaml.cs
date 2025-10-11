@@ -49,12 +49,18 @@ namespace Coftea_Capstone
             {
                 try
                 {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
                     var db = new Database();
                     await db.EnsureServerAndDatabaseAsync();
                     await db.InitializeDatabaseAsync();
                 }
-                catch (Exception)
+                catch (OperationCanceledException)
                 {
+                    System.Diagnostics.Debug.WriteLine("⏰ Database initialization timeout");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Database initialization error: {ex.Message}");
                     // Swallow init errors here; UI will display connection issues elsewhere
                 }
 
@@ -149,13 +155,18 @@ namespace Coftea_Capstone
             _ = Task.Run(async () => {
                 try
                 {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
                     var detectedHost = await Services.NetworkDetectionService.DetectDatabaseHostAsync();
                     System.Diagnostics.Debug.WriteLine($"🔍 App Startup - Detected Database Host: {detectedHost}");
                     
-                    // Test the connection
+                    // Test the connection with timeout
                     var db = new Database();
                     await db.EnsureServerAndDatabaseAsync();
                     System.Diagnostics.Debug.WriteLine($"✅ Database connection successful with host: {detectedHost}");
+                }
+                catch (OperationCanceledException)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⏰ App Startup - Connection timeout");
                 }
                 catch (Exception ex)
                 {

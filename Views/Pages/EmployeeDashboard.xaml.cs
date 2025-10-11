@@ -17,7 +17,7 @@ public partial class EmployeeDashboard : ContentPage
 		BindingContext = ((App)Application.Current).SettingsPopup;
 		
 		// Load today's metrics when dashboard loads
-		_ = LoadTodaysMetrics();
+		_ = LoadTodaysMetricsAsync();
 	}
 
     private void OnBellClicked(object sender, EventArgs e)
@@ -41,15 +41,20 @@ public partial class EmployeeDashboard : ContentPage
         }
     }
 
-	private async Task LoadTodaysMetrics()
+	private async Task LoadTodaysMetricsAsync()
 	{
 		try
 		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // 10 second timeout
 			var settingsPopup = ((App)Application.Current).SettingsPopup;
 			if (settingsPopup != null)
 			{
 				await settingsPopup.LoadTodaysMetricsAsync();
 			}
+		}
+		catch (OperationCanceledException)
+		{
+			System.Diagnostics.Debug.WriteLine("⏰ LoadTodaysMetrics timeout");
 		}
 		catch (Exception ex)
 		{

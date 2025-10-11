@@ -104,6 +104,8 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
+                
                 // Load top selling products for dashboard
                 await LoadTopSellingProductsAsync();
                 var database = new Models.Database(); // Will use auto-detected host
@@ -126,6 +128,11 @@ namespace Coftea_Capstone.ViewModel
                 
                 // Set trend indicators
                 OrdersTrend = TotalOrdersToday > 0 ? "↑ Today" : "No orders today";
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("⏰ LoadTodaysMetricsAsync timeout");
+                // Keep default values (0) if loading times out
             }
             catch (Exception ex)
             {
