@@ -33,6 +33,9 @@ public partial class PointOfSale : ContentPage
             
             // Set PaymentPopup binding context to shared instance
             PaymentPopupControl.BindingContext = ((App)Application.Current).PaymentPopup;
+            
+            // Ensure CartPopup binding context is set (important for tablet compatibility)
+            // The CartPopup is bound via XAML but we need to ensure it's properly initialized
 
             // Start timer
             StartTimer();

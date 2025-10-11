@@ -492,7 +492,33 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void ShowCart()
         {
-            CartPopup.ShowCart(CartItems);
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"ShowCart called with {CartItems?.Count ?? 0} items");
+                
+                if (CartPopup == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("CartPopup is null!");
+                    if (NotificationPopup != null)
+                    {
+                        NotificationPopup.ShowNotification("Cart is not available", "Error");
+                    }
+                    return;
+                }
+                
+                CartPopup.ShowCart(CartItems);
+                System.Diagnostics.Debug.WriteLine("CartPopup.ShowCart completed successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ShowCart: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ShowNotification($"Failed to open cart: {ex.Message}", "Error");
+                }
+            }
         }
 
     public Task SaveCartToStorageAsync() => _cartStorage.SaveCartAsync(CartItems);
@@ -518,7 +544,22 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void Cart()
         {
-            ShowCart();
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("Cart command executed");
+                ShowCart();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in Cart command: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                // Show error notification if available
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ShowNotification($"Cart error: {ex.Message}", "Error");
+                }
+            }
         }
     }
 }

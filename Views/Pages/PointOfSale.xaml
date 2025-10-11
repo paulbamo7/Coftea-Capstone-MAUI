@@ -249,8 +249,8 @@
                                 </Frame>
 
                                 <Label Text="{Binding SelectedProduct.ProductName, StringFormat='Product Name: {0}'}"
-                                   FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" />
-                                <Label Text="Add-ons" FontAttributes="Bold" FontSize="20" HorizontalOptions="Start" />
+                                   FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" TextColor="Black"/>
+                                <Label Text="Add-ons" FontAttributes="Bold" FontSize="20" HorizontalOptions="Start" TextColor="Black"/>
                                 <!-- Add-ons list: two-column selectable entries with quantity selector -->
                                     <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,0,0,10">
                                         <CollectionView.ItemsLayout>
@@ -271,7 +271,7 @@
                                                     <!-- Left side: name -->
                                                     <HorizontalStackLayout Spacing="8" VerticalOptions="Center" Grid.Column="0">
                                                         <CheckBox IsChecked="{Binding IsSelected}" />
-                                                        <Label Text="{Binding itemName}" FontSize="14" VerticalOptions="Center" HorizontalOptions="StartAndExpand" LineBreakMode="TailTruncation" TextColor="Black" />
+                                                        <Label Text="{Binding itemName}" TextColor="Black" FontSize="14" VerticalOptions="Center" HorizontalOptions="StartAndExpand" LineBreakMode="TailTruncation" />
                                                     </HorizontalStackLayout>
 
                                                     <!-- Right side: quantity buttons -->
@@ -281,12 +281,12 @@
                                                             <Frame.GestureRecognizers>
                                                                 <TapGestureRecognizer Command="{Binding DecreaseAddonQtyCommand}" CommandParameter="{Binding .}" />
                                                             </Frame.GestureRecognizers>
-                                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseAddonQtyCommand}" CommandParameter="{Binding .}"/>
+                                                            <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseAddonQtyCommand}" CommandParameter="{Binding .}"/>
                                                         </Frame>
 
                                                         <!-- Quantity (match size controls) -->
                                                         <Frame BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False">
-                                                            <Label Text="{Binding AddonQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center" />
+                                                            <Label Text="{Binding AddonQuantity}" TextColor="Black" FontSize="13" HorizontalOptions="Center" VerticalOptions="Center" />
                                                         </Frame>
 
                                                         <!-- Increase (match size controls) -->
@@ -294,12 +294,12 @@
                                                             <Frame.GestureRecognizers>
                                                                 <TapGestureRecognizer Command="{Binding IncreaseAddonQtyCommand}" CommandParameter="{Binding .}" />
                                                             </Frame.GestureRecognizers>
-                                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseAddonQtyCommand}" CommandParameter="{Binding .}"/>
+                                                            <ImageButton Source="up.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding IncreaseAddonQtyCommand}" CommandParameter="{Binding .}"/>
                                                         </Frame>
                                                     </HorizontalStackLayout>
 
                                                     <!-- Subtotal price shown after controls -->
-                                                    <Label Grid.Column="2" Text="{Binding AddonTotalPrice, StringFormat='₱{0:F0}'}" FontSize="14" VerticalOptions="Center" Margin="10,0,0,0" />
+                                                    <Label Grid.Column="2" TextColor="Black" Text="{Binding AddonTotalPrice, StringFormat='₱{0:F0}'}" FontSize="14" VerticalOptions="Center" Margin="10,0,0,0" />
 
                                                 </Grid>
                                             </DataTemplate>
@@ -308,7 +308,7 @@
 
 
                                     <!-- Select Size Section -->
-                                    <Label Text="Select Size:" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>
+                                    <Label Text="Select Size:" TextColor="Black" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>
 
                                     <Grid Margin="25,0,0,0" RowSpacing="8">
                                         <Grid.RowDefinitions>
@@ -327,12 +327,12 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Small Size -->
-                                        <Label Text="Small:" Grid.Row="0" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
+                                        <Label Text="Small:" TextColor="Black" Grid.Row="0" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
                                         <Frame Grid.Row="0" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseSmallQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseSmallQtyCommand}"/>
+                                            <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseSmallQtyCommand}"/>
                                         </Frame>
                                         <Frame Grid.Row="0" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
                                             <Label Text="{Binding SelectedProduct.SmallQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
@@ -341,19 +341,19 @@
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding IncreaseSmallQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseSmallQtyCommand}"/>
+                                            <ImageButton Source="up.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding IncreaseSmallQtyCommand}"/>
                                         </Frame>
 
                                         <!-- Medium Size -->
-                                        <Label Text="Medium:" Grid.Row="1" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
+                                        <Label Text="Medium:" TextColor="Black" Grid.Row="1" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
                                         <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseMediumQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseMediumQtyCommand}"/>
+                                            <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseMediumQtyCommand}"/>
                                         </Frame>
                                         <Frame Grid.Row="1" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
-                                            <Label Text="{Binding SelectedProduct.MediumQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                            <Label Text="{Binding SelectedProduct.MediumQuantity}" TextColor="Black" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
                                         </Frame>
                                         <Frame Grid.Row="1" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
@@ -363,15 +363,15 @@
                                         </Frame>
 
                                         <!-- Large Size -->
-                                        <Label Text="Large:" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                        <Label Text="Large:" TextColor="Black" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
                                         <Frame Grid.Row="2" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseLargeQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="down.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding DecreaseLargeQtyCommand}"/>
+                                            <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseLargeQtyCommand}"/>
                                         </Frame>
                                         <Frame Grid.Row="2" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
-                                            <Label Text="{Binding SelectedProduct.LargeQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                            <Label Text="{Binding SelectedProduct.LargeQuantity}" TextColor="Black" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
                                         </Frame>
                                         <Frame Grid.Row="2" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
@@ -384,20 +384,20 @@
 
                                     <!-- Size Summary -->
                                 <Grid ColumnDefinitions="*,*,*" HorizontalOptions="Center" Margin="25,0,0,0" >
-                                    <Label Grid.Column="0" Text="{Binding SelectedProduct.SmallQuantity, StringFormat='Small: {0} pcs'}" 
+                                    <Label Grid.Column="0" TextColor="Black" Text="{Binding SelectedProduct.SmallQuantity, StringFormat='Small: {0} pcs'}" 
                                            IsVisible="{Binding IsSmallSizeVisibleInCart}" HorizontalOptions="Center"/>
-                                    <Label Grid.Column="1" Text="{Binding SelectedProduct.MediumQuantity, StringFormat='Medium: {0} pcs'}" 
+                                    <Label Grid.Column="1" TextColor="Black" Text="{Binding SelectedProduct.MediumQuantity, StringFormat='Medium: {0} pcs'}" 
                                            IsVisible="{Binding IsMediumSizeVisibleInCart}" HorizontalOptions="Center"/>
-                                    <Label Grid.Column="2" Text="{Binding SelectedProduct.LargeQuantity, StringFormat='Large: {0} pcs'}" 
+                                     <Label Grid.Column="2" TextColor="Black" Text="{Binding SelectedProduct.LargeQuantity, StringFormat='Large: {0} pcs'}" 
                                            IsVisible="{Binding IsLargeSizeVisibleInCart}" HorizontalOptions="Center"/>
                                 </Grid>
                                 <!-- Add-ons Summary (match style with size summary) -->
                                 <Grid ColumnDefinitions="*" HorizontalOptions="Center" Margin="25,6,0,0">
-                                    <Label Grid.Column="0" Text="{Binding SelectedAddons, Converter={StaticResource NotificationTextIconConverter}}"/>
+                                    <Label Grid.Column="0" TextColor="Black" Text="{Binding SelectedAddons, Converter={StaticResource NotificationTextIconConverter}}" />
                                 </Grid>
                                 <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
-                                    <Label Text="Total:" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
-                                    <Label Text="{Binding SelectedProduct.TotalPrice, StringFormat='₱ {0:F2}'}" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    <Label Text="Total:" TextColor="Black" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
+                                    <Label Text="{Binding SelectedProduct.TotalPrice, StringFormat='₱ {0:F2}'}" TextColor="Black" FontSize="18" FontAttributes="Bold" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
 
                                 <!-- Action Buttons -->

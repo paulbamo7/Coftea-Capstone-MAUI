@@ -12,6 +12,8 @@
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:IndexOfInCollectionMultiConverter x:Key="IndexOfConverter" />
+            <converters:SelectedCountToHeightConverter x:Key="SelectedCountToHeightConverter" />
+            <converters:NotificationTextIconConverter x:Key="NotificationTextIconConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
@@ -26,8 +28,12 @@
                Padding="0"
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
-               WidthRequest="950"
-               HeightRequest="600"
+               MaximumWidthRequest="950"
+               MaximumHeightRequest="600"
+               MinimumWidthRequest="400"
+               MinimumHeightRequest="300"
+               WidthRequest="{OnPlatform Default=950, Android=900, iOS=900, WinUI=950}"
+               HeightRequest="{OnPlatform Default=600, Android=550, iOS=550, WinUI=600}"
                HasShadow="True"
                InputTransparent="False">
 
@@ -92,12 +98,6 @@
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Row Number -->
-                                        <Label Grid.Column="0"
-                                               Text="{Binding Source={x:Reference CartPopupView}, Path=BindingContext.CartItems, Converter={StaticResource SelectedCountToHeightConverter}}"
-                                               IsVisible="False" />
-                                        <Label Grid.Column="0"
-                                               Text="{Binding Source={x:Reference CartPopupView}, Path=BindingContext.CartItems, Converter={StaticResource NotificationTextIconConverter}}"
-                                               IsVisible="False" />
                                         <Label Grid.Column="0" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center">
                                             <Label.Text>
                                                 <MultiBinding Converter="{StaticResource IndexOfConverter}">

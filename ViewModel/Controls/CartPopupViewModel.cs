@@ -29,58 +29,100 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public CartPopupViewModel()
         {
+            try
+            {
+                // Initialize collections
+                CartItems = new ObservableCollection<CartItem>();
+                System.Diagnostics.Debug.WriteLine("CartPopupViewModel initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error initializing CartPopupViewModel: {ex.Message}");
+                // Ensure collections are still initialized even if there's an error
+                CartItems = new ObservableCollection<CartItem>();
+            }
         }
 
         public void ShowCart(ObservableCollection<POSPageModel> items)
         {
-            // Store reference to original items for quantity reset
-            _originalItems = items;
-            
-            // Convert POSPageModel items to CartItem format - combine same products
-            CartItems.Clear();
-            var flatItems = (items ?? new ObservableCollection<POSPageModel>())
-                .Where(item => item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0)
-                .ToList();
-
-            foreach (var it in flatItems)
+            try
             {
-                CartItems.Add(new CartItem
+                // Store reference to original items for quantity reset
+                _originalItems = items;
+                
+                // Convert POSPageModel items to CartItem format - combine same products
+                CartItems.Clear();
+                var flatItems = (items ?? new ObservableCollection<POSPageModel>())
+                    .Where(item => item != null && (item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0))
+                    .ToList();
+
+                foreach (var it in flatItems)
                 {
-                    ProductId = it.ProductID,
-                    ProductName = it.ProductName,
-                    ImageSource = it.ImageSet,
-                    CustomerName = CustomerName,
-                    SugarLevel = "100%",
-                    AddOns = new ObservableCollection<string>(),
-                    SmallQuantity = it.SmallQuantity,
-                    MediumQuantity = it.MediumQuantity,
-                    LargeQuantity = it.LargeQuantity,
-                    SmallPrice = it.SmallPrice,
-                    MediumPrice = it.MediumPrice,
-                    LargePrice = it.LargePrice,
-                    SelectedSize = GetCombinedSizeDisplay(it),
-                    Quantity = it.SmallQuantity + it.MediumQuantity + it.LargeQuantity,
-                    Price = it.SmallPrice + it.MediumPrice + it.LargePrice
-                });
+                    if (it != null)
+                    {
+                        CartItems.Add(new CartItem
+                        {
+                            ProductId = it.ProductID,
+                            ProductName = it.ProductName ?? "Unknown Product",
+                            ImageSource = it.ImageSet ?? "dotnet_bot.png",
+                            CustomerName = CustomerName,
+                            SugarLevel = "100%",
+                            AddOns = new ObservableCollection<string>(),
+                            SmallQuantity = it.SmallQuantity,
+                            MediumQuantity = it.MediumQuantity,
+                            LargeQuantity = it.LargeQuantity,
+                            SmallPrice = it.SmallPrice,
+                            MediumPrice = it.MediumPrice,
+                            LargePrice = it.LargePrice,
+                            SelectedSize = GetCombinedSizeDisplay(it),
+                            Quantity = it.SmallQuantity + it.MediumQuantity + it.LargeQuantity,
+                            Price = it.SmallPrice + it.MediumPrice + it.LargePrice
+                        });
+                    }
+                }
+                
+                CalculateTotal();
+                IsCartVisible = true;
             }
-            
-            CalculateTotal();
-            IsCartVisible = true;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing cart: {ex.Message}");
+                // Ensure cart is not visible if there's an error
+                IsCartVisible = false;
+            }
         }
 
         private void CalculateTotal()
         {
-            TotalAmount = CartItems.Sum(item => item.TotalPrice);
+            try
+            {
+                TotalAmount = CartItems?.Sum(item => item?.TotalPrice ?? 0) ?? 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error calculating total: {ex.Message}");
+                TotalAmount = 0;
+            }
         }
 
         private string GetCombinedSizeDisplay(POSPageModel item)
         {
-            var sizes = new List<string>();
-            if (item.SmallQuantity > 0) sizes.Add($"Small: {item.SmallQuantity}");
-            if (item.MediumQuantity > 0) sizes.Add($"Medium: {item.MediumQuantity}");
-            if (item.LargeQuantity > 0) sizes.Add($"Large: {item.LargeQuantity}");
-            
-            return sizes.Count > 0 ? string.Join(", ", sizes) : "No sizes";
+            try
+            {
+                if (item == null) return "No sizes";
+                
+                var sizes = new List<string>();
+                if (item.SmallQuantity > 0) sizes.Add($"Small: {item.SmallQuantity}");
+                if (item.MediumQuantity > 0) sizes.Add($"Medium: {item.MediumQuantity}");
+                if (item.LargeQuantity > 0) sizes.Add($"Large: {item.LargeQuantity}");
+                
+                return sizes.Count > 0 ? string.Join(", ", sizes) : "No sizes";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting size display: {ex.Message}");
+                return "No sizes";
+            }
         }
 
         [RelayCommand]
@@ -113,8 +155,10 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                if (product == null) return;
+                
                 // Get the current page
-                var nav = Application.Current.MainPage as NavigationPage;
+                var nav = Application.Current?.MainPage as NavigationPage;
                 if (nav?.CurrentPage == null) return;
 
                 // Check if current page is POS page
