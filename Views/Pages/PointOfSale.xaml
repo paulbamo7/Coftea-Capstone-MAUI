@@ -221,9 +221,9 @@
                                             </Frame>
                                             <HorizontalStackLayout HorizontalOptions="Center">
                                                 <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>
-                                                <Label Text=" | " FontSize="13" TextColor="Black"/>
+                                                <Label Text="  |  " FontSize="13" TextColor="Black"/>
                                                 <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>
-                                                <Label Text=" | " FontSize="13" TextColor="Black"/>
+                                                <Label Text="  |  " FontSize="13" TextColor="Black"/>
                                                 <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>

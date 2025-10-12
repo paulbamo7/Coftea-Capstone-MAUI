@@ -141,7 +141,7 @@
         <controls:DeleteUserPopup Grid.ColumnSpan="2" Grid.RowSpan="1" BindingContext="{Binding DeleteUserPopup}"/>
         
         <!-- All Global Popups -->
-        <views:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
+        <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2" ZIndex="1900"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>

@@ -13,10 +13,7 @@ namespace Coftea_Capstone.Models
         public string Username { get; set; }
         public string LastActive { get; set; }
         public string DateAdded { get; set; }
-        public bool IsAdmin 
-        { 
-            get => Id == 1; // Only the first user (ID = 1) is admin
-        }
+        public bool IsAdmin { get; set; } // Use database field instead of hardcoded ID check
         
         public bool CanAccessInventory 
         { 

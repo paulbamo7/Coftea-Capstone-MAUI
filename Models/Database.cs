@@ -99,8 +99,201 @@ namespace Coftea_Capstone.Models
 			_productAddonsCache.Remove(productId);
 		}
 
-		// Shared DB helpers to reduce redundancy
-		private static object DbValue(object? value)
+        // Database initialization
+        public async Task InitializeDatabaseAsync(CancellationToken cancellationToken = default)
+        {
+            await using var conn = await GetOpenConnectionAsync(cancellationToken);
+
+            // Create tables if they don't exist
+            var createTablesSql = @"
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    firstName VARCHAR(100),
+                    lastName VARCHAR(100),
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    password VARCHAR(255) NOT NULL,
+                    phoneNumber VARCHAR(20),
+                    birthday DATE,
+                    address TEXT,
+                    status VARCHAR(50) DEFAULT 'approved',
+                    isAdmin BOOLEAN DEFAULT FALSE,
+                    can_access_inventory BOOLEAN DEFAULT FALSE,
+                    can_access_sales_report BOOLEAN DEFAULT FALSE,
+                    reset_token VARCHAR(255),
+                    reset_expiry DATETIME,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    username VARCHAR(100),
+                    fullName VARCHAR(200),
+                    profileImage VARCHAR(255) DEFAULT 'usericon.png'
+                );
+                
+                CREATE TABLE IF NOT EXISTS products (
+                    productID INT AUTO_INCREMENT PRIMARY KEY,
+                    productName VARCHAR(255) NOT NULL,
+                    smallPrice DECIMAL(10,2) NOT NULL,
+                    mediumPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
+                    largePrice DECIMAL(10,2) NOT NULL,
+                    category VARCHAR(100),
+                    subcategory VARCHAR(100),
+                    imageSet VARCHAR(255),
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS inventory (
+                    itemID INT AUTO_INCREMENT PRIMARY KEY,
+                    itemName VARCHAR(255) NOT NULL,
+                    itemQuantity DECIMAL(10,2) NOT NULL DEFAULT 0,
+                    itemCategory VARCHAR(100),
+                    imageSet VARCHAR(255),
+                    itemDescription TEXT,
+                    unitOfMeasurement VARCHAR(50),
+                    minimumQuantity DECIMAL(10,2) DEFAULT 0,
+                    maximumQuantity DECIMAL(10,2) DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS product_ingredients (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    productID INT NOT NULL,
+                    itemID INT NOT NULL,
+                    amount DECIMAL(10,2) NOT NULL,
+                    unit VARCHAR(50),
+                    role VARCHAR(50) DEFAULT 'ingredient',
+                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
+                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
+                );
+    
+                CREATE TABLE IF NOT EXISTS product_addons (
+                  id INT AUTO_INCREMENT PRIMARY KEY,
+                  productID INT NOT NULL,
+                  itemID INT NOT NULL,
+                  amount DECIMAL(10,4) NOT NULL,
+                  unit VARCHAR(50),
+                  role VARCHAR(50) DEFAULT 'addon',
+                  addon_price DECIMAL(10,2) DEFAULT 0.00,
+                  UNIQUE KEY uq_product_item (productID, itemID),
+                  INDEX idx_product (productID),
+                  INDEX idx_item (itemID),
+                  FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
+                  FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
+                );
+                
+                CREATE TABLE IF NOT EXISTS transactions (
+                    transactionID INT AUTO_INCREMENT PRIMARY KEY,
+                    userID INT,
+                    total DECIMAL(10,2) NOT NULL,
+                    transactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    status VARCHAR(50) DEFAULT 'completed',
+                    paymentMethod VARCHAR(50) DEFAULT 'Cash',
+                    FOREIGN KEY (userID) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
+                );
+                
+                CREATE TABLE IF NOT EXISTS transaction_items (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    transactionID INT NOT NULL,
+                    productID INT NOT NULL,
+                    productName VARCHAR(255) NOT NULL,
+                    quantity INT NOT NULL,
+                    price DECIMAL(10,2) NOT NULL,
+                    smallPrice DECIMAL(10,2) DEFAULT 0.00,
+                    mediumPrice DECIMAL(10,2) DEFAULT 0.00,
+                    largePrice DECIMAL(10,2) DEFAULT 0.00,
+                    addonPrice DECIMAL(10,2) DEFAULT 0.00,
+                    addOns TEXT,
+                    size VARCHAR(20),
+                    FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
+                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
+                );
+                
+                -- Add new columns if they don't exist (for existing databases)
+                ALTER TABLE transaction_items 
+                ADD COLUMN IF NOT EXISTS smallPrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS mediumPrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS largePrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS addonPrice DECIMAL(10,2) DEFAULT 0.00,
+                ADD COLUMN IF NOT EXISTS addOns TEXT;
+                
+                -- Add maximum quantity column to inventory table
+                ALTER TABLE inventory 
+                ADD COLUMN IF NOT EXISTS maximumQuantity DECIMAL(10,2) DEFAULT 0;
+                
+                -- Update existing columns to have better precision
+                ALTER TABLE product_addons 
+                MODIFY COLUMN amount DECIMAL(10,4) NOT NULL;
+                
+                CREATE TABLE IF NOT EXISTS pending_registrations (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL,
+                    password VARCHAR(255) NOT NULL,
+                    firstName VARCHAR(100),
+                    lastName VARCHAR(100),
+                    phoneNumber VARCHAR(20),
+                    address TEXT,
+                    birthday DATE,
+                    registrationDate DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+            ";
+
+            await using var cmd = new MySqlCommand(createTablesSql, conn);
+            await cmd.ExecuteNonQueryAsync();
+
+            // Add status column to existing users table if it doesn't exist
+            var alterTableSql = @"
+                ALTER TABLE users 
+                ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'approved',
+                ADD COLUMN IF NOT EXISTS can_access_inventory BOOLEAN DEFAULT FALSE,
+                ADD COLUMN IF NOT EXISTS can_access_sales_report BOOLEAN DEFAULT FALSE,
+                ADD COLUMN IF NOT EXISTS username VARCHAR(100),
+                ADD COLUMN IF NOT EXISTS fullName VARCHAR(200),
+                ADD COLUMN IF NOT EXISTS profileImage VARCHAR(255) DEFAULT 'usericon.png';
+                
+                ALTER TABLE transactions 
+                ADD COLUMN IF NOT EXISTS paymentMethod VARCHAR(50) DEFAULT 'Cash';
+            ";
+            await using var alterCmd = new MySqlCommand(alterTableSql, conn);
+            await alterCmd.ExecuteNonQueryAsync();
+
+            // Ensure at least one user exists to prevent foreign key constraint errors
+            await EnsureDefaultUserExistsAsync(conn);
+
+            // Seed default cups and straws if not present
+            var seedSql = @"
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Small Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Small Cup') LIMIT 1;
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Medium Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Medium Cup') LIMIT 1;
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Large Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Large Cup') LIMIT 1;
+                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
+                SELECT * FROM (SELECT 'Straw' AS itemName, 200 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 50 AS minimumQuantity) AS tmp
+                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Straw') LIMIT 1;
+            ";
+
+            // Fix Fruit series UoM from ml/L to kg/g
+            var fixFruitUoMSql = @"
+                UPDATE inventory 
+                SET unitOfMeasurement = CASE 
+                    WHEN unitOfMeasurement = 'ml' THEN 'g'
+                    WHEN unitOfMeasurement = 'L' THEN 'kg'
+                    ELSE unitOfMeasurement
+                END
+                WHERE itemCategory = 'Fruit/Soda' 
+                AND (unitOfMeasurement = 'ml' OR unitOfMeasurement = 'L');
+            ";
+            await using var seedCmd = new MySqlCommand(seedSql, conn);
+            await seedCmd.ExecuteNonQueryAsync();
+
+            // Execute the Fruit UoM fix
+            await using var fixFruitCmd = new MySqlCommand(fixFruitUoMSql, conn);
+            await fixFruitCmd.ExecuteNonQueryAsync();
+        }
+
+        // Shared DB helpers to reduce redundancy
+        private static object DbValue(object? value)
 		{
 			return value ?? DBNull.Value;
 		}
@@ -221,8 +414,8 @@ namespace Coftea_Capstone.Models
             // Check if this is the first user
             bool isFirstUser = await IsFirstUserAsync();
             
-            var sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, birthday, address, status, isAdmin) " +
-                      "VALUES (@FirstName,@LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, 'approved', @IsAdmin);";
+            var sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, birthday, address, status, isAdmin, can_access_inventory, can_access_sales_report) " +
+                      "VALUES (@FirstName,@LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, 'approved', @IsAdmin, @CanAccessInventory, @CanAccessSalesReport);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@FirstName", user.FirstName);
             cmd.Parameters.AddWithValue("@LastName", user.LastName);
@@ -232,6 +425,8 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
             cmd.Parameters.AddWithValue("@Address", user.Address);
             cmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
+            cmd.Parameters.AddWithValue("@CanAccessInventory", isFirstUser); // First user gets all permissions
+            cmd.Parameters.AddWithValue("@CanAccessSalesReport", isFirstUser); // First user gets all permissions
 
             return await cmd.ExecuteNonQueryAsync();
         }
@@ -912,15 +1107,8 @@ namespace Coftea_Capstone.Models
                 
                 if (userCount == 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("⚠️ No users found, creating default admin user");
-                    
-                    // Create a default admin user
-                    var createUserSql = @"INSERT INTO users (firstName, lastName, email, password, isAdmin, status, can_access_inventory, can_access_sales_report) 
-                                         VALUES ('Admin', 'User', 'admin@coftea.com', '$2a$11$default', 1, 'approved', 1, 1);";
-                    await using var createCmd = new MySqlCommand(createUserSql, conn);
-                    await createCmd.ExecuteNonQueryAsync();
-                    
-                    System.Diagnostics.Debug.WriteLine("✅ Default admin user created successfully");
+                    System.Diagnostics.Debug.WriteLine("⚠️ No users found, but not creating default admin user - waiting for first registration");
+                    // Don't create default user - let the first registration become admin
                 }
                 else
                 {
@@ -1368,7 +1556,7 @@ namespace Coftea_Capstone.Models
                     ) as dependencies;";
                 await using var cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ItemID", itemId);
-                
+
                 var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 return count > 0;
             }
@@ -1377,199 +1565,6 @@ namespace Coftea_Capstone.Models
                 System.Diagnostics.Debug.WriteLine($"Error checking inventory dependencies: {ex.Message}");
                 return false;
             }
-        }
-
-        // Database initialization
-        public async Task InitializeDatabaseAsync(CancellationToken cancellationToken = default)
-        {
-            await using var conn = await GetOpenConnectionAsync(cancellationToken);
-            
-            // Create tables if they don't exist
-            var createTablesSql = @"
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    firstName VARCHAR(100),
-                    lastName VARCHAR(100),
-                    email VARCHAR(255) UNIQUE NOT NULL,
-                    password VARCHAR(255) NOT NULL,
-                    phoneNumber VARCHAR(20),
-                    birthday DATE,
-                    address TEXT,
-                    status VARCHAR(50) DEFAULT 'approved',
-                    isAdmin BOOLEAN DEFAULT FALSE,
-                    can_access_inventory BOOLEAN DEFAULT FALSE,
-                    can_access_sales_report BOOLEAN DEFAULT FALSE,
-                    reset_token VARCHAR(255),
-                    reset_expiry DATETIME,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    username VARCHAR(100),
-                    fullName VARCHAR(200),
-                    profileImage VARCHAR(255) DEFAULT 'usericon.png'
-                );
-                
-                CREATE TABLE IF NOT EXISTS products (
-                    productID INT AUTO_INCREMENT PRIMARY KEY,
-                    productName VARCHAR(255) NOT NULL,
-                    smallPrice DECIMAL(10,2) NOT NULL,
-                    mediumPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
-                    largePrice DECIMAL(10,2) NOT NULL,
-                    category VARCHAR(100),
-                    subcategory VARCHAR(100),
-                    imageSet VARCHAR(255),
-                    description TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-                
-                CREATE TABLE IF NOT EXISTS inventory (
-                    itemID INT AUTO_INCREMENT PRIMARY KEY,
-                    itemName VARCHAR(255) NOT NULL,
-                    itemQuantity DECIMAL(10,2) NOT NULL DEFAULT 0,
-                    itemCategory VARCHAR(100),
-                    imageSet VARCHAR(255),
-                    itemDescription TEXT,
-                    unitOfMeasurement VARCHAR(50),
-                    minimumQuantity DECIMAL(10,2) DEFAULT 0,
-                    maximumQuantity DECIMAL(10,2) DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-                
-                CREATE TABLE IF NOT EXISTS product_ingredients (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    productID INT NOT NULL,
-                    itemID INT NOT NULL,
-                    amount DECIMAL(10,2) NOT NULL,
-                    unit VARCHAR(50),
-                    role VARCHAR(50) DEFAULT 'ingredient',
-                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
-                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
-                );
-    
-                CREATE TABLE IF NOT EXISTS product_addons (
-                  id INT AUTO_INCREMENT PRIMARY KEY,
-                  productID INT NOT NULL,
-                  itemID INT NOT NULL,
-                  amount DECIMAL(10,4) NOT NULL,
-                  unit VARCHAR(50),
-                  role VARCHAR(50) DEFAULT 'addon',
-                  addon_price DECIMAL(10,2) DEFAULT 0.00,
-                  UNIQUE KEY uq_product_item (productID, itemID),
-                  INDEX idx_product (productID),
-                  INDEX idx_item (itemID),
-                  FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
-                  FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
-                );
-                
-                CREATE TABLE IF NOT EXISTS transactions (
-                    transactionID INT AUTO_INCREMENT PRIMARY KEY,
-                    userID INT,
-                    total DECIMAL(10,2) NOT NULL,
-                    transactionDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    status VARCHAR(50) DEFAULT 'completed',
-                    paymentMethod VARCHAR(50) DEFAULT 'Cash',
-                    FOREIGN KEY (userID) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE
-                );
-                
-                CREATE TABLE IF NOT EXISTS transaction_items (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    transactionID INT NOT NULL,
-                    productID INT NOT NULL,
-                    productName VARCHAR(255) NOT NULL,
-                    quantity INT NOT NULL,
-                    price DECIMAL(10,2) NOT NULL,
-                    smallPrice DECIMAL(10,2) DEFAULT 0.00,
-                    mediumPrice DECIMAL(10,2) DEFAULT 0.00,
-                    largePrice DECIMAL(10,2) DEFAULT 0.00,
-                    addonPrice DECIMAL(10,2) DEFAULT 0.00,
-                    addOns TEXT,
-                    size VARCHAR(20),
-                    FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
-                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
-                );
-                
-                -- Add new columns if they don't exist (for existing databases)
-                ALTER TABLE transaction_items 
-                ADD COLUMN IF NOT EXISTS smallPrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS mediumPrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS largePrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS addonPrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS addOns TEXT;
-                
-                -- Add maximum quantity column to inventory table
-                ALTER TABLE inventory 
-                ADD COLUMN IF NOT EXISTS maximumQuantity DECIMAL(10,2) DEFAULT 0;
-                
-                -- Update existing columns to have better precision
-                ALTER TABLE product_addons 
-                MODIFY COLUMN amount DECIMAL(10,4) NOT NULL;
-                
-                CREATE TABLE IF NOT EXISTS pending_registrations (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    email VARCHAR(255) NOT NULL,
-                    password VARCHAR(255) NOT NULL,
-                    firstName VARCHAR(100),
-                    lastName VARCHAR(100),
-                    phoneNumber VARCHAR(20),
-                    address TEXT,
-                    birthday DATE,
-                    registrationDate DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
-            ";
-            
-            await using var cmd = new MySqlCommand(createTablesSql, conn);
-            await cmd.ExecuteNonQueryAsync();
-
-            // Add status column to existing users table if it doesn't exist
-            var alterTableSql = @"
-                ALTER TABLE users 
-                ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'approved',
-                ADD COLUMN IF NOT EXISTS can_access_inventory BOOLEAN DEFAULT FALSE,
-                ADD COLUMN IF NOT EXISTS can_access_sales_report BOOLEAN DEFAULT FALSE,
-                ADD COLUMN IF NOT EXISTS username VARCHAR(100),
-                ADD COLUMN IF NOT EXISTS fullName VARCHAR(200),
-                ADD COLUMN IF NOT EXISTS profileImage VARCHAR(255) DEFAULT 'usericon.png';
-                
-                ALTER TABLE transactions 
-                ADD COLUMN IF NOT EXISTS paymentMethod VARCHAR(50) DEFAULT 'Cash';
-            ";
-            await using var alterCmd = new MySqlCommand(alterTableSql, conn);
-            await alterCmd.ExecuteNonQueryAsync();
-
-            // Ensure at least one user exists to prevent foreign key constraint errors
-            await EnsureDefaultUserExistsAsync(conn);
-
-            // Seed default cups and straws if not present
-            var seedSql = @"
-                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
-                SELECT * FROM (SELECT 'Small Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
-                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Small Cup') LIMIT 1;
-                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
-                SELECT * FROM (SELECT 'Medium Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
-                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Medium Cup') LIMIT 1;
-                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
-                SELECT * FROM (SELECT 'Large Cup' AS itemName, 100 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 20 AS minimumQuantity) AS tmp
-                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Large Cup') LIMIT 1;
-                INSERT INTO inventory (itemName, itemQuantity, itemCategory, unitOfMeasurement, minimumQuantity)
-                SELECT * FROM (SELECT 'Straw' AS itemName, 200 AS itemQuantity, 'Supplies' AS itemCategory, 'pcs' AS unitOfMeasurement, 50 AS minimumQuantity) AS tmp
-                WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Straw') LIMIT 1;
-            ";
-            
-            // Fix Fruit series UoM from ml/L to kg/g
-            var fixFruitUoMSql = @"
-                UPDATE inventory 
-                SET unitOfMeasurement = CASE 
-                    WHEN unitOfMeasurement = 'ml' THEN 'g'
-                    WHEN unitOfMeasurement = 'L' THEN 'kg'
-                    ELSE unitOfMeasurement
-                END
-                WHERE itemCategory = 'Fruit/Soda' 
-                AND (unitOfMeasurement = 'ml' OR unitOfMeasurement = 'L');
-            ";
-            await using var seedCmd = new MySqlCommand(seedSql, conn);
-            await seedCmd.ExecuteNonQueryAsync();
-            
-            // Execute the Fruit UoM fix
-            await using var fixFruitCmd = new MySqlCommand(fixFruitUoMSql, conn);
-            await fixFruitCmd.ExecuteNonQueryAsync();
         }
 
         // Update user access flags

@@ -243,8 +243,8 @@ public partial class NavigationBar : ContentView
 
         try
         {
-            // Admin users (ID = 1) always have access, or check individual permission
-            bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessInventory ?? false);
+            // Admin users always have access, or check individual permission
+            bool hasAccess = (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
             
             if (!hasAccess)
             {
@@ -290,8 +290,8 @@ public partial class NavigationBar : ContentView
 
         try
         {
-            // Admin users (ID = 1) always have access, or check individual permission
-            bool hasAccess = (App.CurrentUser?.ID == 1) || (App.CurrentUser?.CanAccessSalesReport ?? false);
+            // Admin users always have access, or check individual permission
+            bool hasAccess = (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessSalesReport ?? false);
             
             if (!hasAccess)
             {

@@ -25,7 +25,7 @@
         <ScrollView VerticalOptions="Center" HorizontalOptions="Center">
             <HorizontalStackLayout HorizontalOptions="Center">
                 <Grid RowDefinitions="Auto">
-                    <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Start" JustifyContent="Center" AlignContent="Start">
+                    <FlexLayout Direction="Row" Wrap="NoWrap" AlignItems="Start" JustifyContent="Center" AlignContent="Start">
                         <Frame BackgroundColor="#BDAEA2"
                                Padding="25,60,25,0"
                                CornerRadius="0"
