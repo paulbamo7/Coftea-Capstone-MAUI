@@ -77,11 +77,13 @@ namespace Coftea_Capstone.ViewModel
             // Set category last to trigger the category change logic
             _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory;
             
-            // For UoM-only categories, also set the minimum UoM fields after category is set
+            // For UoM-only categories, also set the minimum and maximum UoM fields after category is set
             if (fresh.itemCategory == "Syrups" || fresh.itemCategory == "Powdered" || fresh.itemCategory == "Fruit Series" || fresh.itemCategory == "Sinkers & etc.")
             {
                 _addItemToInventoryViewModel.MinimumUoMQuantity = fresh.minimumQuantity;
                 _addItemToInventoryViewModel.SelectedMinimumUoM = fresh.unitOfMeasurement;
+                _addItemToInventoryViewModel.MaximumUoMQuantity = fresh.maximumQuantity;
+                _addItemToInventoryViewModel.SelectedMaximumUoM = fresh.unitOfMeasurement;
             }
             
             _addItemToInventoryViewModel.ImagePath = fresh.ImageSet;

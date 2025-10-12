@@ -171,13 +171,16 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void OpenManageInventoryOptions()
         {
+            System.Diagnostics.Debug.WriteLine("OpenManageInventoryOptions called");
             IsSettingsPopupVisible = false;
             if (!(App.CurrentUser?.IsAdmin ?? false))
             {
                 Application.Current?.MainPage?.DisplayAlert("Unauthorized", "Only admins can manage Inventory.", "OK");
                 return;
             }
+            System.Diagnostics.Debug.WriteLine($"Setting ManageInventoryPopup visibility to true. Current value: {_manageInventoryOptionsViewModel.IsInventoryManagementPopupVisible}");
             _manageInventoryOptionsViewModel.IsInventoryManagementPopupVisible = true;
+            System.Diagnostics.Debug.WriteLine($"ManageInventoryPopup visibility set to: {_manageInventoryOptionsViewModel.IsInventoryManagementPopupVisible}");
         }
 
         [RelayCommand]
@@ -190,13 +193,16 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void OpenManagePOSOptions()
         {
+            System.Diagnostics.Debug.WriteLine("OpenManagePOSOptions called");
             IsSettingsPopupVisible = false;
             if (!(App.CurrentUser?.IsAdmin ?? false))
             {
                 Application.Current?.MainPage?.DisplayAlert("Unauthorized", "Only admins can manage POS settings.", "OK");
                 return;
             }
+            System.Diagnostics.Debug.WriteLine($"Setting ManagePOSPopup visibility to true. Current value: {_managePOSOptionsViewModel.IsPOSManagementPopupVisible}");
             _managePOSOptionsViewModel.IsPOSManagementPopupVisible = true;
+            System.Diagnostics.Debug.WriteLine($"ManagePOSPopup visibility set to: {_managePOSOptionsViewModel.IsPOSManagementPopupVisible}");
         }
 
         [RelayCommand]

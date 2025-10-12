@@ -176,13 +176,17 @@
 
         <!-- Popups -->
         <views:Settings BindingContext="{Binding .}" Grid.ColumnSpan="2"/>
-        <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2"/>
-        <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2"/>
-        <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
+        <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2" ZIndex="1900"/>
+        <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:ConnectPOSItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1100"/>
+        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200"/>
+        <otherViews:PreviewPOSItem BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1300"/>
+        <otherViews:AddonsSelectionPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:CartPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=POSVM.CartPopup}" Grid.ColumnSpan="2"/>
         <otherViews:HistoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=HistoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:PaymentPopup x:Name="PaymentPopupControl" Grid.ColumnSpan="2"/>

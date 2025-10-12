@@ -24,7 +24,7 @@
 
 
         <!-- Center Popup -->
-        <Frame Grid.Row="1" Grid.Column="1" Style="{StaticResource CenteredPopupFrame}">
+        <Frame Grid.Row="1" Grid.Column="1" Style="{StaticResource CenteredPopupFrame}" BackgroundColor="#F8E8D7">
 
             <!-- MAIN GRID FOR HEADER, CONTENT, FOOTER -->
             <Grid RowSpacing="20" RowDefinitions="Auto,*,Auto">

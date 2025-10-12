@@ -14,6 +14,11 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool isPOSManagementPopupVisible;
 
+        partial void OnIsPOSManagementPopupVisibleChanged(bool value)
+        {
+            System.Diagnostics.Debug.WriteLine($"ManagePOSOptionsViewModel.IsPOSManagementPopupVisible changed to: {value}");
+        }
+
         public EditProductPopupViewModel EditProductPopupVM => _editProductPopupViewModel;
 
         public ManagePOSOptionsViewModel(AddItemToPOSViewModel addItemToPOSViewModel, EditProductPopupViewModel editProductPopupViewModel)

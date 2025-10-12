@@ -211,7 +211,7 @@
                                 </Grid>
                             </VerticalStackLayout>
 
-                            <!-- UoM-only: maximum UoM -->
+                            <!-- UoM-only: maximum UoM (storage capacity limit - fixed limit, not cumulative) -->
                             <VerticalStackLayout IsVisible="{Binding IsUoMOnlyCategory}" Margin="0,20,0,0">
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
                                     <Label Grid.Column="0" Text="MAXIMUM UoM LEVEL" FontSize="16" FontAttributes="Bold" TextColor="#8B4513"/>
@@ -219,7 +219,7 @@
                                 </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
                                     <Entry Grid.Column="0"
-                                           Placeholder="Quantity (optional)"
+                                           Placeholder="Storage capacity limit (optional)"
                                            Text="{Binding MaximumUoMQuantity}"
                                            Keyboard="Numeric" 
                                            TextColor="Black" FontSize="16"/>

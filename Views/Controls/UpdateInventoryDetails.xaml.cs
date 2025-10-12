@@ -28,6 +28,11 @@ public partial class UpdateInventoryDetails : ContentView
     private void OnStockQuantityChanged(object sender, EventArgs e)
     {
         _currentStockValue = ParseDoubleOrZero(StockQuantityEntry?.Text);
+        // Clear the add field when current stock changes to prevent confusion
+        if (AddStockEntry != null)
+        {
+            AddStockEntry.Text = string.Empty;
+        }
         UpdateTotalDisplay();
     }
 

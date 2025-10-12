@@ -390,6 +390,13 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            // Enforce business rule: current stock must not exceed the maximum storage capacity
+            if (maximumThreshold > 0 && finalQuantity > maximumThreshold)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Current stock ({finalQuantity:F2} {finalUnit}) exceeds the maximum storage capacity ({maximumThreshold:F2} {finalUnit}).", "OK");
+                return;
+            }
+
             var inventoryItem = new InventoryPageModel
             {
                 itemName = ItemName,

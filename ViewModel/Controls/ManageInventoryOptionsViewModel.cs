@@ -14,6 +14,11 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool isInventoryManagementPopupVisible;
 
+        partial void OnIsInventoryManagementPopupVisibleChanged(bool value)
+        {
+            System.Diagnostics.Debug.WriteLine($"ManageInventoryOptionsViewModel.IsInventoryManagementPopupVisible changed to: {value}");
+        }
+
         public AddItemToInventoryViewModel AddItemToInventoryVM => _addItemToInventoryViewModel;
         public EditInventoryPopupViewModel EditInventoryPopupVM => _editInventoryPopupViewModel;
 

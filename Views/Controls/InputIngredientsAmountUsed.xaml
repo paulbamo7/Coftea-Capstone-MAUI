@@ -22,7 +22,7 @@
           Padding="20">
 
         <Frame Style="{StaticResource CenteredPopupFrame}"
-               IsVisible="{Binding IsPreviewVisible, Converter={StaticResource InvertBoolConverter}}">
+               IsVisible="{Binding IsPreviewVisible, Converter={StaticResource InvertBoolConverter}}" BackgroundColor="#F8E8D7">
 
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="20">
 

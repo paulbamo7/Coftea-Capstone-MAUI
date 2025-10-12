@@ -1190,8 +1190,6 @@ namespace Coftea_Capstone.Models
                         CanAccessSalesReport = reader.GetBoolean("can_access_sales_report"),
                         Username = reader.GetString("username") ?? string.Empty,
                         FullName = reader.GetString("fullName") ?? string.Empty,
-                        Department = reader.GetString("department") ?? string.Empty,
-                        Position = reader.GetString("position") ?? string.Empty,
                         ProfileImage = reader.GetString("profileImage") ?? "usericon.png"
                     };
                 }
@@ -1406,8 +1404,6 @@ namespace Coftea_Capstone.Models
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     username VARCHAR(100),
                     fullName VARCHAR(200),
-                    department VARCHAR(100),
-                    position VARCHAR(100),
                     profileImage VARCHAR(255) DEFAULT 'usericon.png'
                 );
                 
@@ -1530,8 +1526,6 @@ namespace Coftea_Capstone.Models
                 ADD COLUMN IF NOT EXISTS can_access_sales_report BOOLEAN DEFAULT FALSE,
                 ADD COLUMN IF NOT EXISTS username VARCHAR(100),
                 ADD COLUMN IF NOT EXISTS fullName VARCHAR(200),
-                ADD COLUMN IF NOT EXISTS department VARCHAR(100),
-                ADD COLUMN IF NOT EXISTS position VARCHAR(100),
                 ADD COLUMN IF NOT EXISTS profileImage VARCHAR(255) DEFAULT 'usericon.png';
                 
                 ALTER TABLE transactions 

@@ -123,7 +123,7 @@
                                 </VerticalStackLayout>
 
                                 <!-- Table Header -->
-                                <Grid ColumnDefinitions="2*,1*,2*" BackgroundColor="#DAAB97" Padding="12,6" >
+                                <Grid ColumnDefinitions="1*,1*,2*" BackgroundColor="#DAAB97" Padding="12,6" >
                                     <Label Grid.Column="0" Text="ITEMS" FontAttributes="Bold" TextColor="White"/>
                                     <Label Grid.Column="1" Text="CATEGORY" FontAttributes="Bold" TextColor="White"/>
                                     <Label Grid.Column="2" Text="STOCKS" FontAttributes="Bold" TextColor="White"/>
@@ -140,7 +140,7 @@
                                                    Padding="10"
                                                    Margin="0,5"
                                                    HasShadow="False">
-                                                <Grid ColumnDefinitions="2*,1*,2*">
+                                                <Grid ColumnDefinitions="1*,1*,2*">
                                                     <Grid.GestureRecognizers>
                                                         <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.ToggleSelectCommand}" CommandParameter="{Binding .}" />
                                                     </Grid.GestureRecognizers>
@@ -160,11 +160,17 @@
                                                     <!-- Category -->
                                                     <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13" TextColor="Black"/>
 
-                                                    <!-- Stock info (progress removed) -->
-                                                    <Grid Grid.Column="2" HeightRequest="22" VerticalOptions="Center">
-                                                        <BoxView Color="#E0E0E0" CornerRadius="17" />
-                                                        <Label Text="{Binding StockText}" FontSize="12" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center"/>
-                                                    </Grid>
+                                                    <!-- Stock Information -->
+                                                    <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                                        <Frame BackgroundColor="White" CornerRadius="10" Padding="8" HasShadow="True">
+                                                            <Label FormattedText="{Binding NewStockDisplayFormatted}" 
+                                                                   FontSize="13" 
+                                                                   HorizontalOptions="Start" 
+                                                                   VerticalOptions="Center"
+                                                                   LineBreakMode="WordWrap"
+                                                                   MaxLines="1" />
+                                                        </Frame>
+                                                    </VerticalStackLayout>
                                                 </Grid>
                                             </Frame>
                                         </DataTemplate>

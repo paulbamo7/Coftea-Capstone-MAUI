@@ -25,12 +25,6 @@ namespace Coftea_Capstone.ViewModel.Controls
         private string phoneNumber = string.Empty;
 
         [ObservableProperty]
-        private string department = string.Empty;
-
-        [ObservableProperty]
-        private string position = string.Empty;
-
-        [ObservableProperty]
         private bool isAdmin = false;
 
         [ObservableProperty]
@@ -59,12 +53,14 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public ProfilePopupViewModel()
         {
-            LoadUserProfile();
+            _ = Task.Run(async () => await LoadUserProfile());
         }
 
-        public void ShowProfile()
+        public async void ShowProfile()
         {
-            LoadUserProfile();
+            System.Diagnostics.Debug.WriteLine("ShowProfile called - starting to load user profile");
+            await LoadUserProfile();
+            System.Diagnostics.Debug.WriteLine($"ShowProfile completed - IsProfileVisible set to true. Current data - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
             IsProfileVisible = true;
         }
 
@@ -83,6 +79,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 HasError = false;
                 StatusMessage = "Saving profile...";
 
+                System.Diagnostics.Debug.WriteLine($"SaveProfile called with data - Username: {Username}, Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
+
                 // Validate required fields
                 if (string.IsNullOrWhiteSpace(Email))
                 {
@@ -93,6 +91,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 // Save to preferences
                 await SaveUserProfileToStorage();
+                System.Diagnostics.Debug.WriteLine("Profile saved to preferences successfully");
 
                 // Update the global current user if it exists
                 if (App.CurrentUser != null)
@@ -110,10 +109,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     App.CurrentUser.ProfileImage = ProfileImage;
                     App.CurrentUser.CanAccessInventory = CanAccessInventory;
                     App.CurrentUser.CanAccessSalesReport = CanAccessSalesReport;
+                    
+                    System.Diagnostics.Debug.WriteLine("App.CurrentUser updated successfully");
                 }
 
                 // Save to database
                 await SaveProfileToDatabase();
+                System.Diagnostics.Debug.WriteLine("Profile saved to database successfully");
 
                 StatusMessage = "Profile saved successfully!";
                 HasError = false;
@@ -130,6 +132,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 StatusMessage = $"Error saving profile: {ex.Message}";
                 HasError = true;
                 System.Diagnostics.Debug.WriteLine($"Profile save error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
             finally
             {
@@ -234,48 +237,31 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async void LoadUserProfile()
+        private async Task LoadUserProfile()
         {
             try
             {
-                // Load from current user if available
-                if (App.CurrentUser != null)
-                {
-                    // Leave username empty as requested
-                    Username = string.Empty;
-                    
-                    // Pre-fill other information from database
-                    Email = App.CurrentUser.Email ?? string.Empty;
-                    
-                    // Construct full name from FirstName + LastName
-                    var firstName = App.CurrentUser.FirstName ?? string.Empty;
-                    var lastName = App.CurrentUser.LastName ?? string.Empty;
-                    FullName = $"{firstName} {lastName}".Trim();
-                    
-                    PhoneNumber = App.CurrentUser.PhoneNumber ?? string.Empty;
-                    IsAdmin = App.CurrentUser.IsAdmin;
-                    ProfileImage = App.CurrentUser.ProfileImage ?? "usericon.png";
-                    ProfileImageSource = GetProfileImageSource(ProfileImage);
-                    CanAccessInventory = App.CurrentUser.CanAccessInventory;
-                    CanAccessSalesReport = App.CurrentUser.CanAccessSalesReport;
-                }
-                else
-                {
-                    // Load from database as fallback
-                    await LoadUserFromDatabase();
-                }
+                System.Diagnostics.Debug.WriteLine("LoadUserProfile called");
+                
+                // Always load fresh data from database to ensure we have the latest information
+                await LoadUserFromDatabase();
+
+                System.Diagnostics.Debug.WriteLine($"After LoadUserFromDatabase - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
 
                 // Trigger property change notifications to update UI
                 RefreshProfileDisplay();
 
                 StatusMessage = string.Empty;
                 HasError = false;
+                
+                System.Diagnostics.Debug.WriteLine("LoadUserProfile completed successfully");
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Error loading profile: {ex.Message}";
                 HasError = true;
                 System.Diagnostics.Debug.WriteLine($"Profile load error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -283,13 +269,27 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                // Always load fresh data from database to ensure we have complete information
                 var database = new Models.Database();
                 var currentUserId = App.CurrentUser?.ID ?? 1; // Default to user ID 1 if not set
+                var currentUserEmail = App.CurrentUser?.Email;
+                
+                System.Diagnostics.Debug.WriteLine($"Loading fresh user data from database for ID: {currentUserId}, Email: {currentUserEmail}");
                 
                 // Load user details from database
                 var user = await database.GetUserByIdAsync(currentUserId);
+                
+                // If user not found by ID, try to find by email
+                if (user == null && !string.IsNullOrEmpty(currentUserEmail))
+                {
+                    System.Diagnostics.Debug.WriteLine($"User not found by ID, trying to find by email: {currentUserEmail}");
+                    user = await database.GetUserByEmailAsync(currentUserEmail);
+                }
+                
                 if (user != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"User found in database: {user.Email}, {user.FirstName} {user.LastName}, Phone: {user.PhoneNumber}");
+                    
                     // Leave username empty as requested
                     Username = string.Empty;
                     
@@ -304,13 +304,38 @@ namespace Coftea_Capstone.ViewModel.Controls
                     PhoneNumber = user.PhoneNumber ?? string.Empty;
                     IsAdmin = user.IsAdmin;
                     ProfileImage = user.ProfileImage ?? "usericon.png";
+                    ProfileImageSource = GetProfileImageSource(ProfileImage);
                     CanAccessInventory = user.CanAccessInventory;
                     CanAccessSalesReport = user.CanAccessSalesReport;
+                    
+                    System.Diagnostics.Debug.WriteLine($"Profile data loaded from database - Email: {Email}, FullName: {FullName}, Phone: {PhoneNumber}, IsAdmin: {IsAdmin}, CanAccessInventory: {CanAccessInventory}, CanAccessSalesReport: {CanAccessSalesReport}");
+                    
+                    // Update App.CurrentUser with fresh data from database
+                    if (App.CurrentUser != null)
+                    {
+                        App.CurrentUser.ID = user.ID; // Make sure we have the correct ID
+                        App.CurrentUser.Email = Email;
+                        App.CurrentUser.FirstName = firstName;
+                        App.CurrentUser.LastName = lastName;
+                        App.CurrentUser.FullName = FullName;
+                        App.CurrentUser.PhoneNumber = PhoneNumber;
+                        App.CurrentUser.ProfileImage = ProfileImage;
+                        App.CurrentUser.CanAccessInventory = CanAccessInventory;
+                        App.CurrentUser.CanAccessSalesReport = CanAccessSalesReport;
+                        
+                        System.Diagnostics.Debug.WriteLine($"App.CurrentUser updated with ID: {App.CurrentUser.ID}");
+                    }
+                    return;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"No user found with ID: {currentUserId}");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading user from database: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -344,20 +369,31 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var database = new Models.Database();
                 var currentUserId = App.CurrentUser?.ID ?? 1;
                 
+                System.Diagnostics.Debug.WriteLine($"Saving profile to database for user ID: {currentUserId}");
+                System.Diagnostics.Debug.WriteLine($"Data to save - Username: {Username}, Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
+                
                 // Update user profile in database
-                await database.UpdateUserProfileAsync(currentUserId, Username, Email, FullName, PhoneNumber, ProfileImage, CanAccessInventory, CanAccessSalesReport);
+                var rowsAffected = await database.UpdateUserProfileAsync(currentUserId, Username, Email, FullName, PhoneNumber, ProfileImage, CanAccessInventory, CanAccessSalesReport);
+                
+                System.Diagnostics.Debug.WriteLine($"Database update completed. Rows affected: {rowsAffected}");
+                
+                if (rowsAffected == 0)
+                {
+                    throw new Exception("No rows were updated in the database. User might not exist or data is unchanged.");
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error saving profile to database: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         [RelayCommand]
-        private void ResetProfile()
+        private async Task ResetProfile()
         {
-            LoadUserProfile();
+            await LoadUserProfile();
             StatusMessage = "Profile reset to saved values";
             HasError = false;
         }
@@ -367,6 +403,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("RefreshProfileDisplay called");
+                
                 // Trigger property change notifications for this popup
                 OnPropertyChanged(nameof(Username));
                 OnPropertyChanged(nameof(Email));
@@ -377,6 +415,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(ProfileImageSource));
                 OnPropertyChanged(nameof(CanAccessInventory));
                 OnPropertyChanged(nameof(CanAccessSalesReport));
+                
+                System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: {Username}, Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, IsAdmin: {IsAdmin}");
                 
                 // Notify App.CurrentUser changes to trigger UI updates across all pages
                 if (App.CurrentUser != null)
