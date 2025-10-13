@@ -360,7 +360,7 @@
                                             <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseSmallQtyCommand}"/>
                                         </Frame>
                                         <Frame Grid.Row="0" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
-                                            <Label Text="{Binding SelectedProduct.SmallQuantity}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                            <Label Text="{Binding SelectedProduct.SmallQuantity}" TextColor="Black" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
                                         </Frame>
                                         <Frame Grid.Row="0" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
