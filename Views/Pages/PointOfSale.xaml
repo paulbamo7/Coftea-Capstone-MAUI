@@ -473,7 +473,7 @@
         <otherViews:CartPopup BindingContext="{Binding CartPopup}" Grid.ColumnSpan="2"/>
         <otherViews:HistoryPopup BindingContext="{Binding HistoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:PaymentPopup x:Name="PaymentPopupControl" Grid.ColumnSpan="2"/>
-        <otherViews:OrderCompletePopup BindingContext="{Binding OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
+        <otherViews:OrderCompletePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:OrderConfirmedPopup BindingContext="{Binding OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
         <otherViews:NotificationPopup BindingContext="{Binding NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>

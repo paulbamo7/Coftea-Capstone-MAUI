@@ -10,7 +10,7 @@ public partial class NavigationBar : ContentView
 {
     private bool _isNavigating = false;
     private DateTime _lastNavigationTime = DateTime.MinValue;
-    private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(1500); // 1.5 second cooldown
+    private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(2000); // 2.0 second cooldown
     private readonly object _navigationLock = new object();
     private CancellationTokenSource _currentNavigationCts;
     private string _lastRequestedTarget = string.Empty;
@@ -20,6 +20,29 @@ public partial class NavigationBar : ContentView
         InitializeComponent();
         TryHookNavigationEvents();
         UpdateActiveIndicator();
+    }
+
+    private void CloseOverlays()
+    {
+        try
+        {
+            // Best-effort close of global overlays/popups that may crash navigation when left open
+            GlobalSettingsService.HideSettings();
+
+            var app = Application.Current as App;
+            app?.AddItemPopup?.Hide();
+            app?.ManagePOSPopup?.Close();
+            app?.SuccessCardPopup?.Hide();
+            app?.SettingsPopup?.Close();
+
+            // Close addon popup if open
+            var vm = app?.POSVM?.AddItemToPOSViewModel?.ConnectPOSToInventoryVM;
+            if (vm != null)
+            {
+                try { vm.CloseAddonPopup(); } catch { }
+            }
+        }
+        catch { /* ignore */ }
     }
     private void TryHookNavigationEvents()
     {
@@ -157,6 +180,7 @@ public partial class NavigationBar : ContentView
         // Coalesce duplicate requests to same target during cooldown
         if (_lastRequestedTarget == nameof(PointOfSale) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(PointOfSale))) return;
+        CloseOverlays();
 
         try
         {
@@ -198,6 +222,7 @@ public partial class NavigationBar : ContentView
     {
         if (_lastRequestedTarget == nameof(EmployeeDashboard) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(EmployeeDashboard))) return;
+        CloseOverlays();
 
         try
         {
@@ -255,6 +280,7 @@ public partial class NavigationBar : ContentView
 
         if (_lastRequestedTarget == nameof(Inventory) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(Inventory))) return;
+        CloseOverlays();
 
         try
         {
@@ -306,6 +332,7 @@ public partial class NavigationBar : ContentView
 
         if (_lastRequestedTarget == nameof(SalesReport) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(SalesReport))) return;
+        CloseOverlays();
 
         try
         {

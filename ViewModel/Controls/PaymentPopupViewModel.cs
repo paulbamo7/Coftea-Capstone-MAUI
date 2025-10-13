@@ -82,6 +82,21 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             SelectedPaymentMethod = method;
             System.Diagnostics.Debug.WriteLine($"Payment method selected: {method}");
+
+            // Auto-fill payment for non-cash methods so user doesn't need to type amount
+            if (IsGCashSelected || IsBankSelected)
+            {
+                AmountPaid = TotalAmount;
+                Change = 0;
+                PaymentStatus = "Ready to Confirm";
+            }
+            else
+            {
+                // Cash – require amount
+                AmountPaid = 0;
+                Change = -TotalAmount;
+                PaymentStatus = "Pending";
+            }
         }
 
         public void UpdateAmountPaid(string amount)
