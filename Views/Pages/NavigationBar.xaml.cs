@@ -14,6 +14,8 @@ public partial class NavigationBar : ContentView
     private readonly object _navigationLock = new object();
     private CancellationTokenSource _currentNavigationCts;
     private string _lastRequestedTarget = string.Empty;
+    private string _pendingTarget = string.Empty;
+    private DateTime _pendingRequestedAt = DateTime.MinValue;
 
     public NavigationBar()
     {
@@ -160,6 +162,37 @@ public partial class NavigationBar : ContentView
             POSButton.IsEnabled = true;
             InventoryButton.IsEnabled = true;
             SalesReportButton.IsEnabled = true;
+            // If there is a pending target, coalesce to the latest request
+            if (!string.IsNullOrEmpty(_pendingTarget))
+            {
+                var target = _pendingTarget;
+                _pendingTarget = string.Empty;
+                // Respect cooldown
+                var since = DateTime.Now - _lastNavigationTime;
+                if (since < _navigationCooldown)
+                {
+                    await Task.Delay(_navigationCooldown - since);
+                }
+                try
+                {
+                    switch (target)
+                    {
+                        case nameof(PointOfSale):
+                            POSButton_Clicked(POSButton, EventArgs.Empty);
+                            break;
+                        case nameof(EmployeeDashboard):
+                            HomeButton_Clicked(HomeButton, EventArgs.Empty);
+                            break;
+                        case nameof(Inventory):
+                            InventoryButton_Clicked(InventoryButton, EventArgs.Empty);
+                            break;
+                        case nameof(SalesReport):
+                            SalesReportButton_Clicked(SalesReportButton, EventArgs.Empty);
+                            break;
+                    }
+                }
+                catch { }
+            }
         });
     }
 
@@ -179,7 +212,7 @@ public partial class NavigationBar : ContentView
 
         // Coalesce duplicate requests to same target during cooldown
         if (_lastRequestedTarget == nameof(PointOfSale) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
-        if (!await StartNavigationAsync(nameof(PointOfSale))) return;
+        if (!await StartNavigationAsync(nameof(PointOfSale))) { _pendingTarget = nameof(PointOfSale); return; }
         CloseOverlays();
 
         try
@@ -221,7 +254,7 @@ public partial class NavigationBar : ContentView
     private async void HomeButton_Clicked(object sender, EventArgs e)
     {
         if (_lastRequestedTarget == nameof(EmployeeDashboard) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
-        if (!await StartNavigationAsync(nameof(EmployeeDashboard))) return;
+        if (!await StartNavigationAsync(nameof(EmployeeDashboard))) { _pendingTarget = nameof(EmployeeDashboard); return; }
         CloseOverlays();
 
         try
@@ -279,7 +312,7 @@ public partial class NavigationBar : ContentView
         if (App.CurrentUser == null) return;
 
         if (_lastRequestedTarget == nameof(Inventory) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
-        if (!await StartNavigationAsync(nameof(Inventory))) return;
+        if (!await StartNavigationAsync(nameof(Inventory))) { _pendingTarget = nameof(Inventory); return; }
         CloseOverlays();
 
         try
@@ -331,7 +364,7 @@ public partial class NavigationBar : ContentView
         if (App.CurrentUser == null) return;
 
         if (_lastRequestedTarget == nameof(SalesReport) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
-        if (!await StartNavigationAsync(nameof(SalesReport))) return;
+        if (!await StartNavigationAsync(nameof(SalesReport))) { _pendingTarget = nameof(SalesReport); return; }
         CloseOverlays();
 
         try
