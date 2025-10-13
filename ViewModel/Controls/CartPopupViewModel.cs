@@ -118,6 +118,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                             Quantity = it.SmallQuantity + it.MediumQuantity + it.LargeQuantity,
                             Price = (it.SmallQuantity * it.SmallPrice) + (it.MediumQuantity * it.MediumPrice) + (it.LargeQuantity * it.LargePrice) + addonTotalPrice
                         };
+
+                        // Carry addon items with quantities to checkout for proper deductions
+                        if (it.InventoryItems != null)
+                        {
+                            foreach (var addon in it.InventoryItems)
+                            {
+                                cartItem.InventoryItems.Add(new InventoryPageModel
+                                {
+                                    itemID = addon.itemID,
+                                    itemName = addon.itemName,
+                                    unitOfMeasurement = addon.unitOfMeasurement,
+                                    AddonQuantity = addon.AddonQuantity,
+                                    IsSelected = addon.IsSelected
+                                });
+                            }
+                        }
                         
                         System.Diagnostics.Debug.WriteLine($"🛒 CartItem created: {cartItem.ProductName}");
                         System.Diagnostics.Debug.WriteLine($"🛒 AddOns collection count: {cartItem.AddOns?.Count ?? 0}");

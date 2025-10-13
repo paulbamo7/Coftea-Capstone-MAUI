@@ -146,14 +146,15 @@ namespace Coftea_Capstone.Models
 
         partial void OnSelectedSizeChanged(string value)
         {
-            // When size changes, load the size-specific unit and amount into the editable fields
-            InputUnit = value switch
-            {
-                "Small" => string.IsNullOrWhiteSpace(InputUnitSmall) ? (InputUnitSmall = InputUnitSmall ?? unitOfMeasurement) : InputUnitSmall,
-                "Medium" => string.IsNullOrWhiteSpace(InputUnitMedium) ? (InputUnitMedium = InputUnitMedium ?? unitOfMeasurement) : InputUnitMedium,
-                "Large" => string.IsNullOrWhiteSpace(InputUnitLarge) ? (InputUnitLarge = InputUnitLarge ?? unitOfMeasurement) : InputUnitLarge,
-                _ => InputUnit
-            };
+            // When size changes, keep the same InputUnit across sizes (single selection applies to all)
+            // Ensure size-specific slots are initialized to the current InputUnit or default unit
+            var fallback = string.IsNullOrWhiteSpace(InputUnit) ? unitOfMeasurement : InputUnit;
+            if (string.IsNullOrWhiteSpace(InputUnitSmall)) InputUnitSmall = fallback;
+            if (string.IsNullOrWhiteSpace(InputUnitMedium)) InputUnitMedium = fallback;
+            if (string.IsNullOrWhiteSpace(InputUnitLarge)) InputUnitLarge = fallback;
+
+            // Display the currently chosen shared unit
+            InputUnit = fallback;
         }
 
         // Calculated total deduction - now simply equals the input amount since it's always 1 serving
@@ -177,19 +178,10 @@ namespace Coftea_Capstone.Models
 
         partial void OnInputUnitChanged(string value)
         {
-            // Persist the chosen unit into the size-specific slot so it is remembered per size
-            switch (SelectedSize)
-            {
-                case "Small":
-                    InputUnitSmall = value;
-                    break;
-                case "Medium":
-                    InputUnitMedium = value;
-                    break;
-                case "Large":
-                    InputUnitLarge = value;
-                    break;
-            }
+            // Apply the chosen unit to all sizes so the user doesn't need to reselect per size
+            InputUnitSmall = value;
+            InputUnitMedium = value;
+            InputUnitLarge = value;
         }
 
         // Computed/assigned price used per size (for POS previews and cart)

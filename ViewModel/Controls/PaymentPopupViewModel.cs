@@ -419,6 +419,37 @@ namespace Coftea_Capstone.ViewModel.Controls
                     deductions.Add((ingredient.itemName, totalAmount));
                 }
 
+                // Include selected addons based on configured per-serving amounts
+                // Fetch addon link definitions (amount/unit per serving)
+                var addonLinks = await database.GetProductAddonsAsync(product.ProductID);
+                if (addonLinks != null && addonLinks.Count > 0 && cartItem.InventoryItems != null)
+                {
+                    foreach (var linkedAddon in addonLinks)
+                    {
+                        // Find this addon in the cart with user-selected quantity
+                        var cartAddon = cartItem.InventoryItems.FirstOrDefault(ai => ai.itemID == linkedAddon.itemID);
+                        if (cartAddon == null) continue;
+                        if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0) continue;
+
+                        // Amount per serving defined in product_addons table is stored in linkedAddon.InputAmountSmall (via reader mapping)?
+                        // We stored link amount into InputAmountSmall/Medium/Large earlier when reading; however to be robust, use linked addon's InputAmount
+                        var perServingAmount = linkedAddon.InputAmount > 0
+                            ? linkedAddon.InputAmount
+                            : (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : 0);
+                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.unitOfMeasurement)
+                            ? linkedAddon.unitOfMeasurement
+                            : (cartAddon.unitOfMeasurement ?? string.Empty);
+
+                        if (perServingAmount <= 0)
+                            continue; // nothing to deduct for this addon
+
+                        // Convert to inventory unit and multiply by quantity selected and total servings
+                        var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, cartAddon.unitOfMeasurement);
+                        var totalAddonAmount = convertedAddonAmount * cartAddon.AddonQuantity * totalQuantity;
+                        deductions.Add((cartAddon.itemName, totalAddonAmount));
+                    }
+                }
+
                 // Add automatic cup and straw based on size
                 await AddAutomaticCupAndStrawForSize(deductions, cartItem.SelectedSize, totalQuantity);
 
@@ -454,7 +485,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var database = new Models.Database();
                 
                 // Add appropriate cup based on size
-                string cupName = size?.ToLowerInvariant() switch
+                var normalizedSize = (size ?? string.Empty).Trim().ToLowerInvariant();
+                string cupName = normalizedSize switch
                 {
                     "small" => "Small Cup",
                     "medium" => "Medium Cup", 
@@ -638,7 +670,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 // Check appropriate cup based on size
-                string cupName = size?.ToLowerInvariant() switch
+                var normalizedSize2 = (size ?? string.Empty).Trim().ToLowerInvariant();
+                string cupName = normalizedSize2 switch
                 {
                     "small" => "Small Cup",
                     "medium" => "Medium Cup", 

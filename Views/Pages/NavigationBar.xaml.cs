@@ -13,6 +13,7 @@ public partial class NavigationBar : ContentView
     private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(1500); // 1.5 second cooldown
     private readonly object _navigationLock = new object();
     private CancellationTokenSource _currentNavigationCts;
+    private string _lastRequestedTarget = string.Empty;
 
     public NavigationBar()
     {
@@ -94,7 +95,7 @@ public partial class NavigationBar : ContentView
         }
     }
 
-    private async Task<bool> StartNavigationAsync()
+    private async Task<bool> StartNavigationAsync(string target = "")
     {
         lock (_navigationLock)
         {
@@ -108,6 +109,7 @@ public partial class NavigationBar : ContentView
 
             _isNavigating = true;
             _lastNavigationTime = DateTime.Now;
+            _lastRequestedTarget = target ?? string.Empty;
         }
         
         // Disable all navigation buttons to prevent multiple clicks
@@ -152,7 +154,9 @@ public partial class NavigationBar : ContentView
     {
         if (App.CurrentUser == null) return; // do nothing if logged out
 
-        if (!await StartNavigationAsync()) return;
+        // Coalesce duplicate requests to same target during cooldown
+        if (_lastRequestedTarget == nameof(PointOfSale) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
+        if (!await StartNavigationAsync(nameof(PointOfSale))) return;
 
         try
         {
@@ -170,7 +174,10 @@ public partial class NavigationBar : ContentView
             _currentNavigationCts?.Token.ThrowIfCancellationRequested();
             
             // Replace current page with POS using animation
-            await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false);
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false);
+            });
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)
@@ -189,7 +196,8 @@ public partial class NavigationBar : ContentView
 
     private async void HomeButton_Clicked(object sender, EventArgs e)
     {
-        if (!await StartNavigationAsync()) return;
+        if (_lastRequestedTarget == nameof(EmployeeDashboard) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
+        if (!await StartNavigationAsync(nameof(EmployeeDashboard))) return;
 
         try
         {
@@ -207,7 +215,10 @@ public partial class NavigationBar : ContentView
                     System.Diagnostics.Debug.WriteLine("🚫 Already on Login page, skipping navigation");
                     return;
                 }
-                await nav.ReplaceWithAnimationAsync(new LoginPage(), animated: false);
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await nav.ReplaceWithAnimationAsync(new LoginPage(), animated: false);
+                });
                 return;
             }
 
@@ -218,7 +229,10 @@ public partial class NavigationBar : ContentView
                 return;
             }
 
-            await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false);
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false);
+            });
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)
@@ -239,7 +253,8 @@ public partial class NavigationBar : ContentView
     {
         if (App.CurrentUser == null) return;
 
-        if (!await StartNavigationAsync()) return;
+        if (_lastRequestedTarget == nameof(Inventory) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
+        if (!await StartNavigationAsync(nameof(Inventory))) return;
 
         try
         {
@@ -265,7 +280,10 @@ public partial class NavigationBar : ContentView
             // Use the cancellation token from StartNavigationAsync
             _currentNavigationCts?.Token.ThrowIfCancellationRequested();
 
-            await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false);
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false);
+            });
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)
@@ -286,7 +304,8 @@ public partial class NavigationBar : ContentView
     {
         if (App.CurrentUser == null) return;
 
-        if (!await StartNavigationAsync()) return;
+        if (_lastRequestedTarget == nameof(SalesReport) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
+        if (!await StartNavigationAsync(nameof(SalesReport))) return;
 
         try
         {
@@ -312,7 +331,10 @@ public partial class NavigationBar : ContentView
             // Use the cancellation token from StartNavigationAsync
             _currentNavigationCts?.Token.ThrowIfCancellationRequested();
 
-            await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false);
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false);
+            });
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)

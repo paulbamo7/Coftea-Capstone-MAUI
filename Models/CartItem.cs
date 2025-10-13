@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using Coftea_Capstone.C_;
 
 namespace Coftea_Capstone.Models
 {
@@ -57,6 +58,9 @@ namespace Coftea_Capstone.Models
         public int TotalQuantity => SmallQuantity + MediumQuantity + LargeQuantity;
         
         public decimal TotalPrice => Price; // Price already includes addon costs from CartPopupViewModel
+
+        // Carry selected addon items with their quantities to checkout
+        public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
 
         private string GetSizeDisplay()
         {

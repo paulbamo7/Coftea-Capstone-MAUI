@@ -276,14 +276,14 @@
                                 <Label Text="{Binding SelectedProduct.ProductName, StringFormat='Product Name: {0}'}"
                                    FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" TextColor="Black"/>
                                 <Label Text="Add-ons" FontAttributes="Bold" FontSize="20" HorizontalOptions="Start" TextColor="Black"/>
-                                <!-- Add-ons list: two-column selectable entries with quantity selector -->
-                                    <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,0,0,10">
+                                <!-- Add-ons list: single column (reduced spacing) -->
+                                    <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,4,0,8">
                                         <CollectionView.ItemsLayout>
                                             <LinearItemsLayout Orientation="Vertical" />
                                         </CollectionView.ItemsLayout>
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid Padding="6" Margin="0,4">
+                                                <Grid Padding="6,4" Margin="0,2">
                                                     <Grid.GestureRecognizers>
                                                         <TapGestureRecognizer Command="{Binding ToggleSelectedCommand}" />
                                                     </Grid.GestureRecognizers>
