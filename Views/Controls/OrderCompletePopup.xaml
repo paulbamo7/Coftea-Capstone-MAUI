@@ -12,25 +12,25 @@
     Margin="20">
 
     <Frame BackgroundColor="#4CAF50"
-           CornerRadius="15"
-           Padding="20"
+           CornerRadius="12"
+           Padding="14"
            HasShadow="True"
-           WidthRequest="300"
-           HeightRequest="150"
+           WidthRequest="240"
+           HeightRequest="110"
            VerticalOptions="End"
            HorizontalOptions="End">
-        <VerticalStackLayout Spacing="10" VerticalOptions="Center" HorizontalOptions="Center">
+        <VerticalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
             <Label Text="✓ Order Complete!"
-                   FontSize="20"
+                   FontSize="18"
                    FontAttributes="Bold"
                    TextColor="White"
                    HorizontalOptions="Center" />
             <Label Text="Thanks For The Purchase"
-                   FontSize="16"
+                   FontSize="14"
                    TextColor="White"
                    HorizontalOptions="Center" />
             <Label Text="{Binding OrderDetails, StringFormat='Order ID: {0}'}"
-                   FontSize="14"
+                   FontSize="12"
                    TextColor="White"
                    HorizontalOptions="Center" />
         </VerticalStackLayout>

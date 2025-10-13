@@ -29,20 +29,20 @@ public partial class NavigationBar : ContentView
         try
         {
             // Best-effort close of global overlays/popups that may crash navigation when left open
-            GlobalSettingsService.HideSettings();
-
             var app = Application.Current as App;
-            app?.AddItemPopup?.Hide();
-            app?.ManagePOSPopup?.Close();
-            app?.SuccessCardPopup?.Hide();
-            app?.SettingsPopup?.Close();
 
-            // Close addon popup if open
+            // Settings popup
+            try { app?.SettingsPopup?.CloseSettingsPopupCommand?.Execute(null); } catch { }
+
+            // Manage POS options popup
+            try { app?.ManagePOSPopup?.ClosePOSManagementPopupCommand?.Execute(null); } catch { }
+
+            // Add Item to POS overlay
+            try { if (app?.POSVM?.AddItemToPOSViewModel != null) app.POSVM.AddItemToPOSViewModel.IsAddItemToPOSVisible = false; } catch { }
+
+            // Addons popup within ConnectPOSItemToInventory
             var vm = app?.POSVM?.AddItemToPOSViewModel?.ConnectPOSToInventoryVM;
-            if (vm != null)
-            {
-                try { vm.CloseAddonPopup(); } catch { }
-            }
+            try { vm?.CloseAddonPopupCommand?.Execute(null); } catch { }
         }
         catch { /* ignore */ }
     }
