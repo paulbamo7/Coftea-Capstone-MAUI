@@ -220,8 +220,21 @@
                                                 <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
                                             </Frame>
                                             <HorizontalStackLayout HorizontalOptions="Center">
-                                                <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>
-                                                <Label Text="  |  " FontSize="13" TextColor="Black"/>
+                                                <!-- Small price only visible for Coffee category -->
+                                                <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black" IsVisible="False">
+                                                    <Label.Triggers>
+                                                        <DataTrigger TargetType="Label" Binding="{Binding Category}" Value="Coffee">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                        </DataTrigger>
+                                                    </Label.Triggers>
+                                                </Label>
+                                                <Label Text="  |  " FontSize="13" TextColor="Black" IsVisible="False">
+                                                    <Label.Triggers>
+                                                        <DataTrigger TargetType="Label" Binding="{Binding Category}" Value="Coffee">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                        </DataTrigger>
+                                                    </Label.Triggers>
+                                                </Label>
                                                 <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>
                                                 <Label Text="  |  " FontSize="13" TextColor="Black"/>
                                                 <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>

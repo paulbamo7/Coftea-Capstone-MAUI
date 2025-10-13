@@ -250,6 +250,9 @@ namespace Coftea_Capstone.Models
                 
                 ALTER TABLE transactions 
                 ADD COLUMN IF NOT EXISTS paymentMethod VARCHAR(50) DEFAULT 'Cash';
+                
+                ALTER TABLE inventory 
+                ADD COLUMN IF NOT EXISTS maximumQuantity DECIMAL(10,2) DEFAULT 0;
             ";
             await using var alterCmd = new MySqlCommand(alterTableSql, conn);
             await alterCmd.ExecuteNonQueryAsync();
@@ -466,7 +469,7 @@ namespace Coftea_Capstone.Models
 
             const string sql = @"SELECT pi.amount, pi.unit, pi.role,
                                         i.itemID, i.itemName, i.itemQuantity, i.itemCategory, i.imageSet,
-                                        i.itemDescription, i.unitOfMeasurement, i.minimumQuantity
+                                        i.itemDescription, i.unitOfMeasurement, i.minimumQuantity, i.maximumQuantity
                                    FROM product_ingredients pi
                                    JOIN inventory i ON i.itemID = pi.itemID
                                   WHERE pi.productID = @ProductID";
@@ -488,7 +491,7 @@ namespace Coftea_Capstone.Models
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? string.Empty : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? string.Empty : reader.GetString("unitOfMeasurement"),
                     minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
+                    maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
                 };
 
                 // Map linked amount/unit into size-specific fields (default to same across sizes)
@@ -534,7 +537,7 @@ namespace Coftea_Capstone.Models
 
             const string sql = @"SELECT pa.amount, pa.unit, pa.role, pa.addon_price,
                                         i.itemID, i.itemName, i.itemQuantity, i.itemCategory, i.imageSet,
-                                        i.itemDescription, i.unitOfMeasurement, i.minimumQuantity
+                                        i.itemDescription, i.unitOfMeasurement, i.minimumQuantity, i.maximumQuantity
                                    FROM product_addons pa
                                    JOIN inventory i ON i.itemID = pa.itemID
                                   WHERE pa.productID = @ProductID";
@@ -556,7 +559,7 @@ namespace Coftea_Capstone.Models
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? string.Empty : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? string.Empty : reader.GetString("unitOfMeasurement"),
                     minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity"),
+                    maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0,
                     IsSelected = false
                 };
 
@@ -646,6 +649,9 @@ namespace Coftea_Capstone.Models
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
+            // Clear existing links first to avoid duplicates/stale rows
+            const string sqlClearIngredients = "DELETE FROM product_ingredients WHERE productID = @ProductID";
+            const string sqlClearAddons = "DELETE FROM product_addons WHERE productID = @ProductID";
             const string sqlIngredients = "INSERT INTO product_ingredients (productID, itemID, amount, unit, role) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient');";
             const string sqlAddons = "INSERT INTO product_addons (productID, itemID, amount, unit, role, addon_price) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'addon', @AddonPrice) ON DUPLICATE KEY UPDATE amount = VALUES(amount), unit = VALUES(unit), addon_price = VALUES(addon_price);";
             int total = 0;
@@ -655,6 +661,18 @@ namespace Coftea_Capstone.Models
                 var ingredientList = ingredients?.ToList() ?? new List<(int inventoryItemId, double amount, string? unit)>();
                 var addonList = addons?.ToList() ?? new List<(int inventoryItemId, double amount, string? unit, decimal addonPrice)>();
                 System.Diagnostics.Debug.WriteLine($"Ingredients to save: {ingredientList.Count}, Addons to save: {addonList.Count}");
+
+                // Clear previous links
+                await using (var clearIngCmd = new MySqlCommand(sqlClearIngredients, conn, (MySqlTransaction)tx))
+                {
+                    clearIngCmd.Parameters.AddWithValue("@ProductID", productId);
+                    await clearIngCmd.ExecuteNonQueryAsync();
+                }
+                await using (var clearAddCmd = new MySqlCommand(sqlClearAddons, conn, (MySqlTransaction)tx))
+                {
+                    clearAddCmd.Parameters.AddWithValue("@ProductID", productId);
+                    await clearAddCmd.ExecuteNonQueryAsync();
+                }
 
                 foreach (var link in ingredientList)
                 {
@@ -838,8 +856,20 @@ namespace Coftea_Capstone.Models
 				itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
 				unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
 				minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-				maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
+				maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
 			});
+		}
+
+		private static bool HasColumn(System.Data.Common.DbDataReader reader, string columnName)
+		{
+			try
+			{
+				return reader.GetOrdinal(columnName) >= 0;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 
 		public async Task<List<InventoryPageModel>> GetInventoryItemsAsyncCached()
@@ -873,7 +903,7 @@ namespace Coftea_Capstone.Models
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
                     minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
+                    maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
                 };
             }
             return null;
@@ -900,7 +930,7 @@ namespace Coftea_Capstone.Models
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
                     minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    maximumQuantity = reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")
+                    maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
                 };
             }
             return null;

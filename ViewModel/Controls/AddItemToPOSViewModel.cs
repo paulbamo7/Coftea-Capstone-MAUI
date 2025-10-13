@@ -340,6 +340,36 @@ namespace Coftea_Capstone.ViewModel
                     int rowsAffected = await _database.UpdateProductAsync(product);
                     if (rowsAffected > 0)
                     {
+                        // If user selected inventory links during edit, replace existing links
+                        var selected = ConnectPOSToInventoryVM?.SelectedInventoryItems?.ToList() ?? new();
+                        if (selected.Count > 0)
+                        {
+                            var ingredients = selected
+                                .Where(i => !IsAddonCategory(i.itemCategory))
+                                .Select(i => (
+                                    inventoryItemId: i.itemID,
+                                    amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
+                                    unit: (string?)i.unitOfMeasurement
+                                ));
+
+                            var addons = selected
+                                .Where(i => IsAddonCategory(i.itemCategory))
+                                .Select(i => (
+                                    inventoryItemId: i.itemID,
+                                    amount: i.InputAmount > 0 ? i.InputAmount : 1,
+                                    unit: i.InputUnit ?? "g",
+                                    addonPrice: i.AddonPrice
+                                ));
+
+                            try
+                            {
+                                await _database.SaveProductLinksSplitAsync(product.ProductID, ingredients, addons);
+                            }
+                            catch (Exception ex)
+                            {
+                                await Application.Current.MainPage.DisplayAlert("Warning", $"Product updated but failed to link addons/ingredients: {ex.Message}", "OK");
+                            }
+                        }
                         await Application.Current.MainPage.DisplayAlert("Success", "Product updated successfully!", "OK");
                         await DeductSelectedIngredientsAsync();
                         ResetForm();
@@ -367,8 +397,17 @@ namespace Coftea_Capstone.ViewModel
                     product.ProductID = newProductId;
 
                     // Build product→inventory links (addons/ingredients)
-                    var selected = ConnectPOSToInventoryVM?.InventoryItems?.Where(i => i.IsSelected).ToList() ?? new();
-                    if (selected.Count > 0)
+                    var selected = ConnectPOSToInventoryVM?.SelectedInventoryItems?.ToList() ?? new();
+                    if (selected.Count == 0)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Link ingredients", "Select ingredients or addons for this product. Opening selector...", "OK");
+                        if (ConnectPOSToInventoryVM != null)
+                        {
+                            ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = true;
+                        }
+                        return;
+                    }
+                    else
                     {
 						var ingredients = selected
 							.Where(i => !IsAddonCategory(i.itemCategory))
@@ -400,10 +439,10 @@ namespace Coftea_Capstone.ViewModel
 								);
 							});
 
-						try
-						{
-							await _database.SaveProductLinksSplitAsync(newProductId, ingredients, addons);
-						}
+                        try
+                        {
+                            await _database.SaveProductLinksSplitAsync(newProductId, ingredients, addons);
+                        }
                         catch (Exception ex)
                         {
                             await Application.Current.MainPage.DisplayAlert("Warning", $"Product saved but failed to link addons/ingredients: {ex.Message}", "OK");

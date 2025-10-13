@@ -3,6 +3,7 @@ using Coftea_Capstone.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Coftea_Capstone.ViewModel
@@ -26,6 +27,9 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private string statusMessage = string.Empty;
+
+        [ObservableProperty]
+        private string selectedCategory = "All";
 
         public EditInventoryPopupViewModel(AddItemToInventoryViewModel addItemToInventoryViewModel)
         {
@@ -106,15 +110,17 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void FilterByCategory(string category)
         {
+            SelectedCategory = category;
             Items.Clear();
             if (string.IsNullOrEmpty(category) || category == "All")
             {
                 foreach (var it in AllItems) Items.Add(it);
                 return;
             }
+            
             // Special rules:
-            // - Ingredients: show all categories EXCEPT "Others"
-            // - Supplies: show ONLY category "Others"
+            // - Ingredients: show Syrups, Powdered, Fruit Series, Sinkers & etc., Liquid
+            // - Supplies: show Others category (supplies like cups, straws, etc.)
             bool isIngredients = string.Equals(category, "Ingredients", StringComparison.OrdinalIgnoreCase);
             bool isSupplies = string.Equals(category, "Supplies", StringComparison.OrdinalIgnoreCase);
 
@@ -123,16 +129,21 @@ namespace Coftea_Capstone.ViewModel
                 var cat = (it.itemCategory ?? string.Empty).Trim();
                 if (isIngredients)
                 {
-                    if (!string.Equals(cat, "Others", StringComparison.OrdinalIgnoreCase))
+                    // Show ingredient categories
+                    var ingredientCategories = new[] { "Syrups", "Powdered", "Fruit Series", "Sinkers & etc.", "Liquid" };
+                    if (ingredientCategories.Any(ic => string.Equals(cat, ic, StringComparison.OrdinalIgnoreCase)))
                         Items.Add(it);
                 }
                 else if (isSupplies)
                 {
-                    if (string.Equals(cat, "Others", StringComparison.OrdinalIgnoreCase))
+                    // Show supplies categories (Supplies and Others)
+                    if (string.Equals(cat, "Supplies", StringComparison.OrdinalIgnoreCase) || 
+                        string.Equals(cat, "Others", StringComparison.OrdinalIgnoreCase))
                         Items.Add(it);
                 }
                 else if (string.Equals(cat, category, StringComparison.OrdinalIgnoreCase))
                 {
+                    // Direct category match (Syrups, Powdered, etc.)
                     Items.Add(it);
                 }
             }

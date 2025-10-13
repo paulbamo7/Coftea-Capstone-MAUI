@@ -134,6 +134,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                 || string.Equals(c, "Latte", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static bool IsAddonCategory(string category)
+        {
+            var c = (category ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(c)) return false;
+            return string.Equals(c, "Addons", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c, "Sinkers & etc.", StringComparison.OrdinalIgnoreCase)
+                || c.Contains("Sinker", StringComparison.OrdinalIgnoreCase);
+        }
+
         // Size selection for ingredient inputs
         [ObservableProperty] private string selectedSize = "Small";
         [ObservableProperty] private string productDescription;
@@ -510,8 +519,28 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ => 1
                 };
                 
-                // No need to update per-size amount since it's always 1 serving
+                // Update input unit based on the selected size (use remembered size-specific units if available)
+                item.InputUnit = size switch
+                {
+                    "Small" => string.IsNullOrWhiteSpace(item.InputUnitSmall) ? (item.InputUnitSmall = item.InputUnitSmall ?? item.unitOfMeasurement) : item.InputUnitSmall,
+                    "Medium" => string.IsNullOrWhiteSpace(item.InputUnitMedium) ? (item.InputUnitMedium = item.InputUnitMedium ?? item.unitOfMeasurement) : item.InputUnitMedium,
+                    "Large" => string.IsNullOrWhiteSpace(item.InputUnitLarge) ? (item.InputUnitLarge = item.InputUnitLarge ?? item.unitOfMeasurement) : item.InputUnitLarge,
+                    _ => item.InputUnit
+                };
             }
+            
+            // Preserve addon selections when switching sizes
+            // Addons should remain selected regardless of size changes
+            foreach (var addon in InventoryItems.Where(i => i.IsSelected && IsAddonCategory(i.itemCategory)))
+            {
+                // Keep addon selections intact
+                addon.IsSelected = true;
+            }
+            
+            // Update UI bindings
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
         }
 
         [RelayCommand]

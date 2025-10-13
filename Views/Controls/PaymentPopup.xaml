@@ -49,7 +49,8 @@
                 </Grid>
 
                 <!-- Payment Content -->
-                <Grid Grid.Row="1" Padding="30">
+                <ScrollView Grid.Row="1">
+                <Grid Padding="30">
                     <Grid RowDefinitions="Auto, Auto, *">
                         <!-- Payment Method Selector -->
                         <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto" Margin="0,0,0,20">
@@ -388,6 +389,7 @@
                         </Grid>
                     </Grid>
                 </Grid>
+                </ScrollView>
             </Grid>
         </Frame>
     </Grid>

@@ -144,6 +144,18 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private string selectedSize = "Small";
 
+        partial void OnSelectedSizeChanged(string value)
+        {
+            // When size changes, load the size-specific unit and amount into the editable fields
+            InputUnit = value switch
+            {
+                "Small" => string.IsNullOrWhiteSpace(InputUnitSmall) ? (InputUnitSmall = InputUnitSmall ?? unitOfMeasurement) : InputUnitSmall,
+                "Medium" => string.IsNullOrWhiteSpace(InputUnitMedium) ? (InputUnitMedium = InputUnitMedium ?? unitOfMeasurement) : InputUnitMedium,
+                "Large" => string.IsNullOrWhiteSpace(InputUnitLarge) ? (InputUnitLarge = InputUnitLarge ?? unitOfMeasurement) : InputUnitLarge,
+                _ => InputUnit
+            };
+        }
+
         // Calculated total deduction - now simply equals the input amount since it's always 1 serving
         public double TotalDeduction
         {
@@ -162,6 +174,23 @@ namespace Coftea_Capstone.Models
 
         [ObservableProperty]
         private string inputUnitLarge;
+
+        partial void OnInputUnitChanged(string value)
+        {
+            // Persist the chosen unit into the size-specific slot so it is remembered per size
+            switch (SelectedSize)
+            {
+                case "Small":
+                    InputUnitSmall = value;
+                    break;
+                case "Medium":
+                    InputUnitMedium = value;
+                    break;
+                case "Large":
+                    InputUnitLarge = value;
+                    break;
+            }
+        }
 
         // Computed/assigned price used per size (for POS previews and cart)
         [ObservableProperty]

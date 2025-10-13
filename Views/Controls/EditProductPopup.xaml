@@ -108,13 +108,28 @@
                                                    TextColor="Gray" 
                                                    VerticalOptions="Center" />
 
-                                            <!-- Prices -->
+                                            <!-- Prices (Small visible only for Coffee; Medium and Large visible for all) -->
                                             <HorizontalStackLayout Grid.Row="2" Grid.Column="1" 
                                                                    Spacing="10" 
                                                                    VerticalOptions="Center">
+                                                <!-- Small price - only for Coffee category -->
                                                 <Label Text="{Binding SmallPrice, StringFormat='Small: ₱{0:F2}'}" 
                                                        FontSize="12" 
+                                                       TextColor="DarkGreen"
+                                                       IsVisible="False">
+                                                    <Label.Triggers>
+                                                        <DataTrigger TargetType="Label" Binding="{Binding Category}" Value="Coffee">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                        </DataTrigger>
+                                                    </Label.Triggers>
+                                                </Label>
+
+                                                <!-- Medium price - always visible -->
+                                                <Label Text="{Binding MediumPrice, StringFormat='Medium: ₱{0:F2}'}" 
+                                                       FontSize="12" 
                                                        TextColor="DarkGreen" />
+
+                                                <!-- Large price - always visible -->
                                                 <Label Text="{Binding LargePrice, StringFormat='Large: ₱{0:F2}'}" 
                                                        FontSize="12" 
                                                        TextColor="DarkGreen" />
