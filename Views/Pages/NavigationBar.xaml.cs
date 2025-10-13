@@ -3,6 +3,7 @@ using Coftea_Capstone.Views.Pages;
 using Coftea_Capstone.Services;
 using Microsoft.Maui.Controls;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -10,12 +11,13 @@ public partial class NavigationBar : ContentView
 {
     private bool _isNavigating = false;
     private DateTime _lastNavigationTime = DateTime.MinValue;
-    private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(2000); // 2.0 second cooldown
+    private readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(2500); // 2.5 second cooldown
     private readonly object _navigationLock = new object();
     private CancellationTokenSource _currentNavigationCts;
     private string _lastRequestedTarget = string.Empty;
     private string _pendingTarget = string.Empty;
     private DateTime _pendingRequestedAt = DateTime.MinValue;
+    // DEBUG helper removed
 
     public NavigationBar()
     {
@@ -45,6 +47,20 @@ public partial class NavigationBar : ContentView
             try { vm?.CloseAddonPopupCommand?.Execute(null); } catch { }
         }
         catch { /* ignore */ }
+    }
+
+    private static void ForceGC()
+    {
+        try
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            #if ANDROID
+            try { Java.Lang.JavaSystem.Gc(); } catch { }
+            #endif
+        }
+        catch { }
     }
     private void TryHookNavigationEvents()
     {
@@ -235,6 +251,7 @@ public partial class NavigationBar : ContentView
             {
                 await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false);
             });
+            ForceGC();
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)
@@ -273,10 +290,11 @@ public partial class NavigationBar : ContentView
                     System.Diagnostics.Debug.WriteLine("🚫 Already on Login page, skipping navigation");
                     return;
                 }
-                await MainThread.InvokeOnMainThreadAsync(async () =>
+            await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
                     await nav.ReplaceWithAnimationAsync(new LoginPage(), animated: false);
                 });
+            ForceGC();
                 return;
             }
 
@@ -291,6 +309,7 @@ public partial class NavigationBar : ContentView
             {
                 await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false);
             });
+            ForceGC();
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)
@@ -343,6 +362,7 @@ public partial class NavigationBar : ContentView
             {
                 await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false);
             });
+            ForceGC();
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)
@@ -395,6 +415,7 @@ public partial class NavigationBar : ContentView
             {
                 await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false);
             });
+            ForceGC();
             UpdateActiveIndicator();
         }
         catch (OperationCanceledException)
