@@ -413,8 +413,8 @@ namespace Coftea_Capstone.ViewModel
 							.Where(i => !IsAddonCategory(i.itemCategory))
 							.Select(i => (
 								inventoryItemId: i.itemID,
-								amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-								unit: (string?)i.unitOfMeasurement
+								amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+								unit: (string?)(i.InputUnit ?? i.unitOfMeasurement)
 							));
 
 						var addons = selected

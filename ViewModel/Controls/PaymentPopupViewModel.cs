@@ -35,6 +35,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private string selectedPaymentMethod = "Cash";
 
+        // Convenience flags used by UI/logic
+        public bool IsCashSelected => string.Equals(SelectedPaymentMethod, "Cash", System.StringComparison.OrdinalIgnoreCase);
+        public bool IsGCashSelected => string.Equals(SelectedPaymentMethod, "GCash", System.StringComparison.OrdinalIgnoreCase);
+        public bool IsBankSelected => string.Equals(SelectedPaymentMethod, "Bank", System.StringComparison.OrdinalIgnoreCase);
+
         [ObservableProperty]
         private List<CartItem> cartItems = new();
 
@@ -100,13 +105,18 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task ConfirmPayment()
         {
-            if (AmountPaid < TotalAmount)
+            // For non-cash methods (GCash/Bank), auto-approve regardless of AmountPaid
+            var isNonCash = IsGCashSelected || IsBankSelected;
+            if (!isNonCash)
             {
-                await Application.Current.MainPage.DisplayAlert(
-                    "Insufficient Payment",
-                    $"Amount paid (₱{AmountPaid:F2}) is less than total (₱{TotalAmount:F2})",
-                    "OK");
-                return;
+                if (AmountPaid < TotalAmount)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Insufficient Payment",
+                        $"Amount paid (₱{AmountPaid:F2}) is less than total (₱{TotalAmount:F2})",
+                        "OK");
+                    return;
+                }
             }
 
             // Validate inventory availability before processing payment
@@ -121,11 +131,15 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
 
             // Confirm payment
-            bool confirm = await Application.Current.MainPage.DisplayAlert(
-                "Confirm Payment",
-                $"Total: ₱{TotalAmount:F2}\nPaid: ₱{AmountPaid:F2}\nChange: ₱{Change:F2}\n\nProceed with payment?",
-                "Confirm",
-                "Cancel");
+            bool confirm = true;
+            if (!isNonCash)
+            {
+                confirm = await Application.Current.MainPage.DisplayAlert(
+                    "Confirm Payment",
+                    $"Total: ₱{TotalAmount:F2}\nPaid: ₱{AmountPaid:F2}\nChange: ₱{Change:F2}\n\nProceed with payment?",
+                    "Confirm",
+                    "Cancel");
+            }
 
             if (!confirm)
                 return;
@@ -450,8 +464,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     }
                 }
 
-                // Add automatic cup and straw based on size
-                await AddAutomaticCupAndStrawForSize(deductions, cartItem.SelectedSize, totalQuantity);
+                // Add automatic cups and straws per size (1 per serving)
+                if (cartItem.SmallQuantity > 0)
+                    await AddAutomaticCupAndStrawForSize(deductions, "Small", cartItem.SmallQuantity);
+                if (cartItem.MediumQuantity > 0)
+                    await AddAutomaticCupAndStrawForSize(deductions, "Medium", cartItem.MediumQuantity);
+                if (cartItem.LargeQuantity > 0)
+                    await AddAutomaticCupAndStrawForSize(deductions, "Large", cartItem.LargeQuantity);
 
                 // Deduct inventory
                 if (deductions.Any())
@@ -620,8 +639,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                         continue;
                     }
 
-                    // Calculate total quantity based on size and quantity
-                    int totalQuantity = GetTotalQuantityForSize(item, item.SelectedSize);
+                    // Calculate total quantity across all sizes
+                    int totalQuantity = (item.SmallQuantity > 0 ? item.SmallQuantity : 0)
+                        + (item.MediumQuantity > 0 ? item.MediumQuantity : 0)
+                        + (item.LargeQuantity > 0 ? item.LargeQuantity : 0);
                     if (totalQuantity <= 0)
                     {
                         issues.Add($"Invalid quantity for {item.ProductName}: {totalQuantity}");
@@ -645,8 +666,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                         }
                     }
 
-                    // Check automatic cup and straw
-                    await ValidateAutomaticCupAndStrawForSize(database, issues, item.SelectedSize, totalQuantity);
+                    // Check automatic cup and straw per size
+                    if (item.SmallQuantity > 0)
+                        await ValidateAutomaticCupAndStrawForSize(database, issues, "Small", item.SmallQuantity);
+                    if (item.MediumQuantity > 0)
+                        await ValidateAutomaticCupAndStrawForSize(database, issues, "Medium", item.MediumQuantity);
+                    if (item.LargeQuantity > 0)
+                        await ValidateAutomaticCupAndStrawForSize(database, issues, "Large", item.LargeQuantity);
                 }
 
                 return new InventoryValidationResult

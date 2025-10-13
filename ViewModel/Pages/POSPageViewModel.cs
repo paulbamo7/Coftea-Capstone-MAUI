@@ -419,10 +419,10 @@ namespace Coftea_Capstone.ViewModel
                 SelectedProduct.InventoryItems.Clear();
                 foreach (var a in addons)
                 {
-                    // Initialize addon properties for selection
-                    a.IsSelected = false;
-                    a.AddonQuantity = 0;
-                    // Keep the AddonPrice from database, don't reset it to 0
+                    // Preselect linked addons when editing; default quantity 1 so it's visible
+                    a.IsSelected = true;
+                    if (a.AddonQuantity <= 0) a.AddonQuantity = 1;
+                    // Keep the AddonPrice from database
                     a.AddonUnit = a.DefaultUnit;
                     System.Diagnostics.Debug.WriteLine($"🔧 Loaded addon: {a.itemName}, IsSelected: {a.IsSelected}, AddonQuantity: {a.AddonQuantity}, AddonPrice: {a.AddonPrice}");
                     SelectedProduct.InventoryItems.Add(a);

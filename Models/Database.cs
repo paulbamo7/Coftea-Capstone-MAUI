@@ -157,7 +157,7 @@ namespace Coftea_Capstone.Models
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     productID INT NOT NULL,
                     itemID INT NOT NULL,
-                    amount DECIMAL(10,2) NOT NULL,
+                    amount DECIMAL(10,4) NOT NULL,
                     unit VARCHAR(50),
                     role VARCHAR(50) DEFAULT 'ingredient',
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
@@ -220,6 +220,8 @@ namespace Coftea_Capstone.Models
                 
                 -- Update existing columns to have better precision
                 ALTER TABLE product_addons 
+                MODIFY COLUMN amount DECIMAL(10,4) NOT NULL;
+                ALTER TABLE product_ingredients
                 MODIFY COLUMN amount DECIMAL(10,4) NOT NULL;
                 
                 CREATE TABLE IF NOT EXISTS pending_registrations (

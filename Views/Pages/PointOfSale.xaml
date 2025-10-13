@@ -408,7 +408,7 @@
 
 
                                     <!-- Size Summary -->
-                                <Grid ColumnDefinitions="*,*,*" HorizontalOptions="Center" Margin="25,0,0,0" >
+                                <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="18" HorizontalOptions="Center" Margin="25,6,0,0" >
                                     <Label Grid.Column="0" TextColor="Black" Text="{Binding SelectedProduct.SmallQuantity, StringFormat='Small: {0} pcs'}" 
                                            IsVisible="{Binding IsSmallSizeVisibleInCart}" HorizontalOptions="Center"/>
                                     <Label Grid.Column="1" TextColor="Black" Text="{Binding SelectedProduct.MediumQuantity, StringFormat='Medium: {0} pcs'}" 

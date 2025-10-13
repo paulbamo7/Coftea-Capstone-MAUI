@@ -22,6 +22,25 @@ namespace Coftea_Capstone.ViewModel.Controls
         // Event to notify parent when addons are selected
         public event Action<List<InventoryPageModel>> AddonsSelected;
 
+        // Preload/remember last selections when editing
+        public void SyncSelectionsFrom(IEnumerable<InventoryPageModel> items)
+        {
+            if (items == null) return;
+            var byId = items.Where(i => i != null).ToDictionary(i => i.itemID, i => i);
+            foreach (var addon in AvailableAddons)
+            {
+                if (addon == null) continue;
+                if (byId.TryGetValue(addon.itemID, out var existing))
+                {
+                    addon.IsSelected = existing.IsSelected || existing.AddonQuantity > 0;
+                    addon.AddonQuantity = existing.AddonQuantity > 0 ? existing.AddonQuantity : (addon.IsSelected ? 1 : 0);
+                    if (existing.InputAmount > 0) addon.InputAmount = existing.InputAmount;
+                    if (!string.IsNullOrWhiteSpace(existing.InputUnit)) addon.InputUnit = existing.InputUnit;
+                    if (existing.AddonPrice > 0) addon.AddonPrice = existing.AddonPrice;
+                }
+            }
+        }
+
         [RelayCommand]
         public async Task OpenAddonsPopup()
         {
