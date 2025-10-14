@@ -207,7 +207,7 @@
                                     </Frame.GestureRecognizers>
                                     <Grid>
                                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
-                                            <Frame CornerRadius="20" Padding="0">
+                                            <Frame CornerRadius="20" Padding="0" HeightRequest="120" WidthRequest="120">
                                                 <!-- Bind to ImageSource property -->
                                                 <Image Source="{Binding ImageSource}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill">
                                                     <Image.GestureRecognizers>
@@ -268,7 +268,7 @@
                         <Grid Grid.Row="1">
                             <ScrollView VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
                                 <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10">
-                                <Frame CornerRadius="20" Padding="0" HeightRequest="150" WidthRequest="150" HorizontalOptions="Center">
+                                <Frame CornerRadius="20" Padding="0" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center">
                                     <!-- Bind to computed ImageSource property -->
                                     <Image Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill" />
                                 </Frame>
