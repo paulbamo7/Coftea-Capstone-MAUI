@@ -39,6 +39,24 @@ namespace Coftea_Capstone.Models
             }.ConnectionString;
         }
 
+        // Quick connectivity test to detect if DB server is reachable
+        public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await using var conn = new MySqlConnection(_db);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromSeconds(3));
+                await conn.OpenAsync(cts.Token);
+                await conn.CloseAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
 
         // Ensure server is reachable and the database exists; create DB if missing
         public async Task EnsureServerAndDatabaseAsync(CancellationToken cancellationToken = default)
@@ -57,7 +75,6 @@ namespace Coftea_Capstone.Models
             await conn.OpenAsync(cancellationToken);
             return conn;
         }
-
 
         private static string GetDefaultHostForPlatform()
         {
@@ -137,6 +154,7 @@ namespace Coftea_Capstone.Models
                     subcategory VARCHAR(100),
                     imageSet VARCHAR(255),
                     description TEXT,
+                    colorCode VARCHAR(20) DEFAULT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 
@@ -217,6 +235,10 @@ namespace Coftea_Capstone.Models
                 -- Add maximum quantity column to inventory table
                 ALTER TABLE inventory 
                 ADD COLUMN IF NOT EXISTS maximumQuantity DECIMAL(10,2) DEFAULT 0;
+                
+                -- Add color code column to products table
+                ALTER TABLE products 
+                ADD COLUMN IF NOT EXISTS colorCode VARCHAR(20) DEFAULT NULL;
                 
                 -- Update existing columns to have better precision
                 ALTER TABLE product_addons 
@@ -450,7 +472,8 @@ namespace Coftea_Capstone.Models
 				ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
 				Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
 				Subcategory = reader.IsDBNull(reader.GetOrdinal("subcategory")) ? null : reader.GetString("subcategory"),
-				ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
+				ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description"),
+				ColorCode = reader.IsDBNull(reader.GetOrdinal("colorCode")) ? "" : reader.GetString("colorCode")
 			});
 		}
 
@@ -603,8 +626,8 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, description) " +
-                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description);";
+            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, description, colorCode) " +
+                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
@@ -614,6 +637,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ColorCode", (object?)product.ColorCode ?? DBNull.Value);
 
             var rows = await cmd.ExecuteNonQueryAsync();
             InvalidateProductsCache();
@@ -625,8 +649,8 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, description) " +
-                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description);";
+            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, description, colorCode) " +
+                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
@@ -636,6 +660,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ColorCode", (object?)product.ColorCode ?? DBNull.Value);
 
             await cmd.ExecuteNonQueryAsync();
             InvalidateProductsCache();
@@ -786,6 +811,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ColorCode", (object?)product.ColorCode ?? DBNull.Value);
 
             var rows = await cmd.ExecuteNonQueryAsync();
             InvalidateProductsCache();

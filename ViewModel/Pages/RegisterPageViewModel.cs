@@ -45,6 +45,12 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
+        private async Task BackToLogin()
+        {
+            await Application.Current.MainPage.Navigation.PopAsync();
+        }
+
+        [RelayCommand]
         private async Task Register()
         {
             // First Name validation

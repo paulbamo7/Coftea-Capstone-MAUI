@@ -56,6 +56,19 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private decimal bankTotal;
 
+        // Cumulative cash tracking over time
+        [ObservableProperty]
+        private decimal cumulativeCashTotal;
+
+        [ObservableProperty]
+        private decimal cumulativeGCashTotal;
+
+        [ObservableProperty]
+        private decimal cumulativeBankTotal;
+
+        [ObservableProperty]
+        private decimal cumulativeTotalSales;
+
         // Top items lists
         [ObservableProperty]
         private ObservableCollection<TrendItem> topCoffeeToday = new();
@@ -163,6 +176,9 @@ namespace Coftea_Capstone.ViewModel
             _database = new Database(); // Will use auto-detected host
             SettingsPopup = settingsPopup;
             _salesReportService = salesReportService ?? new Services.DatabaseSalesReportService();
+            
+            // Load cumulative totals on initialization
+            _ = LoadCumulativeTotalsAsync();
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
@@ -261,11 +277,13 @@ namespace Coftea_Capstone.ViewModel
                 StatusMessage = "Loading sales reports...";
                 HasError = false;
 
-                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                // Check DB connectivity (XAMPP/MySQL); warn if server is down
+                var dbReachable = await _database.CanConnectAsync(cts.Token);
+                if (!dbReachable)
                 {
                     HasError = true;
-                    StatusMessage = "No internet connection. Please check your network.";
-                    GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, "No internet connection detected. Please check your network settings and try again.");
+                    StatusMessage = "Database not reachable. Please start XAMPP/MySQL.";
+                    GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, "Database not reachable. Please ensure XAMPP/MySQL is running and try again.");
                     return;
                 }
 
@@ -289,6 +307,9 @@ namespace Coftea_Capstone.ViewModel
 
                 // Calculate payment method totals for today
                 await CalculatePaymentMethodTotalsAsync();
+                
+                // Update cumulative totals
+                await UpdateCumulativeTotalsAsync();
 
                 TopCoffeeToday = new ObservableCollection<TrendItem>(summary.TopCoffeeToday ?? new List<TrendItem>());
                 TopMilkteaToday = new ObservableCollection<TrendItem>(summary.TopMilkteaToday ?? new List<TrendItem>());
@@ -370,6 +391,11 @@ namespace Coftea_Capstone.ViewModel
 
             // Update pie chart item names
             UpdatePieChartNames(topTodayItems);
+
+            // Force pie charts to refresh bindings by setting new instances
+            TopItemsToday = new ObservableCollection<TrendItem>(TopItemsToday?.ToList() ?? new List<TrendItem>());
+            TopItemsWeekly = new ObservableCollection<TrendItem>(TopItemsWeekly?.ToList() ?? new List<TrendItem>());
+            TopItemsMonthly = new ObservableCollection<TrendItem>(TopItemsMonthly?.ToList() ?? new List<TrendItem>());
         }
 
         private void UpdatePieChartNames(List<TrendItem> items)
@@ -489,6 +515,81 @@ namespace Coftea_Capstone.ViewModel
             UpdateCombinedCollections();
         }
 
+
+        private async Task LoadCumulativeTotalsAsync()
+        {
+            try
+            {
+                // Load cumulative totals from preferences
+                var prefs = Preferences.Default;
+                CumulativeCashTotal = prefs.Get("CumulativeCashTotal", 0m);
+                CumulativeGCashTotal = prefs.Get("CumulativeGCashTotal", 0m);
+                CumulativeBankTotal = prefs.Get("CumulativeBankTotal", 0m);
+                CumulativeTotalSales = prefs.Get("CumulativeTotalSales", 0m);
+                
+                System.Diagnostics.Debug.WriteLine($"Loaded cumulative totals - Cash: {CumulativeCashTotal}, GCash: {CumulativeGCashTotal}, Bank: {CumulativeBankTotal}, Total: {CumulativeTotalSales}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading cumulative totals: {ex.Message}");
+                // Initialize to zero if loading fails
+                CumulativeCashTotal = 0;
+                CumulativeGCashTotal = 0;
+                CumulativeBankTotal = 0;
+                CumulativeTotalSales = 0;
+            }
+        }
+
+        private async Task UpdateCumulativeTotalsAsync()
+        {
+            try
+            {
+                // Add today's totals to cumulative totals
+                CumulativeCashTotal += CashTotal;
+                CumulativeGCashTotal += GCashTotal;
+                CumulativeBankTotal += BankTotal;
+                CumulativeTotalSales += TotalSalesToday;
+
+                // Save to preferences
+                var prefs = Preferences.Default;
+                prefs.Set("CumulativeCashTotal", CumulativeCashTotal);
+                prefs.Set("CumulativeGCashTotal", CumulativeGCashTotal);
+                prefs.Set("CumulativeBankTotal", CumulativeBankTotal);
+                prefs.Set("CumulativeTotalSales", CumulativeTotalSales);
+
+                System.Diagnostics.Debug.WriteLine($"Updated cumulative totals - Cash: {CumulativeCashTotal}, GCash: {CumulativeGCashTotal}, Bank: {CumulativeBankTotal}, Total: {CumulativeTotalSales}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating cumulative totals: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ResetCumulativeTotals()
+        {
+            try
+            {
+                // Reset cumulative totals to zero
+                CumulativeCashTotal = 0;
+                CumulativeGCashTotal = 0;
+                CumulativeBankTotal = 0;
+                CumulativeTotalSales = 0;
+
+                // Save to preferences
+                var prefs = Preferences.Default;
+                prefs.Set("CumulativeCashTotal", 0m);
+                prefs.Set("CumulativeGCashTotal", 0m);
+                prefs.Set("CumulativeBankTotal", 0m);
+                prefs.Set("CumulativeTotalSales", 0m);
+
+                System.Diagnostics.Debug.WriteLine("Cumulative totals reset to zero");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error resetting cumulative totals: {ex.Message}");
+            }
+        }
 
         private void SetFallbackData()
         {

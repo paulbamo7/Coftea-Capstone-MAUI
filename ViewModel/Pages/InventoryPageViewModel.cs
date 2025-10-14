@@ -124,14 +124,18 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedCategory = "";
 
+        // Sort functionality
+        [ObservableProperty]
+        private int selectedSortIndex = 0;
+
         [RelayCommand]
         private void FilterByCategory(string category)
         {
             SelectedCategory = category ?? string.Empty;
-            ApplyCategoryFilter();
+            ApplyCategoryFilterInternal();
         }
 
-        private void ApplyCategoryFilter()
+        private void ApplyCategoryFilterInternal()
         {
             IEnumerable<InventoryPageModel> query = allInventoryItems;
 
@@ -163,12 +167,32 @@ namespace Coftea_Capstone.ViewModel
                 query = query.Where(i => (i.itemName ?? string.Empty).IndexOf(nameQuery, StringComparison.OrdinalIgnoreCase) >= 0);
             }
 
+            // Apply sorting
+            query = ApplySorting(query);
+
             InventoryItems = new ObservableCollection<InventoryPageModel>(query);
+        }
+
+        private IEnumerable<InventoryPageModel> ApplySorting(IEnumerable<InventoryPageModel> query)
+        {
+            return SelectedSortIndex switch
+            {
+                0 => query.OrderBy(i => i.itemName), // Name (A-Z)
+                1 => query.OrderByDescending(i => i.itemName), // Name (Z-A)
+                2 => query.OrderBy(i => i.itemQuantity), // Stock (Low to High)
+                3 => query.OrderByDescending(i => i.itemQuantity), // Stock (High to Low)
+                _ => query
+            };
         }
 
         partial void OnSearchTextChanged(string value)
         {
-            ApplyCategoryFilter();
+            ApplyCategoryFilterInternal();
+        }
+
+        public void ApplyCategoryFilter()
+        {
+            ApplyCategoryFilterInternal();
         }
         
     }

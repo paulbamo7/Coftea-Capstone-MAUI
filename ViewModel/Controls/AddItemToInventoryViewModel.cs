@@ -179,7 +179,7 @@ namespace Coftea_Capstone.ViewModel
             var liquid = new[] { "Liters (L)", "Milliliters (ml)" };
             var weight = new[] { "Kilograms (kg)", "Grams (g)" };
             var pieces = new[] { "Pieces (pcs)" };
-            var sinkers = new[] { "Pieces (pcs)", "Liters (L)", "Milliliters (ml)" };
+            var sinkers = new[] { "Pieces (pcs)", "Liters (L)", "Milliliters (ml)", "Kilograms (kg)", "Grams (g)" };
 
             IEnumerable<string> allowed;
             if (cat == "Syrups" || cat == "Fruit Series" || cat == "Liquid")

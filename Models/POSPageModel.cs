@@ -62,6 +62,7 @@ namespace Coftea_Capstone.C_
         public string Category { get; set; }
         public string Subcategory { get; set; }
         public string ProductDescription { get; set; }
+        public string ColorCode { get; set; }
 
         public bool HasSmall { get; set; } = true;
         public bool HasMedium { get; set; } = true;

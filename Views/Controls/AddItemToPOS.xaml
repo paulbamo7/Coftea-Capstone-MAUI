@@ -88,11 +88,10 @@
                             </VerticalStackLayout>
                         </Grid>
 
-                        <!-- Color Code - COMMENTED OUT -->
-                        <!--
+                        <!-- Color Code -->
                         <Label Text="Color Code" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
                         <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                            <Entry Placeholder="Enter Color Code"
+                            <Entry Placeholder="Enter Color Code (e.g., #FF5733)"
                                    PlaceholderColor="#4B3832"
                                    Keyboard="Text"
                                    Text="{Binding ProductColorCode}"
@@ -101,7 +100,6 @@
                                    TextColor="Black"
                                    FontFamily="OpenSansRegular"/>
                         </Frame>
-                        -->
                     </VerticalStackLayout>
                 </Frame>
 

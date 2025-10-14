@@ -4,6 +4,7 @@ using Coftea_Capstone.Services;
 using Microsoft.Maui.Controls;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -17,6 +18,7 @@ public partial class NavigationBar : ContentView
     private string _lastRequestedTarget = string.Empty;
     private string _pendingTarget = string.Empty;
     private DateTime _pendingRequestedAt = DateTime.MinValue;
+    private static readonly SemaphoreSlim _navSemaphore = new SemaphoreSlim(1, 1);
     // DEBUG helper removed
 
     public NavigationBar()
@@ -138,10 +140,23 @@ public partial class NavigationBar : ContentView
 
     private async Task<bool> StartNavigationAsync(string target = "")
     {
+        // Ensure only one navigation runs across the app at a time
+        try
+        {
+            await _navSemaphore.WaitAsync();
+        }
+        catch
+        {
+            return false;
+        }
+
         lock (_navigationLock)
         {
             if (!CanNavigate())
+            {
+                _navSemaphore.Release();
                 return false;
+            }
 
             // Cancel any existing navigation
             _currentNavigationCts?.Cancel();
@@ -169,6 +184,7 @@ public partial class NavigationBar : ContentView
             _currentNavigationCts = null;
         }
         System.Diagnostics.Debug.WriteLine("✅ Navigation completed");
+        try { _navSemaphore.Release(); } catch { }
         
         // Re-enable all navigation buttons with a small delay to prevent rapid clicking
         MainThread.BeginInvokeOnMainThread(async () =>

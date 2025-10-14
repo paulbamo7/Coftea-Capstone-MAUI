@@ -10,6 +10,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Linq;
 
 namespace Coftea_Capstone
 {
@@ -44,6 +45,9 @@ namespace Coftea_Capstone
             InitializeComponent();
 
             InitializeViewModels();
+
+            // Set up deep link handling for password reset
+            SetupDeepLinkHandling();
 
             // Ensure database exists and tables are created, then adjust theme colors to match Login page
             MainThread.BeginInvokeOnMainThread(async () =>
@@ -258,6 +262,56 @@ namespace Coftea_Capstone
 
             // Create a new NavigationPage and set it as MainPage
             MainPage = new NavigationPage(new LoginPage());
+        }
+
+        private void SetupDeepLinkHandling()
+        {
+            // Handle deep links when app is already running
+            Microsoft.Maui.Essentials.AppActions.OnAppAction += OnAppAction;
+        }
+
+        private void OnAppAction(object sender, Microsoft.Maui.Essentials.AppActionEventArgs e)
+        {
+            if (e.AppAction?.Id?.StartsWith("coftea://") == true)
+            {
+                HandleDeepLink(e.AppAction.Id);
+            }
+        }
+
+        private void HandleDeepLink(string url)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🔗 Deep link received: {url}");
+                
+                if (url.StartsWith("coftea://reset-password"))
+                {
+                    var uri = new Uri(url);
+                    var email = uri.Query.Contains("email=") ? 
+                        Uri.UnescapeDataString(uri.Query.Split('&').FirstOrDefault(q => q.StartsWith("email="))?.Split('=')[1] ?? "") : "";
+                    var token = uri.Query.Contains("token=") ? 
+                        Uri.UnescapeDataString(uri.Query.Split('&').FirstOrDefault(q => q.StartsWith("token="))?.Split('=')[1] ?? "") : "";
+
+                    if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(token))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔑 Password reset for email: {email}");
+                        
+                        // Show the password reset popup
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            PasswordResetPopup?.ShowPasswordResetPopup(email, token);
+                        });
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("❌ Invalid password reset link - missing email or token");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error handling deep link: {ex.Message}");
+            }
         }
 
     }

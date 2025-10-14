@@ -5,12 +5,16 @@ using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Services
 {
+    /// <summary>
+    /// Email service specifically designed for MailHog SMTP server.
+    /// Uses configured MailHog host (default: 192.168.1.7:1025).
+    /// </summary>
     public class EmailService
     {
         private readonly string _mailHogHost;
         private readonly int _mailHogPort;
 
-        public EmailService(string mailHogHost = null, int mailHogPort = 1025)
+        public EmailService(string mailHogHost = "192.168.1.7", int mailHogPort = 1025)
         {
             _mailHogHost = mailHogHost; // Will be resolved dynamically
             _mailHogPort = mailHogPort;
@@ -20,7 +24,8 @@ namespace Coftea_Capstone.Services
         {
             try
             {
-                var host = _mailHogHost ?? NetworkConfigurationService.GetEmailHost();
+                // Use configured MailHog host (your IP: 192.168.1.7)
+                var host = _mailHogHost;
                 System.Diagnostics.Debug.WriteLine($"Attempting to send password reset email to: {email}");
                 System.Diagnostics.Debug.WriteLine($"Using MailHog host: {host}:{_mailHogPort}");
                 System.Diagnostics.Debug.WriteLine($"Reset token: {resetToken}");
@@ -29,7 +34,7 @@ namespace Coftea_Capstone.Services
                 client.EnableSsl = false; // MailHog doesn't use SSL
                 client.UseDefaultCredentials = false;
 
-                var resetLink = $"http://localhost:3000/reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(resetToken)}";
+                var resetLink = $"coftea://reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(resetToken)}";
                 System.Diagnostics.Debug.WriteLine($"Reset link: {resetLink}");
                 
                 var htmlBody = CreatePasswordResetEmailBody(resetLink);
@@ -74,6 +79,11 @@ namespace Coftea_Capstone.Services
         public string GetEmailBodyForTesting(string resetLink)
         {
             return CreatePasswordResetEmailBody(resetLink);
+        }
+
+        public string GetCurrentMailHogHost()
+        {
+            return _mailHogHost;
         }
 
         private string CreatePasswordResetEmailPlainText(string resetLink)

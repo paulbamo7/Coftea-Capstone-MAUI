@@ -114,6 +114,9 @@ namespace Coftea_Capstone.ViewModel
         private string productDescription;
 
         [ObservableProperty]
+        private string productColorCode;
+
+        [ObservableProperty]
         private bool isEditMode = false;
 
         [ObservableProperty]
@@ -328,7 +331,8 @@ namespace Coftea_Capstone.ViewModel
                 Subcategory = EffectiveCategory,
                 // Persist empty string when no image is provided to avoid provider null issues
                 ImageSet = string.IsNullOrWhiteSpace(ImagePath) ? string.Empty : ImagePath,
-                ProductDescription = ProductDescription
+                ProductDescription = ProductDescription,
+                ColorCode = ProductColorCode
             };
 
             try
@@ -735,6 +739,7 @@ namespace Coftea_Capstone.ViewModel
             ImagePath = string.Empty;
             SelectedImageSource = null;
             ProductDescription = string.Empty;
+            ProductColorCode = string.Empty;
             IsAddItemToPOSVisible = false;
             IsEditMode = false;
             EditingProductId = 0;

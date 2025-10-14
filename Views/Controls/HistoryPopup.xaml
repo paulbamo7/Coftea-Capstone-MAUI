@@ -100,7 +100,7 @@
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
                                         <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=3 Days Ago}"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='3 Days Ago'}"
                                                      Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
@@ -117,7 +117,7 @@
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
                                         <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Week Ago}"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Week Ago'}"
                                                      Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
@@ -134,7 +134,7 @@
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
                                         <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=2 Weeks Ago}"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='2 Weeks Ago'}"
                                                      Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
@@ -151,7 +151,7 @@
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
                                         <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=1 Month Ago}"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Month Ago'}"
                                                      Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />
@@ -168,7 +168,7 @@
                                     <Setter Property="TextColor" Value="Black" />
                                     <Style.Triggers>
                                         <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=All Time}"
+                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='All Time'}"
                                                      Value="True">
                                             <Setter Property="BackgroundColor" Value="#5B4F45" />
                                             <Setter Property="TextColor" Value="White" />

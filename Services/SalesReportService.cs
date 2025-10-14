@@ -65,9 +65,18 @@ namespace Coftea_Capstone.Services
                 var frappeProducts = new List<TrendItem>();
                 var fruitSodaProducts = new List<TrendItem>();
 
+                // Get product details to include color codes
+                var allProducts = await _database.GetProductsAsyncCached();
+                var productLookup = allProducts.ToDictionary(p => p.ProductName, p => p.ColorCode ?? "");
+                
                 foreach (var product in topProducts)
                 {
-                    var trendItem = new TrendItem { Name = product.Key, Count = product.Value };
+                    var trendItem = new TrendItem 
+                    { 
+                        Name = product.Key, 
+                        Count = product.Value,
+                        ColorCode = productLookup.GetValueOrDefault(product.Key, "")
+                    };
                     
                     // Categorize based on product name patterns
                     if (product.Key.Contains("Frappe", StringComparison.OrdinalIgnoreCase))

@@ -96,4 +96,12 @@ public partial class Inventory : ContentPage
 		_ = popup?.AddSuccess("Inventory", "Updated Stock: Arabica Beans (ID: AB4567)", "ID: AB4567");
 		popup?.ToggleCommand.Execute(null);
     }
+
+    private void OnSortChanged(object sender, EventArgs e)
+    {
+        if (BindingContext is InventoryPageViewModel vm)
+        {
+            vm.ApplyCategoryFilter();
+        }
+    }
 }

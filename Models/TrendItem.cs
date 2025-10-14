@@ -6,6 +6,7 @@ namespace Coftea_Capstone.Models
     {
         public string Name { get; set; }
         public int Count { get; set; }
+        public string ColorCode { get; set; }
         
         // Maximum count in the collection for relative scaling
         public int MaxCount { get; set; } = 1;

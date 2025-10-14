@@ -132,12 +132,14 @@
             </Frame>
         </ScrollView>
         
-        <!-- Password Reset Popup -->
-        <otherViews:PasswordResetPopup BindingContext="{Binding PasswordResetPopup}" />
-        
         <!-- Retry Connection Popup - Overlay at root level -->
         <otherViews:RetryConnectionPopup x:Name="RetryConnectionPopup" 
                                          Grid.RowSpan="3" 
                                          Grid.ColumnSpan="1" />
+
+        <!-- Password Reset Popup - Overlay at root level -->
+        <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" 
+                                       Grid.RowSpan="3" 
+                                       Grid.ColumnSpan="1" />
     </Grid>
 </ContentPage>

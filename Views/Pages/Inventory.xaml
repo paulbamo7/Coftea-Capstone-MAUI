@@ -111,12 +111,14 @@
                                         BackgroundColor="Transparent"
                                         TextColor="Black"
                                         TitleColor="#666666"
-                                        FontSize="14">
+                                        FontSize="14"
+                                        SelectedIndex="{Binding SelectedSortIndex}"
+                                        SelectedIndexChanged="OnSortChanged">
                                     <Picker.Items>
                                         <x:String>Name (A-Z)</x:String>
                                         <x:String>Name (Z-A)</x:String>
-                                        <x:String>Price (Low to High)</x:String>
-                                        <x:String>Price (High to Low)</x:String>
+                                        <x:String>Stock (Low to High)</x:String>
+                                        <x:String>Stock (High to Low)</x:String>
                                     </Picker.Items>
                                 </Picker>
                             </Frame>

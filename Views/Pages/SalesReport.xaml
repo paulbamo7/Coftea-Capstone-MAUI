@@ -12,6 +12,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+            <converters:StringToColorConverter x:Key="StringToColorConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -103,8 +104,8 @@
                     </StackLayout>
                 </ScrollView>
 
-                <!-- KPI Cards and Pie Chart - Two column layout -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <!-- KPI Cards, Pie Chart, and Total Accumulated - Three column layout -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
                     <!-- Left Column: KPI Cards -->
                     <VerticalStackLayout Grid.Column="0" Spacing="12" VerticalOptions="Start">
                         <Frame BackgroundColor="#F5E6D8" CornerRadius="12" HeightRequest="110" Padding="12" HasShadow="True">
@@ -151,7 +152,7 @@
                         </Grid>
                     </VerticalStackLayout>
 
-                    <!-- Right Column: Top 3 Picks Today - Pie Chart -->
+                    <!-- Middle Column: Top 3 Picks Today - Pie Chart -->
                     <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" HeightRequest="230" VerticalOptions="Start">
                         <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                             <Label Text="Top 3 Picks Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
@@ -167,6 +168,59 @@
                                                       Item2HasTrend="{Binding Item2HasTrend}"
                                                       Item3HasTrend="{Binding Item3HasTrend}"/>
                         </Grid>
+                    </Frame>
+
+                    <!-- Right Column: Total Cash Accumulated -->
+                    <Frame Grid.Column="2" BackgroundColor="#2E7D32" CornerRadius="12" Padding="20" HasShadow="True" HeightRequest="230" VerticalOptions="Start">
+                        <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="💰 Total Cash Accumulated" FontAttributes="Bold" FontSize="18" TextColor="White" HorizontalOptions="Center"/>
+                                <Label Text="All-time cumulative sales totals" FontSize="12" TextColor="#E8F5E8" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                            
+                            <Label Text="{Binding CumulativeTotalSales, StringFormat='₱{0:N2}'}" 
+                                   FontSize="28" 
+                                   FontAttributes="Bold" 
+                                   TextColor="White" 
+                                   HorizontalOptions="Center"/>
+                            
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="4">
+                                    <Label Text="Cash" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
+                                    <Label Text="{Binding CumulativeCashTotal, StringFormat='₱{0:N2}'}" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold" 
+                                           TextColor="White" 
+                                           HorizontalOptions="Center"/>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="4">
+                                    <Label Text="GCash" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
+                                    <Label Text="{Binding CumulativeGCashTotal, StringFormat='₱{0:N2}'}" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold" 
+                                           TextColor="White" 
+                                           HorizontalOptions="Center"/>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="4">
+                                    <Label Text="Bank" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
+                                    <Label Text="{Binding CumulativeBankTotal, StringFormat='₱{0:N2}'}" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold" 
+                                           TextColor="White" 
+                                           HorizontalOptions="Center"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                            
+                            <Button Text="Reset" 
+                                    BackgroundColor="#FF5722" 
+                                    TextColor="White" 
+                                    FontSize="12" 
+                                    Padding="0"
+                                    HeightRequest="30" 
+                                    CornerRadius="6"
+                                    Command="{Binding ResetCumulativeTotalsCommand}"
+                                    HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
                     </Frame>
                 </Grid>
 
@@ -187,9 +241,9 @@
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="*"/>
                                                     </Grid.RowDefinitions>
-                                                    <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" Color="#9C27B0" CornerRadius="8"/>
+                                                    <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" Color="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" CornerRadius="8"/>
                                                 </Grid>
-                                                <Label Grid.Row="1" Text="{Binding Name}" FontSize="10" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
+                                                <Label Grid.Row="1" Text="{Binding Name}" TextColor="Gray" FontSize="10" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
                                             </Grid>
                                         </VerticalStackLayout>
                                     </DataTemplate>
@@ -223,9 +277,9 @@
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="*"/>
                                                     </Grid.RowDefinitions>
-                                                    <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" Color="#FF9800" CornerRadius="8"/>
+                                                    <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" Color="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" CornerRadius="8"/>
                                                 </Grid>
-                                                <Label Grid.Row="1" Text="{Binding Name}" FontSize="10" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
+                                                <Label Grid.Row="1" Text="{Binding Name}" TextColor="Gray" FontSize="10" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
                                             </Grid>
                                         </VerticalStackLayout>
                                     </DataTemplate>
