@@ -1,25 +1,29 @@
 ﻿using Microsoft.UI.Xaml;
+using System;
+using System.Diagnostics;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
-namespace Coftea_Capstone.WinUI
+namespace Coftea_Capstone.Platforms.Windows
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
-    public partial class App : MauiWinUIApplication
+    public partial class App : Application
     {
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
         public App()
         {
             this.InitializeComponent();
         }
 
-        protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+        protected override void OnLaunched(LaunchActivatedEventArgs args)
+        {
+            // Handle deep link if app was launched via protocol
+            if (args?.Arguments != null && args.Arguments.StartsWith("coftea://"))
+            {
+                System.Diagnostics.Debug.WriteLine($"🔗 Windows deep link: {args.Arguments}");
+                
+                // Call the app's deep link handler
+                if (Microsoft.Maui.Controls.Application.Current is App app)
+                {
+                    app.HandleDeepLink(args.Arguments);
+                }
+            }
+        }
     }
-
 }

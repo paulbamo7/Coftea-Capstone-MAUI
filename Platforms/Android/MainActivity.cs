@@ -1,64 +1,48 @@
 ﻿using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Android.Views;
+using Android.Runtime;
+using Microsoft.Maui;
 
-namespace Coftea_Capstone
+namespace Coftea_Capstone.Platforms.Android
 {
-    [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+    [Activity(Label = "Coftea_Capstone", Theme = "@style/Maui.SplashTheme", MainLauncher = true, 
+              ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density,
+              LaunchMode = LaunchMode.SingleTop)]
+    [IntentFilter(new[] { Intent.ActionView },
+                  Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
+                  DataScheme = "coftea")]
     public class MainActivity : MauiAppCompatActivity
     {
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            ApplyImmersiveMode();
+            
+            // Handle deep link if app was launched via intent
+            HandleIntent(Intent);
         }
 
-        protected override void OnResume()
+        protected override void OnNewIntent(Intent intent)
         {
-            base.OnResume();
-            ApplyImmersiveMode();
+            base.OnNewIntent(intent);
+            
+            // Handle deep link if app was already running
+            HandleIntent(intent);
         }
 
-        public override void OnWindowFocusChanged(bool hasFocus)
+        private void HandleIntent(Intent intent)
         {
-            base.OnWindowFocusChanged(hasFocus);
-            if (hasFocus)
+            if (intent?.Data != null)
             {
-                ApplyImmersiveMode();
-            }
-        }
-
-        private void ApplyImmersiveMode()
-        {
-            try
-            {
-                if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
+                var url = intent.Data.ToString();
+                System.Diagnostics.Debug.WriteLine($"🔗 Android deep link: {url}");
+                
+                // Call the app's deep link handler
+                if (Application.Current is App app)
                 {
-                    // Android 11+ (API 30): use WindowInsetsController
-                    Window.SetDecorFitsSystemWindows(false);
-                    var controller = Window.InsetsController;
-                    if (controller != null)
-                    {
-                        controller.Hide(WindowInsets.Type.StatusBars() | WindowInsets.Type.NavigationBars());
-                        controller.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
-                    }
+                    app.HandleDeepLink(url);
                 }
-                else
-                {
-                    // Older Android versions: use System UI flags
-                    var uiOptions = (StatusBarVisibility)(SystemUiFlags.LayoutStable
-                                                          | SystemUiFlags.LayoutFullscreen
-                                                          | SystemUiFlags.LayoutHideNavigation
-                                                          | SystemUiFlags.Fullscreen
-                                                          | SystemUiFlags.HideNavigation
-                                                          | SystemUiFlags.ImmersiveSticky);
-                    Window.DecorView.SystemUiVisibility = uiOptions;
-                }
-            }
-            catch
-            {
-                // Ignore failures; UI will remain standard if immersive cannot be applied
             }
         }
     }
