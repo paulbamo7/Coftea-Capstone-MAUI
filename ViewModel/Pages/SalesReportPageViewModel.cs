@@ -136,11 +136,10 @@ namespace Coftea_Capstone.ViewModel
         public IReadOnlyList<string> AvailableCategories { get; } = new List<string>
         {
             "Overview",
-            "Americano",
-            "Cafe Latte",
-            "Fruit and Soda Mix",
             "Frappe",
-            "Milktea"
+            "Fruit/Soda",
+            "Milktea",
+            "Coffee"
         };
 
         [ObservableProperty]
@@ -489,6 +488,7 @@ namespace Coftea_Capstone.ViewModel
             // Update combined collections when category changes
             UpdateCombinedCollections();
         }
+
 
         private void SetFallbackData()
         {
