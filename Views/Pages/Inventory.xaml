@@ -50,7 +50,7 @@
                         <!-- Fixed Top Controls (Category Buttons, Sort By) -->
                         <Grid ColumnDefinitions="*, Auto" VerticalOptions="Start">
                             <!-- Left: Category Buttons -->
-                            <HorizontalStackLayout Spacing="15" VerticalOptions="Center" HorizontalOptions="Start">
+                            <StackLayout Orientation="Horizontal" Spacing="15" VerticalOptions="Center" HorizontalOptions="Start">
                                 <Button Text="Ingredients" 
                                         TextColor="Black" 
                                         FontAttributes="Bold" 
@@ -95,7 +95,7 @@
                                            Placeholder="Type item name..."
                                            Text="{Binding SearchText}"/>
                                 </Grid>
-                            </HorizontalStackLayout>
+                            </StackLayout>
 
                             <!-- Right: Sort By -->
                             <Frame Grid.Column="1"
@@ -154,12 +154,12 @@
                                                 <VerticalStackLayout Spacing="6">
                                                     <Grid ColumnDefinitions="1*, 1*, 2*" VerticalOptions="Center" ColumnSpacing="10">
                                                         <!-- Items: image + name -->
-                                                        <HorizontalStackLayout Grid.Column="0" Spacing="10" VerticalOptions="Center">
+                                                        <StackLayout Orientation="Horizontal" Grid.Column="0" Spacing="10" VerticalOptions="Center">
                                                             <Frame WidthRequest="50" HeightRequest="50" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
                                                                 <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
                                                             </Frame>
                                                             <Label Text="{Binding itemName}" FontSize="16" VerticalOptions="Center" TextColor="Black"/>
-                                                        </HorizontalStackLayout>
+                                                        </StackLayout>
 
                                                         <!-- Category -->
                                                         <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Black"/>

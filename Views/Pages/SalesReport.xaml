@@ -49,7 +49,7 @@
 
                 <!-- Categories - Centered above pie chart and KPI cards -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
-                    <HorizontalStackLayout Spacing="10">
+                    <StackLayout Orientation="Horizontal" Spacing="10">
                         <Button Text="Overview" FontAttributes="Bold" TextColor="Black" FontSize="14"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Overview">
@@ -100,7 +100,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                    </HorizontalStackLayout>
+                    </StackLayout>
                 </ScrollView>
 
                 <!-- KPI Cards and Pie Chart - Two column layout -->

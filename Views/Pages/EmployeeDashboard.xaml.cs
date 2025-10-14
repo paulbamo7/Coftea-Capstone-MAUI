@@ -40,7 +40,7 @@ public partial class EmployeeDashboard : ContentPage
         BindingContext = null;
     }
 
-    private static void ReleaseVisualTree(Element element)
+    private static void ReleaseVisualTree(Microsoft.Maui.IView element)
     {
         if (element == null) return;
 
