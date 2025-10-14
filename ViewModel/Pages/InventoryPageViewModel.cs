@@ -190,6 +190,11 @@ namespace Coftea_Capstone.ViewModel
             ApplyCategoryFilterInternal();
         }
 
+        partial void OnSelectedSortIndexChanged(int value)
+        {
+            ApplyCategoryFilterInternal();
+        }
+
         public void ApplyCategoryFilter()
         {
             ApplyCategoryFilterInternal();

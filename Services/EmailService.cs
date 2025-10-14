@@ -7,12 +7,13 @@ namespace Coftea_Capstone.Services
 {
     /// <summary>
     /// Email service specifically designed for MailHog SMTP server.
-    /// Uses configured MailHog host (default: 192.168.1.7:1025).
+    /// Supports manual IP input, auto-detection, and configured MailHog hosts.
     /// </summary>
     public class EmailService
     {
         private readonly string _mailHogHost;
         private readonly int _mailHogPort;
+        private string _manualMailHogHost;
 
         public EmailService(string mailHogHost = "192.168.1.7", int mailHogPort = 1025)
         {
@@ -24,17 +25,21 @@ namespace Coftea_Capstone.Services
         {
             try
             {
-                // Use configured MailHog host (your IP: 192.168.1.7)
-                var host = _mailHogHost;
+                // Localhost-first behavior for MailHog
+                // Priority: Manual MailHog host > Configured MailHog host > localhost
+                var host = _manualMailHogHost
+                           ?? _mailHogHost
+                           ?? "localhost"; // Default to localhost for MailHog
                 System.Diagnostics.Debug.WriteLine($"Attempting to send password reset email to: {email}");
                 System.Diagnostics.Debug.WriteLine($"Using MailHog host: {host}:{_mailHogPort}");
+                System.Diagnostics.Debug.WriteLine($"MailHog host source: {(_manualMailHogHost != null ? "Manual" : _mailHogHost != null ? "Configured" : "localhost")}");
                 System.Diagnostics.Debug.WriteLine($"Reset token: {resetToken}");
 
                 using var client = new SmtpClient(host, _mailHogPort);
                 client.EnableSsl = false; // MailHog doesn't use SSL
                 client.UseDefaultCredentials = false;
 
-                var resetLink = $"coftea://reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(resetToken)}";
+                var resetLink = $"http://localhost:3000/reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(resetToken)}";
                 System.Diagnostics.Debug.WriteLine($"Reset link: {resetLink}");
                 
                 var htmlBody = CreatePasswordResetEmailBody(resetLink);
@@ -81,10 +86,27 @@ namespace Coftea_Capstone.Services
             return CreatePasswordResetEmailBody(resetLink);
         }
 
+        public void SetManualMailHogHost(string host)
+        {
+            _manualMailHogHost = host;
+            System.Diagnostics.Debug.WriteLine($"Manual MailHog host set to: {host}");
+        }
+
+        public void ClearManualMailHogHost()
+        {
+            _manualMailHogHost = null;
+            System.Diagnostics.Debug.WriteLine("Manual MailHog host cleared, using auto-detection");
+        }
+
         public string GetCurrentMailHogHost()
         {
-            return _mailHogHost;
+            return _manualMailHogHost ?? _mailHogHost ?? NetworkConfigurationService.GetEmailHost();
         }
+
+        // Legacy method names for backward compatibility
+        public void SetManualEmailHost(string host) => SetManualMailHogHost(host);
+        public void ClearManualEmailHost() => ClearManualMailHogHost();
+        public string GetCurrentEmailHost() => GetCurrentMailHogHost();
 
         private string CreatePasswordResetEmailPlainText(string resetLink)
         {

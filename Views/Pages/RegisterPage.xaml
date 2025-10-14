@@ -27,7 +27,7 @@
                 <Grid RowDefinitions="Auto">
                     <FlexLayout Direction="Row" Wrap="NoWrap" AlignItems="Start" JustifyContent="Center" AlignContent="Start">
                         <Frame BackgroundColor="#BDAEA2"
-                               Padding="25,65,25,0"
+                               Padding="25,60,25,0"
                                CornerRadius="0"
                                BorderColor="Gray"
                                HasShadow="False"
@@ -35,6 +35,16 @@
                                HeightRequest="620">
 
                             <VerticalStackLayout Spacing="12">
+                                <!-- Back Button -->
+                                <HorizontalStackLayout HorizontalOptions="Start" Margin="0,0,0,10">
+                                    <Button Text="← Back to Login" 
+                                            BackgroundColor="Transparent" 
+                                            TextColor="White" 
+                                            FontSize="16"
+                                            Command="{Binding BackToLoginCommand}"
+                                            HorizontalOptions="Start"/>
+                                </HorizontalStackLayout>
+                                
                                 <HorizontalStackLayout Spacing="10">
                                     <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179" >
                                         <Entry Placeholder="First Name" PlaceholderColor="White" Text="{Binding FirstName}"/>
@@ -93,27 +103,13 @@
                                     <Label Text="I agree to the " VerticalOptions="Center" />
                                     <Label Text="Terms and Conditions" TextColor="Blue" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
-                                <!-- Back Button -->
-                                <HorizontalStackLayout HorizontalOptions="Center" Margin="0,0,0,10" Spacing="20">
-                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                        <Button Text="← Back to Login" 
-                                                Grid.Column="0"
-                                                BackgroundColor="#5B4F45"
-                                                TextColor="White" 
-                                                FontSize="16"
-                                                Command="{Binding BackToLoginCommand}"
-                                                HorizontalOptions="Center"/>
-                                        <!-- Submit Button -->
-                                        <Button Text="Register"
-                                                Grid.Column="1"
-                                                BackgroundColor="#5B4F45"
-                                                TextColor="White"
-                                                FontSize="16"
-                                                Command="{Binding RegisterCommand}"
-                                                CornerRadius="10"
-                                                HorizontalOptions="Center"/>
-                                    </Grid>
-                                </HorizontalStackLayout>
+
+                                <!-- Submit Button -->
+                                <Button Text="Register"
+                                        BackgroundColor="#5B4F45"
+                                        TextColor="White"
+                                        Command="{Binding RegisterCommand}"
+                                        CornerRadius="10"/>
                             </VerticalStackLayout>
                         </Frame>
 
