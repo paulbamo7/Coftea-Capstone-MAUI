@@ -39,7 +39,7 @@ namespace Coftea_Capstone.Platforms.Android
                 System.Diagnostics.Debug.WriteLine($"🔗 Android deep link: {url}");
                 
                 // Call the app's deep link handler
-                if (Application.Current is App app)
+                if (Microsoft.Maui.Controls.Application.Current is Coftea_Capstone.App app)
                 {
                     app.HandleDeepLink(url);
                 }

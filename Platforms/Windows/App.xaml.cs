@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Coftea_Capstone.Platforms.Windows
 {
-    public partial class App : Application
+    public partial class App : Microsoft.UI.Xaml.Application
     {
         public App()
         {
@@ -19,7 +19,7 @@ namespace Coftea_Capstone.Platforms.Windows
                 System.Diagnostics.Debug.WriteLine($"🔗 Windows deep link: {args.Arguments}");
                 
                 // Call the app's deep link handler
-                if (Microsoft.Maui.Controls.Application.Current is App app)
+                if (Microsoft.Maui.Controls.Application.Current is Coftea_Capstone.App app)
                 {
                     app.HandleDeepLink(args.Arguments);
                 }
