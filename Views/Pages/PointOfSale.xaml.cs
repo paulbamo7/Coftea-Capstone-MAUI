@@ -171,6 +171,63 @@ public partial class PointOfSale : ContentPage
         {
             POSViewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
+
+        // Detach size changed handler to avoid retaining the page
+        SizeChanged -= OnSizeChanged;
+
+        // Release heavy bindings to speed GC
+        if (PaymentPopupControl != null)
+        {
+            PaymentPopupControl.BindingContext = null;
+        }
+
+        // Aggressively release image sources and items sources to avoid GREF growth
+        try { ReleaseVisualTree(Content); } catch { }
+
+        // Finally drop page BindingContext (ViewModel is shared elsewhere)
+        BindingContext = null;
+    }
+
+    private static void ReleaseVisualTree(Element element)
+    {
+        if (element == null) return;
+
+        if (element is Image img)
+        {
+            img.Source = null;
+        }
+        else if (element is ImageButton imgBtn)
+        {
+            imgBtn.Source = null;
+        }
+        else if (element is CollectionView cv)
+        {
+            cv.ItemsSource = null;
+        }
+        else if (element is ListView lv)
+        {
+            lv.ItemsSource = null;
+        }
+
+        if (element is ContentView contentView && contentView.Content != null)
+        {
+            ReleaseVisualTree(contentView.Content);
+        }
+        else if (element is Layout layout)
+        {
+            foreach (var child in layout.Children)
+            {
+                ReleaseVisualTree(child);
+            }
+        }
+        else if (element is ScrollView sv && sv.Content != null)
+        {
+            ReleaseVisualTree(sv.Content);
+        }
+        else if (element is ContentPage page && page.Content != null)
+        {
+            ReleaseVisualTree(page.Content);
+        }
     }
 
     private void OnTestPaymentClicked(object sender, EventArgs e)

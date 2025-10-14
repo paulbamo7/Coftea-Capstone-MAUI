@@ -26,6 +26,69 @@ public partial class Inventory : ContentPage
 
     }
 
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        // Unsubscribe messaging to avoid retaining the page
+        MessagingCenter.Unsubscribe<AddItemToInventoryViewModel>(this, "InventoryChanged");
+
+        // Release heavy UI bindings if any
+        try
+        {
+            if (Content != null)
+            {
+                ReleaseVisualTree(Content);
+            }
+        }
+        catch { }
+
+        // Drop heavy bindings
+        BindingContext = null;
+    }
+
+    private static void ReleaseVisualTree(Element element)
+    {
+        if (element == null) return;
+
+        if (element is Image img)
+        {
+            img.Source = null;
+        }
+        else if (element is ImageButton imgBtn)
+        {
+            imgBtn.Source = null;
+        }
+        else if (element is CollectionView cv)
+        {
+            cv.ItemsSource = null;
+        }
+        else if (element is ListView lv)
+        {
+            lv.ItemsSource = null;
+        }
+
+        if (element is ContentView contentView && contentView.Content != null)
+        {
+            ReleaseVisualTree(contentView.Content);
+        }
+        else if (element is Layout layout)
+        {
+            foreach (var child in layout.Children)
+            {
+                ReleaseVisualTree(child);
+            }
+        }
+        else if (element is ScrollView sv && sv.Content != null)
+        {
+            ReleaseVisualTree(sv.Content);
+        }
+        else if (element is ContentPage page && page.Content != null)
+        {
+            ReleaseVisualTree(page.Content);
+        }
+    }
+
     private void OnBellClicked(object sender, EventArgs e)
     {
 		var popup = ((App)Application.Current).NotificationPopup;
