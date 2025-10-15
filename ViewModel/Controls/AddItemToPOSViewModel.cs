@@ -345,7 +345,7 @@ namespace Coftea_Capstone.ViewModel
                     if (rowsAffected > 0)
                     {
                         // If user selected inventory links during edit, replace existing links
-                        var selected = ConnectPOSToInventoryVM?.SelectedInventoryItems?.ToList() ?? new();
+                        var selected = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
                         if (selected.Count > 0)
                         {
                             var ingredients = selected
@@ -401,7 +401,7 @@ namespace Coftea_Capstone.ViewModel
                     product.ProductID = newProductId;
 
                     // Build product→inventory links (addons/ingredients)
-                    var selected = ConnectPOSToInventoryVM?.SelectedInventoryItems?.ToList() ?? new();
+                    var selected = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
                     if (selected.Count == 0)
                     {
                         await Application.Current.MainPage.DisplayAlert("Link ingredients", "Select ingredients or addons for this product. Opening selector...", "OK");

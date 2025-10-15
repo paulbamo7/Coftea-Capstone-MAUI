@@ -43,30 +43,75 @@
                                            Spacing="15"
                                            Margin="0,15,0,0">
                         <Button Text="{Binding SmallSizeText}"
-                                BackgroundColor="#E6DE9D"
+                                BackgroundColor="#FFEAD6"
                                 TextColor="Black"
                                 CornerRadius="14"
                                 WidthRequest="100"
                                 IsVisible="{Binding IsSmallSizeVisible}"
                                 Command="{Binding SetSizeCommand}"
-                                CommandParameter="Small"/>
+                                CommandParameter="Small">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="BackgroundColor" Value="#FFEAD6" />
+                                    <Setter Property="TextColor" Value="Black" />
+                                    <Style.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSize}" Value="Small">
+                                            <Setter Property="BackgroundColor" Value="#D4A574" />
+                                            <Setter Property="TextColor" Value="#2b2b2b" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                         <Button Text="{Binding MediumSizeText}"
-                                BackgroundColor="#E6DE9D"
+                                BackgroundColor="#FFEAD6"
                                 TextColor="Black"
                                 CornerRadius="14"
                                 WidthRequest="100"
                                 IsVisible="{Binding IsMediumSizeVisible}"
                                 Command="{Binding SetSizeCommand}"
-                                CommandParameter="Medium"/>
+                                CommandParameter="Medium">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="BackgroundColor" Value="#FFEAD6" />
+                                    <Setter Property="TextColor" Value="Black" />
+                                    <Style.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSize}" Value="Medium">
+                                            <Setter Property="BackgroundColor" Value="#D4A574" />
+                                            <Setter Property="TextColor" Value="#2b2b2b" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                         <Button Text="{Binding LargeSizeText}"
-                                BackgroundColor="#E6DE9D"
+                                BackgroundColor="#FFEAD6"
                                 TextColor="Black"
                                 CornerRadius="14"
                                 WidthRequest="100"
                                 IsVisible="{Binding IsLargeSizeVisible}"
                                 Command="{Binding SetSizeCommand}"
-                                CommandParameter="Large"/>
+                                CommandParameter="Large">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="BackgroundColor" Value="#FFEAD6" />
+                                    <Setter Property="TextColor" Value="Black" />
+                                    <Style.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSize}" Value="Large">
+                                            <Setter Property="BackgroundColor" Value="#D4A574" />
+                                            <Setter Property="TextColor" Value="#2b2b2b" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                     </HorizontalStackLayout>
+                    <!-- Selected size indicator -->
+                    <Label Text="{Binding SelectedSize, StringFormat='Current size: {0}'}"
+                           FontSize="13"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"
+                           Margin="0,6,0,0"/>
                 </VerticalStackLayout>
 
                 <!-- Selected Inventory Items Table -->

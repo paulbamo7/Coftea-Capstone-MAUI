@@ -9,6 +9,14 @@ namespace Coftea_Capstone.Views.Controls
 {
     public partial class SimplePieChart : ContentView
     {
+        public static readonly BindableProperty ShowLegendProperty =
+            BindableProperty.Create(nameof(ShowLegend), typeof(bool), typeof(SimplePieChart), true);
+
+        public bool ShowLegend
+        {
+            get => (bool)GetValue(ShowLegendProperty);
+            set => SetValue(ShowLegendProperty, value);
+        }
         public static readonly BindableProperty ItemsSourceProperty = 
             BindableProperty.Create(nameof(ItemsSource), typeof(IEnumerable<object>), typeof(SimplePieChart), 
                 propertyChanged: OnItemsSourceChanged);

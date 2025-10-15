@@ -1,216 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Coftea_Capstone.Views.Controls.AddItemToPOS"
-    xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
-    xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+    xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
     BackgroundColor="#80000000"
     IsVisible="{Binding IsAddItemToPOSVisible}"
     InputTransparent="False">
 
-    <Grid ColumnDefinitions="200, *" RowDefinitions="*" InputTransparent="False">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+        </ResourceDictionary>
+    </ContentView.Resources>
 
-        <VerticalStackLayout Grid.Column="1" Padding="40,60,40,60" Spacing="25">
-            <FlexLayout Direction="Row" Wrap="NoWrap" AlignItems="Start" JustifyContent="SpaceBetween" Padding="20,0,0,0">
+    <Grid HorizontalOptions="Center" VerticalOptions="Center">
+        <Frame
+            BackgroundColor="#F8E8D7"
+            CornerRadius="20"
+            HasShadow="True"
+            Padding="0"
+            WidthRequest="1050"
+            HeightRequest="700">
 
-                <!-- Left Panel: Product Details -->
-                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="440" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="0,0,20,0">
-                    <VerticalStackLayout Spacing="20">
+            <Grid ColumnDefinitions="500,2,*" RowDefinitions="*" BackgroundColor="#F8E8D7">
 
-                        <!-- Header -->
-                        <Label Text="Product Details" FontAttributes="Bold" FontSize="30" TextColor="Black" FontFamily="OpenSansSemibold" HorizontalOptions="Start"/>
+                <!-- LEFT PANEL -->
+                <VerticalStackLayout Padding="27" BackgroundColor="#F8E8D7">
+                    <Label Text="Add Item to POS"
+                           FontAttributes="Bold"
+                           FontSize="30"
+                           Margin="0,0,0,20"
+                           TextColor="Black" />
 
-                        <!-- Product Name -->
-                        <Label Text="Product Name" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
-                        <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                            <Entry Placeholder="Enter Product Name"
-                                   PlaceholderColor="#4B3832"
-                                   Text="{Binding ProductName}"
-                                   BackgroundColor="Transparent"
-                                   FontSize="16"
-                                   TextColor="Black"
-                                   FontFamily="OpenSansRegular"/>
-                        </Frame>
+                    <!-- PRODUCT NAME -->
+                    <Label Text="PRODUCT NAME" FontAttributes="Bold" FontSize="16" TextColor="Black" Padding="0,20,0,0"/>
+                    <Entry Placeholder="Enter product name"
+                           Text="{Binding ProductName}"
+                           Margin="0,0,0,10"
+                           FontSize="14"
+                           TextColor="Black"
+                           PlaceholderColor="Black"/>
 
-                        <!-- Product Image (optional) -->
-                        <Frame CornerRadius="20" BackgroundColor="#F8E8D7" HeightRequest="120" WidthRequest="200" Padding="8">
-                            <Grid>
-                                <Grid RowDefinitions="*,Auto">
-                                    <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit"/>
-                                    <Label Grid.Row="1" Text="No image selected (optional)" FontSize="12" TextColor="Black" HorizontalOptions="Center" IsVisible="False">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding SelectedImageSource}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="True" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
-                                </Grid>
-                                <Button BackgroundColor="Transparent" Command="{Binding PickImageCommand}"/>
+                    <!-- PRODUCT IMAGE -->
+                    <Label Text="PRODUCT IMAGE" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5" />
+                    <Frame CornerRadius="12"
+                           BackgroundColor="White"
+                           HasShadow="False"
+                           Padding="20"
+                           WidthRequest="400"
+                           HeightRequest="200">
+
+                        <Grid>
+                            <!-- Preview when image selected -->
+                            <Grid IsVisible="{Binding SelectedImageSource}">
+                                <Image Source="{Binding SelectedImageSource}"
+                                       Aspect="AspectFill"
+                                       WidthRequest="360"
+                                       HeightRequest="160" />
+
+                                <ImageButton Source="close.png"
+                                             WidthRequest="28"
+                                             HeightRequest="28"
+                                             BackgroundColor="#80000000"
+                                             CornerRadius="14"
+                                             HorizontalOptions="End"
+                                             VerticalOptions="Start"
+                                             Margin="6"
+                                             Command="{Binding RemoveImageCommand}" />
                             </Grid>
-                        </Frame>
 
-                        <!-- Category & Subcategory -->
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                            <VerticalStackLayout Spacing="8" Grid.Column="0">
-                                <Label Text="Category" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
-                                <Picker Title="Select Category"
-                                        ItemsSource="{Binding Categories}"
-                                        SelectedItem="{Binding SelectedCategory}"
-                                        FontSize="16"
-                                        TextColor="Black"
-                                        BackgroundColor="Transparent"
-                                        FontFamily="OpenSansRegular"
-                                        TitleColor="#4B3832"/>
+                            <!-- Upload placeholder -->
+                            <VerticalStackLayout HorizontalOptions="Center"
+                                                 VerticalOptions="Center"
+                                                 Spacing="10"
+                                                 IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}">
+                                <Image Source="uploadicon.png"
+                                       WidthRequest="40"
+                                       HeightRequest="40"
+                                       Opacity="0.85" />
+                                <Label Text="Choose a file or drag and drop it here"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="#6B5B3E"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="JPEG, PNG (max 3MB)"
+                                       FontSize="12"
+                                       TextColor="#9A8A6A"
+                                       HorizontalTextAlignment="Center" />
+                                <Button Text="Browse File"
+                                        Command="{Binding PickImageCommand}"
+                                        WidthRequest="120"
+                                        HeightRequest="36"
+                                        CornerRadius="18"
+                                        BackgroundColor="#E0E0E0"
+                                        TextColor="#333333"
+                                        FontAttributes="Bold" />
                             </VerticalStackLayout>
 
-                            <VerticalStackLayout Spacing="8" Grid.Column="1" IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
-                                <Label Text="Subcategory" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
-                                <Picker Title="Select Subcategory"
-                                        ItemsSource="{Binding FruitSodaSubcategories}"
-                                        SelectedItem="{Binding SelectedSubcategory}"
-                                        FontSize="16"
-                                        TextColor="Black"
-                                        BackgroundColor="Transparent"
-                                        FontFamily="OpenSansRegular"
-                                        TitleColor="#4B3832"/>
-                            </VerticalStackLayout>
+                            <Button BackgroundColor="Transparent"
+                                    Command="{Binding PickImageCommand}"
+                                    IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}"
+                                    HorizontalOptions="Fill"
+                                    VerticalOptions="Fill" />
+                        </Grid>
+                    </Frame>
 
-                            <VerticalStackLayout Spacing="8" Grid.Column="1" IsVisible="{Binding IsCoffeeSubcategoryVisible}">
-                                <Label Text="Subcategory" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
-                                <Picker Title="Select Subcategory"
-                                        ItemsSource="{Binding CoffeeSubcategories}"
-                                        SelectedItem="{Binding SelectedSubcategory}"
-                                        FontSize="16"
-                                        TextColor="Black"
-                                        BackgroundColor="Transparent"
-                                        FontFamily="OpenSansRegular"
-                                        TitleColor="#4B3832"/>
-                            </VerticalStackLayout>
+                    <!-- CATEGORY -->
+                    <Label Text="CATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5" />
+                    <Picker Title="Select Category"
+                            ItemsSource="{Binding Categories}"
+                            SelectedItem="{Binding SelectedCategory}"
+                            FontSize="14"
+                            TextColor="Black"
+                            HeightRequest="40"/>
+
+                    <!-- SUBCATEGORY for Fruit/Soda -->
+                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"
+                           IsVisible="{Binding IsFruitSodaSubcategoryVisible}" />
+                    <Picker Title="Select Subcategory"
+                            ItemsSource="{Binding FruitSodaSubcategories}"
+                            SelectedItem="{Binding SelectedSubcategory}"
+                            FontSize="14"
+                            TextColor="Black"
+                            HeightRequest="40"
+                            IsVisible="{Binding IsFruitSodaSubcategoryVisible}"/>
+
+                    <!-- SUBCATEGORY for Coffee -->
+                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"
+                           IsVisible="{Binding IsCoffeeSubcategoryVisible}" />
+                    <Picker Title="Select Subcategory"
+                            ItemsSource="{Binding CoffeeSubcategories}"
+                            SelectedItem="{Binding SelectedSubcategory}"
+                            FontSize="14"
+                            TextColor="Black"
+                            HeightRequest="40"
+                            IsVisible="{Binding IsCoffeeSubcategoryVisible}"/>
+
+                </VerticalStackLayout>
+
+                <!-- VERTICAL SEPARATOR -->
+                <BoxView Grid.Column="1"
+                         WidthRequest="2"
+                         Color="#C9A87C"
+                         VerticalOptions="Fill"
+                         HorizontalOptions="Center"/>
+
+                <!-- RIGHT PANEL -->
+                <ScrollView Grid.Column="2" Padding="30" BackgroundColor="#F8E8D7">
+                    <VerticalStackLayout Spacing="15" BackgroundColor="#F8E8D7" Padding="20,0,0,0">
+
+                        <!-- HEADER -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Label Text="Product Pricing" FontSize="27" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
+                            <ImageButton Source="close.png"
+                                         WidthRequest="25"
+                                         HeightRequest="25"
+                                         Grid.Column="1"
+                                         VerticalOptions="Center"
+                                         Command="{Binding CloseAddItemToPOSCommand}"/>
                         </Grid>
 
-                        <!-- Color Code -->
-                        <Label Text="Color Code" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
-                        <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                            <Entry Placeholder="Enter Color Code (e.g., #FF5733)"
-                                   PlaceholderColor="#4B3832"
-                                   Keyboard="Text"
-                                   Text="{Binding ProductColorCode}"
-                                   BackgroundColor="Transparent"
-                                   FontSize="16"
-                                   TextColor="Black"
-                                   FontFamily="OpenSansRegular"/>
-                        </Frame>
-                    </VerticalStackLayout>
-                </Frame>
+                        <!-- PRICE INPUTS -->
+                        <Label Text="SET PRODUCT PRICES" FontAttributes="Bold" FontSize="18" TextColor="Black" Margin="0,10,0,5"/>
 
-                <!-- Right Panel: Pricing & Description -->
-                <Frame CornerRadius="30" BackgroundColor="#F8E8D7" HasShadow="True" HeightRequest="600" WidthRequest="440" Padding="30" MaximumWidthRequest="520" FlexLayout.Grow="1" Margin="5,0,0,0">
-                    <VerticalStackLayout Spacing="20">
-
-                        <!-- Header -->
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="Product Size" FontAttributes="Bold" FontSize="30" Grid.Column="0" VerticalOptions="Center" TextColor="Black" FontFamily="OpenSansSemibold"/>
-                            <ImageButton Source="close.png" WidthRequest="30" HeightRequest="30" Grid.Column="1" VerticalOptions="Center" Command="{Binding CloseAddItemToPOSCommand}"/>
-                        </Grid>
-
-                        <!-- Pricing Grid -->
-                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" HorizontalOptions="Fill">
-                            <!-- Small Price - Only visible for Coffee -->
-                            <VerticalStackLayout Spacing="8" Grid.Column="0" IsVisible="{Binding IsSmallPriceVisible}">
-                                <Label Text="Small Price" FontSize="16" TextColor="Black" FontFamily="OpenSansRegular" HorizontalOptions="Center"/>
-                                <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                                    <Entry Placeholder="Small Price"
-                                           Keyboard="Numeric"
-                                           Text="{Binding SmallPrice}"
-                                           BackgroundColor="Transparent"
-                                           TextColor="Black"
-                                           FontSize="14"
-                                           FontFamily="OpenSans-Regular"
-                                           HorizontalOptions="Fill"/>
-                                </Frame>
+                        <HorizontalStackLayout Spacing="20">
+                            <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
+                                <Label Text="SMALL" FontAttributes="Bold" FontSize="16" TextColor="Black" />
+                                <Entry Placeholder="Enter small size price"
+                                       Text="{Binding SmallPrice}"
+                                       Keyboard="Numeric"
+                                       TextColor="Black"
+                                       FontSize="14"
+                                       WidthRequest="150"
+                                       HeightRequest="40"/>
                             </VerticalStackLayout>
 
-                            <!-- Medium Price - Always visible -->
-                            <VerticalStackLayout Spacing="8" Grid.Column="1" IsVisible="{Binding IsMediumPriceVisible}">
-                                <Label Text="Medium Price" FontSize="16" TextColor="Black" FontFamily="OpenSansRegular" HorizontalOptions="Center"/>
-                                <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                                    <Entry Placeholder="Medium Price"
-                                           Keyboard="Numeric"
-                                           Text="{Binding MediumPrice}"
-                                           BackgroundColor="Transparent"
-                                           TextColor="Black"
-                                           FontSize="14"
-                                           FontFamily="OpenSans-Regular"
-                                           HorizontalOptions="Fill">
-                                        <Entry.Triggers>
-                                            <DataTrigger TargetType="Entry" Binding="{Binding IsSmallPriceVisible}" Value="False">
-                                                <Setter Property="Text" Value="" />
-                                            </DataTrigger>
-                                        </Entry.Triggers>
-                                    </Entry>
-                                </Frame>
+                            <VerticalStackLayout>
+                                <Label Text="MEDIUM" FontAttributes="Bold" FontSize="16" TextColor="Black" />
+                                <Entry Placeholder="Enter medium size price"
+                                       Text="{Binding MediumPrice}"
+                                       Keyboard="Numeric"
+                                       TextColor="Black"
+                                       FontSize="14"
+                                       WidthRequest="150"
+                                       HeightRequest="40"/>
                             </VerticalStackLayout>
 
-                            <!-- Large Price - Always visible -->
-                            <VerticalStackLayout Spacing="8" Grid.Column="2" IsVisible="{Binding IsLargePriceVisible}">
-                                <Label Text="Large Price" FontSize="16" TextColor="Black" FontFamily="OpenSansRegular" HorizontalOptions="Center"/>
-                                <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                                    <Entry Placeholder="Large Price"
-                                           Keyboard="Numeric"
-                                           Text="{Binding LargePrice}"
-                                           BackgroundColor="Transparent"
-                                           TextColor="Black"
-                                           FontSize="14"
-                                           FontFamily="OpenSans-Regular"
-                                           HorizontalOptions="Fill">
-                                        <Entry.Triggers>
-                                            <DataTrigger TargetType="Entry" Binding="{Binding IsSmallPriceVisible}" Value="False">
-                                                <Setter Property="Text" Value="" />
-                                            </DataTrigger>
-                                        </Entry.Triggers>
-                                    </Entry>
-                                </Frame>
+                            <VerticalStackLayout>
+                                <Label Text="LARGE" FontAttributes="Bold" FontSize="16" TextColor="Black" />
+                                <Entry Placeholder="Enter large size price"
+                                       Text="{Binding LargePrice}"
+                                       Keyboard="Numeric"
+                                       TextColor="Black"
+                                       FontSize="14"
+                                       WidthRequest="150"
+                                       HeightRequest="40"/>
                             </VerticalStackLayout>
-                        </Grid>
+                        </HorizontalStackLayout>
 
-                        <!-- Description -->
-                        <Label Text="Description (Optional)" FontSize="18" TextColor="Black" FontFamily="OpenSansRegular"/>
-                        <Frame CornerRadius="12" Padding="8" BackgroundColor="Transparent" BorderColor="#B89C83" HasShadow="False">
-                            <Editor Placeholder="Enter product description..."
-                                    Text="{Binding ProductDescription}"
-                                    BackgroundColor="Transparent"
-                                    TextColor="Black"
-                                    FontSize="16"
-                                    HeightRequest="160"
-                                    FontFamily="OpenSans-Regular"/>
-                        </Frame>
+                        <!-- DESCRIPTION -->
+                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"/>
+                        <Editor Placeholder="Enter product description..."
+                                Text="{Binding ProductDescription}"
+                                HeightRequest="120"
+                                BackgroundColor="#FFFFFF"
+                                TextColor="Black"/>
 
-                        <!-- Action Buttons -->
-                        <HorizontalStackLayout HorizontalOptions="End" Spacing="20">
-                            <Button Text="Close" WidthRequest="130" HeightRequest="50"
+                        <!-- BUTTONS -->
+                        <HorizontalStackLayout HorizontalOptions="End" Spacing="20" Margin="0,20,0,0">
+                            <Button Text="Cancel"
+                                    WidthRequest="130"
                                     BackgroundColor="#D3D3D3"
                                     TextColor="Black"
+                                    Command="{Binding CloseAddItemToPOSCommand}"
                                     CornerRadius="25"
-                                    Command="{Binding CloseAddItemToPOSCommand}"/>
-                            <Button Text="Next" WidthRequest="160" HeightRequest="50"
-                                    BackgroundColor="#E6DE9D"
+                                    FontAttributes="Bold"/>
+
+                            <Button Text="Next"
+                                    WidthRequest="150"
+                                    BackgroundColor="#FFCC00"
                                     TextColor="Black"
+                                    Command="{Binding OpenConnectPOSToInventoryCommand}"
                                     CornerRadius="25"
-                                    Command="{Binding OpenConnectPOSToInventoryCommand}"/>
+                                    FontAttributes="Bold"/>
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
-                </Frame>
-
-            </FlexLayout>
-        </VerticalStackLayout>
-
-        <!-- Subcomponents moved to page level in PointOfSale.xaml -->
-
-        <!-- History popup for selected items -->
-        <otherViews:HistoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=HistoryPopup}" Grid.ColumnSpan="2"/>
-
-        <!-- Success popup -->
-        <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" />
-
+                </ScrollView>
+            </Grid>
+        </Frame>
     </Grid>
 </ContentView>
