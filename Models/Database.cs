@@ -210,7 +210,7 @@ namespace Coftea_Capstone.Models
                 CREATE TABLE IF NOT EXISTS transaction_items (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     transactionID INT NOT NULL,
-                    productID INT NOT NULL,
+                    productID INT,
                     productName VARCHAR(255) NOT NULL,
                     quantity INT NOT NULL,
                     price DECIMAL(10,2) NOT NULL,
@@ -220,25 +220,9 @@ namespace Coftea_Capstone.Models
                     addonPrice DECIMAL(10,2) DEFAULT 0.00,
                     addOns TEXT,
                     size VARCHAR(20),
-                    FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
-                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
+                    CONSTRAINT fk_tx_items_tx FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
+                    CONSTRAINT fk_tx_items_product FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
                 );
-                
-                -- Add new columns if they don't exist (for existing databases)
-                ALTER TABLE transaction_items 
-                ADD COLUMN IF NOT EXISTS smallPrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS mediumPrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS largePrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS addonPrice DECIMAL(10,2) DEFAULT 0.00,
-                ADD COLUMN IF NOT EXISTS addOns TEXT;
-                
-                -- Add maximum quantity column to inventory table
-                ALTER TABLE inventory 
-                ADD COLUMN IF NOT EXISTS maximumQuantity DECIMAL(10,2) DEFAULT 0;
-                
-                -- Add color code column to products table
-                ALTER TABLE products 
-                ADD COLUMN IF NOT EXISTS colorCode VARCHAR(20) DEFAULT NULL;
                 
                 -- Update existing columns to have better precision
                 ALTER TABLE product_addons 
@@ -262,24 +246,7 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(createTablesSql, conn);
             await cmd.ExecuteNonQueryAsync();
 
-            // Add status column to existing users table if it doesn't exist
-            var alterTableSql = @"
-                ALTER TABLE users 
-                ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'approved',
-                ADD COLUMN IF NOT EXISTS can_access_inventory BOOLEAN DEFAULT FALSE,
-                ADD COLUMN IF NOT EXISTS can_access_sales_report BOOLEAN DEFAULT FALSE,
-                ADD COLUMN IF NOT EXISTS username VARCHAR(100),
-                ADD COLUMN IF NOT EXISTS fullName VARCHAR(200),
-                ADD COLUMN IF NOT EXISTS profileImage VARCHAR(255) DEFAULT 'usericon.png';
-                
-                ALTER TABLE transactions 
-                ADD COLUMN IF NOT EXISTS paymentMethod VARCHAR(50) DEFAULT 'Cash';
-                
-                ALTER TABLE inventory 
-                ADD COLUMN IF NOT EXISTS maximumQuantity DECIMAL(10,2) DEFAULT 0;
-            ";
-            await using var alterCmd = new MySqlCommand(alterTableSql, conn);
-            await alterCmd.ExecuteNonQueryAsync();
+            // No additional ALTER statements needed; CREATE TABLE with IF NOT EXISTS ensures schema is present.
 
             // Ensure at least one user exists to prevent foreign key constraint errors
             await EnsureDefaultUserExistsAsync(conn);
@@ -300,23 +267,10 @@ namespace Coftea_Capstone.Models
                 WHERE NOT EXISTS (SELECT 1 FROM inventory WHERE itemName = 'Straw') LIMIT 1;
             ";
 
-            // Fix Fruit series UoM from ml/L to kg/g
-            var fixFruitUoMSql = @"
-                UPDATE inventory 
-                SET unitOfMeasurement = CASE 
-                    WHEN unitOfMeasurement = 'ml' THEN 'g'
-                    WHEN unitOfMeasurement = 'L' THEN 'kg'
-                    ELSE unitOfMeasurement
-                END
-                WHERE itemCategory = 'Fruit/Soda' 
-                AND (unitOfMeasurement = 'ml' OR unitOfMeasurement = 'L');
-            ";
             await using var seedCmd = new MySqlCommand(seedSql, conn);
             await seedCmd.ExecuteNonQueryAsync();
 
-            // Execute the Fruit UoM fix
-            await using var fixFruitCmd = new MySqlCommand(fixFruitUoMSql, conn);
-            await fixFruitCmd.ExecuteNonQueryAsync();
+            // Legacy Fruit/Soda UoM fix removed; units should be set correctly at source.
         }
 
         // Shared DB helpers to reduce redundancy
@@ -826,38 +780,24 @@ namespace Coftea_Capstone.Models
 
             try
             {
-                // First, check if product exists
+                // Ensure product exists
                 var checkSql = "SELECT COUNT(*) FROM products WHERE productID = @ProductID;";
                 await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
                 checkCmd.Parameters.AddWithValue("@ProductID", productId);
                 var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
-                
                 if (exists == 0)
                 {
                     await tx.RollbackAsync();
-                    return 0; // Product doesn't exist
+                    return 0;
                 }
 
-                // Delete related records first (foreign key constraints will handle this with CASCADE)
-                // But we'll be explicit to avoid any issues
-                var deleteIngredientsSql = "DELETE FROM product_ingredients WHERE productID = @ProductID;";
-                await using var ingredientsCmd = new MySqlCommand(deleteIngredientsSql, conn, tx);
-                ingredientsCmd.Parameters.AddWithValue("@ProductID", productId);
-                await ingredientsCmd.ExecuteNonQueryAsync();
-
-                var deleteAddonsSql = "DELETE FROM product_addons WHERE productID = @ProductID;";
-                await using var addonsCmd = new MySqlCommand(deleteAddonsSql, conn, tx);
-                addonsCmd.Parameters.AddWithValue("@ProductID", productId);
-                await addonsCmd.ExecuteNonQueryAsync();
-
-                // Now delete the product
+                // Delete the product; FK cascades will remove product_ingredients / product_addons automatically
                 var sql = "DELETE FROM products WHERE productID = @ProductID;";
                 await using var cmd = new MySqlCommand(sql, conn, tx);
                 cmd.Parameters.AddWithValue("@ProductID", productId);
-
                 var rows = await cmd.ExecuteNonQueryAsync();
+
                 await tx.CommitAsync();
-                
                 InvalidateProductsCache();
                 InvalidateProductLinksCache(productId);
                 return rows;
@@ -1348,54 +1288,24 @@ namespace Coftea_Capstone.Models
 
             try
             {
-                // First, check if item exists
+                // Ensure the item exists
                 var checkSql = "SELECT COUNT(*) FROM inventory WHERE itemID = @ItemID;";
                 await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
                 checkCmd.Parameters.AddWithValue("@ItemID", itemId);
                 var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
-                
                 if (exists == 0)
                 {
                     await tx.RollbackAsync();
-                    return 0; // Item doesn't exist
+                    return 0;
                 }
 
-                // Check if item is used in any products
-                var usageCheckSql = @"
-                    SELECT COUNT(*) FROM (
-                        SELECT 1 FROM product_ingredients WHERE itemID = @ItemID
-                        UNION ALL
-                        SELECT 1 FROM product_addons WHERE itemID = @ItemID
-                    ) as usage_check;";
-                await using var usageCmd = new MySqlCommand(usageCheckSql, conn, tx);
-                usageCmd.Parameters.AddWithValue("@ItemID", itemId);
-                var usageCount = Convert.ToInt32(await usageCmd.ExecuteScalarAsync());
-                
-                if (usageCount > 0)
-                {
-                    await tx.RollbackAsync();
-                    throw new InvalidOperationException("Cannot delete inventory item that is used in products. Please remove it from all products first.");
-                }
-
-                // Delete related records first (foreign key constraints will handle this with CASCADE)
-                var deleteIngredientsSql = "DELETE FROM product_ingredients WHERE itemID = @ItemID;";
-                await using var ingredientsCmd = new MySqlCommand(deleteIngredientsSql, conn, tx);
-                ingredientsCmd.Parameters.AddWithValue("@ItemID", itemId);
-                await ingredientsCmd.ExecuteNonQueryAsync();
-
-                var deleteAddonsSql = "DELETE FROM product_addons WHERE itemID = @ItemID;";
-                await using var addonsCmd = new MySqlCommand(deleteAddonsSql, conn, tx);
-                addonsCmd.Parameters.AddWithValue("@ItemID", itemId);
-                await addonsCmd.ExecuteNonQueryAsync();
-
-                // Now delete the inventory item
+                // Let FK cascades handle link cleanup; just delete the inventory row
                 var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
                 await using var cmd = new MySqlCommand(sql, conn, tx);
                 cmd.Parameters.AddWithValue("@ItemID", itemId);
-
                 var rows = await cmd.ExecuteNonQueryAsync();
+
                 await tx.CommitAsync();
-                
                 InvalidateInventoryCache();
                 return rows;
             }

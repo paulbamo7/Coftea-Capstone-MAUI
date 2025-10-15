@@ -345,19 +345,22 @@ namespace Coftea_Capstone.ViewModel
                     if (rowsAffected > 0)
                     {
                         // If user selected inventory links during edit, replace existing links
-                        var selected = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
-                        if (selected.Count > 0)
+                        var selectedIngredientsOnly = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
+                        var selectedAddonsOnly = ConnectPOSToInventoryVM?.SelectedAddons?.ToList() ?? new();
+                        if (selectedIngredientsOnly.Count > 0 || selectedAddonsOnly.Count > 0)
                         {
-                            var ingredients = selected
-                                .Where(i => !IsAddonCategory(i.itemCategory))
+                            // Treat everything selected in ConnectPOS as ingredients by default,
+                            // except items explicitly chosen in the Addons popup (SelectedAddons)
+                            var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
+                            var ingredients = selectedIngredientsOnly
+                                .Where(i => !addonIds.Contains(i.itemID))
                                 .Select(i => (
                                     inventoryItemId: i.itemID,
                                     amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
                                     unit: (string?)i.unitOfMeasurement
                                 ));
 
-                            var addons = selected
-                                .Where(i => IsAddonCategory(i.itemCategory))
+                            var addons = selectedAddonsOnly
                                 .Select(i => (
                                     inventoryItemId: i.itemID,
                                     amount: i.InputAmount > 0 ? i.InputAmount : 1,
@@ -390,6 +393,19 @@ namespace Coftea_Capstone.ViewModel
                         return;
                     }
 
+                    // Require at least one ingredient or addon BEFORE inserting product
+                    var selectedIngredientsOnly = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
+                    var selectedAddonsOnly = ConnectPOSToInventoryVM?.SelectedAddons?.ToList() ?? new();
+                    if (selectedIngredientsOnly.Count == 0 && selectedAddonsOnly.Count == 0)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("Link ingredients", "Select ingredients or addons for this product. Opening selector...", "OK");
+                        if (ConnectPOSToInventoryVM != null)
+                        {
+                            ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = true;
+                        }
+                        return;
+                    }
+
                     // Insert product and get new ID
                     int newProductId = await _database.SaveProductReturningIdAsync(product);
                     if (newProductId <= 0)
@@ -401,28 +417,17 @@ namespace Coftea_Capstone.ViewModel
                     product.ProductID = newProductId;
 
                     // Build product→inventory links (addons/ingredients)
-                    var selected = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
-                    if (selected.Count == 0)
                     {
-                        await Application.Current.MainPage.DisplayAlert("Link ingredients", "Select ingredients or addons for this product. Opening selector...", "OK");
-                        if (ConnectPOSToInventoryVM != null)
-                        {
-                            ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = true;
-                        }
-                        return;
-                    }
-                    else
-                    {
-						var ingredients = selected
-							.Where(i => !IsAddonCategory(i.itemCategory))
+						var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
+						var ingredients = selectedIngredientsOnly
+							.Where(i => !addonIds.Contains(i.itemID))
 							.Select(i => (
 								inventoryItemId: i.itemID,
 								amount: (i.InputAmount > 0 ? i.InputAmount : 1),
 								unit: (string?)(i.InputUnit ?? i.unitOfMeasurement)
 							));
 
-						var addons = selected
-							.Where(i => IsAddonCategory(i.itemCategory))
+						var addons = selectedAddonsOnly
 							.Select(i => {
 								System.Diagnostics.Debug.WriteLine($"🔧 Addon: {i.itemName}");
 								System.Diagnostics.Debug.WriteLine($"🔧 InputAmount: {i.InputAmount}, InputUnit: '{i.InputUnit}'");

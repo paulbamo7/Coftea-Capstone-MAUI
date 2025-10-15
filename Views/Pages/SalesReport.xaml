@@ -158,8 +158,8 @@
                         <Grid RowDefinitions="Auto,*,Auto">
                             <!-- Header -->
                             <Grid ColumnDefinitions="*,Auto">
-                                <Label Text="Top 3 Picks Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                                <Label Text="{Binding FilteredTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1" FontSize="14" TextColor="Gray"/>
+                            <Label Text="Top 3 Picks Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
+                            <Label Text="{Binding FilteredTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1" FontSize="14" TextColor="Gray"/>
                             </Grid>
 
                             <!-- Pie left, Names right -->
@@ -171,31 +171,31 @@
                                                           WidthRequest="160"
                                                           ShowLegend="False"
                                                           ItemsSource="{Binding TopItemsToday}" 
-                                                          Item1Name="{Binding Item1Name}" 
-                                                          Item2Name="{Binding Item2Name}" 
-                                                          Item3Name="{Binding Item3Name}"
-                                                          Item1Count="{Binding Item1Count}"
-                                                          Item2Count="{Binding Item2Count}"
-                                                          Item3Count="{Binding Item3Count}"
-                                                          Item1HasTrend="{Binding Item1HasTrend}"
-                                                          Item2HasTrend="{Binding Item2HasTrend}"
-                                                          Item3HasTrend="{Binding Item3HasTrend}"/>
+                                                      Item1Name="{Binding Item1Name}" 
+                                                      Item2Name="{Binding Item2Name}" 
+                                                      Item3Name="{Binding Item3Name}"
+                                                      Item1Count="{Binding Item1Count}"
+                                                      Item2Count="{Binding Item2Count}"
+                                                      Item3Count="{Binding Item3Count}"
+                                                      Item1HasTrend="{Binding Item1HasTrend}"
+                                                      Item2HasTrend="{Binding Item2HasTrend}"
+                                                      Item3HasTrend="{Binding Item3HasTrend}"/>
 
-                                <VerticalStackLayout Grid.Column="1" Spacing="12" HorizontalOptions="End" VerticalOptions="Start" Margin="0,20,8,0">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
-                                        <BoxView WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#66BB6A"/>
-                                        <Label Grid.Column="1" Text="{Binding Item1Name}" FontSize="14" TextColor="#5B4F45"/>
-                                        <Label Grid.Column="2" Text="{Binding Item1Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
+                                <VerticalStackLayout Grid.Column="1" Spacing="12" HorizontalOptions="End" VerticalOptions="Start" Margin="8,20,0,0">
+                                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="6">
+                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#66BB6A"/>
+                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item1Name}" FontSize="14" TextColor="#5B4F45"/>
+                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item1Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
                                     </Grid>
-                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
-                                        <BoxView WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#8D6E63"/>
-                                        <Label Grid.Column="1" Text="{Binding Item2Name}" FontSize="14" TextColor="#5B4F45"/>
-                                        <Label Grid.Column="2" Text="{Binding Item2Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
+                                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="6">
+                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#8D6E63"/>
+                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item2Name}" FontSize="14" TextColor="#5B4F45"/>
+                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item2Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
                                     </Grid>
-                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
-                                        <BoxView WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#795548"/>
-                                        <Label Grid.Column="1" Text="{Binding Item3Name}" FontSize="14" TextColor="#5B4F45"/>
-                                        <Label Grid.Column="2" Text="{Binding Item3Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
+                                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="6">
+                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#795548"/>
+                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item3Name}" FontSize="14" TextColor="#5B4F45"/>
+                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item3Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
                                     </Grid>
                                 </VerticalStackLayout>
                             </Grid>
@@ -211,7 +211,7 @@
                             </VerticalStackLayout>
                             
                             <!-- Time Period Filter Buttons -->
-                            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="3">
+                            <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="3">
                                 <Button Text="Yesterday" 
                                         Padding="0"
                                         Grid.Column="0"
@@ -272,6 +272,22 @@
                                         CommandParameter="All">
                                     <Button.Triggers>
                                         <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="All">
+                                            <Setter Property="BackgroundColor" Value="#81C784" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Text="Today" 
+                                        FontSize="9" 
+                                        Padding="0"
+                                        Grid.Column="4"
+                                        TextColor="White" 
+                                        BackgroundColor="#4CAF50" 
+                                        HeightRequest="25" 
+                                        CornerRadius="4"
+                                        Command="{Binding SelectTimePeriodCommand}" 
+                                        CommandParameter="Today">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Today">
                                             <Setter Property="BackgroundColor" Value="#81C784" />
                                         </DataTrigger>
                                     </Button.Triggers>
