@@ -171,14 +171,82 @@
                     </Frame>
 
                     <!-- Right Column: Total Cash Accumulated -->
-                    <Frame Grid.Column="2" BackgroundColor="#2E7D32" CornerRadius="12" Padding="20" HasShadow="True" HeightRequest="230" VerticalOptions="Start">
+                    <Frame Grid.Column="2" BackgroundColor="#2E7D32" CornerRadius="12" Padding="20" HasShadow="True" HeightRequest="280" VerticalOptions="Start">
                         <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
                             <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                                <Label Text="💰 Total Cash Accumulated" FontAttributes="Bold" FontSize="18" TextColor="White" HorizontalOptions="Center"/>
-                                <Label Text="All-time cumulative sales totals" FontSize="12" TextColor="#E8F5E8" HorizontalOptions="Center"/>
+                                <Label Text="💰 Total Sales" FontAttributes="Bold" FontSize="18" TextColor="White" HorizontalOptions="Center"/>
+                                <Label Text="{Binding SelectedTimePeriod, StringFormat='{0} sales totals'}" FontSize="12" TextColor="#E8F5E8" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
                             
-                            <Label Text="{Binding CumulativeTotalSales, StringFormat='₱{0:N2}'}" 
+                            <!-- Time Period Filter Buttons -->
+                            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="3">
+                                <Button Text="Yesterday" 
+                                        Padding="0"
+                                        Grid.Column="0"
+                                        FontSize="9" 
+                                        TextColor="White" 
+                                        BackgroundColor="#4CAF50" 
+                                        HeightRequest="25" 
+                                        CornerRadius="4"
+                                        Command="{Binding SelectTimePeriodCommand}" 
+                                        CommandParameter="Yesterday">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Yesterday">
+                                            <Setter Property="BackgroundColor" Value="#81C784" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Text="Weekly" 
+                                        FontSize="9" 
+                                        Padding="0"
+                                        Grid.Column="1"
+                                        TextColor="White" 
+                                        BackgroundColor="#4CAF50" 
+                                        HeightRequest="25" 
+                                        CornerRadius="4"
+                                        Command="{Binding SelectTimePeriodCommand}" 
+                                        CommandParameter="Weekly">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Weekly">
+                                            <Setter Property="BackgroundColor" Value="#81C784" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Text="Monthly" 
+                                        FontSize="9"
+                                        Padding="0"
+                                        Grid.Column="2"
+                                        TextColor="White" 
+                                        BackgroundColor="#4CAF50" 
+                                        HeightRequest="25" 
+                                        CornerRadius="4"
+                                        Command="{Binding SelectTimePeriodCommand}" 
+                                        CommandParameter="Monthly">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Monthly">
+                                            <Setter Property="BackgroundColor" Value="#81C784" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Text="All" 
+                                        FontSize="9" 
+                                        Padding="0"
+                                        Grid.Column="2"
+                                        TextColor="White" 
+                                        BackgroundColor="#4CAF50" 
+                                        HeightRequest="25" 
+                                        CornerRadius="4"
+                                        Command="{Binding SelectTimePeriodCommand}" 
+                                        CommandParameter="All">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="All">
+                                            <Setter Property="BackgroundColor" Value="#81C784" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </Grid>
+                            
+                            <Label Text="{Binding DisplayTotalSales, StringFormat='₱{0:N2}'}" 
                                    FontSize="28" 
                                    FontAttributes="Bold" 
                                    TextColor="White" 
@@ -187,7 +255,7 @@
                             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
                                 <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="4">
                                     <Label Text="Cash" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding CumulativeCashTotal, StringFormat='₱{0:N2}'}" 
+                                    <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" 
                                            FontSize="14" 
                                            FontAttributes="Bold" 
                                            TextColor="White" 
@@ -195,7 +263,7 @@
                                 </VerticalStackLayout>
                                 <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="4">
                                     <Label Text="GCash" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding CumulativeGCashTotal, StringFormat='₱{0:N2}'}" 
+                                    <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" 
                                            FontSize="14" 
                                            FontAttributes="Bold" 
                                            TextColor="White" 
@@ -203,23 +271,13 @@
                                 </VerticalStackLayout>
                                 <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="4">
                                     <Label Text="Bank" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding CumulativeBankTotal, StringFormat='₱{0:N2}'}" 
+                                    <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" 
                                            FontSize="14" 
                                            FontAttributes="Bold" 
                                            TextColor="White" 
                                            HorizontalOptions="Center"/>
                                 </VerticalStackLayout>
                             </Grid>
-                            
-                            <Button Text="Reset" 
-                                    BackgroundColor="#FF5722" 
-                                    TextColor="White" 
-                                    FontSize="12" 
-                                    Padding="0"
-                                    HeightRequest="30" 
-                                    CornerRadius="6"
-                                    Command="{Binding ResetCumulativeTotalsCommand}"
-                                    HorizontalOptions="Center"/>
                         </VerticalStackLayout>
                     </Frame>
                 </Grid>

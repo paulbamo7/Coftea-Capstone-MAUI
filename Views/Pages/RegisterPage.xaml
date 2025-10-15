@@ -35,15 +35,6 @@
                                HeightRequest="620">
 
                             <VerticalStackLayout Spacing="12">
-                                <!-- Back Button -->
-                                <HorizontalStackLayout HorizontalOptions="Start" Margin="0,0,0,10">
-                                    <Button Text="← Back to Login" 
-                                            BackgroundColor="Transparent" 
-                                            TextColor="White" 
-                                            FontSize="16"
-                                            Command="{Binding BackToLoginCommand}"
-                                            HorizontalOptions="Start"/>
-                                </HorizontalStackLayout>
                                 
                                 <HorizontalStackLayout Spacing="10">
                                     <Border Stroke="Gray" StrokeShape="RoundRectangle 12" StrokeThickness="2" HeightRequest="45" WidthRequest="179" >
@@ -103,13 +94,23 @@
                                     <Label Text="I agree to the " VerticalOptions="Center" />
                                     <Label Text="Terms and Conditions" TextColor="Blue" VerticalOptions="Center"/>
                                 </HorizontalStackLayout>
-
-                                <!-- Submit Button -->
-                                <Button Text="Register"
-                                        BackgroundColor="#5B4F45"
-                                        TextColor="White"
-                                        Command="{Binding RegisterCommand}"
-                                        CornerRadius="10"/>
+                                <!-- Back Button -->
+                                <HorizontalStackLayout HorizontalOptions="Start" Margin="0,0,0,10" Spacing="20">
+                                    <Button Text="← Back to Login" 
+                                            BackgroundColor="Red" 
+                                            TextColor="White" 
+                                            FontSize="14"
+                                            Command="{Binding BackToLoginCommand}"
+                                            HorizontalOptions="Start"/>
+                                    <!-- Submit Button -->
+                                    <Button Text="Register"
+                                            BackgroundColor="#5B4F45"
+                                            TextColor="White"
+                                            FontSize="14"
+                                            Command="{Binding RegisterCommand}"
+                                            CornerRadius="10"
+                                            />
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Frame>
 

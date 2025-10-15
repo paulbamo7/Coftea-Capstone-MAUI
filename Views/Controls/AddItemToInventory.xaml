@@ -1,258 +1,233 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Coftea_Capstone.Views.Controls.AddItemToInventory"
-             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
-             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
-             BackgroundColor="#80000000"
-             IsVisible="{Binding IsAddItemToInventoryVisible}"
-             InputTransparent="False">
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.AddItemToInventory"
+    xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsAddItemToInventoryVisible}"
+    InputTransparent="False">
 
     <ContentView.Resources>
         <ResourceDictionary>
-            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <!-- Add Item to Inventory Section -->
-    <Grid ColumnDefinitions="200, *" RowDefinitions="*" InputTransparent="False">
+    <Grid HorizontalOptions="Center" VerticalOptions="Center">
+        <Frame
+            BackgroundColor="#F8E8D7"
+            CornerRadius="20"
+            HasShadow="True"
+            Padding="0"
+            WidthRequest="1050"
+            HeightRequest="700">
 
-        <!-- Background Gradient -->
-        <VerticalStackLayout Grid.Column="1" Padding="30,60,0,0">
-            <HorizontalStackLayout Spacing="20">
+            <Grid ColumnDefinitions="500,2,*" RowDefinitions="*" BackgroundColor="#F8E8D7">
 
-                <!-- Left Column -->
-                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="440" BackgroundColor="#F8E8D7" CornerRadius="20">
-                    <VerticalStackLayout Spacing="15" Padding="20">
-                        <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,20">
-                            <Label Grid.Column="1" Text="Add Item To Inventory" FontAttributes="Bold" FontSize="28" HorizontalOptions="Start" TextColor="Black"/>
+                <!-- LEFT PANEL -->
+                <VerticalStackLayout Padding="27" BackgroundColor="#F8E8D7">
+                    <Label Text="Add Item To Inventory"
+                           FontAttributes="Bold"
+                           FontSize="30"
+                           Margin="0,0,0,20"
+                           TextColor="Black" />
+
+                    <!-- STOCK NAME -->
+                    <Label Text="STOCK NAME" FontAttributes="Bold" FontSize="16" TextColor="Black" Padding="0,20,0,0"/>
+                    <Entry Placeholder="Enter stock name"
+                           Text="{Binding ItemName}"
+                           Margin="0,0,0,10"
+                           FontSize="14"
+                           TextColor="Black"
+                           PlaceholderColor="Black"/>
+
+                    <!-- STOCK IMAGE (updated with upload prompt) -->
+                    <Label Text="STOCK IMAGE"
+                           FontAttributes="Bold"
+                           FontSize="16"
+                           TextColor="Black"
+                           Margin="0,20,0,5" />
+
+                    <Frame CornerRadius="12"
+                           BackgroundColor="White"
+                           HasShadow="False"
+                           Padding="20"
+                           WidthRequest="400"
+                           HeightRequest="200">
+
+                        <Grid>
+                            <!-- Preview area (visible when an image is selected) -->
+                            <Grid IsVisible="{Binding SelectedImageSource}">
+                                <Image Source="{Binding SelectedImageSource}"
+                                       Aspect="AspectFill"
+                                       WidthRequest="360"
+                                       HeightRequest="160" />
+
+                                <ImageButton Source="close.png"
+                                             WidthRequest="28"
+                                             HeightRequest="28"
+                                             BackgroundColor="#80000000"
+                                             CornerRadius="14"
+                                             HorizontalOptions="End"
+                                             VerticalOptions="Start"
+                                             Margin="6"
+                                             Command="{Binding RemoveImageCommand}" />
+                            </Grid>
+
+                            <!-- Upload Placeholder (visible when no image selected) -->
+                            <VerticalStackLayout HorizontalOptions="Center"
+                                               VerticalOptions="Center"
+                                               Spacing="10"
+                                               IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}">
+                                <Image Source="uploadicon.png"
+                                       WidthRequest="40"
+                                       HeightRequest="40"
+                                       Opacity="0.85" />
+                                <Label Text="Choose a file or drag and drop it here"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="#6B5B3E"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="JPEG, PNG (max 3MB)"
+                                       FontSize="12"
+                                       TextColor="#9A8A6A"
+                                       HorizontalTextAlignment="Center" />
+                                <Button Text="Browse File"
+                                        Command="{Binding PickImageCommand}"
+                                        WidthRequest="120"
+                                        HeightRequest="36"
+                                        CornerRadius="18"
+                                        BackgroundColor="#E0E0E0"
+                                        TextColor="#333333"
+                                        FontAttributes="Bold" />
+                            </VerticalStackLayout>
+
+                            <!-- Invisible overlay so whole area is clickable -->
+                            <Button BackgroundColor="Transparent"
+                                    Command="{Binding PickImageCommand}"
+                                    IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}"
+                                    HorizontalOptions="Fill"
+                                    VerticalOptions="Fill" />
+                        </Grid>
+                    </Frame>
+
+                    <!-- PRODUCT CATEGORY -->
+                    <Label Text="PRODUCT CATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5" />
+                    <Picker Title="Select Category"
+                            ItemsSource="{Binding Categories}"
+                            SelectedItem="{Binding ItemCategory}"
+                            FontSize="14"
+                            TextColor="Black"
+                            HeightRequest="40"/>
+                </VerticalStackLayout>
+
+                <!-- VERTICAL SEPARATOR -->
+                <BoxView Grid.Column="1"
+                         WidthRequest="2"
+                         Color="#C9A87C"
+                         VerticalOptions="Fill"
+                         HorizontalOptions="Center"/>
+
+                <!-- RIGHT PANEL -->
+                <ScrollView Grid.Column="2" Padding="30" BackgroundColor="#F8E8D7">
+                    <VerticalStackLayout Spacing="15" BackgroundColor="#F8E8D7" Padding="20,0,0,0">
+
+                        <!-- HEADER -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Label Text="Measurement Details" FontSize="27" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
+                            <ImageButton Source="close.png"
+                                         WidthRequest="25"
+                                         HeightRequest="25"
+                                         Grid.Column="1"
+                                         VerticalOptions="Center"
+                                         Command="{Binding CloseAddItemToInventoryCommand}"/>
                         </Grid>
 
-                        <Label Text="STOCK NAME" FontSize="18" FontAttributes="Bold" TextColor="Black"/>
-                        <Entry Placeholder="Enter stock name" PlaceholderColor="Gray" Text="{Binding ItemName}" 
-                               TextColor="Black" FontSize="16"/>
-
-                        <Label Text="STOCK IMAGE" FontSize="18" FontAttributes="Bold" TextColor="Black" Margin="0,20,0,0"/>
-                        <Frame BorderColor="#D0D0D0" CornerRadius="15" HeightRequest="120" WidthRequest="200" BackgroundColor="White" 
-                               HorizontalOptions="Center" HasShadow="True">
-                            <Grid>
-                                <Button BackgroundColor="Transparent" Command="{Binding PickImageCommand}" />
-                                <Image Source="{Binding SelectedImageSource}" Aspect="AspectFit" />
-                                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" 
-                                                     IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}">
-                                    <Image Source="uploadicon.png" WidthRequest="40" HeightRequest="40" HorizontalOptions="Center"/>
-                                    <Label Text="Click to upload or drag and drop" HorizontalOptions="Center" 
-                                           HorizontalTextAlignment="Center" TextColor="#666666" FontSize="14" Margin="0,10,0,0"/>
-                                    <Label Text="PNG, JPG (max 3MB)" HorizontalOptions="Center" 
-                                           HorizontalTextAlignment="Center" TextColor="#666666" FontSize="12"/>
-                                </VerticalStackLayout>
-                                <ImageButton Source="close.png" WidthRequest="20" HeightRequest="20" 
-                                             HorizontalOptions="End" VerticalOptions="End" Margin="0,0,10,10"
-                                             IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}, ConverterParameter=Invert}"
-                                             Command="{Binding ClearImageCommand}"/>
-                            </Grid>
-                        </Frame>
-
-                        <Label Text="PRODUCT CATEGORY" FontSize="18" FontAttributes="Bold" TextColor="Black" Margin="0,20,0,0"/>
-                        <Picker Title="Select Category" 
-                                ItemsSource="{Binding Categories}" 
-                                SelectedItem="{Binding ItemCategory}"
-                                FontSize="16"                  
-                                TextColor="Black"/>
-                    </VerticalStackLayout>
-                </Frame>
-
-                <!-- Right Column -->
-                <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="440" BackgroundColor="#F8E8D7" CornerRadius="20">
-                    <ScrollView>
-                        <VerticalStackLayout Spacing="7" Padding="20">
-
-                            <!-- Header -->
-                            <Grid Margin="0,0,0,20">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Label Text="Measurement Details" FontAttributes="Bold" FontSize="28" VerticalOptions="Center" Grid.Column="0" TextColor="Black"/>
-                                <ImageButton Source="close.png" WidthRequest="25" HeightRequest="25" Grid.Column="1" 
-                                             VerticalOptions="Center" Command="{Binding CloseAddItemToInventoryCommand}"/>
-                            </Grid>
-
-                            <!-- UoM-only stock input -->
-                            <VerticalStackLayout IsVisible="{Binding IsUoMOnlyCategory}">
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="STOCK QUANTITY" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                    <Label Grid.Column="1" Text="UNIT OF MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
-                                    <Entry Grid.Column="0"
-                                           Placeholder="Enter stock quantity"
-                                           Text="{Binding UoMQuantity}" 
-                                           Keyboard="Numeric" 
-                                           TextColor="Black" FontSize="16"/>
-                                    <Picker Grid.Column="1"
-                                            Title="Select UoM"
-                                            ItemsSource="{Binding UoMOptions}"
-                                            SelectedItem="{Binding SelectedUoM}"
-                                            FontSize="16" TextColor="Black"/>
-                                </Grid>
-                                
-                                <!-- Conversion Display -->
-                                <Frame IsVisible="{Binding ShowConversionInfo}"
-                                       BackgroundColor="#E8F5E8"
-                                       CornerRadius="8"
-                                       Padding="10"
-                                       Margin="0,10,0,0">
-                                    <Label Text="{Binding ConvertedQuantityDisplay}"
-                                           FontSize="14"
-                                           TextColor="#2E7D32"
-                                           HorizontalTextAlignment="Center"/>
-                                </Frame>
+                        <!-- STOCK QUANTITY & UOM -->
+                        <HorizontalStackLayout Spacing="20">
+                            <VerticalStackLayout>
+                                <Label Text="STOCK QUANTITY" FontAttributes="Bold" FontSize="16" TextColor="Black" Padding="0,20,0,0"/>
+                                <Entry Placeholder="Enter quantity"
+                                       Text="{Binding UoMQuantity}"
+                                       Keyboard="Numeric"
+                                       TextColor="Black"
+                                       FontSize="14"
+                                       WidthRequest="200"
+                                       HeightRequest="40"/>
                             </VerticalStackLayout>
 
-                            <!-- Pieces-only categories -->
-                            <VerticalStackLayout IsVisible="{Binding IsPiecesOnlyCategory}">
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="STOCK QUANTITY" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                    <Label Grid.Column="1" Text="MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
-                                    <Entry Grid.Column="0"
-                                           Placeholder="Enter quantity"
-                                           Text="{Binding UoMQuantity}"
-                                           Keyboard="Numeric" 
-                                           TextColor="Black" FontSize="16"/>
-                                    <Picker Grid.Column="1"
-                                            Title="Select UoM"
-                                            ItemsSource="{Binding UoMOptions}"
-                                            SelectedItem="{Binding SelectedUoM}"
-                                            FontSize="16" TextColor="Black"/>
-                                </Grid>
-                            </VerticalStackLayout>
-
-                            <!-- Pieces-only: minimum quantity -->
-                            <VerticalStackLayout IsVisible="{Binding IsPiecesOnlyCategory}" Margin="0,20,0,0">
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="MINIMUM QUANTITY LEVEL" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                    <Label Grid.Column="1" Text="MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
-                                    <Entry Grid.Column="0"
-                                           Placeholder="Enter minimum quantity"
-                                           Text="{Binding MinimumQuantity}"
-                                           Keyboard="Numeric" 
-                                           TextColor="Black" FontSize="16"/>
-                                    <Picker Grid.Column="1"
-                                            Title="Select UoM"
-                                            ItemsSource="{Binding UoMOptions}"
-                                            SelectedItem="{Binding SelectedMinimumUoM}" 
-                                            FontSize="16" TextColor="Black"/>
-                                </Grid>
-                            </VerticalStackLayout>
-
-                            <!-- Pieces-only: maximum quantity -->
-                            <VerticalStackLayout IsVisible="{Binding IsPiecesOnlyCategory}" Margin="0,20,0,0">
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="MAXIMUM QUANTITY LEVEL" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                    <Label Grid.Column="1" Text="MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
-                                    <Entry Grid.Column="0"
-                                           Placeholder="Enter maximum quantity (optional)"
-                                           Text="{Binding MaximumQuantity}"
-                                           Keyboard="Numeric" 
-                                           TextColor="Black" FontSize="16"/>
-                                    <Picker Grid.Column="1"
-                                            Title="Select UoM"
-                                            ItemsSource="{Binding UoMOptions}"
-                                            SelectedItem="{Binding SelectedMaximumUoM}" 
-                                            FontSize="16" TextColor="Black"/>
-                                </Grid>
-                            </VerticalStackLayout>
-
-                            <!-- UoM-only: minimum UoM -->
-                            <VerticalStackLayout IsVisible="{Binding IsUoMOnlyCategory}" Margin="0,20,0,0">
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="MINIMUM UoM LEVEL" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                    <Label Grid.Column="1" Text="UNIT OF MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
-                                    <Entry Grid.Column="0"
-                                           Placeholder="Quantity"
-                                           Text="{Binding MinimumUoMQuantity}"
-                                           Keyboard="Numeric" 
-                                           TextColor="Black" FontSize="16"/>
-                                    <Picker Grid.Column="1"
-                                            Title="Select UoM"
-                                            ItemsSource="{Binding UoMOptions}"
-                                            SelectedItem="{Binding SelectedMinimumUoM}" 
-                                            FontSize="16" TextColor="Black"/>
-                                </Grid>
-                                
-                                <!-- Minimum Conversion Display -->
-                                <Frame IsVisible="{Binding ConvertedMinimumDisplay, Converter={StaticResource NullToBoolConverter}}"
-                                       BackgroundColor="#FFF3E0"
-                                       CornerRadius="8"
-                                       Padding="10"
-                                       Margin="0,10,0,0">
-                                    <Label Text="{Binding ConvertedMinimumDisplay}"
-                                           FontSize="14"
-                                           TextColor="#E65100"
-                                           HorizontalTextAlignment="Center"/>
-                                </Frame>
-                            </VerticalStackLayout>
-
-                            <!-- UoM-only: maximum UoM -->
-                            <VerticalStackLayout IsVisible="{Binding IsUoMOnlyCategory}" Margin="0,20,0,0">
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
-                                    <Label Grid.Column="0" Text="MAXIMUM UoM LEVEL" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                    <Label Grid.Column="1" Text="UNIT OF MEASUREMENT" FontSize="16" FontAttributes="Bold" TextColor="Black"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,*" ColumnSpacing="20" Margin="0,5,0,0">
-                                    <Entry Grid.Column="0"
-                                           Placeholder="Quantity (optional)"
-                                           Text="{Binding MaximumUoMQuantity}"
-                                           Keyboard="Numeric" 
-                                           TextColor="Black" FontSize="16"/>
-                                    <Picker Grid.Column="1"
-                                            Title="Select UoM"
-                                            ItemsSource="{Binding UoMOptions}"
-                                            SelectedItem="{Binding SelectedMaximumUoM}" 
-                                            FontSize="16" TextColor="Black"/>
-                                </Grid>
-                                
-                                <!-- Maximum Conversion Display -->
-                                <Frame IsVisible="{Binding ConvertedMaximumDisplay, Converter={StaticResource NullToBoolConverter}}"
-                                       BackgroundColor="#E8F5E8"
-                                       CornerRadius="8"
-                                       Padding="10"
-                                       Margin="0,10,0,0">
-                                    <Label Text="{Binding ConvertedMaximumDisplay}"
-                                           FontSize="14"
-                                           TextColor="#2E7D32"
-                                           HorizontalTextAlignment="Center"/>
-                                </Frame>
-                            </VerticalStackLayout>
-
-                            <!-- Description -->
-                            <Label Text="DESCRIPTION (OPTIONAL)" FontSize="18" FontAttributes="Bold" TextColor="Black" Margin="0,20,0,10"/>
-                            <Frame BackgroundColor="White" CornerRadius="10" Padding="15" HasShadow="False">
-                                <Editor Placeholder="Enter item description..." 
-                                        HeightRequest="120" 
-                                        Text="{Binding ItemDescription}" 
-                                        BackgroundColor="Transparent"
+                            <VerticalStackLayout>
+                                <Label Text="UNIT OF MEASUREMENT" FontAttributes="Bold" FontSize="16" TextColor="Black"  Padding="0,20,0,0"/>
+                                <Picker Title="Select UoM"
+                                        ItemsSource="{Binding UoMOptions}"
+                                        SelectedItem="{Binding SelectedUoM}"
+                                        FontSize="14"
                                         TextColor="Black"
-                                        FontSize="16"/>
-                            </Frame>
+                                        WidthRequest="200"
+                                        HeightRequest="40"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
 
-                            <!-- Add Button -->
-                            <Button Text="Add Item" WidthRequest="150" BackgroundColor="#FFD700" TextColor="Black" 
-                                    Command="{Binding AddItemCommand}" HorizontalOptions="End" Margin="0,20,0,0"
-                                    FontSize="16" FontAttributes="Bold" CornerRadius="25"/>
-                        </VerticalStackLayout>
-                    </ScrollView>
-                </Frame>
-            </HorizontalStackLayout>
-        </VerticalStackLayout>
+                        <!-- MINIMUM STOCK SECTION -->
+                        <Label Text="MINIMUM STOCK LEVEL" FontAttributes="Bold" FontSize="27" TextColor="Black" Margin="0,40,0,0"/>
+                        <HorizontalStackLayout Spacing="20">
+                            <VerticalStackLayout>
+                                <Label Text="MINIMUM QUANTITY" FontAttributes="Bold" FontSize="18" TextColor="Black" />
+                                <Entry Placeholder="Enter minimum quantity"
+                                       Text="{Binding MinimumQuantity}"
+                                       Keyboard="Numeric"
+                                       TextColor="Black"
+                                       FontSize="14"
+                                       WidthRequest="200"
+                                       HeightRequest="40"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout>
+                                <Label Text="MINIMUM UoM" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
+                                <HorizontalStackLayout Spacing="10">
+                                    <Entry Placeholder="Quantity"
+                                           Text="{Binding MinimumUoMQuantity}"
+                                           Keyboard="Numeric"
+                                           TextColor="Black"
+                                           FontSize="14"
+                                           WidthRequest="100"/>
+                                    <Picker Title="Select UoM"
+                                            ItemsSource="{Binding UoMOptions}"
+                                            SelectedItem="{Binding SelectedMinimumUoM}"
+                                            FontSize="14"
+                                            TextColor="Black"
+                                            WidthRequest="150"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <!-- DESCRIPTION -->
+                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"/>
+                        <Editor Placeholder="Enter item description..."
+                                Text="{Binding ItemDescription}"
+                                HeightRequest="120"
+                                BackgroundColor="#FFFFFF"
+                                TextColor="Black"/>
+
+                        <!-- ADD BUTTON -->
+                        <Button Text="Add Item"
+                                WidthRequest="150"
+                                BackgroundColor="#FFCC00"
+                                TextColor="Black"
+                                Command="{Binding AddItemCommand}"
+                                HorizontalOptions="End"
+                                Margin="0,20,0,0"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                CornerRadius="25"/>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Grid>
+        </Frame>
     </Grid>
 </ContentView>

@@ -57,21 +57,28 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             try
             {
-                // Ensure Today filter is selected by default
-                SelectedFilter = "Today";
+                // Ensure a sane default; do not toggle while user is switching
+                if (string.IsNullOrWhiteSpace(SelectedFilter))
+                    SelectedFilter = "Today";
                 
                 // Load all transactions from database
                 await LoadAllTransactionsAsync();
                 
-                // Also add any in-memory transactions if provided
+                // Also merge any in-memory transactions if provided, de-duplicated by
+                // TransactionId+Date+DrinkName to avoid duplicates when IDs are temporary
                 if (transactions != null && transactions.Any())
                 {
                     foreach (var transaction in transactions)
                     {
-                        if (!AllTransactions.Any(t => t.TransactionId == transaction.TransactionId))
-                        {
+                        bool exists = AllTransactions.Any(t =>
+                            t.TransactionId == transaction.TransactionId ||
+                            (t.TransactionDate == transaction.TransactionDate &&
+                             string.Equals(t.DrinkName, transaction.DrinkName, StringComparison.OrdinalIgnoreCase) &&
+                             t.Total == transaction.Total &&
+                             t.Quantity == transaction.Quantity));
+
+                        if (!exists)
                             AllTransactions.Add(transaction);
-                        }
                     }
                 }
                 
@@ -107,15 +114,10 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             System.Diagnostics.Debug.WriteLine($"FilterByTimePeriod called with: {timePeriod}");
             
-            // Update the selected filter
-            SelectedFilter = timePeriod;
-            
-            // If filtering for older periods, load more data from database
-            if (timePeriod == "1 Month Ago" || timePeriod == "All Time")
-            {
-                await LoadAllTransactionsAsync();
-            }
-            
+            // Update the selected filter, then load precisely that range
+            SelectedFilter = timePeriod?.Trim();
+
+            await LoadAllTransactionsAsync();
             ApplyTransactionFilter();
             
             System.Diagnostics.Debug.WriteLine($"SelectedFilter is now: {SelectedFilter}");
@@ -196,7 +198,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                         startDate = DateTime.Today.AddDays(-30);
                         break;
                     case "All Time":
-                        startDate = DateTime.Today.AddDays(-365); // Load 1 year of data
+                        startDate = DateTime.MinValue.AddDays(1); // support earliest
+                        endDate = DateTime.Today.AddDays(1);
                         break;
                     default:
                         startDate = DateTime.Today.AddDays(-30); // Default to 30 days

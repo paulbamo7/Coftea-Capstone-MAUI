@@ -16,9 +16,12 @@
     </ContentView.Resources>
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
-        <Grid.GestureRecognizers>
-            <TapGestureRecognizer Command="{Binding CloseHistoryCommand}" />
-        </Grid.GestureRecognizers>
+        <!-- Background overlay that closes on tap -->
+        <BoxView BackgroundColor="#80000000" InputTransparent="False">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseHistoryCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
 
         <!-- Main Frame -->
         <Frame VerticalOptions="Center"

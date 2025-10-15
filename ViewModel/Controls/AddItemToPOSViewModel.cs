@@ -375,7 +375,7 @@ namespace Coftea_Capstone.ViewModel
                             }
                         }
                         await Application.Current.MainPage.DisplayAlert("Success", "Product updated successfully!", "OK");
-                        await DeductSelectedIngredientsAsync();
+                        // Do NOT deduct inventory here; deduction happens only upon successful transaction/payment
                         ResetForm();
                         ProductUpdated?.Invoke(product);
                     }
@@ -462,7 +462,7 @@ namespace Coftea_Capstone.ViewModel
                         $"{product.ProductName} has been added to the menu",
                         $"ID: {newProductId}",
                         1500);
-                    await DeductSelectedIngredientsAsync();
+                    // Do NOT deduct inventory here; deduction happens only upon successful transaction/payment
                     ResetForm();
                     ProductAdded?.Invoke(product);
                         }

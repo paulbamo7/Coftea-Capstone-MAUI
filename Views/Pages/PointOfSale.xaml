@@ -295,7 +295,13 @@
 
                                                     <!-- Left side: name -->
                                                     <StackLayout Orientation="Horizontal" Spacing="8" VerticalOptions="Center" Grid.Column="0">
-                                                        <CheckBox IsChecked="{Binding IsSelected}" />
+                                                        <CheckBox IsChecked="{Binding IsSelected}"
+                                                                 Color="#2B2B2B"
+                                                                 BackgroundColor="Transparent"
+                                                                 WidthRequest="22"
+                                                                 HeightRequest="22"
+                                                                 HorizontalOptions="Center"
+                                                                 VerticalOptions="Center" />
                                                         <Label Text="{Binding itemName}" TextColor="Black" FontSize="14" VerticalOptions="Center" HorizontalOptions="StartAndExpand" LineBreakMode="TailTruncation" />
                                                     </StackLayout>
 
