@@ -39,12 +39,17 @@ namespace Coftea_Capstone.ViewModel
 							(!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(sub, StringComparison.OrdinalIgnoreCase))));
 					}
 				}
-				else
-				{
-					filtered = filtered.Where(p => p != null && (
-						(!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(main, StringComparison.OrdinalIgnoreCase)) ||
-						(!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(main, StringComparison.OrdinalIgnoreCase))));
-				}
+                else
+                {
+                    // First filter by main category strictly against Category
+                    filtered = filtered.Where(p => p != null && (!string.IsNullOrWhiteSpace(p.Category) && p.Category.Trim().Equals(main, StringComparison.OrdinalIgnoreCase)));
+
+                    // Then, if a subcategory is provided, narrow further
+                    if (!string.IsNullOrWhiteSpace(sub))
+                    {
+                        filtered = filtered.Where(p => p != null && (!string.IsNullOrWhiteSpace(p.Subcategory) && p.Subcategory.Trim().Equals(sub, StringComparison.OrdinalIgnoreCase)));
+                    }
+                }
 			}
 
 			return filtered;

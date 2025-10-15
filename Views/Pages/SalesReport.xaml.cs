@@ -93,6 +93,19 @@ public partial class SalesReport : ContentPage
         popup?.ToggleCommand.Execute(null);
     }
 
+    private void OnProfileClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var app = (App)Application.Current;
+            app?.ProfilePopup?.ShowProfile();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error opening profile: {ex.Message}");
+        }
+    }
+
     private void OnSizeChanged(object sender, EventArgs e)
     {
         double pageWidth = Width;

@@ -104,4 +104,17 @@ public partial class Inventory : ContentPage
             vm.ApplyCategoryFilter();
         }
     }
+
+    private void OnProfileClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var app = (App)Application.Current;
+            app?.ProfilePopup?.ShowProfile();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error opening profile: {ex.Message}");
+        }
+    }
 }

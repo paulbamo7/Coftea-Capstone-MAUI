@@ -46,6 +46,7 @@
                                      WidthRequest="40" 
                                      HeightRequest="40" 
                                      BackgroundColor="Transparent"
+                                     Clicked="OnProfileClicked"
                                      ZIndex="0"/>
                     </Grid>
                 </Grid>
