@@ -16,21 +16,8 @@ namespace Coftea_Capstone.Services
                 return;
             }
 
-            // Push the page without animation first
+            // Animations disabled
             await navigationPage.PushAsync(page, false);
-
-            // Wait for the page to be fully loaded
-            await Task.Delay(100);
-
-            // Set initial state for the new page
-            page.Opacity = 0;
-            page.TranslationX = 300; // Start from the right
-
-            // Animate the page in
-            await Task.WhenAll(
-                page.FadeTo(1, 300, Easing.CubicOut),
-                page.TranslateTo(0, 0, 300, Easing.CubicOut)
-            );
         }
 
         public static async Task PopWithAnimationAsync(this NavigationPage navigationPage, bool animated = false)
@@ -41,16 +28,7 @@ namespace Coftea_Capstone.Services
                 return;
             }
 
-            var currentPage = navigationPage.CurrentPage;
-            if (currentPage == null) return;
-
-            // Animate the current page out
-            await Task.WhenAll(
-                currentPage.FadeTo(0, 250, Easing.CubicIn),
-                currentPage.TranslateTo(300, 0, 250, Easing.CubicIn)
-            );
-
-            // Pop the page
+            // Animations disabled
             await navigationPage.PopAsync(false);
         }
 
@@ -62,16 +40,7 @@ namespace Coftea_Capstone.Services
                 return;
             }
 
-            var currentPage = navigationPage.CurrentPage;
-            if (currentPage == null) return;
-
-            // Animate the current page out
-            await Task.WhenAll(
-                currentPage.FadeTo(0, 250, Easing.CubicIn),
-                currentPage.TranslateTo(300, 0, 250, Easing.CubicIn)
-            );
-
-            // Pop to root
+            // Animations disabled
             await navigationPage.PopToRootAsync(false);
         }
 
@@ -100,32 +69,10 @@ namespace Coftea_Capstone.Services
                 var currentPage = navigationPage.CurrentPage;
                 if (currentPage == null) return;
 
-                // Show loading overlay
+                // Animations disabled
                 await ShowLoadingOverlayAsync(navigationPage);
-
-                // Animate current page out
-                await Task.WhenAll(
-                    currentPage.FadeTo(0, 250, Easing.CubicIn),
-                    currentPage.TranslateTo(-300, 0, 250, Easing.CubicIn)
-                );
-
-                // Use safer navigation method
                 await SafeReplacePageAsync(navigationPage, newPage);
-
-                // Wait for the new page to be fully loaded
-                await Task.Delay(100);
-
-                // Set initial state for the new page
-                newPage.Opacity = 0;
-                newPage.TranslationX = 300;
-
-                // Animate new page in
-                await Task.WhenAll(
-                    newPage.FadeTo(1, 300, Easing.CubicOut),
-                    newPage.TranslateTo(0, 0, 300, Easing.CubicOut)
-                );
-
-                // Hide loading overlay
+                await Task.Delay(50);
                 await HideLoadingOverlayAsync();
             }
             catch (Exception ex)
