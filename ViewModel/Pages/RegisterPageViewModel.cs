@@ -9,7 +9,6 @@ using System.IO;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.Models;
 using System.Text.RegularExpressions;
-using BCrypt.Net;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -20,7 +19,7 @@ namespace Coftea_Capstone.ViewModel
 
         public RegisterPageViewModel()
         {
-            _database = new Database(); // Will use auto-detected host
+            _database = new Database();
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
@@ -39,13 +38,7 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private DateTime birthday = DateTime.Today;
 
         [RelayCommand]
-        private async Task GoToLogin()
-        {
-            await Application.Current.MainPage.Navigation.PopAsync();
-        }
-
-        [RelayCommand]
-        private async Task BackToLogin()
+        private async Task BackToLogin() // Navigate back to Login page
         {
             await Application.Current.MainPage.Navigation.PopAsync();
         }
@@ -53,21 +46,19 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task Register()
         {
-            // First Name validation
+            // Validations
             if (string.IsNullOrWhiteSpace(FirstName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "First Name is required.", "OK");
                 return;
             }
 
-            // Last Name validation
             if (string.IsNullOrWhiteSpace(LastName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Last Name is required.", "OK");
                 return;
             }
 
-            // Email validation
             if (string.IsNullOrWhiteSpace(Email))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Email is required.", "OK");
@@ -79,7 +70,6 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            // Password validation
             if (string.IsNullOrWhiteSpace(Password))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Password is required.", "OK");
@@ -91,39 +81,35 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            // Confirm password
             if (Password != ConfirmPassword)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Passwords do not match.", "OK");
                 return;
             }
 
-            // Phone number validation
             if (string.IsNullOrWhiteSpace(PhoneNumber))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Phone Number is required.", "OK");
                 return;
             }
+
             if (!Regex.IsMatch(PhoneNumber.Trim(), @"^\+?\d{10,15}$"))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Enter a valid phone number.", "OK");
                 return;
             }
 
-            // Address validation
             if (string.IsNullOrWhiteSpace(Address))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Address is required.", "OK");
                 return;
             }
 
-            // Birthday validation (optional: cannot be in the future)
             if (Birthday > DateTime.Today)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Birthday cannot be in the future.", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Birthday cannot be past the current date.", "OK");
                 return;
             }
-            // Terms & Conditions
             if (!IsTermsAccepted)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "You must accept the Terms and Conditions to register.", "OK");
@@ -151,7 +137,7 @@ namespace Coftea_Capstone.ViewModel
 
                 if (isFirstUser)
                 {
-                    // First user gets direct registration with admin privileges
+                    // First register becomes admin
                     var user = new UserInfoModel
                     {
                         Email = Email.Trim(),
@@ -169,7 +155,7 @@ namespace Coftea_Capstone.ViewModel
                 }
                 else
                 {
-                    // Subsequent users create pending requests
+                    // Users request for registration approval
                     var pendingRequest = new UserPendingRequest
                     {
                         Email = Email.Trim(),

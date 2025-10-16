@@ -8,8 +8,6 @@ using Microsoft.Maui.Storage;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.ViewModel.Controls;
 using System.Threading.Tasks;
-using System;
-using BCrypt.Net;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -27,7 +25,7 @@ namespace Coftea_Capstone.ViewModel
 
         public LoginPageViewModel()
         {
-            _database = new Database(); // Will use auto-detected host
+            _database = new Database();
             _emailService = new EmailService();
             PasswordResetPopup = ((App)Application.Current).PasswordResetPopup;
 
@@ -41,7 +39,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup() // Retry Connection Error Popup
         {
             return ((App)Application.Current).RetryConnectionPopup;
         }
@@ -80,12 +78,14 @@ namespace Coftea_Capstone.ViewModel
                 }
                 catch (System.FormatException)
                 {
-                    // Likely a legacy plaintext password (invalid salt). Fallback once, then upgrade.
                     passwordValid = string.Equals(Password, user.Password);
                     if (passwordValid)
                     {
                         var newHash = BCrypt.Net.BCrypt.HashPassword(Password);
-                        try { await _database.UpdateUserPasswordAsync(user.ID, newHash); } catch { /* ignore */ }
+                        try { await _database.UpdateUserPasswordAsync(user.ID, newHash); } catch 
+                        {
+
+                        }
                     }
                 }
 
@@ -96,8 +96,7 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                // Set current user - ensure admin users always have full access
-                if (user.IsAdmin)
+                if (user.IsAdmin) // Ensures that admin has access to all modules
                 {
                     user.CanAccessInventory = true;
                     user.CanAccessSalesReport = true;
@@ -107,7 +106,7 @@ namespace Coftea_Capstone.ViewModel
                 // Save preferences
                 Preferences.Set("IsLoggedIn", true);
                 Preferences.Set("IsAdmin", user.IsAdmin);
-                if (RememberMe)
+                if (RememberMe) 
                 {
                     Preferences.Set("RememberMe", true);
                     Preferences.Set("Email", Email);
@@ -120,17 +119,9 @@ namespace Coftea_Capstone.ViewModel
                     Preferences.Remove("Password");
                 }
 
-                // Navigate to dashboard with animation
+                // Navigate to dashboard
                 var mainPage = new NavigationPage(new EmployeeDashboard());
                 Application.Current.MainPage = mainPage;
-                
-                // Add a subtle fade-in animation for the dashboard after it's loaded
-                await Task.Delay(100); // Wait for page to be fully loaded
-                if (mainPage.CurrentPage is EmployeeDashboard dashboard)
-                {
-                    dashboard.Opacity = 0;
-                    await dashboard.FadeTo(1, 500, Easing.CubicOut);
-                }
 
                 ClearEntries();
             }
@@ -144,16 +135,15 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-
         [RelayCommand]
-        private async Task GoToRegister()
+        private async Task GoToRegister() // Navigate to Register page
         {
             try
             {
                 var nav = Application.Current.MainPage as NavigationPage;
                 if (nav != null)
                 {
-                    await nav.PushWithAnimationAsync(new RegisterPage());
+                    await nav.PushWithAnimationAsync(new RegisterPage(), false);
                 }
             }
             catch (Exception ex)
@@ -163,17 +153,17 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task ForgotPassword()
+        private async Task ForgotPassword() // Navigate to Forgot Password page
         {
             var nav = Application.Current.MainPage as NavigationPage;
             if (nav != null)
             {
-                await nav.PushWithAnimationAsync(new ForgotPasswordPage());
+                await nav.PushWithAnimationAsync(new ForgotPasswordPage(), false);
             }
         }
 
         [RelayCommand]
-        private void ClearEntries()
+        private void ClearEntries() // Clears input fields
         {
             if (!RememberMe)
             {

@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.C_;
+﻿using Coftea_Capstone.C_; // Start
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Networking;
 using Coftea_Capstone.Views.Controls;
@@ -75,10 +75,9 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<string> availableSizes = new();
 
-        // Size visibility properties for cart based on category
         public bool IsSmallSizeVisibleInCart => string.Equals(SelectedProduct?.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
-        public bool IsMediumSizeVisibleInCart => true; // Always visible for all categories
-        public bool IsLargeSizeVisibleInCart => true; // Always visible for all categories
+        public bool IsMediumSizeVisibleInCart => true; 
+        public bool IsLargeSizeVisibleInCart => true; 
 
         public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
         {
@@ -95,7 +94,6 @@ namespace Coftea_Capstone.ViewModel
             SuccessCardPopup = ((App)Application.Current).SuccessCardPopup;
             AddonsPopup = new AddonsSelectionPopupViewModel();
 
-            // When addons are selected from the popup, attach them to the currently selected product
             AddonsPopup.AddonsSelected += (selectedAddons) =>
             {
                 try
@@ -103,11 +101,11 @@ namespace Coftea_Capstone.ViewModel
                     if (SelectedProduct == null || selectedAddons == null)
                         return;
 
-                    // Replace existing addons with selected ones
+
                     SelectedProduct.InventoryItems.Clear();
                     foreach (var addon in selectedAddons)
                     {
-                        // Ensure addon has proper quantity and selection state
+                        // Ensures addon has proper quantity and selection state
                         if (addon.IsSelected && addon.AddonQuantity <= 0)
                         {
                             addon.AddonQuantity = 1;
@@ -131,6 +129,95 @@ namespace Coftea_Capstone.ViewModel
                 AddItemToPOSViewModel.IsAddItemToPOSVisible = true;
             };
         }
+
+        [RelayCommand]
+        private async void AddToCart(POSPageModel product)
+        {
+            if (product == null || CartItems == null)
+            {
+                System.Diagnostics.Debug.WriteLine("AddToCart: product or CartItems is null");
+                return;
+            }
+            // Check if there are any items to add (at least one quantity > 0)
+            if (product.SmallQuantity <= 0 && product.MediumQuantity <= 0 && product.LargeQuantity <= 0)
+            {
+                // Show notification that no items were selected
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ShowNotification("Please select at least one item to add to cart.", "No Items Selected");
+                }
+                return;
+            }
+            // Check if cups and straws are available before adding to cart
+            bool cupsAndStrawsAvailable = await CheckCupsAndStrawsAvailability();
+            if (cupsAndStrawsAvailable)
+            {
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ShowNotification("Cannot add items to cart: No cups or straws available in inventory.", "Out of Stock");
+                }
+                return;
+            }
+            // Always create a new cart line entry even if the same product already exists
+            var copy = new POSPageModel
+            {
+                ProductID = product.ProductID,
+                ProductName = product.ProductName,
+                SmallPrice = product.SmallPrice,
+                MediumPrice = product.MediumPrice,
+                LargePrice = product.LargePrice,
+                ImageSet = product.ImageSet,
+                SmallQuantity = product.SmallQuantity,
+                MediumQuantity = product.MediumQuantity,
+                LargeQuantity = product.LargeQuantity,
+                InventoryItems = new ObservableCollection<InventoryPageModel>() // Create new collection
+            };
+
+            if (product.InventoryItems != null)
+            {
+                foreach (var addon in product.InventoryItems)
+                {
+                    var addonCopy = new InventoryPageModel
+                    {
+                        itemID = addon.itemID,
+                        itemName = addon.itemName,
+                        itemCategory = addon.itemCategory,
+                        itemDescription = addon.itemDescription,
+                        itemQuantity = addon.itemQuantity,
+                        unitOfMeasurement = addon.unitOfMeasurement,
+                        minimumQuantity = addon.minimumQuantity,
+                        ImageSet = addon.ImageSet,
+                        IsSelected = addon.IsSelected,
+                        AddonQuantity = addon.AddonQuantity,
+                        AddonPrice = addon.AddonPrice,
+                        AddonUnit = addon.AddonUnit,
+                        InputAmount = addon.InputAmount,
+                        InputUnit = addon.InputUnit
+                    };
+                    copy.InventoryItems.Add(addonCopy);
+                    System.Diagnostics.Debug.WriteLine($"🔧 Copied addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                }
+            }
+            CartItems.Add(copy);
+
+            // Reset selection quantities
+            product.SmallQuantity = 0;
+            product.MediumQuantity = 0;
+            product.LargeQuantity = 0;
+
+            // Reset addons to 0
+            if (product.InventoryItems != null)
+            {
+                foreach (var addon in product.InventoryItems)
+                {
+                    addon.AddonQuantity = 0;
+                    addon.IsSelected = false;
+                }
+            }
+            _ = _cartStorage.SaveCartAsync(CartItems);
+        }
+
+        // End
 
         [RelayCommand]
         private void ShowNotificationBell()
@@ -284,103 +371,7 @@ namespace Coftea_Capstone.ViewModel
                 }
             });
         }
-
-
-        [RelayCommand]
-        private async void AddToCart(POSPageModel product)
-        {
-            if (product == null || CartItems == null) 
-            {
-                System.Diagnostics.Debug.WriteLine("AddToCart: product or CartItems is null");
-                return;
-            }
-
-            // Check if there are any items to add (at least one quantity > 0)
-            if (product.SmallQuantity <= 0 && product.MediumQuantity <= 0 && product.LargeQuantity <= 0)
-            {
-                // Show notification that no items were selected
-                if (NotificationPopup != null)
-                {
-                    NotificationPopup.ShowNotification("Please select at least one item to add to cart.", "No Items Selected");
-                }
-                return;
-            }
-
-            // Check if cups and straws are available before adding to cart
-            bool cupsAndStrawsAvailable = await CheckCupsAndStrawsAvailability();
-            if (cupsAndStrawsAvailable)
-            {
-                if (NotificationPopup != null)
-                {
-                    NotificationPopup.ShowNotification("Cannot add items to cart: No cups or straws available in inventory.", "Out of Stock");
-                }
-                return;
-            }
-
-            // Always create a new cart line entry even if the same product already exists
-            var copy = new POSPageModel
-            {
-                ProductID = product.ProductID,
-                ProductName = product.ProductName,
-                SmallPrice = product.SmallPrice,
-                MediumPrice = product.MediumPrice,
-                LargePrice = product.LargePrice,
-                ImageSet = product.ImageSet,
-                SmallQuantity = product.SmallQuantity,
-                MediumQuantity = product.MediumQuantity,
-                LargeQuantity = product.LargeQuantity,
-                InventoryItems = new ObservableCollection<InventoryPageModel>() // Create new collection
-            };
-            
-            // Deep copy addon data to preserve addon selections
-            if (product.InventoryItems != null)
-            {
-                foreach (var addon in product.InventoryItems)
-                {
-                    var addonCopy = new InventoryPageModel
-                    {
-                        itemID = addon.itemID,
-                        itemName = addon.itemName,
-                        itemCategory = addon.itemCategory,
-                        itemDescription = addon.itemDescription,
-                        itemQuantity = addon.itemQuantity,
-                        unitOfMeasurement = addon.unitOfMeasurement,
-                        minimumQuantity = addon.minimumQuantity,
-                        ImageSet = addon.ImageSet,
-                        IsSelected = addon.IsSelected,
-                        AddonQuantity = addon.AddonQuantity,
-                        AddonPrice = addon.AddonPrice,
-                        AddonUnit = addon.AddonUnit,
-                        InputAmount = addon.InputAmount,
-                        InputUnit = addon.InputUnit
-                    };
-                    copy.InventoryItems.Add(addonCopy);
-                    System.Diagnostics.Debug.WriteLine($"🔧 Copied addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
-                }
-            }
-            CartItems.Add(copy);
-
-            // Reset selection quantities
-            product.SmallQuantity = 0;
-            product.MediumQuantity = 0;
-            product.LargeQuantity = 0;
-            
-            // Reset addons to 0
-            if (product.InventoryItems != null)
-            {
-                foreach (var addon in product.InventoryItems)
-                {
-                    addon.AddonQuantity = 0;
-                    addon.IsSelected = false;
-                }
-            }
-
-            // Do not auto-open notifications; bell controls visibility
-
-        // Persist cart update
-        _ = _cartStorage.SaveCartAsync(CartItems);
-        }
-
+        
         [RelayCommand]
         private void SelectProduct(POSPageModel product)
         {
