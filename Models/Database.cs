@@ -1120,6 +1120,10 @@ namespace Coftea_Capstone.Models
                 var userCount = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
                 
                 // Never create default users automatically. First registration becomes admin elsewhere
+                if (userCount == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ No users found, not creating default admin user - waiting for first registration");
+                }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine($"✅ Found {userCount} existing users");
@@ -1838,11 +1842,5 @@ namespace Coftea_Capstone.Models
             }
             return requests;
         }
-
-        // Notification
-
-        // Cart
-
-        //
     }
 }

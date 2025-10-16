@@ -93,7 +93,11 @@ namespace Coftea_Capstone.ViewModel
                     
                     if (emailSent)
                     {
-                        ShowSuccess("Password reset link sent! Check your email (or MailHog at http://localhost:8025) for instructions.");
+                        // Navigate to the new reset password page to let the user enter the code and new password
+                        if (Application.Current?.MainPage is NavigationPage nav)
+                        {
+                            await nav.PushAsync(new Coftea_Capstone.Views.Pages.ResetPasswordPage(Email.Trim()), false);
+                        }
                     }
                     else
                     {
