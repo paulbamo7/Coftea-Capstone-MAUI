@@ -13,9 +13,11 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class LoginPageViewModel : ObservableObject
     {
+        // ===================== Dependencies & Services =====================
         private readonly Database _database;
         private readonly EmailService _emailService;
 
+        // ===================== State =====================
         [ObservableProperty] private string email;
         [ObservableProperty] private string password;
         [ObservableProperty] private bool rememberMe;
@@ -23,6 +25,7 @@ namespace Coftea_Capstone.ViewModel
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
         public PasswordResetPopupViewModel PasswordResetPopup { get; set; }
 
+        // ===================== Initialization =====================
         public LoginPageViewModel()
         {
             _database = new Database();
@@ -44,6 +47,7 @@ namespace Coftea_Capstone.ViewModel
             return ((App)Application.Current).RetryConnectionPopup;
         }
 
+        // ===================== Commands =====================
         [RelayCommand]
         private async Task Login()
         {

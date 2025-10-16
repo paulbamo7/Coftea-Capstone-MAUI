@@ -9,6 +9,7 @@ using Coftea_Capstone.Views.Pages;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.Maui.Controls;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -271,7 +272,10 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             IsConnectPOSToInventoryVisible = false;
             // Navigate to Inventory page to allow selection there
-            await Application.Current.MainPage.Navigation.PushAsync(new Inventory());
+            if (Application.Current?.MainPage is NavigationPage nav)
+            {
+                await nav.PushWithAnimationAsync(new Inventory(), false);
+            }
         }
 
         [RelayCommand]

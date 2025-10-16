@@ -12,9 +12,11 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class ForgotPasswordPageViewModel : ObservableObject
     {
+        // ===================== Dependencies & Services =====================
         private readonly Database _database;
         private readonly EmailService _emailService;
 
+        // ===================== State =====================
         [ObservableProperty] 
         private string email;
 
@@ -35,9 +37,10 @@ namespace Coftea_Capstone.ViewModel
 
         public bool IsNotLoading => !IsLoading;
 
+        // ===================== Initialization =====================
         public ForgotPasswordPageViewModel()
         {
-            _database = new Database(); // Will use auto-detected host
+            _database = new Database();
             _emailService = new EmailService();
         }
 
@@ -46,6 +49,7 @@ namespace Coftea_Capstone.ViewModel
             return ((App)Application.Current).RetryConnectionPopup;
         }
 
+        // ===================== Commands =====================
         [RelayCommand]
         private async Task SendResetLink()
         {
@@ -121,6 +125,7 @@ namespace Coftea_Capstone.ViewModel
             await Application.Current.MainPage.Navigation.PopAsync();
         }
 
+        // ===================== Helpers =====================
         private void ShowError(string message)
         {
             ErrorMessage = message;

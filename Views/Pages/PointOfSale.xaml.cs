@@ -1,6 +1,7 @@
 using Coftea_Capstone.ViewModel;
 using Microsoft.Maui.Dispatching;
 using Coftea_Capstone;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -48,7 +49,10 @@ public partial class PointOfSale : ContentPage
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 await DisplayAlert("POS Error", $"Failed to initialize POS page: {ex.Message}", "OK");
-                await Navigation.PopAsync();
+                if (Application.Current?.MainPage is NavigationPage nav)
+                {
+                    await nav.PopWithAnimationAsync(false);
+                }
             });
         }
     }
@@ -123,7 +127,10 @@ public partial class PointOfSale : ContentPage
             if (POSViewModel == null)
             {
                 await DisplayAlert("POS Error", "POSViewModel is not available", "OK");
-                await Navigation.PopAsync();
+                if (Application.Current?.MainPage is NavigationPage nav)
+                {
+                    await nav.PopWithAnimationAsync(false);
+                }
                 return;
             }
 
@@ -145,7 +152,10 @@ public partial class PointOfSale : ContentPage
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
                 await DisplayAlert("POS Error", $"Failed to load POS data: {ex.Message}", "OK");
-                await Navigation.PopAsync();
+                if (Application.Current?.MainPage is NavigationPage nav)
+                {
+                    await nav.PopWithAnimationAsync(false);
+                }
             });
         }
     }
@@ -297,7 +307,14 @@ public partial class PointOfSale : ContentPage
                 if (Navigation.NavigationStack.Count == 0) return true;
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    try { await Navigation.PopAsync(); } catch { }
+                    try
+                    {
+                        if (Application.Current?.MainPage is NavigationPage nav)
+                        {
+                            await nav.PopWithAnimationAsync(false);
+                        }
+                    }
+                    catch { }
                 });
                 return true;
             }

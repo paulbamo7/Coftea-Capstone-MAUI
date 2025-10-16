@@ -12,8 +12,10 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class UserManagementPageViewModel : ObservableObject
     {
+        // ===================== Dependencies & Services =====================
         private readonly Database _database = new();
 
+        // ===================== State =====================
         [ObservableProperty]
         private ObservableCollection<UserEntry> users = new();
 
@@ -32,6 +34,7 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private DeleteUserPopupViewModel deleteUserPopup = new();
 
+        // ===================== Initialization =====================
         public UserManagementPageViewModel()
         {
             // Subscribe to the approval event to refresh user list
@@ -50,6 +53,7 @@ namespace Coftea_Capstone.ViewModel
             await InitializeAsync(); // Refresh the user list
         }
 
+        // ===================== Commands =====================
         [RelayCommand]
         private async Task AddUser()
         {
@@ -108,6 +112,7 @@ namespace Coftea_Capstone.ViewModel
             // Future: handle other actions here
         }
 
+        // ===================== Helpers =====================
         private async Task DeleteSpecificUser(UserEntry user)
         {
             // Confirm deletion
@@ -132,6 +137,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Lifecycle =====================
         public async Task InitializeAsync()
         {
             var allUsers = await _database.GetAllUsersAsync();

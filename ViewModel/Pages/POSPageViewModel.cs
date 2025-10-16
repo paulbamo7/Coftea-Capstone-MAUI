@@ -16,6 +16,7 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class POSPageViewModel : BaseViewModel
     {
+        // ===================== Dependencies & Services =====================
         private readonly CartStorageService _cartStorage = new CartStorageService();
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
@@ -30,6 +31,7 @@ namespace Coftea_Capstone.ViewModel
         public AddonsSelectionPopupViewModel AddonsPopup { get; set; }
 
 
+        // ===================== State & Models =====================
         private readonly Database _database;
 
         [ObservableProperty]
@@ -79,6 +81,7 @@ namespace Coftea_Capstone.ViewModel
         public bool IsMediumSizeVisibleInCart => true; 
         public bool IsLargeSizeVisibleInCart => true; 
 
+        // ===================== Initialization =====================
         public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
         {
             _database = new Database(); // Will use auto-detected host
@@ -130,6 +133,7 @@ namespace Coftea_Capstone.ViewModel
             };
         }
 
+        // ===================== Cart Operations =====================
         [RelayCommand]
         private async void AddToCart(POSPageModel product)
         {
@@ -217,7 +221,7 @@ namespace Coftea_Capstone.ViewModel
             _ = _cartStorage.SaveCartAsync(CartItems);
         }
 
-        // End
+        // ===================== UI Commands =====================
 
         [RelayCommand]
         private void ShowNotificationBell()
@@ -228,6 +232,7 @@ namespace Coftea_Capstone.ViewModel
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
 
+        // ===================== Product Events =====================
         private async void OnProductAdded(POSPageModel newProduct)
         {
             if (newProduct != null)
@@ -261,6 +266,7 @@ namespace Coftea_Capstone.ViewModel
             await LoadDataAsync();
         }
 
+        // ===================== Lifecycle =====================
         public async Task InitializeAsync()
         {
             if (App.CurrentUser != null)
@@ -276,6 +282,7 @@ namespace Coftea_Capstone.ViewModel
         }
         }
 
+        // ===================== Filtering =====================
         [RelayCommand]
         private async Task FilterByCategory(object category)
         {
@@ -335,6 +342,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Data Loading =====================
         public async Task LoadDataAsync()
         {
             await RunWithLoading(async () =>
@@ -372,6 +380,7 @@ namespace Coftea_Capstone.ViewModel
             });
         }
         
+        // ===================== Product Selection =====================
         [RelayCommand]
         private void SelectProduct(POSPageModel product)
         {
@@ -401,6 +410,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
 
+        // ===================== Addons =====================
         private async Task LoadAddonsForSelectedAsync()
         {
             if (SelectedProduct == null) return;
@@ -426,6 +436,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Product Editing =====================
         [RelayCommand]
         private void EditProduct(POSPageModel product)
         {
@@ -435,6 +446,7 @@ namespace Coftea_Capstone.ViewModel
             SettingsPopup.OpenAddItemToPOSCommand.Execute(null);
         }
 
+        // ===================== Cart Editing =====================
         [RelayCommand]
         private void RemoveFromCart(POSPageModel product)
         {
@@ -450,6 +462,7 @@ namespace Coftea_Capstone.ViewModel
         _ = _cartStorage.SaveCartAsync(CartItems);
         }
 
+        // ===================== Inventory Checks =====================
         private async Task CheckStockLevelsForAllProducts()
         {
             try
@@ -554,6 +567,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Quantity Adjustments =====================
         [RelayCommand]
         private void IncreaseSmallQty() 
         { 
@@ -596,6 +610,7 @@ namespace Coftea_Capstone.ViewModel
                 SelectedProduct.LargeQuantity--; 
         }
 
+        // ===================== Cart UI =====================
         [RelayCommand]
         private void ShowCart()
         {
@@ -628,6 +643,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+    // ===================== Cart Persistence =====================
     public Task SaveCartToStorageAsync() => _cartStorage.SaveCartAsync(CartItems);
     public async Task LoadCartFromStorageAsync()
     {
@@ -651,6 +667,7 @@ namespace Coftea_Capstone.ViewModel
         }
     }
 
+        // ===================== History =====================
         [RelayCommand]
         private async Task ShowHistory()
         {
@@ -684,6 +701,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Profile =====================
         [RelayCommand]
         private void ShowProfile()
         {

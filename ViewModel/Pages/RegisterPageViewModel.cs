@@ -7,6 +7,7 @@ using Coftea_Capstone.Services;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.Maui.Controls;
+using Coftea_Capstone.Services;
 using Coftea_Capstone.Models;
 using System.Text.RegularExpressions;
 
@@ -14,9 +15,11 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class RegisterPageViewModel : ObservableObject
     {
+        // ===================== Dependencies & Services =====================
         private readonly Database _database;
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
 
+        // ===================== Initialization =====================
         public RegisterPageViewModel()
         {
             _database = new Database();
@@ -27,6 +30,7 @@ namespace Coftea_Capstone.ViewModel
             return ((App)Application.Current).RetryConnectionPopup;
         }
 
+        // ===================== State =====================
         [ObservableProperty] private bool isTermsAccepted;
         [ObservableProperty] private string email;
         [ObservableProperty] private string password;
@@ -37,10 +41,14 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private string address;
         [ObservableProperty] private DateTime birthday = DateTime.Today;
 
+        // ===================== Commands =====================
         [RelayCommand]
         private async Task BackToLogin() // Navigate back to Login page
         {
-            await Application.Current.MainPage.Navigation.PopAsync();
+            if (Application.Current?.MainPage is NavigationPage nav)
+            {
+                await nav.PopWithAnimationAsync(false);
+            }
         }
 
         [RelayCommand]
@@ -171,9 +179,11 @@ namespace Coftea_Capstone.ViewModel
                     await _database.AddPendingUserRequestAsync(pendingRequest);
                     await Application.Current.MainPage.DisplayAlert("Success", "Registration request submitted! An admin will review and approve your account.", "OK");
                 }
-
                 // Navigate back to Login page
-                await Application.Current.MainPage.Navigation.PopAsync();
+                if (Application.Current?.MainPage is NavigationPage nav)
+                {
+                    await nav.PopWithAnimationAsync(false);
+                }
             }
             catch (MySqlConnector.MySqlException ex)
             {

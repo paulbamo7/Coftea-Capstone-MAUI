@@ -296,6 +296,7 @@ namespace Coftea_Capstone.Models
             // Legacy Fruit/Soda UoM fix removed; units should be set correctly at source.
         }
 
+        // ===================== Shared DB Helpers =====================
         // Shared DB helpers to reduce redundancy
         private static object DbValue(object? value)
 		{
@@ -342,99 +343,9 @@ namespace Coftea_Capstone.Models
 			}
 			return list;
 		}
-        public async Task<UserInfoModel> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
-        {
-            await using var conn = await GetOpenConnectionAsync(cancellationToken);
+        // ===================== POS =====================
 
-            var sql = "SELECT * FROM users WHERE email = @Email LIMIT 1;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@Email", email);
-
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-            if (await reader.ReadAsync(cancellationToken))
-            {
-                return new UserInfoModel
-                {
-                    ID = reader.GetInt32("id"),
-                    Email = reader.GetString("email"),
-                    Password = reader.GetString("password"),
-                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
-                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
-                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
-                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
-                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
-                    CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
-                    CanAccessSalesReport = reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) ? false : reader.GetBoolean("can_access_sales_report")
-                };
-            }
-            return null;
-        } 
-
-		public async Task<int> UpdateUserPasswordAsync(int userId, string newHashedPassword)
-		{
-			var sql = "UPDATE users SET password = @Password WHERE id = @Id;";
-			return await ExecuteNonQueryAsync(sql, new Dictionary<string, object?>
-			{
-				{"@Password", newHashedPassword},
-				{"@Id", userId}
-			});
-		}
-        public async Task<List<UserInfoModel>> GetAllUsersAsync()
-        {
-			var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
-			return await QueryAsync(sql, reader => new UserInfoModel
-			{
-				ID = reader.GetInt32("id"),
-				Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
-				Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
-				FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
-				LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-				Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
-				PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
-				Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
-				IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
-				Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
-				CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
-				CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report")
-			});
-        }
-        public async Task<bool> IsFirstUserAsync()
-        {
-            await using var conn = await GetOpenConnectionAsync();
-            
-            var sql = "SELECT COUNT(*) FROM users;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            var userCount = await cmd.ExecuteScalarAsync();
-            
-            return Convert.ToInt32(userCount) == 0;
-        }
-
-        public async Task<int> AddUserAsync(UserInfoModel user)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            // Check if this is the first user
-            bool isFirstUser = await IsFirstUserAsync();
-            
-            var sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, birthday, address, status, isAdmin, can_access_inventory, can_access_sales_report) " +
-                      "VALUES (@FirstName,@LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, 'approved', @IsAdmin, @CanAccessInventory, @CanAccessSalesReport);";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@FirstName", user.FirstName);
-            cmd.Parameters.AddWithValue("@LastName", user.LastName);
-            cmd.Parameters.AddWithValue("@Email", user.Email);
-            cmd.Parameters.AddWithValue("@Password", user.Password);
-            cmd.Parameters.AddWithValue("@Birthday", user.Birthday.ToString("yyyy-MM-dd"));
-            cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
-            cmd.Parameters.AddWithValue("@Address", user.Address);
-            cmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
-            cmd.Parameters.AddWithValue("@CanAccessInventory", isFirstUser); // First user gets all permissions
-            cmd.Parameters.AddWithValue("@CanAccessSalesReport", isFirstUser); // First user gets all permissions
-
-            return await cmd.ExecuteNonQueryAsync();
-        }
-
+        // ===================== POS =====================
         // POS Database
 		public async Task<List<POSPageModel>> GetProductsAsync()
 		{
@@ -920,6 +831,7 @@ namespace Coftea_Capstone.Models
             }
         }
 
+        // ===================== Inventory =====================
         // Inventory Database Methods
 		public async Task<List<InventoryPageModel>> GetInventoryItemsAsync()
 		{
@@ -1091,6 +1003,7 @@ namespace Coftea_Capstone.Models
             };
         }
 
+        // ===================== Sales Report =====================
         public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction)
         {
             await using var conn = await GetOpenConnectionAsync();
@@ -1185,16 +1098,9 @@ namespace Coftea_Capstone.Models
                     return fallbackUserId;
                 }
 
-                // Last resort: Create a default system user if no users exist
-                System.Diagnostics.Debug.WriteLine($"⚠️ No users found, creating default system user");
-                var createUserSql = @"INSERT INTO users (firstName, lastName, email, password, isAdmin, status) 
-                                     VALUES ('System', 'User', 'system@coftea.com', '$2a$11$default', 1, 'approved');";
-                await using var createCmd = new MySqlCommand(createUserSql, conn, tx);
-                await createCmd.ExecuteNonQueryAsync();
-                
-                int newUserId = (int)createCmd.LastInsertedId;
-                System.Diagnostics.Debug.WriteLine($"✅ Created default system user with ID: {newUserId}");
-                return newUserId;
+                // Last resort: Do NOT create a seed/default user; return 0 to save transaction with NULL userID
+                System.Diagnostics.Debug.WriteLine($"⚠️ No users found, not creating default system user");
+                return 0;
             }
             catch (Exception ex)
             {
@@ -1213,11 +1119,7 @@ namespace Coftea_Capstone.Models
                 await using var checkCmd = new MySqlCommand(checkSql, conn);
                 var userCount = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
                 
-                if (userCount == 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ No users found, but not creating default admin user - waiting for first registration");
-                    // Don't create default user - let the first registration become admin
-                }
+                // Never create default users automatically. First registration becomes admin elsewhere
                 else
                 {
                     System.Diagnostics.Debug.WriteLine($"✅ Found {userCount} existing users");
@@ -1427,7 +1329,99 @@ namespace Coftea_Capstone.Models
             }
         }
 
-        // User Management
+        // ===================== User Management =====================
+        public async Task<UserInfoModel> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            await using var conn = await GetOpenConnectionAsync(cancellationToken);
+
+            var sql = "SELECT * FROM users WHERE email = @Email LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            if (await reader.ReadAsync(cancellationToken))
+            {
+                return new UserInfoModel
+                {
+                    ID = reader.GetInt32("id"),
+                    Email = reader.GetString("email"),
+                    Password = reader.GetString("password"),
+                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
+                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
+                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
+                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
+                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
+                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
+                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
+                    CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
+                    CanAccessSalesReport = reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) ? false : reader.GetBoolean("can_access_sales_report")
+                };
+            }
+            return null;
+        } 
+
+        public async Task<int> UpdateUserPasswordAsync(int userId, string newHashedPassword)
+        {
+            var sql = "UPDATE users SET password = @Password WHERE id = @Id;";
+            return await ExecuteNonQueryAsync(sql, new Dictionary<string, object?>
+            {
+                {"@Password", newHashedPassword},
+                {"@Id", userId}
+            });
+        }
+        public async Task<List<UserInfoModel>> GetAllUsersAsync()
+        {
+            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
+            return await QueryAsync(sql, reader => new UserInfoModel
+            {
+                ID = reader.GetInt32("id"),
+                Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
+                Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
+                FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
+                LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
+                Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
+                PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
+                Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
+                IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
+                Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
+                CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
+                CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report")
+            });
+        }
+        public async Task<bool> IsFirstUserAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            
+            var sql = "SELECT COUNT(*) FROM users;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            var userCount = await cmd.ExecuteScalarAsync();
+            
+            return Convert.ToInt32(userCount) == 0;
+        }
+
+        public async Task<int> AddUserAsync(UserInfoModel user)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            // Check if this is the first user
+            bool isFirstUser = await IsFirstUserAsync();
+            
+            var sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, birthday, address, status, isAdmin, can_access_inventory, can_access_sales_report) " +
+                      "VALUES (@FirstName,@LastName, @Email, @Password, @PhoneNumber, @Birthday, @Address, 'approved', @IsAdmin, @CanAccessInventory, @CanAccessSalesReport);";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@FirstName", user.FirstName);
+            cmd.Parameters.AddWithValue("@LastName", user.LastName);
+            cmd.Parameters.AddWithValue("@Email", user.Email);
+            cmd.Parameters.AddWithValue("@Password", user.Password);
+            cmd.Parameters.AddWithValue("@Birthday", user.Birthday.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
+            cmd.Parameters.AddWithValue("@Address", user.Address);
+            cmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
+            cmd.Parameters.AddWithValue("@CanAccessInventory", isFirstUser); // First user gets all permissions
+            cmd.Parameters.AddWithValue("@CanAccessSalesReport", isFirstUser); // First user gets all permissions
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
         public async Task<UserInfoModel> GetUserByIdAsync(int userId)
         {
             try

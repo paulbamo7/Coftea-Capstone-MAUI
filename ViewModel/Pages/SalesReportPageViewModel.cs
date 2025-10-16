@@ -15,12 +15,14 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class SalesReportPageViewModel : ObservableObject
     {
+        // ===================== Dependencies & Services =====================
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
 
         private readonly Database _database;
         private readonly Services.ISalesReportService _salesReportService;
 
+        // ===================== State & Models =====================
         [ObservableProperty]
         private ObservableCollection<SalesReportPageModel> salesReports = new();
 
@@ -244,6 +246,7 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int recentOrdersCount;
 
+        // ===================== Initialization =====================
         public SalesReportPageViewModel(SettingsPopUpViewModel settingsPopup, Services.ISalesReportService salesReportService = null)
         {
             _database = new Database(); // Will use auto-detected host
@@ -254,6 +257,7 @@ namespace Coftea_Capstone.ViewModel
             _ = LoadCumulativeTotalsAsync();
         }
 
+        // ===================== Helpers =====================
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
             return ((App)Application.Current).RetryConnectionPopup;
@@ -335,11 +339,13 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Lifecycle =====================
         public async Task InitializeAsync()
         {
             await LoadDataAsync();
         }
 
+        // ===================== Data Loading =====================
         public async Task LoadDataAsync()
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
@@ -442,6 +448,7 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(DisplayTotalSales));
         }
 
+        // ===================== Filtering =====================
         [RelayCommand]
         private void SelectCategory(string category)
         {
@@ -459,6 +466,7 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(DisplayTotalSales));
         }
 
+        // ===================== Aggregation & Presentation =====================
         private void UpdateCombinedCollections()
         {
             // Filter today's items based on selected category
@@ -611,6 +619,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
 
+        // ===================== Cumulative Totals =====================
         private async Task LoadCumulativeTotalsAsync()
         {
             try
@@ -699,6 +708,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Calculations =====================
         private async Task CalculateTimePeriodTotalsAsync()
         {
             try
@@ -777,6 +787,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Fallback =====================
         private void SetFallbackData()
         {
             // Set fallback data when loading fails

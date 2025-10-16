@@ -15,10 +15,12 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class InventoryPageViewModel : BaseViewModel
     {
+        // ===================== Dependencies & Services =====================
         public AddItemToPOSViewModel AddItemToInventoryPopup { get; } = new AddItemToPOSViewModel();
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
 
+        // ===================== State & Models =====================
         private readonly Database _database;
 
         // Full set loaded from database, used for applying filters
@@ -54,16 +56,18 @@ namespace Coftea_Capstone.ViewModel
 
         public InventoryPageViewModel(SettingsPopUpViewModel settingsPopup)
         {
-            _database = new Database(); // Will use auto-detected host
+            _database = new Database(); 
             SettingsPopup = settingsPopup;
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
+        // ===================== Lifecycle =====================
         public async Task InitializeAsync()
         {
             await LoadDataAsync();
         }
 
+        // ===================== Data Loading =====================
         public async Task LoadDataAsync()
         {
             await RunWithLoading(async () =>
@@ -104,22 +108,7 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(DemoStockFillColor));
         }
 
-        [RelayCommand]
-        private void AddInventoryItem(InventoryPageViewModel inventory)
-        {
-
-        }
-        [RelayCommand]
-        private void EditInventoryItem(InventoryPageViewModel inventory)
-        {
-
-        }
-        [RelayCommand]
-        private void RemoveInventoryItem(InventoryPageViewModel inventory)
-        {
-
-        }  
-
+        // ===================== Filtering =====================
         // Selected category from UI buttons: "Ingredients" or "Supplies"
         [ObservableProperty]
         private string selectedCategory = "";
@@ -160,7 +149,7 @@ namespace Coftea_Capstone.ViewModel
                 query = query.Where(i => allowed.Contains((i.itemCategory ?? string.Empty).Trim()));
             }
 
-            // Apply search by name if provided
+            // Apply search by name
             var nameQuery = (SearchText ?? string.Empty).Trim();
             if (!string.IsNullOrWhiteSpace(nameQuery))
             {

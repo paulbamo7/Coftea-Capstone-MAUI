@@ -8,40 +8,123 @@ namespace Coftea_Capstone.Services
         private static LoadingOverlay _loadingOverlay;
         private static readonly object _navigationLock = new object();
         private static bool _isNavigating = false;
+        private static readonly SemaphoreSlim _navSemaphore = new SemaphoreSlim(1, 1);
+        private static DateTime _lastNavigationTime = DateTime.MinValue;
+        private static readonly TimeSpan _navigationCooldown = TimeSpan.FromMilliseconds(350);
+
+        private static bool IsCooldownActive()
+        {
+            var since = DateTime.UtcNow - _lastNavigationTime;
+            return since < _navigationCooldown;
+        }
+
+        private static void MarkNavigation()
+        {
+            _lastNavigationTime = DateTime.UtcNow;
+        }
+
+        private static async Task RunOnMainThreadAsync(Func<Task> action)
+        {
+            if (MainThread.IsMainThread)
+            {
+                await action();
+            }
+            else
+            {
+                await MainThread.InvokeOnMainThreadAsync(action);
+            }
+        }
         public static async Task PushWithAnimationAsync(this NavigationPage navigationPage, Page page, bool animated = false)
         {
-            if (!animated)
-            {
-                await navigationPage.PushAsync(page, false);
-                return;
-            }
+            if (navigationPage == null || page == null) return;
 
-            // Animations disabled
-            await navigationPage.PushAsync(page, false);
+            // Coalesce rapid requests
+            if (IsCooldownActive()) return;
+
+            await _navSemaphore.WaitAsync();
+            try
+            {
+                if (navigationPage.CurrentPage?.GetType() == page.GetType())
+                {
+                    System.Diagnostics.Debug.WriteLine("🚫 PushWithAnimationAsync: Already on the same page, skipping");
+                    return;
+                }
+
+                MarkNavigation();
+
+                if (!animated)
+                {
+                    await RunOnMainThreadAsync(() => navigationPage.PushAsync(page, false));
+                    return;
+                }
+
+                // Animations disabled (kept for parity)
+                await RunOnMainThreadAsync(() => navigationPage.PushAsync(page, false));
+            }
+            finally
+            {
+                _navSemaphore.Release();
+            }
         }
 
         public static async Task PopWithAnimationAsync(this NavigationPage navigationPage, bool animated = false)
         {
-            if (!animated)
-            {
-                await navigationPage.PopAsync(false);
-                return;
-            }
+            if (navigationPage == null) return;
 
-            // Animations disabled
-            await navigationPage.PopAsync(false);
+            // Coalesce rapid requests
+            if (IsCooldownActive()) return;
+
+            await _navSemaphore.WaitAsync();
+            try
+            {
+                if (navigationPage.Navigation?.NavigationStack?.Count <= 1)
+                {
+                    System.Diagnostics.Debug.WriteLine("🚫 PopWithAnimationAsync: No pages to pop");
+                    return;
+                }
+
+                MarkNavigation();
+
+                if (!animated)
+                {
+                    await RunOnMainThreadAsync(() => navigationPage.PopAsync(false));
+                    return;
+                }
+
+                // Animations disabled
+                await RunOnMainThreadAsync(() => navigationPage.PopAsync(false));
+            }
+            finally
+            {
+                _navSemaphore.Release();
+            }
         }
 
         public static async Task PopToRootWithAnimationAsync(this NavigationPage navigationPage, bool animated = false)
         {
-            if (!animated)
-            {
-                await navigationPage.PopToRootAsync(false);
-                return;
-            }
+            if (navigationPage == null) return;
 
-            // Animations disabled
-            await navigationPage.PopToRootAsync(false);
+            // Coalesce rapid requests
+            if (IsCooldownActive()) return;
+
+            await _navSemaphore.WaitAsync();
+            try
+            {
+                MarkNavigation();
+
+                if (!animated)
+                {
+                    await RunOnMainThreadAsync(() => navigationPage.PopToRootAsync(false));
+                    return;
+                }
+
+                // Animations disabled
+                await RunOnMainThreadAsync(() => navigationPage.PopToRootAsync(false));
+            }
+            finally
+            {
+                _navSemaphore.Release();
+            }
         }
 
         public static async Task ReplaceWithAnimationAsync(this NavigationPage navigationPage, Page newPage, bool animated = false)
@@ -59,6 +142,14 @@ namespace Coftea_Capstone.Services
 
             try
             {
+                if (navigationPage == null || newPage == null) return;
+
+                // Coalesce rapid requests
+                if (IsCooldownActive()) return;
+
+                await _navSemaphore.WaitAsync();
+                MarkNavigation();
+
                 if (!animated)
                 {
                     // Use safer navigation method
@@ -84,6 +175,7 @@ namespace Coftea_Capstone.Services
             }
             finally
             {
+                _navSemaphore.Release();
                 lock (_navigationLock)
                 {
                     _isNavigating = false;
@@ -108,17 +200,17 @@ namespace Coftea_Capstone.Services
                 // Pop all pages except the root
                 while (navigationPage.Navigation.NavigationStack.Count > 1)
                 {
-                    await navigationPage.PopAsync(false);
+                    await RunOnMainThreadAsync(() => navigationPage.PopAsync(false));
                 }
-                
+
                 // Push the new page
-                await navigationPage.PushAsync(newPage, false);
+                await RunOnMainThreadAsync(() => navigationPage.PushAsync(newPage, false));
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"SafeReplacePageAsync error: {ex.Message}");
                 // Fallback: try simple push
-                await navigationPage.PushAsync(newPage, false);
+                await RunOnMainThreadAsync(() => navigationPage.PushAsync(newPage, false));
             }
         }
 

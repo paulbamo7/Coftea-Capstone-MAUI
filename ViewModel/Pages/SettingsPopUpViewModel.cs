@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone;
 using Microsoft.Maui.Storage;
 using Microsoft.Maui.Controls;
+using Coftea_Capstone.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Coftea_Capstone.Models;
@@ -15,10 +16,12 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class SettingsPopUpViewModel : ObservableObject
     {
+        // ===================== Dependencies & Services =====================
         private readonly AddItemToPOSViewModel _addItemToPOSViewModel;
         private readonly ManagePOSOptionsViewModel _managePOSOptionsViewModel;
         private readonly ManageInventoryOptionsViewModel _manageInventoryOptionsViewModel;
 
+        // ===================== State =====================
         [ObservableProperty] private bool isSettingsPopupVisible = false;
         [ObservableProperty] private bool isAddItemToPOSVisible = false;
         [ObservableProperty] private bool isAddItemToInventoryVisible = false;
@@ -66,6 +69,7 @@ namespace Coftea_Capstone.ViewModel
         public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
 
+        // ===================== Initialization =====================
         public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel, ManagePOSOptionsViewModel managePOSOptionsViewModel, ManageInventoryOptionsViewModel manageInventoryOptionsViewModel)
         {
             _addItemToPOSViewModel = addItemToPOSViewModel;
@@ -100,6 +104,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Data Loading =====================
         public async Task LoadTodaysMetricsAsync()
         {
             try
@@ -151,6 +156,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        // ===================== Commands =====================
         [RelayCommand]
         public void ShowSettingsPopup() 
         {
@@ -214,9 +220,9 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only admins can access User Management.", "OK");
                 return;
             }
-            if (Application.Current?.MainPage is not null)
+            if (Application.Current?.MainPage is NavigationPage nav)
             {
-                await Application.Current.MainPage.Navigation.PushAsync(new UserManagement());
+                await nav.PushWithAnimationAsync(new UserManagement(), false);
             }
         }
 
@@ -313,6 +319,7 @@ namespace Coftea_Capstone.ViewModel
         }
         */
 
+        // ===================== Backup =====================
         [RelayCommand]
         private async Task CreateBackup()
         {
@@ -403,6 +410,7 @@ namespace Coftea_Capstone.ViewModel
         }
         */
 
+        // ===================== Helpers =====================
         private async Task LoadTopSellingProductsAsync()
         {
             try

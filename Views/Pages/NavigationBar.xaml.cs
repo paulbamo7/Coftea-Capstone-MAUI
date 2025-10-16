@@ -19,6 +19,7 @@ public partial class NavigationBar : ContentView
     private string _pendingTarget = string.Empty;
     private DateTime _pendingRequestedAt = DateTime.MinValue;
     private static readonly SemaphoreSlim _navSemaphore = new SemaphoreSlim(1, 1);
+    private static readonly SemaphoreSlim _globalNavLock = new SemaphoreSlim(1, 1);
     // DEBUG helper removed
 
     public NavigationBar()
@@ -238,6 +239,22 @@ public partial class NavigationBar : ContentView
             SalesReportButton.IsEnabled = false;
         });
     }
+    private async Task SafeNavigateAsync(Func<Task> navAction)
+    {
+        await _globalNavLock.WaitAsync();
+        try
+        {
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                try { await navAction(); }
+                catch (Exception ex) { Debug.WriteLine($"❌ Navigation failed: {ex.Message}"); }
+            });
+        }
+        finally
+        {
+            _globalNavLock.Release();
+        }
+    }
     private async void POSButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return; // do nothing if logged out
@@ -262,11 +279,8 @@ public partial class NavigationBar : ContentView
             // Use the cancellation token from StartNavigationAsync
             _currentNavigationCts?.Token.ThrowIfCancellationRequested();
             
-            // Replace current page with POS using animation
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false);
-            });
+            // Replace current page with POS using centralized navigation
+            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false));
             ForceGC();
             UpdateActiveIndicator();
         }
@@ -321,10 +335,7 @@ public partial class NavigationBar : ContentView
                 return;
             }
 
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false);
-            });
+            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false));
             ForceGC();
             UpdateActiveIndicator();
         }
@@ -374,10 +385,7 @@ public partial class NavigationBar : ContentView
             // Use the cancellation token from StartNavigationAsync
             _currentNavigationCts?.Token.ThrowIfCancellationRequested();
 
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false);
-            });
+            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false));
             ForceGC();
             UpdateActiveIndicator();
         }
@@ -427,10 +435,7 @@ public partial class NavigationBar : ContentView
             // Use the cancellation token from StartNavigationAsync
             _currentNavigationCts?.Token.ThrowIfCancellationRequested();
 
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false);
-            });
+            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false));
             ForceGC();
             UpdateActiveIndicator();
         }
