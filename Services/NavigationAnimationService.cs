@@ -163,6 +163,7 @@ namespace Coftea_Capstone.Services
                 // Animations disabled
                 await ShowLoadingOverlayAsync(navigationPage);
                 await SafeReplacePageAsync(navigationPage, newPage);
+                // Small delay allows compositor to settle frames in Release
                 await Task.Delay(50);
                 await HideLoadingOverlayAsync();
             }
@@ -194,17 +195,36 @@ namespace Coftea_Capstone.Services
                     return;
                 }
 
-                // Clear navigation stack and push new page
-                var navigationStack = navigationPage.Navigation.NavigationStack.ToList();
-                
-                // Pop all pages except the root
-                while (navigationPage.Navigation.NavigationStack.Count > 1)
+                // Efficiently reset stack to the new page with minimal redraws
+                await RunOnMainThreadAsync(async () =>
                 {
-                    await RunOnMainThreadAsync(() => navigationPage.PopAsync(false));
-                }
+                    var nav = navigationPage.Navigation;
+                    var stack = nav.NavigationStack;
+                    if (stack == null || stack.Count == 0)
+                    {
+                        await navigationPage.PushAsync(newPage, false);
+                        return;
+                    }
 
-                // Push the new page
-                await RunOnMainThreadAsync(() => navigationPage.PushAsync(newPage, false));
+                    // Insert the new page before the root, then pop to root once
+                    var root = stack[0];
+                    // Remove intermediate pages to avoid stack overgrowth and retained views
+                    foreach (var p in stack.ToList())
+                    {
+                        if (p != null && p != root && p.GetType() != newPage.GetType())
+                        {
+                            try { nav.RemovePage(p); } catch { }
+                        }
+                    }
+                    if (root?.GetType() == newPage.GetType())
+                    {
+                        await navigationPage.PopToRootAsync(false);
+                        return;
+                    }
+
+                    nav.InsertPageBefore(newPage, root);
+                    await navigationPage.PopToRootAsync(false);
+                });
             }
             catch (Exception ex)
             {
@@ -255,6 +275,9 @@ namespace Coftea_Capstone.Services
                 
                 // Remove from parent with additional safety checks
                 ViewParentHelper.SafeRemoveFromParent(_loadingOverlay);
+                // Fully release handler and allow GC to reclaim Android views to reduce GREFs
+                try { _loadingOverlay.Handler?.DisconnectHandler(); } catch { }
+                _loadingOverlay = null;
             }
         }
     }

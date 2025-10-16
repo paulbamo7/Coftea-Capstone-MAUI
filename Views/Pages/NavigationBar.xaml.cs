@@ -20,6 +20,11 @@ public partial class NavigationBar : ContentView
     private DateTime _pendingRequestedAt = DateTime.MinValue;
     private static readonly SemaphoreSlim _navSemaphore = new SemaphoreSlim(1, 1);
     private static readonly SemaphoreSlim _globalNavLock = new SemaphoreSlim(1, 1);
+    // Track nav event subscriptions to unhook and avoid leaks
+    private NavigationPage _hookedNav;
+    private EventHandler<NavigationEventArgs> _pushedHandler;
+    private EventHandler<NavigationEventArgs> _poppedHandler;
+    private PropertyChangedEventHandler _propertyChangedHandler;
     // DEBUG helper removed
 
     public NavigationBar()
@@ -68,16 +73,43 @@ public partial class NavigationBar : ContentView
     private void TryHookNavigationEvents()
     {
         var nav = Application.Current.MainPage as NavigationPage;
-        if (nav == null) return;
-        nav.Pushed += (_, __) => MainThread.BeginInvokeOnMainThread(UpdateActiveIndicator);
-        nav.Popped += (_, __) => MainThread.BeginInvokeOnMainThread(UpdateActiveIndicator);
-        nav.PropertyChanged += (s, e) =>
+        if (nav == null || ReferenceEquals(_hookedNav, nav)) return;
+
+        UnhookNavigationEvents();
+
+        _hookedNav = nav;
+        _pushedHandler = (_, __) => MainThread.BeginInvokeOnMainThread(UpdateActiveIndicator);
+        _poppedHandler = (_, __) => MainThread.BeginInvokeOnMainThread(UpdateActiveIndicator);
+        _propertyChangedHandler = (s, e) =>
         {
             if (e.PropertyName == nameof(NavigationPage.CurrentPage))
             {
                 MainThread.BeginInvokeOnMainThread(UpdateActiveIndicator);
             }
         };
+
+        _hookedNav.Pushed += _pushedHandler;
+        _hookedNav.Popped += _poppedHandler;
+        _hookedNav.PropertyChanged += _propertyChangedHandler;
+    }
+
+    private void UnhookNavigationEvents()
+    {
+        if (_hookedNav == null) return;
+        try
+        {
+            if (_pushedHandler != null) _hookedNav.Pushed -= _pushedHandler;
+            if (_poppedHandler != null) _hookedNav.Popped -= _poppedHandler;
+            if (_propertyChangedHandler != null) _hookedNav.PropertyChanged -= _propertyChangedHandler;
+        }
+        catch { }
+        finally
+        {
+            _pushedHandler = null;
+            _poppedHandler = null;
+            _propertyChangedHandler = null;
+            _hookedNav = null;
+        }
     }
 
     private void UpdateActiveIndicator()
@@ -190,7 +222,7 @@ public partial class NavigationBar : ContentView
         // Re-enable all navigation buttons with a small delay to prevent rapid clicking
         MainThread.BeginInvokeOnMainThread(async () =>
         {
-            await Task.Delay(100); // Small delay to prevent rapid re-enabling
+            await Task.Delay(650); // Throttle longer to defeat 0.5s spam
             HomeButton.IsEnabled = true;
             POSButton.IsEnabled = true;
             InventoryButton.IsEnabled = true;
@@ -279,7 +311,7 @@ public partial class NavigationBar : ContentView
             // Use the cancellation token from StartNavigationAsync
             _currentNavigationCts?.Token.ThrowIfCancellationRequested();
             
-            // Replace current page with POS using centralized navigation
+            // Replace current page with POS using centralized navigation and cached instance
             await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false));
             ForceGC();
             UpdateActiveIndicator();

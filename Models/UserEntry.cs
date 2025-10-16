@@ -13,7 +13,7 @@ namespace Coftea_Capstone.Models
         public string Username { get; set; }
         public string LastActive { get; set; }
         public string DateAdded { get; set; }
-        public bool IsAdmin { get; set; } // Use database field instead of hardcoded ID check
+        public bool IsAdmin { get; set; } 
         
         public bool CanAccessInventory 
         { 
@@ -27,13 +27,12 @@ namespace Coftea_Capstone.Models
                 }
             }
         }
-        
         public bool CanAccessSalesReport 
         { 
-            get => IsAdmin ? true : _canAccessSalesReport; // Admin always has access
+            get => IsAdmin ? true : _canAccessSalesReport; // Ensure admin always has access
             set 
             {
-                if (!IsAdmin && SetProperty(ref _canAccessSalesReport, value)) // Only update if not admin
+                if (!IsAdmin && SetProperty(ref _canAccessSalesReport, value))
                 {
                     // Update database when property changes
                     _ = Task.Run(async () => await UpdateDatabaseAsync());
@@ -45,7 +44,6 @@ namespace Coftea_Capstone.Models
         {
             try
             {
-                // Don't update admin users' permissions in database - they always have full access
                 if (!IsAdmin)
                 {
                     await _database.UpdateUserAccessAsync(Id, _canAccessInventory, _canAccessSalesReport);
