@@ -485,24 +485,6 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (string.IsNullOrWhiteSpace(size)) return;
             
-            // Save current input amounts to the current size before switching
-            foreach (var item in SelectedIngredientsOnly)
-            {
-                // Save the current InputAmount to the appropriate size-specific property
-                switch (item.SelectedSize)
-                {
-                    case "Small":
-                        item.InputAmountSmall = item.InputAmount;
-                        break;
-                    case "Medium":
-                        item.InputAmountMedium = item.InputAmount;
-                        break;
-                    case "Large":
-                        item.InputAmountLarge = item.InputAmount;
-                        break;
-                }
-            }
-            
             SelectedSize = size;
             
             // Update all selected ingredients to use the new size
@@ -519,14 +501,30 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ => 1
                 };
                 
-                // Update input unit based on the selected size (use remembered size-specific units if available)
-                item.InputUnit = size switch
+                // Update input unit based on the selected size
+                // If the target size has no unit yet, inherit the current unit (so user doesn't reselect)
+                var currentUnit = string.IsNullOrWhiteSpace(item.InputUnit) ? item.unitOfMeasurement : item.InputUnit;
+                switch (size)
                 {
-                    "Small" => string.IsNullOrWhiteSpace(item.InputUnitSmall) ? (item.InputUnitSmall = item.InputUnitSmall ?? item.unitOfMeasurement) : item.InputUnitSmall,
-                    "Medium" => string.IsNullOrWhiteSpace(item.InputUnitMedium) ? (item.InputUnitMedium = item.InputUnitMedium ?? item.unitOfMeasurement) : item.InputUnitMedium,
-                    "Large" => string.IsNullOrWhiteSpace(item.InputUnitLarge) ? (item.InputUnitLarge = item.InputUnitLarge ?? item.unitOfMeasurement) : item.InputUnitLarge,
-                    _ => item.InputUnit
-                };
+                    case "Small":
+                        if (string.IsNullOrWhiteSpace(item.InputUnitSmall))
+                            item.InputUnitSmall = currentUnit;
+                        item.InputUnit = item.InputUnitSmall;
+                        break;
+                    case "Medium":
+                        if (string.IsNullOrWhiteSpace(item.InputUnitMedium))
+                            item.InputUnitMedium = currentUnit;
+                        item.InputUnit = item.InputUnitMedium;
+                        break;
+                    case "Large":
+                        if (string.IsNullOrWhiteSpace(item.InputUnitLarge))
+                            item.InputUnitLarge = currentUnit;
+                        item.InputUnit = item.InputUnitLarge;
+                        break;
+                    default:
+                        // keep existing
+                        break;
+                }
             }
             
             // Preserve addon selections when switching sizes

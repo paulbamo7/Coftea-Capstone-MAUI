@@ -472,28 +472,48 @@ namespace Coftea_Capstone.ViewModel
                     foreach (var tuple in ingredients)
                     {
                         var item = tuple.item;
-                        var requiredAmount = tuple.amount;
-                        var requiredUnit = tuple.unit;
+                        var sharedAmount = tuple.amount;
+                        var sharedUnit = tuple.unit;
 
-                        // Normalize units
+                        // Prefer per-size amounts/units when available; pick the smallest positive one-serving requirement
+                        double[] sizeAmts = new[] { item.InputAmountSmall, item.InputAmountMedium, item.InputAmountLarge };
+                        string[] sizeUnits = new[] { item.InputUnitSmall, item.InputUnitMedium, item.InputUnitLarge };
+                        double chosenAmt = 0;
+                        string chosenUnit = null;
+                        for (int i = 0; i < sizeAmts.Length; i++)
+                        {
+                            if (sizeAmts[i] > 0)
+                            {
+                                if (chosenAmt <= 0 || sizeAmts[i] < chosenAmt)
+                                {
+                                    chosenAmt = sizeAmts[i];
+                                    chosenUnit = sizeUnits[i];
+                                }
+                            }
+                        }
+                        if (chosenAmt <= 0)
+                        {
+                            chosenAmt = sharedAmount;
+                            chosenUnit = sharedUnit;
+                        }
+
+                        // Normalize units and convert to inventory unit for comparison
                         var inventoryUnit = UnitConversionService.Normalize(item.unitOfMeasurement);
-                        var recipeUnit = UnitConversionService.Normalize(requiredUnit);
+                        var recipeUnit = UnitConversionService.Normalize(chosenUnit);
 
                         double requiredInInventoryUnit;
-                        // If either unit is missing, treat both as quantity-type and compare raw numbers
                         if (string.IsNullOrWhiteSpace(inventoryUnit) || string.IsNullOrWhiteSpace(recipeUnit))
                         {
-                            requiredInInventoryUnit = requiredAmount;
+                            requiredInInventoryUnit = chosenAmt;
                         }
                         else if (!UnitConversionService.AreCompatibleUnits(recipeUnit, inventoryUnit))
                         {
-                            // Incompatible units — conservatively mark insufficient
                             insufficientForRecipe = true;
                             break;
                         }
                         else
                         {
-                            requiredInInventoryUnit = UnitConversionService.Convert(requiredAmount, recipeUnit, inventoryUnit);
+                            requiredInInventoryUnit = UnitConversionService.Convert(chosenAmt, recipeUnit, inventoryUnit);
                         }
 
                         if (requiredInInventoryUnit > item.itemQuantity)

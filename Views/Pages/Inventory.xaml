@@ -90,7 +90,7 @@
                                     <Entry Grid.Column="1"
                                            WidthRequest="220"
                                            BackgroundColor="Transparent"
-                                           TextColor="Black"
+                                           TextColor="White"
                                            PlaceholderColor="White"
                                            ClearButtonVisibility="WhileEditing"
                                            Placeholder="Type item name..."
@@ -198,7 +198,7 @@
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:EditInventoryPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=EditInventoryPopup}" Grid.ColumnSpan="2"/>
         <otherViews:AddItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2"/>
-        <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
+        <otherViews:UpdateInventoryDetails x:Name="UpdateInventoryDetailsControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
         <otherViews:ConnectPOSItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1100"/>
         <otherViews:InputIngredientsAmountUsed BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200"/>

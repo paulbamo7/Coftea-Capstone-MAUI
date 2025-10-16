@@ -177,6 +177,13 @@ namespace Coftea_Capstone.Models
                     itemID INT NOT NULL,
                     amount DECIMAL(10,4) NOT NULL,
                     unit VARCHAR(50),
+                    -- Per-size amounts/units (nullable; fallback to shared amount/unit when NULL)
+                    amount_small  DECIMAL(10,4) NULL,
+                    unit_small    VARCHAR(50)   NULL,
+                    amount_medium DECIMAL(10,4) NULL,
+                    unit_medium   VARCHAR(50)   NULL,
+                    amount_large  DECIMAL(10,4) NULL,
+                    unit_large    VARCHAR(50)   NULL,
                     role VARCHAR(50) DEFAULT 'ingredient',
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
                     FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
@@ -246,7 +253,23 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(createTablesSql, conn);
             await cmd.ExecuteNonQueryAsync();
 
-            // No additional ALTER statements needed; CREATE TABLE with IF NOT EXISTS ensures schema is present.
+            // Add per-size columns to product_ingredients (idempotent – ignore if already exist)
+            try
+            {
+                var alterPerSize = @"ALTER TABLE product_ingredients
+                    ADD COLUMN amount_small  DECIMAL(10,4) NULL AFTER amount,
+                    ADD COLUMN unit_small    VARCHAR(50)   NULL AFTER amount_small,
+                    ADD COLUMN amount_medium DECIMAL(10,4) NULL AFTER unit_small,
+                    ADD COLUMN unit_medium   VARCHAR(50)   NULL AFTER amount_medium,
+                    ADD COLUMN amount_large  DECIMAL(10,4) NULL AFTER unit_medium,
+                    ADD COLUMN unit_large    VARCHAR(50)   NULL AFTER amount_large;";
+                await using var alterCmd = new MySqlCommand(alterPerSize, conn);
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Per-size columns already exist or failed to add: {ex.Message}");
+            }
 
             // Ensure at least one user exists to prevent foreign key constraint errors
             await EnsureDefaultUserExistsAsync(conn);
@@ -447,6 +470,9 @@ namespace Coftea_Capstone.Models
             await using var conn = await GetOpenConnectionAsync();
 
             const string sql = @"SELECT pi.amount, pi.unit, pi.role,
+                                        pi.amount_small, pi.unit_small,
+                                        pi.amount_medium, pi.unit_medium,
+                                        pi.amount_large, pi.unit_large,
                                         i.itemID, i.itemName, i.itemQuantity, i.itemCategory, i.imageSet,
                                         i.itemDescription, i.unitOfMeasurement, i.minimumQuantity, i.maximumQuantity
                                    FROM product_ingredients pi
@@ -473,16 +499,24 @@ namespace Coftea_Capstone.Models
                     maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
                 };
 
-                // Map linked amount/unit into size-specific fields (default to same across sizes)
-                var linkAmount = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
-                var linkUnit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
+                // Shared amount/unit
+                double sharedAmt = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
+                string sharedUnit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
 
-                item.InputAmountSmall = linkAmount;
-                item.InputAmountMedium = linkAmount;
-                item.InputAmountLarge = linkAmount;
-                item.InputUnitSmall = string.IsNullOrWhiteSpace(linkUnit) ? item.DefaultUnit : linkUnit;
-                item.InputUnitMedium = item.InputUnitSmall;
-                item.InputUnitLarge = item.InputUnitSmall;
+                // Per-size amounts/units: DO NOT fall back here; leave 0/empty when NULL so callers can decide
+                item.InputAmountSmall = (HasColumn(reader, "amount_small") && !reader.IsDBNull(reader.GetOrdinal("amount_small")))
+                    ? reader.GetDouble("amount_small") : 0d;
+                item.InputAmountMedium = (HasColumn(reader, "amount_medium") && !reader.IsDBNull(reader.GetOrdinal("amount_medium")))
+                    ? reader.GetDouble("amount_medium") : 0d;
+                item.InputAmountLarge = (HasColumn(reader, "amount_large") && !reader.IsDBNull(reader.GetOrdinal("amount_large")))
+                    ? reader.GetDouble("amount_large") : 0d;
+
+                item.InputUnitSmall = (HasColumn(reader, "unit_small") && !reader.IsDBNull(reader.GetOrdinal("unit_small")))
+                    ? reader.GetString("unit_small") : string.Empty;
+                item.InputUnitMedium = (HasColumn(reader, "unit_medium") && !reader.IsDBNull(reader.GetOrdinal("unit_medium")))
+                    ? reader.GetString("unit_medium") : string.Empty;
+                item.InputUnitLarge = (HasColumn(reader, "unit_large") && !reader.IsDBNull(reader.GetOrdinal("unit_large")))
+                    ? reader.GetString("unit_large") : string.Empty;
 
                 // If you later add cost computation, populate PriceUsed* here
                 item.PriceUsedSmall = 0;
@@ -633,7 +667,9 @@ namespace Coftea_Capstone.Models
             // Clear existing links first to avoid duplicates/stale rows
             const string sqlClearIngredients = "DELETE FROM product_ingredients WHERE productID = @ProductID";
             const string sqlClearAddons = "DELETE FROM product_addons WHERE productID = @ProductID";
-            const string sqlIngredients = "INSERT INTO product_ingredients (productID, itemID, amount, unit, role) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient');";
+            const string sqlIngredients = @"INSERT INTO product_ingredients 
+                (productID, itemID, amount, unit, role, amount_small, unit_small, amount_medium, unit_medium, amount_large, unit_large) 
+                VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient', @AmtS, @UnitS, @AmtM, @UnitM, @AmtL, @UnitL);";
             const string sqlAddons = "INSERT INTO product_addons (productID, itemID, amount, unit, role, addon_price) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'addon', @AddonPrice) ON DUPLICATE KEY UPDATE amount = VALUES(amount), unit = VALUES(unit), addon_price = VALUES(addon_price);";
             int total = 0;
             try
@@ -662,6 +698,13 @@ namespace Coftea_Capstone.Models
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
                     cmd.Parameters.AddWithValue("@Amount", link.amount);
                     cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
+                    // Default per-size to shared value unless caller added explicit params
+                    cmd.Parameters.AddWithValue("@AmtS", link.amount);
+                    cmd.Parameters.AddWithValue("@UnitS", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AmtM", link.amount);
+                    cmd.Parameters.AddWithValue("@UnitM", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AmtL", link.amount);
+                    cmd.Parameters.AddWithValue("@UnitL", (object?)link.unit ?? DBNull.Value);
                     var affected = await cmd.ExecuteNonQueryAsync();
                     total += affected;
                     System.Diagnostics.Debug.WriteLine($"Inserted ingredient link itemId={link.inventoryItemId}, amount={link.amount}, unit={link.unit} → rows={affected}");
@@ -685,6 +728,73 @@ namespace Coftea_Capstone.Models
                 await tx.CommitAsync();
                 InvalidateProductLinksCache(productId);
                 System.Diagnostics.Debug.WriteLine($"Finished saving links. Total affected rows={total}");
+                return total;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        // Overload that accepts per-size values for ingredients
+        public async Task<int> SaveProductLinksSplitAsync(
+            int productId,
+            IEnumerable<(int inventoryItemId, double amount, string? unit, double amtS, string? unitS, double amtM, string? unitM, double amtL, string? unitL)> ingredients,
+            IEnumerable<(int inventoryItemId, double amount, string? unit, decimal addonPrice)> addons)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            const string sqlClearIngredients = "DELETE FROM product_ingredients WHERE productID = @ProductID";
+            const string sqlClearAddons = "DELETE FROM product_addons WHERE productID = @ProductID";
+            const string sqlIngredients = @"INSERT INTO product_ingredients 
+                (productID, itemID, amount, unit, role, amount_small, unit_small, amount_medium, unit_medium, amount_large, unit_large) 
+                VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient', @AmtS, @UnitS, @AmtM, @UnitM, @AmtL, @UnitL);";
+            const string sqlAddons = "INSERT INTO product_addons (productID, itemID, amount, unit, role, addon_price) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'addon', @AddonPrice) ON DUPLICATE KEY UPDATE amount = VALUES(amount), unit = VALUES(unit), addon_price = VALUES(addon_price);";
+            int total = 0;
+            try
+            {
+                await using (var clearIngCmd = new MySqlCommand(sqlClearIngredients, conn, (MySqlTransaction)tx))
+                {
+                    clearIngCmd.Parameters.AddWithValue("@ProductID", productId);
+                    await clearIngCmd.ExecuteNonQueryAsync();
+                }
+                await using (var clearAddCmd = new MySqlCommand(sqlClearAddons, conn, (MySqlTransaction)tx))
+                {
+                    clearAddCmd.Parameters.AddWithValue("@ProductID", productId);
+                    await clearAddCmd.ExecuteNonQueryAsync();
+                }
+
+                foreach (var link in ingredients)
+                {
+                    await using var cmd = new MySqlCommand(sqlIngredients, conn, (MySqlTransaction)tx);
+                    cmd.Parameters.AddWithValue("@ProductID", productId);
+                    cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
+                    cmd.Parameters.AddWithValue("@Amount", link.amount);
+                    cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AmtS", link.amtS);
+                    cmd.Parameters.AddWithValue("@UnitS", (object?)link.unitS ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AmtM", link.amtM);
+                    cmd.Parameters.AddWithValue("@UnitM", (object?)link.unitM ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AmtL", link.amtL);
+                    cmd.Parameters.AddWithValue("@UnitL", (object?)link.unitL ?? DBNull.Value);
+                    total += await cmd.ExecuteNonQueryAsync();
+                }
+
+                foreach (var link in addons)
+                {
+                    await using var cmd = new MySqlCommand(sqlAddons, conn, (MySqlTransaction)tx);
+                    cmd.Parameters.AddWithValue("@ProductID", productId);
+                    cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
+                    cmd.Parameters.AddWithValue("@Amount", link.amount);
+                    cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AddonPrice", link.addonPrice);
+                    total += await cmd.ExecuteNonQueryAsync();
+                }
+
+                await tx.CommitAsync();
+                InvalidateProductLinksCache(productId);
                 return total;
             }
             catch
@@ -1342,8 +1452,8 @@ namespace Coftea_Capstone.Models
                         PhoneNumber = reader.GetString("phoneNumber"),
                         Address = reader.GetString("address"),
                         Status = reader.GetString("status"),
-                        CanAccessInventory = reader.GetBoolean("can_access_inventory"),
-                        CanAccessSalesReport = reader.GetBoolean("can_access_sales_report"),
+                        CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
+                        CanAccessSalesReport = reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) ? false : reader.GetBoolean("can_access_sales_report"),
                         Username = reader.GetString("username") ?? string.Empty,
                         FullName = reader.GetString("fullName") ?? string.Empty,
                         ProfileImage = reader.GetString("profileImage") ?? "usericon.png"
@@ -1435,8 +1545,9 @@ namespace Coftea_Capstone.Models
                 return null; // User not found
             }
 
-            // Generate reset token
-            var resetToken = Guid.NewGuid().ToString();
+            // Generate 6-digit numeric reset code (store in reset_token)
+            var rng = new Random();
+            var resetToken = rng.Next(100000, 999999).ToString();
             var resetExpiry = DateTime.Now.AddHours(1); // Token expires in 1 hour
 
             reader.Close();

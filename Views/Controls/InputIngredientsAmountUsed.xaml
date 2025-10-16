@@ -217,7 +217,7 @@
 
                                         <!-- Amount Used Input -->
                                         <Entry Grid.Column="7" 
-                                               Text="{Binding InputAmount}" 
+                                               Text="{Binding InputAmountText, Mode=TwoWay, UpdateSourceEventName=TextChanged}" 
                                                FontSize="12" 
                                                Keyboard="Numeric" 
                                                TextColor="Black"

@@ -86,8 +86,9 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(IsMediumPriceVisible));
             OnPropertyChanged(nameof(IsLargePriceVisible));
 
-            // Reset subcategory when leaving Fruit/Soda or Coffee
-            if (!string.Equals(value, "Fruit/Soda", StringComparison.OrdinalIgnoreCase) && 
+            // Only reset subcategory when leaving Fruit/Soda or Coffee, and not during edit mode
+            if (!IsEditMode && 
+                !string.Equals(value, "Fruit/Soda", StringComparison.OrdinalIgnoreCase) && 
                 !string.Equals(value, "Coffee", StringComparison.OrdinalIgnoreCase))
                 SelectedSubcategory = null;
         }
@@ -172,9 +173,28 @@ namespace Coftea_Capstone.ViewModel
             SelectedImageSource = !string.IsNullOrEmpty(product.ImageSet) ? ImageSource.FromFile(product.ImageSet) : null;
             ProductDescription = product.ProductDescription ?? string.Empty;
 
-            // Set category and subcategory based on the product's data
-            if (!string.IsNullOrEmpty(product.Category))
+            // Set category and subcategory based on the product's data (prefer Subcategory when present)
+            if (!string.IsNullOrEmpty(product.Subcategory))
             {
+                if (product.Subcategory == "Fruit" || product.Subcategory == "Soda")
+                {
+                    SelectedCategory = "Fruit/Soda";
+                    SelectedSubcategory = product.Subcategory;
+                }
+                else if (product.Subcategory == "Americano" || product.Subcategory == "Latte")
+                {
+                    SelectedCategory = "Coffee";
+                    SelectedSubcategory = product.Subcategory;
+                }
+                else
+                {
+                    SelectedCategory = product.Category;
+                    SelectedSubcategory = product.Subcategory;
+                }
+            }
+            else if (!string.IsNullOrEmpty(product.Category))
+            {
+                // No explicit subcategory saved; infer from category if possible
                 if (product.Category == "Fruit" || product.Category == "Soda")
                 {
                     SelectedCategory = "Fruit/Soda";
@@ -226,16 +246,47 @@ namespace Coftea_Capstone.ViewModel
 
                     // Mark as selected and set input fields from link
                     inv.IsSelected = true;
-                    inv.InputAmount = amount > 0 ? amount : 1;
-                    inv.InputUnit = string.IsNullOrWhiteSpace(unit) ? inv.DefaultUnit : unit;
+                    // Preserve per-size values loaded from DB if present
+                    var hasS = inv.InputAmountSmall > 0;
+                    var hasM = inv.InputAmountMedium > 0;
+                    var hasL = inv.InputAmountLarge > 0;
 
-                    // Initialize per-size to same amount by default
-                    inv.InputAmountSmall = inv.InputAmount;
-                    inv.InputAmountMedium = inv.InputAmount;
-                    inv.InputAmountLarge = inv.InputAmount;
-                    inv.InputUnitSmall = inv.InputUnit;
-                    inv.InputUnitMedium = inv.InputUnit;
-                    inv.InputUnitLarge = inv.InputUnit;
+                    // Shared fallback from link when a size is missing
+                    var sharedAmt = amount > 0 ? amount : 1;
+                    var sharedUnit = string.IsNullOrWhiteSpace(unit) ? inv.DefaultUnit : unit;
+
+                    if (!hasS)
+                    {
+                        inv.InputAmountSmall = sharedAmt;
+                        inv.InputUnitSmall = sharedUnit;
+                    }
+                    if (!hasM)
+                    {
+                        inv.InputAmountMedium = sharedAmt;
+                        inv.InputUnitMedium = sharedUnit;
+                    }
+                    if (!hasL)
+                    {
+                        inv.InputAmountLarge = sharedAmt;
+                        inv.InputUnitLarge = sharedUnit;
+                    }
+
+                    // Set current working amount/unit to the current selected size in the popup
+                    var size = ConnectPOSToInventoryVM.SelectedSize;
+                    inv.InputAmount = size switch
+                    {
+                        "Small" => inv.InputAmountSmall,
+                        "Medium" => inv.InputAmountMedium,
+                        "Large" => inv.InputAmountLarge,
+                        _ => sharedAmt
+                    };
+                    inv.InputUnit = size switch
+                    {
+                        "Small" => string.IsNullOrWhiteSpace(inv.InputUnitSmall) ? sharedUnit : inv.InputUnitSmall,
+                        "Medium" => string.IsNullOrWhiteSpace(inv.InputUnitMedium) ? sharedUnit : inv.InputUnitMedium,
+                        "Large" => string.IsNullOrWhiteSpace(inv.InputUnitLarge) ? sharedUnit : inv.InputUnitLarge,
+                        _ => sharedUnit
+                    };
                 }
 
                 // Update derived collections and flags using public method
@@ -357,7 +408,13 @@ namespace Coftea_Capstone.ViewModel
                                 .Select(i => (
                                     inventoryItemId: i.itemID,
                                     amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-                                    unit: (string?)i.unitOfMeasurement
+                                    unit: (string?)i.unitOfMeasurement,
+                                    amtS: ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement),
+                                    unitS: (string?) (string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall),
+                                    amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
+                                    unitM: (string?) (string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
+                                    amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
+                                    unitL: (string?) (string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
                                 ));
 
                             var addons = selectedAddonsOnly
@@ -450,7 +507,22 @@ namespace Coftea_Capstone.ViewModel
 
                         try
                         {
-                            await _database.SaveProductLinksSplitAsync(newProductId, ingredients, addons);
+                            // Rebuild ingredients with per-size values for the overload
+                            var ingredientsPerSize = selectedIngredientsOnly
+                                .Where(i => !addonIds.Contains(i.itemID))
+                                .Select(i => (
+                                    inventoryItemId: i.itemID,
+                                    amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                    unit: (string?)(i.InputUnit ?? i.unitOfMeasurement),
+                                    amtS: (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1),
+                                    unitS: (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall),
+                                    amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
+                                    unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
+                                    amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
+                                    unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
+                                ));
+
+                            await _database.SaveProductLinksSplitAsync(newProductId, ingredientsPerSize, addons);
                         }
                         catch (Exception ex)
                         {
@@ -748,6 +820,40 @@ namespace Coftea_Capstone.ViewModel
             IsAddItemToPOSVisible = false;
             IsEditMode = false;
             EditingProductId = 0;
+            
+            // Reset the ConnectPOSToInventoryVM as well
+            if (ConnectPOSToInventoryVM != null)
+            {
+                ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = false;
+                ConnectPOSToInventoryVM.IsInputIngredientsVisible = false;
+                ConnectPOSToInventoryVM.IsPreviewVisible = false;
+                ConnectPOSToInventoryVM.IsAddonPopupVisible = false;
+                ConnectPOSToInventoryVM.ProductName = string.Empty;
+                ConnectPOSToInventoryVM.SelectedCategory = string.Empty;
+                ConnectPOSToInventoryVM.SmallPrice = string.Empty;
+                ConnectPOSToInventoryVM.MediumPrice = string.Empty;
+                ConnectPOSToInventoryVM.LargePrice = string.Empty;
+                ConnectPOSToInventoryVM.SelectedImageSource = null;
+                ConnectPOSToInventoryVM.ProductDescription = string.Empty;
+                
+                // Clear inventory selections
+                if (ConnectPOSToInventoryVM.InventoryItems != null)
+                {
+                    foreach (var item in ConnectPOSToInventoryVM.InventoryItems)
+                    {
+                        item.IsSelected = false;
+                        item.InputAmount = 0;
+                        item.InputUnit = string.Empty;
+                        item.AddonQuantity = 0;
+                    }
+                }
+                
+                // Reset addons popup if it exists
+                if (ConnectPOSToInventoryVM.AddonsPopup != null)
+                {
+                    ConnectPOSToInventoryVM.AddonsPopup.IsAddonsPopupVisible = false;
+                }
+            }
         }
         [RelayCommand]
         private void OpenConnectPOSToInventory()

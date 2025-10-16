@@ -49,11 +49,12 @@
                 </Grid>
 
                 <!-- Payment Content -->
-                <ScrollView Grid.Row="1">
-                <Grid Padding="30">
-                    <Grid RowDefinitions="Auto, Auto, *">
-                        <!-- Payment Method Selector -->
-                        <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto" Margin="0,0,0,20">
+                <Grid Grid.Row="1" Padding="30" ColumnDefinitions="*, *" ColumnSpacing="20">
+                    <!-- Left Side: Payment Details -->
+                    <ScrollView Grid.Column="0">
+                        <Grid RowDefinitions="Auto, Auto, *">
+                            <!-- Payment Method Selector -->
+                            <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto" Margin="0,0,0,20">
                             <HorizontalStackLayout Spacing="12">
                                 <Label Text="Payment Method:" 
                                        FontSize="16"
@@ -388,8 +389,65 @@
                             </Grid>
                         </Grid>
                     </Grid>
+                    </ScrollView>
+
+                    <!-- Right Side: Order Summary -->
+                    <ScrollView Grid.Column="1">
+                        <Frame Padding="15" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Order Summary" FontSize="18" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center" />
+                                
+                                <!-- Cart Items List -->
+                                <CollectionView ItemsSource="{Binding CartItems}" HeightRequest="300">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="8,4" Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <!-- Product Name and Sizes -->
+                                                <StackLayout Grid.Column="0" Spacing="2">
+                                                    <Label Text="{Binding ProductName}" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                                    <StackLayout Orientation="Horizontal" Spacing="8">
+                                                        <Label Text="{Binding SmallQuantity, StringFormat='S:{0}'}" 
+                                                               FontSize="12" TextColor="#666666" 
+                                                               IsVisible="{Binding SmallQuantity, Converter={StaticResource IsPositiveConverter}}" />
+                                                        <Label Text="{Binding MediumQuantity, StringFormat='M:{0}'}" 
+                                                               FontSize="12" TextColor="#666666" 
+                                                               IsVisible="{Binding MediumQuantity, Converter={StaticResource IsPositiveConverter}}" />
+                                                        <Label Text="{Binding LargeQuantity, StringFormat='L:{0}'}" 
+                                                               FontSize="12" TextColor="#666666" 
+                                                               IsVisible="{Binding LargeQuantity, Converter={StaticResource IsPositiveConverter}}" />
+                                                    </StackLayout>
+                                                    
+                                                    <!-- Add-ons -->
+                                                    <Label Text="{Binding SelectedAddons}" 
+                                                           FontSize="12" TextColor="#8B5CF6" 
+                                                           IsVisible="{Binding SelectedAddons, Converter={StaticResource NullToBoolConverter}}" />
+                                                </StackLayout>
+                                                
+                                                <!-- Price -->
+                                                <Label Grid.Column="1" Text="{Binding TotalPrice, StringFormat='₱{0:F2}'}" 
+                                                       FontSize="14" FontAttributes="Bold" TextColor="#5B4F45" VerticalOptions="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                                
+                                <!-- Total Amount -->
+                                <Frame BackgroundColor="#F8E8D7" CornerRadius="8" Padding="10" HasShadow="False" Margin="0,8,0,0">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <Label Grid.Column="0" Text="Total:" FontSize="16" FontAttributes="Bold" TextColor="#5B4F45" />
+                                        <Label Grid.Column="1" Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
+                                               FontSize="18" FontAttributes="Bold" TextColor="#5B4F45" />
+                                    </Grid>
+                                </Frame>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </ScrollView>
                 </Grid>
-                </ScrollView>
             </Grid>
         </Frame>
     </Grid>

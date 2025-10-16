@@ -426,27 +426,41 @@ namespace Coftea_Capstone.ViewModel.Controls
                     return;
                 }
 
-                // Calculate total quantity based on size and quantity
-                int totalQuantity = GetTotalQuantityForSize(cartItem, cartItem.SelectedSize);
-                if (totalQuantity <= 0)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Invalid quantity for {cartItem.ProductName}: {totalQuantity}");
-                    return;
-                }
-
-                // Prepare deductions list
+                // Prepare deductions list (per size)
                 var deductions = new List<(string name, double amount)>();
 
-                foreach (var (ingredient, amount, unit, role) in ingredients)
+                // Helper local function to add deductions for a specific size using per-size amounts
+                void AddSizeDeductions(string size, int qty)
                 {
-                    // Convert units if needed
-                    var convertedAmount = ConvertUnits(amount, unit, ingredient.unitOfMeasurement);
-                    
-                    // Multiply by total quantity
-                    var totalAmount = convertedAmount * totalQuantity;
-                    
-                    deductions.Add((ingredient.itemName, totalAmount));
+                    if (qty <= 0) return;
+                    foreach (var (ingredient, amount, unit, role) in ingredients)
+                    {
+                        // Choose per-size amount/unit when available; fall back to shared
+                        double perServing = size switch
+                        {
+                            "Small" => ingredient.InputAmountSmall > 0 ? ingredient.InputAmountSmall : amount,
+                            "Medium" => ingredient.InputAmountMedium > 0 ? ingredient.InputAmountMedium : amount,
+                            "Large" => ingredient.InputAmountLarge > 0 ? ingredient.InputAmountLarge : amount,
+                            _ => amount
+                        };
+                        string perUnit = size switch
+                        {
+                            "Small" => !string.IsNullOrWhiteSpace(ingredient.InputUnitSmall) ? ingredient.InputUnitSmall : unit,
+                            "Medium" => !string.IsNullOrWhiteSpace(ingredient.InputUnitMedium) ? ingredient.InputUnitMedium : unit,
+                            "Large" => !string.IsNullOrWhiteSpace(ingredient.InputUnitLarge) ? ingredient.InputUnitLarge : unit,
+                            _ => unit
+                        } ?? ingredient.unitOfMeasurement;
+
+                        var converted = ConvertUnits(perServing, perUnit, ingredient.unitOfMeasurement);
+                        var total = converted * qty;
+                        deductions.Add((ingredient.itemName, total));
+                    }
                 }
+
+                // Add per-size deductions based on cart quantities
+                AddSizeDeductions("Small", cartItem.SmallQuantity);
+                AddSizeDeductions("Medium", cartItem.MediumQuantity);
+                AddSizeDeductions("Large", cartItem.LargeQuantity);
 
                 // Include selected addons based on configured per-serving amounts
                 // Fetch addon link definitions (amount/unit per serving)
@@ -460,8 +474,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                         if (cartAddon == null) continue;
                         if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0) continue;
 
-                        // Amount per serving defined in product_addons table is stored in linkedAddon.InputAmountSmall (via reader mapping)?
-                        // We stored link amount into InputAmountSmall/Medium/Large earlier when reading; however to be robust, use linked addon's InputAmount
+                        // Use shared per-serving amount/unit for addons (same across sizes), fallback to inventory unit
                         var perServingAmount = linkedAddon.InputAmount > 0
                             ? linkedAddon.InputAmount
                             : (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : 0);
@@ -472,10 +485,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                         if (perServingAmount <= 0)
                             continue; // nothing to deduct for this addon
 
-                        // Convert to inventory unit and multiply by quantity selected and total servings
                         var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, cartAddon.unitOfMeasurement);
-                        var totalAddonAmount = convertedAddonAmount * cartAddon.AddonQuantity * totalQuantity;
-                        deductions.Add((cartAddon.itemName, totalAddonAmount));
+
+                        // Deduct per size quantities separately
+                        if (cartItem.SmallQuantity > 0)
+                            deductions.Add((cartAddon.itemName, convertedAddonAmount * cartAddon.AddonQuantity * (double)cartItem.SmallQuantity));
+                        if (cartItem.MediumQuantity > 0)
+                            deductions.Add((cartAddon.itemName, convertedAddonAmount * cartAddon.AddonQuantity * (double)cartItem.MediumQuantity));
+                        if (cartItem.LargeQuantity > 0)
+                            deductions.Add((cartAddon.itemName, convertedAddonAmount * cartAddon.AddonQuantity * (double)cartItem.LargeQuantity));
                     }
                 }
 
@@ -599,16 +617,22 @@ namespace Coftea_Capstone.ViewModel.Controls
         private static string NormalizeUnit(string unit)
         {
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
-            
-            return unit.ToLowerInvariant() switch
-            {
-                "kilograms" or "kilogram" or "kg" => "kg",
-                "grams" or "gram" or "g" => "g",
-                "liters" or "liter" or "l" or "l." => "l",
-                "milliliters" or "milliliter" or "ml" or "ml." => "ml",
-                "pieces" or "piece" or "pcs" or "pc" => "pcs",
-                _ => unit.ToLowerInvariant()
-            };
+
+            var u = unit.Trim().ToLowerInvariant();
+            // Strip decorations like "liters (l)" → "liters l"
+            u = u.Replace("(", " ").Replace(")", " ").Replace(".", " ");
+            // Collapse multiple spaces
+            u = System.Text.RegularExpressions.Regex.Replace(u, "\\s+", " ").Trim();
+
+            // Prefer specific tokens first
+            if (u.Contains("ml")) return "ml";
+            if (u.Contains(" l" ) || u.StartsWith("l") || u.Contains("liter")) return "l";
+            if (u.Contains("kg")) return "kg";
+            // Ensure 'g' check after 'kg'
+            if (u.Contains(" g") || u == "g" || u.Contains("gram")) return "g";
+            if (u.Contains("pcs") || u.Contains("piece")) return "pcs";
+
+            return u;
         }
 
         private static bool IsMassUnit(string unit)

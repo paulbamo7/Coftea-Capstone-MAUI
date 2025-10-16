@@ -121,10 +121,44 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private double inputAmount = 1;
 
+        // MVVM-friendly text proxy for amount entry
+        public string InputAmountText
+        {
+            get => InputAmount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    InputAmount = 0;
+                    return;
+                }
+                if (double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v)
+                    || double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.CurrentCulture, out v))
+                {
+                    InputAmount = v;
+                }
+            }
+        }
+
         partial void OnInputAmountChanged(double value)
         {
+            // Persist the edited amount into the currently selected size slot
+            switch (SelectedSize)
+            {
+                case "Small":
+                    InputAmountSmall = value;
+                    break;
+                case "Medium":
+                    InputAmountMedium = value;
+                    break;
+                case "Large":
+                    InputAmountLarge = value;
+                    break;
+            }
             // Trigger recalculation of total deduction
             OnPropertyChanged(nameof(TotalDeduction));
+            // Notify bound text proxy so Entry updates immediately
+            OnPropertyChanged(nameof(InputAmountText));
         }
 
         // Size-specific amounts
@@ -146,15 +180,24 @@ namespace Coftea_Capstone.Models
 
         partial void OnSelectedSizeChanged(string value)
         {
-            // When size changes, keep the same InputUnit across sizes (single selection applies to all)
-            // Ensure size-specific slots are initialized to the current InputUnit or default unit
-            var fallback = string.IsNullOrWhiteSpace(InputUnit) ? unitOfMeasurement : InputUnit;
-            if (string.IsNullOrWhiteSpace(InputUnitSmall)) InputUnitSmall = fallback;
-            if (string.IsNullOrWhiteSpace(InputUnitMedium)) InputUnitMedium = fallback;
-            if (string.IsNullOrWhiteSpace(InputUnitLarge)) InputUnitLarge = fallback;
-
-            // Display the currently chosen shared unit
-            InputUnit = fallback;
+            // When size changes, surface that size's amount and unit into the shared fields bound by the UI
+            switch (value)
+            {
+                case "Small":
+                    InputAmount = InputAmountSmall;
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitSmall) ? unitOfMeasurement : InputUnitSmall;
+                    break;
+                case "Medium":
+                    InputAmount = InputAmountMedium;
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitMedium) ? unitOfMeasurement : InputUnitMedium;
+                    break;
+                case "Large":
+                    InputAmount = InputAmountLarge;
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitLarge) ? unitOfMeasurement : InputUnitLarge;
+                    break;
+            }
+            // Ensure text proxy refreshes to reflect the newly selected size's amount
+            OnPropertyChanged(nameof(InputAmountText));
         }
 
         // Calculated total deduction - now simply equals the input amount since it's always 1 serving
@@ -178,10 +221,19 @@ namespace Coftea_Capstone.Models
 
         partial void OnInputUnitChanged(string value)
         {
-            // Apply the chosen unit to all sizes so the user doesn't need to reselect per size
-            InputUnitSmall = value;
-            InputUnitMedium = value;
-            InputUnitLarge = value;
+            // Persist the edited unit into the currently selected size slot only
+            switch (SelectedSize)
+            {
+                case "Small":
+                    InputUnitSmall = value;
+                    break;
+                case "Medium":
+                    InputUnitMedium = value;
+                    break;
+                case "Large":
+                    InputUnitLarge = value;
+                    break;
+            }
         }
 
         // Computed/assigned price used per size (for POS previews and cart)

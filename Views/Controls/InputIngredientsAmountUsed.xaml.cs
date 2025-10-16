@@ -6,4 +6,6 @@ public partial class InputIngredientsAmountUsed : ContentView
 	{
 		InitializeComponent();
 	}
+
+    // No code-behind handlers needed; MVVM binding uses InputAmountText
 }

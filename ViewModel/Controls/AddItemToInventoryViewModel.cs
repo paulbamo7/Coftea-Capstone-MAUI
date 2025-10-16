@@ -76,6 +76,9 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string imagePath = string.Empty;
 
+        // Reference to the UpdateInventoryDetails control for reset functionality
+        public Views.Controls.UpdateInventoryDetails UpdateInventoryDetailsControl { get; set; }
+
         [ObservableProperty]
         private ImageSource selectedImageSource;
 

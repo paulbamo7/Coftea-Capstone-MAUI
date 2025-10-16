@@ -72,6 +72,13 @@ namespace Coftea_Capstone.ViewModel
             // Seed AddItemToInventory with DB values and open UpdateInventoryDetails panel
             _addItemToInventoryViewModel.IsAddItemToInventoryVisible = false;
             _addItemToInventoryViewModel.IsUpdateInventoryDetailsVisible = true;
+            
+            // Reset the UpdateInventoryDetails form to clear any previous data
+            if (_addItemToInventoryViewModel.UpdateInventoryDetailsControl != null)
+            {
+                _addItemToInventoryViewModel.UpdateInventoryDetailsControl.ResetForm();
+            }
+            
             _addItemToInventoryViewModel.ItemName = fresh.itemName;
             _addItemToInventoryViewModel.ItemDescription = fresh.itemDescription;
             _addItemToInventoryViewModel.UoMQuantity = fresh.itemQuantity;

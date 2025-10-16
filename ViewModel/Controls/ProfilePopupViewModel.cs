@@ -305,10 +305,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                     IsAdmin = user.IsAdmin;
                     ProfileImage = user.ProfileImage ?? "usericon.png";
                     ProfileImageSource = GetProfileImageSource(ProfileImage);
-                    CanAccessInventory = user.CanAccessInventory;
-                    CanAccessSalesReport = user.CanAccessSalesReport;
+                    
+                    // For admin users, always set access to true (admin has all permissions)
+                    // For non-admin users, use the database values
+                    if (user.IsAdmin)
+                    {
+                        CanAccessInventory = true;
+                        CanAccessSalesReport = true;
+                    }
+                    else
+                    {
+                        CanAccessInventory = user.CanAccessInventory;
+                        CanAccessSalesReport = user.CanAccessSalesReport;
+                    }
                     
                     System.Diagnostics.Debug.WriteLine($"Profile data loaded from database - Email: {Email}, FullName: {FullName}, Phone: {PhoneNumber}, IsAdmin: {IsAdmin}, CanAccessInventory: {CanAccessInventory}, CanAccessSalesReport: {CanAccessSalesReport}");
+                    System.Diagnostics.Debug.WriteLine($"Database values - IsAdmin: {user.IsAdmin}, CanAccessInventory: {user.CanAccessInventory}, CanAccessSalesReport: {user.CanAccessSalesReport}");
                     
                     // Update App.CurrentUser with fresh data from database
                     if (App.CurrentUser != null)

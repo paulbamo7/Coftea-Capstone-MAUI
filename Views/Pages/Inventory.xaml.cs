@@ -14,6 +14,13 @@ public partial class Inventory : ContentPage
         var vm = new InventoryPageViewModel(settingsVm);
         BindingContext = vm;
 
+        // Set reference to UpdateInventoryDetails control for reset functionality
+        var addItemToInventoryVM = ((App)Application.Current).ManageInventoryPopup.AddItemToInventoryVM;
+        if (addItemToInventoryVM != null)
+        {
+            addItemToInventoryVM.UpdateInventoryDetailsControl = UpdateInventoryDetailsControl;
+        }
+
         // Subscribe to inventory change notifications to refresh the list
         MessagingCenter.Subscribe<AddItemToInventoryViewModel>(this, "InventoryChanged", async (sender) =>
         {

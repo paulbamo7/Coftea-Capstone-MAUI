@@ -39,13 +39,11 @@ namespace Coftea_Capstone.Services
                 client.EnableSsl = false; // MailHog doesn't use SSL
                 client.UseDefaultCredentials = false;
 
-                var resetLink = $"http://localhost:3000/reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(resetToken)}";
-                System.Diagnostics.Debug.WriteLine($"Reset link: {resetLink}");
-                
-                var htmlBody = CreatePasswordResetEmailBody(resetLink);
+                // We now send a 6-digit code instead of a link for simulation
+                var htmlBody = CreatePasswordResetEmailBodyWithCode(resetToken);
                 System.Diagnostics.Debug.WriteLine($"Email body length: {htmlBody.Length} characters");
 
-                var plainTextBody = CreatePasswordResetEmailPlainText(resetLink);
+                var plainTextBody = CreatePasswordResetEmailPlainTextWithCode(resetToken);
 
                 var message = new MailMessage
                 {
@@ -81,10 +79,7 @@ namespace Coftea_Capstone.Services
             }
         }
 
-        public string GetEmailBodyForTesting(string resetLink)
-        {
-            return CreatePasswordResetEmailBody(resetLink);
-        }
+        public string GetEmailBodyForTesting(string code) => CreatePasswordResetEmailBodyWithCode(code);
 
         public void SetManualMailHogHost(string host)
         {
@@ -108,7 +103,7 @@ namespace Coftea_Capstone.Services
         public void ClearManualEmailHost() => ClearManualMailHogHost();
         public string GetCurrentEmailHost() => GetCurrentMailHogHost();
 
-        private string CreatePasswordResetEmailPlainText(string resetLink)
+        private string CreatePasswordResetEmailPlainTextWithCode(string code)
         {
             return $@"
 Coftea Password Reset Request
@@ -116,10 +111,9 @@ Coftea Password Reset Request
 You have requested to reset your password for your Coftea account.
 
 For Development Testing:
-Click the link below to open the password reset popup directly in the app, or copy the reset link for testing.
+Use the verification code below in the app to reset your password:
 
-Reset your password by clicking this link:
-{resetLink}
+Your Coftea reset code: {code}
 
 This link will expire in 1 hour for security reasons.
 
@@ -130,7 +124,7 @@ Coftea Management System
 ";
         }
 
-        private string CreatePasswordResetEmailBody(string resetLink)
+        private string CreatePasswordResetEmailBodyWithCode(string code)
         {
             return $@"
 <!DOCTYPE html>
@@ -154,19 +148,15 @@ Coftea Management System
             <h1>Coftea Password Reset</h1>
         </div>
         <div class='content'>
-            <h2>Password Reset Request</h2>
+            <h2>Password Reset Code</h2>
             <p>You have requested to reset your password for your Coftea account.</p>
-            
             <div class='note'>
                 <strong>For Development Testing:</strong><br>
-                Click the button below to open the password reset popup directly in the app, or copy the reset link for testing.
+                Enter this verification code in the app to reset your password:
             </div>
-            
-            <p>Click the button below to reset your password:</p>
-            <a href='{resetLink}' class='button'>Reset Password</a>
-            
-            <p><strong>Reset Link:</strong><br>
-            <code style='background-color: #f0f0f0; padding: 5px; border-radius: 3px; word-break: break-all;'>{resetLink}</code></p>
+            <p style='font-size:24px; font-weight:bold; letter-spacing:4px; background-color:#fff; display:inline-block; padding:10px 16px; border-radius:6px;'>
+                {code}
+            </p>
             
             <p>This link will expire in 1 hour for security reasons.</p>
             <p>If you did not request this password reset, please ignore this email.</p>

@@ -25,6 +25,36 @@ public partial class UpdateInventoryDetails : ContentView
         UpdateTotalDisplay();
     }
 
+    // Method to reset the form when switching between items
+    public void ResetForm()
+    {
+        // Clear the add stock entry
+        if (AddStockEntry != null)
+        {
+            AddStockEntry.Text = string.Empty;
+        }
+        
+        // Reset internal state
+        _currentStockValue = 0.0;
+        _currentStockUnit = "g";
+        
+        // Clear the result label
+        if (ResultLabel != null)
+        {
+            ResultLabel.Text = string.Empty;
+        }
+        
+        // Reset pickers to default
+        if (StockUnitPicker != null)
+        {
+            StockUnitPicker.SelectedIndex = 0;
+        }
+        if (AddUnitPicker != null)
+        {
+            AddUnitPicker.SelectedIndex = 0;
+        }
+    }
+
     private void OnStockQuantityChanged(object sender, EventArgs e)
     {
         _currentStockValue = ParseDoubleOrZero(StockQuantityEntry?.Text);
