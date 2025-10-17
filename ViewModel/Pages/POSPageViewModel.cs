@@ -16,7 +16,7 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class POSPageViewModel : BaseViewModel
     {
-        // ===================== Dependencies & Services =====================
+        // Dependencies & Services which references other popups, databases 
         private readonly CartStorageService _cartStorage = new CartStorageService();
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public AddItemToPOSViewModel AddItemToPOSViewModel { get; set; }
@@ -31,7 +31,7 @@ namespace Coftea_Capstone.ViewModel
         public AddonsSelectionPopupViewModel AddonsPopup { get; set; }
 
 
-        // ===================== State & Models =====================
+        // ===================== State & Models holding product list, filter list, current cart items. =====================
         private readonly Database _database;
 
         [ObservableProperty]
@@ -135,7 +135,7 @@ namespace Coftea_Capstone.ViewModel
 
         // ===================== Cart Operations =====================
         [RelayCommand]
-        private async void AddToCart(POSPageModel product)
+        private async void AddToCart(POSPageModel product) // Adds products to cart with their quantities and addons
         {
             if (product == null || CartItems == null)
             {
@@ -266,22 +266,6 @@ namespace Coftea_Capstone.ViewModel
             await LoadDataAsync();
         }
 
-        // ===================== Lifecycle =====================
-        public async Task InitializeAsync()
-        {
-            if (App.CurrentUser != null)
-                IsAdmin = App.CurrentUser.IsAdmin;
-
-            await LoadDataAsync();
-
-        // Load persisted cart
-        var loadedCart = await _cartStorage.LoadCartAsync();
-        if (loadedCart != null && loadedCart.Any())
-        {
-            CartItems = loadedCart;
-        }
-        }
-
         // ===================== Filtering =====================
         [RelayCommand]
         private async Task FilterByCategory(object category)
@@ -342,8 +326,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Data Loading =====================
-        public async Task LoadDataAsync()
+        public async Task LoadDataAsync() // Load Data
         {
             await RunWithLoading(async () =>
             {
@@ -731,6 +714,20 @@ namespace Coftea_Capstone.ViewModel
                 {
                     NotificationPopup.ShowNotification($"Profile error: {ex.Message}", "Error");
                 }
+            }
+        }
+        public async Task InitializeAsync()
+        {
+            if (App.CurrentUser != null)
+                IsAdmin = App.CurrentUser.IsAdmin;
+
+            await LoadDataAsync();
+
+            // Load persisted cart
+            var loadedCart = await _cartStorage.LoadCartAsync();
+            if (loadedCart != null && loadedCart.Any())
+            {
+                CartItems = loadedCart;
             }
         }
     }

@@ -51,10 +51,10 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private decimal price;
 
-        public string SizeDisplay => GetSizeDisplay();
-        
-        public string AddOnsDisplay => AddOns != null && AddOns.Count > 0 ? string.Join(", ", AddOns) : "No add-ons";
-        
+        public string SizeDisplay => GetSizeDisplay(); // Displays quantities for each size
+
+        public string AddOnsDisplay => AddOns != null && AddOns.Count > 0 ? string.Join(", ", AddOns) : "No add-ons"; // Displays selected add-ons or "No add-ons"
+
         public int TotalQuantity => SmallQuantity + MediumQuantity + LargeQuantity;
         
         public decimal TotalPrice => Price; // Price already includes addon costs from CartPopupViewModel
@@ -62,7 +62,7 @@ namespace Coftea_Capstone.Models
         // Carry selected addon items with their quantities to checkout
         public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
 
-        private string GetSizeDisplay()
+        private string GetSizeDisplay() // Displays quantities for each size
         {
             var sizes = new List<string>();
             if (SmallQuantity > 0) sizes.Add($"Small: {SmallQuantity}");

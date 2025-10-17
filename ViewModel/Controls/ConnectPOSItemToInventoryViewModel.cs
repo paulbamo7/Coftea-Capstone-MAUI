@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
-    public partial class ConnectPOSItemToInventoryViewModel : ObservableObject
+    public partial class ConnectPOSItemToInventoryViewModel : ObservableObject, IDisposable
     {
         private readonly Database _database = new Database(); // Will use auto-detected host
 
@@ -274,7 +274,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Navigate to Inventory page to allow selection there
             if (Application.Current?.MainPage is NavigationPage nav)
             {
-                await nav.PushWithAnimationAsync(new Inventory(), false);
+                await nav.PushAsync(new Inventory(), false);
             }
         }
 
@@ -551,6 +551,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                         // keep existing
                         break;
                 }
+                
+                // Explicitly notify UI that the text binding should update
+                item.OnPropertyChanged(nameof(item.InputAmountText));
+                item.OnPropertyChanged(nameof(item.InputUnit));
             }
             
             // Preserve addon selections when switching sizes
@@ -883,6 +887,40 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             addon.IsSelected = !addon.IsSelected;
         }
+        public void Dispose()
+        {
+            try
+            {
+                // Unhook all event handlers
+                if (AllInventoryItems != null)
+                {
+                    AllInventoryItems.CollectionChanged -= OnInventoryItemsCollectionChanged;
+                    foreach (var item in AllInventoryItems)
+                    {
+                        if (item != null)
+                            item.PropertyChanged -= OnItemPropertyChanged;
+                    }
+                }
+
+                // Clear collections
+                Ingredients?.Clear();
+                InventoryItems?.Clear();
+                AllInventoryItems?.Clear();
+                AvailableAddons?.Clear();
+                SelectedAddons?.Clear();
+                SelectedIngredientsOnly?.Clear();
+
+                // Clear events
+                ConfirmPreviewRequested = null;
+                ReturnRequested = null;
+
+                // Dispose addons popup
+                (AddonsPopup as IDisposable)?.Dispose();
+                AddonsPopup = null;
+            }
+            catch { }
+        }
+
         public partial class Ingredient : ObservableObject
         {
             [ObservableProperty] private string name;

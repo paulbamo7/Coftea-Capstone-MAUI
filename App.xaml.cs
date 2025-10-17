@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.C_;
+using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Views.Pages;
@@ -35,6 +35,10 @@ namespace Coftea_Capstone
         public SuccessCardPopupViewModel SuccessCardPopup { get; private set; }
         public HistoryPopupViewModel HistoryPopup { get; private set; }
         public ProfilePopupViewModel ProfilePopup { get; private set; }
+        
+        // Shared Page ViewModels to prevent memory leaks
+        public InventoryPageViewModel InventoryVM { get; private set; }
+        public SalesReportPageViewModel SalesReportVM { get; private set; }
 
         // Shared transactions store for History
         public ObservableCollection<TransactionHistoryModel> Transactions { get; private set; }
@@ -74,7 +78,7 @@ namespace Coftea_Capstone
                 }
             });
 
-            MainThread.BeginInvokeOnMainThread(() =>
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
                 bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
                 bool rememberMe = Preferences.Get("RememberMe", false);
@@ -111,7 +115,7 @@ namespace Coftea_Capstone
                         Preferences.Set("IsLoggedIn", false);
                         Preferences.Set("IsAdmin", false);
                     }
-                    MainPage = new NavigationPage(new LoginPage());
+                    await NavigationService.SetRootAsync(() => new LoginPage());
                 }
             });
 
@@ -119,6 +123,14 @@ namespace Coftea_Capstone
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
             // Persist cart when app goes to background (platform lifecycle events handled elsewhere)
+        }
+
+        private void SetRootPage(Page page)
+        {
+            try { MainPage?.Handler?.DisconnectHandler(); } catch { }
+            var nav = new NavigationPage(page);
+            MainPage = nav;
+            try { NavigationStateService.SetCurrentPageType(page.GetType()); } catch { }
         }
 
         private void InitializeViewModels()
@@ -142,6 +154,10 @@ namespace Coftea_Capstone
             SuccessCardPopup = new SuccessCardPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
             ProfilePopup = new ProfilePopupViewModel();
+            
+            // Initialize shared page ViewModels
+            InventoryVM = new InventoryPageViewModel(SettingsPopup);
+            SalesReportVM = new SalesReportPageViewModel(SettingsPopup);
 
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();
@@ -168,13 +184,7 @@ namespace Coftea_Capstone
         private async void NavigateToDashboard(bool isAdmin)
         {
             // Route all users to EmployeeDashboard; frames are data-bound
-            var dashboard = new EmployeeDashboard();
-            MainPage = new NavigationPage(dashboard);
-            
-            // Add a subtle fade-in animation for the dashboard after it's loaded
-            await Task.Delay(100); // Wait for page to be fully loaded
-            dashboard.Opacity = 0;
-            await dashboard.FadeTo(1, 500, Easing.CubicOut);
+            await NavigationService.SetRootAsync(() => new EmployeeDashboard());
         }
 
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -245,7 +255,7 @@ namespace Coftea_Capstone
         }
 
         // Called after logout to reset everything
-        public void ResetAppAfterLogout()
+        public async Task ResetAppAfterLogout()
         {
             SetCurrentUser(null);
             Preferences.Set("IsLoggedIn", false);
@@ -254,10 +264,43 @@ namespace Coftea_Capstone
             Preferences.Remove("Password");
             Preferences.Remove("RememberMe");
 
+            // Dispose existing ViewModels before recreating
+            DisposeViewModels();
             InitializeViewModels(); // reset all viewmodels
 
             // Create a new NavigationPage and set it as MainPage
-            MainPage = new NavigationPage(new LoginPage());
+            await NavigationService.SetRootAsync(() => new LoginPage());
+        }
+
+        private void DisposeViewModels()
+        {
+            try
+            {
+                // Dispose ViewModels that implement IDisposable
+                (AddItemPopup as IDisposable)?.Dispose();
+                (SettingsPopup as IDisposable)?.Dispose();
+                (POSVM as IDisposable)?.Dispose();
+                (ManagePOSPopup as IDisposable)?.Dispose();
+                (ManageInventoryPopup as IDisposable)?.Dispose();
+                (EditInventoryPopup as IDisposable)?.Dispose();
+                (AddItemToInventoryPopup as IDisposable)?.Dispose();
+                (RetryConnectionPopup as IDisposable)?.Dispose();
+                (NotificationPopup as IDisposable)?.Dispose();
+                (PasswordResetPopup as IDisposable)?.Dispose();
+                (PaymentPopup as IDisposable)?.Dispose();
+                (OrderCompletePopup as IDisposable)?.Dispose();
+                (OrderConfirmedPopup as IDisposable)?.Dispose();
+                (SuccessCardPopup as IDisposable)?.Dispose();
+                (HistoryPopup as IDisposable)?.Dispose();
+                (ProfilePopup as IDisposable)?.Dispose();
+
+                // Clear collections to help GC
+                Transactions?.Clear();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error disposing ViewModels: {ex.Message}");
+            }
         }
 
     }

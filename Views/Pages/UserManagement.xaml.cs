@@ -5,6 +5,8 @@ namespace Coftea_Capstone.Views.Pages;
 
 public partial class UserManagement : ContentPage
 {
+    private bool _isDisposed = false;
+
     public UserManagement()
     {
         InitializeComponent();
@@ -27,6 +29,8 @@ public partial class UserManagement : ContentPage
 
     private void OnSizeChanged(object sender, EventArgs e)
     {
+        if (_isDisposed) return;
+
         double pageWidth = Width;
         if (double.IsNaN(pageWidth) || pageWidth <= 0)
         {
@@ -61,15 +65,37 @@ public partial class UserManagement : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+
+        _isDisposed = true;
+
         try
         {
-            if (Content != null)
-            {
-                ReleaseVisualTree(Content);
-            }
+            SizeChanged -= OnSizeChanged;
         }
         catch { }
-        BindingContext = null;
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        ReleaseVisualTree(Content);
+                        BindingContext = null;
+                    }
+                    catch { }
+                });
+            }
+            catch { }
+        });
+
+        try
+        {
+            Handler?.DisconnectHandler();
+        }
+        catch { }
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)

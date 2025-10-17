@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.C_;
+using Coftea_Capstone.C_;
 using Coftea_Capstone.Views.Pages;
 using Coftea_Capstone.Views.Controls;
 using Coftea_Capstone.Views;
@@ -273,6 +273,7 @@ namespace Coftea_Capstone.ViewModel
 
                     // Set current working amount/unit to the current selected size in the popup
                     var size = ConnectPOSToInventoryVM.SelectedSize;
+                    inv.SelectedSize = size; // Trigger the size change handler to update InputAmount and InputUnit
                     inv.InputAmount = size switch
                     {
                         "Small" => inv.InputAmountSmall,
@@ -291,6 +292,13 @@ namespace Coftea_Capstone.ViewModel
 
                 // Update derived collections and flags using public method
                 ConnectPOSToInventoryVM.RefreshSelectionAndFilter();
+                
+                // Force UI update for all selected items to reflect loaded values
+                foreach (var selectedItem in ConnectPOSToInventoryVM.SelectedIngredientsOnly)
+                {
+                    selectedItem.OnPropertyChanged(nameof(selectedItem.InputAmountText));
+                    selectedItem.OnPropertyChanged(nameof(selectedItem.InputUnit));
+                }
             }
             catch (Exception ex)
             {

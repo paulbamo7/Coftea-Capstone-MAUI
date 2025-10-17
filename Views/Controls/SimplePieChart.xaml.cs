@@ -4,11 +4,14 @@ using Microsoft.Maui.Controls.Shapes;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Maui.Controls.Xaml;
+using System.ComponentModel;
 
 namespace Coftea_Capstone.Views.Controls
 {
     public partial class SimplePieChart : ContentView
     {
+        private EventHandler _sizeChangedHandler;
+        private PropertyChangedEventHandler _propertyChangedHandler;
         public static readonly BindableProperty ShowLegendProperty =
             BindableProperty.Create(nameof(ShowLegend), typeof(bool), typeof(SimplePieChart), true);
 
@@ -115,7 +118,7 @@ namespace Coftea_Capstone.Views.Controls
             InitializeComponent();
             
             // Subscribe to property changes to update the chart
-            PropertyChanged += (s, e) =>
+            _propertyChangedHandler = (s, e) =>
             {
                 if (e.PropertyName == nameof(Item1Count) || 
                     e.PropertyName == nameof(Item2Count) || 
@@ -124,9 +127,10 @@ namespace Coftea_Capstone.Views.Controls
                     UpdateChart();
                 }
             };
+            PropertyChanged += _propertyChangedHandler;
 
             // Ensure the chart remains a perfect circle regardless of layout constraints
-            SizeChanged += (s, e) =>
+            _sizeChangedHandler = (s, e) =>
             {
                 EnsureSquareAndRedraw();
 
@@ -136,12 +140,26 @@ namespace Coftea_Capstone.Views.Controls
                     UpdatePieChart(ItemsSource.Take(3).ToList());
                 }
             };
+            SizeChanged += _sizeChangedHandler;
 
             // Set drawable for GraphicsView
             if (PieChartCanvas != null)
             {
                 PieChartCanvas.Drawable = new DonutDrawable(this);
                 PieChartCanvas.Invalidate();
+            }
+        }
+
+        protected override void OnHandlerChanged()
+        {
+            base.OnHandlerChanged();
+            if (Handler == null)
+            {
+                // Detach handlers to avoid retaining the view
+                try { if (_propertyChangedHandler != null) PropertyChanged -= _propertyChangedHandler; } catch { }
+                try { if (_sizeChangedHandler != null) SizeChanged -= _sizeChangedHandler; } catch { }
+                _propertyChangedHandler = null;
+                _sizeChangedHandler = null;
             }
         }
 

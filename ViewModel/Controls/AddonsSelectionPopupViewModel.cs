@@ -8,7 +8,7 @@ using Coftea_Capstone.Models;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
-    public partial class AddonsSelectionPopupViewModel : ObservableObject
+    public partial class AddonsSelectionPopupViewModel : ObservableObject, IDisposable
     {
         private readonly Database _database = new Database(); // Will use auto-detected host
 
@@ -196,6 +196,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Reset AddonQuantity when deselected
                 addon.AddonQuantity = 0;
             }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                AvailableAddons?.Clear();
+                SelectedAddons?.Clear();
+                AddonsSelected = null;
+            }
+            catch { }
         }
     }
 }

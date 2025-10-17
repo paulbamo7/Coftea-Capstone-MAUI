@@ -33,8 +33,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsVisible = true;
             await Task.Delay(50); // Small delay to ensure UI is ready
 
-            // Fade in animation
-            await AnimateOpacity(0, 1, 300);
+            // No animation
+            Opacity = 1;
 
             // Auto-hide after 3 seconds
             _hideCancellationTokenSource = new CancellationTokenSource();
@@ -44,10 +44,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     await Task.Delay(3000, _hideCancellationTokenSource.Token);
                     
-                    // Fade out animation
-                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    // No animation
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
-                        await AnimateOpacity(1, 0, 300);
                         IsVisible = false;
                     });
                 }
@@ -60,9 +59,8 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         private async Task AnimateOpacity(double from, double to, uint duration)
         {
-            var animation = new Animation(v => Opacity = v, from, to);
-            // Use Application.Current.MainPage as the IAnimatable target
-            await Task.Run(() => animation.Commit(Application.Current.MainPage, "OrderCompleteOpacityAnimation", 16, duration, Easing.CubicOut));
+            // No animation
+            Opacity = to;
         }
 
         public void HideImmediately()

@@ -14,15 +14,13 @@ namespace Coftea_Capstone.Views.Controls
         public async Task ShowAsync()
         {
             IsVisible = true;
-            Opacity = 0;
-            await this.FadeTo(1, 300, Easing.CubicOut);
+            Opacity = 1;
             StartLogoAnimation();
         }
 
         public async Task HideAsync()
         {
             StopLogoAnimation();
-            await this.FadeTo(0, 300, Easing.CubicIn);
             IsVisible = false;
         }
 
@@ -42,8 +40,8 @@ namespace Coftea_Capstone.Views.Controls
         {
             while (_isAnimating)
             {
-                await LogoImage.RotateTo(360, 2000, Easing.Linear);
-                LogoImage.Rotation = 0;
+                // No rotation animation
+                await Task.Delay(2000);
             }
         }
     }

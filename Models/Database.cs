@@ -57,7 +57,6 @@ namespace Coftea_Capstone.Models
             }
         }
 
-
         // Ensure server is reachable and the database exists; create DB if missing
         public async Task EnsureServerAndDatabaseAsync(CancellationToken cancellationToken = default)
         {

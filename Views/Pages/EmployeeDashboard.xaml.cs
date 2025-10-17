@@ -4,6 +4,7 @@ using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.Views;
 using Microsoft.Maui.ApplicationModel.Communication;
 using Coftea_Capstone.Views;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -37,6 +38,9 @@ public partial class EmployeeDashboard : ContentPage
             }
         }
         catch { }
+
+        // Force native view detachment to help GC
+        try { Handler?.DisconnectHandler(); } catch { }
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
@@ -91,6 +95,18 @@ public partial class EmployeeDashboard : ContentPage
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error opening profile: {ex.Message}");
+        }
+    }
+
+    private async void OnGoToTestPage(object sender, EventArgs e)
+    {
+        try
+        {
+            await NavigationService.NavigateToAsync<TestPage>();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error navigating to TestPage: {ex.Message}");
         }
     }
 

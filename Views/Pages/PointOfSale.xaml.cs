@@ -8,6 +8,8 @@ namespace Coftea_Capstone.Views.Pages;
 public partial class PointOfSale : ContentPage
 {
     private IDispatcherTimer _timer;
+    private EventHandler _timerTickHandler;
+    private bool _isDisposed = false;
 
     // Use shared POSVM from App
     public POSPageViewModel POSViewModel { get; set; }
@@ -49,16 +51,16 @@ public partial class PointOfSale : ContentPage
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 await DisplayAlert("POS Error", $"Failed to initialize POS page: {ex.Message}", "OK");
-                if (Application.Current?.MainPage is NavigationPage nav)
-                {
-                    await nav.PopWithAnimationAsync(false);
-                }
+                await NavigationService.GoBackAsync();
             });
         }
     }
 
     private void OnSizeChanged(object sender, EventArgs e)
     {
+        // Prevent execution if page is being disposed
+        if (_isDisposed) return;
+
         // Basic breakpoints for responsiveness
         double pageWidth = Width;
         if (double.IsNaN(pageWidth) || pageWidth <= 0)
@@ -66,10 +68,12 @@ public partial class PointOfSale : ContentPage
             return;
         }
 
-        bool isPhoneLike = pageWidth < 800; // collapse sidebar and cart
-        bool isVeryNarrow = pageWidth < 500; // reduce product span further
+        try
+        {
+            bool isPhoneLike = pageWidth < 800; // collapse sidebar and cart
+            bool isVeryNarrow = pageWidth < 500; // reduce product span further
 
-        // Sidebar collapse: set column width to 0 when narrow
+            // Sidebar collapse: set column width to 0 when narrow
         if (SidebarColumn is not null)
         {
             SidebarColumn.Width = isPhoneLike ? new GridLength(0) : new GridLength(200);
@@ -101,21 +105,45 @@ public partial class PointOfSale : ContentPage
                 ProductsGridLayout.Span = 3;
             }
         }
+        }
+        catch
+        {
+            // Ignore layout errors during disposal
+        }
     }
 
     private void StartTimer()
     {
-        // Set initial time
-        TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
-
-        // Create timer
-        _timer = Dispatcher.CreateTimer();
-        _timer.Interval = TimeSpan.FromSeconds(1);
-        _timer.Tick += (s, e) =>
+        try
         {
-            TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
-        };
-        _timer.Start();
+            // Set initial time with null check
+            if (TimerLabel != null)
+            {
+                TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
+            }
+
+            // Create timer
+            _timer = Dispatcher.CreateTimer();
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timerTickHandler = (s, e) =>
+            {
+                // Null check to prevent crash during disposal
+                if (!_isDisposed && TimerLabel != null)
+                {
+                    try
+                    {
+                        TimerLabel.Text = DateTime.Now.ToString("hh:mm:ss tt");
+                    }
+                    catch { }
+                }
+            };
+            _timer.Tick += _timerTickHandler;
+            _timer.Start();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Timer start error: {ex.Message}");
+        }
     }
 
     protected override async void OnAppearing()
@@ -127,10 +155,7 @@ public partial class PointOfSale : ContentPage
             if (POSViewModel == null)
             {
                 await DisplayAlert("POS Error", "POSViewModel is not available", "OK");
-                if (Application.Current?.MainPage is NavigationPage nav)
-                {
-                    await nav.PopWithAnimationAsync(false);
-                }
+                await NavigationService.GoBackAsync();
                 return;
             }
 
@@ -140,7 +165,8 @@ public partial class PointOfSale : ContentPage
             if (POSViewModel.SettingsPopup != null)
                 POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
 
-            // Subscribe to property changes (removed loading animation)
+            // Subscribe to property changes (guard against duplicates)
+            POSViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             POSViewModel.PropertyChanged += OnViewModelPropertyChanged;
 
             // Ensure products and persisted cart are loaded
@@ -152,10 +178,7 @@ public partial class PointOfSale : ContentPage
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
                 await DisplayAlert("POS Error", $"Failed to load POS data: {ex.Message}", "OK");
-                if (Application.Current?.MainPage is NavigationPage nav)
-                {
-                    await nav.PopWithAnimationAsync(false);
-                }
+                await NavigationService.GoBackAsync();
             });
         }
     }
@@ -170,34 +193,83 @@ public partial class PointOfSale : ContentPage
     {
         base.OnDisappearing();
 
+        // Mark as disposed to prevent timer/layout updates
+        _isDisposed = true;
+
+        // Stop and cleanup timer
         if (_timer is not null)
         {
-            _timer.Stop();
-            _timer.Tick -= null; 
+            try
+            {
+                _timer.Stop();
+                if (_timerTickHandler != null)
+                {
+                    _timer.Tick -= _timerTickHandler;
+                    _timerTickHandler = null;
+                }
+                _timer = null;
+            }
+            catch { }
         }
 
         // Unsubscribe from property changes
         if (POSViewModel != null)
         {
-            POSViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            try
+            {
+                POSViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            }
+            catch { }
         }
 
-        // Detach size changed handler to avoid retaining the page
-        SizeChanged -= OnSizeChanged;
+        // Detach size changed handler
+        try
+        {
+            SizeChanged -= OnSizeChanged;
+        }
+        catch { }
 
-        // Release heavy bindings to speed GC
+        // Release heavy bindings
         if (PaymentPopupControl != null)
         {
-            PaymentPopupControl.BindingContext = null;
+            try
+            {
+                PaymentPopupControl.BindingContext = null;
+            }
+            catch { }
         }
 
-        // Release heavy item sources only (keep images intact to avoid blank UI on return)
-        try { ReleaseVisualTree(Content); } catch { }
+        // Release visual tree in background to avoid blocking main thread
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        ReleaseVisualTree(Content);
+                    }
+                    catch { }
+                });
+            }
+            catch { }
+        });
+
+        // Force native view detachment
+        try
+        {
+            Handler?.DisconnectHandler();
+        }
+        catch { }
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
     {
         if (element == null) return;
+
+        try
+        {
 
         if (element is CollectionView cv)
         {
@@ -227,6 +299,8 @@ public partial class PointOfSale : ContentPage
         {
             ReleaseVisualTree(page.Content);
         }
+        }
+        catch { }
     }
 
     private void OnTestPaymentClicked(object sender, EventArgs e)
@@ -290,21 +364,11 @@ public partial class PointOfSale : ContentPage
                 }
             }
 
-            // If we have a navigation stack, go back
+            // Navigate back using new NavigationService
             if (Navigation?.NavigationStack?.Count > 1)
             {
-                if (Navigation.NavigationStack.Count == 0) return true;
-                MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    try
-                    {
-                        if (Application.Current?.MainPage is NavigationPage nav)
-                        {
-                            await nav.PopWithAnimationAsync(false);
-                        }
-                    }
-                    catch { }
-                });
+                // Use async void to fire and forget
+                _ = NavigationService.GoBackAsync();
                 return true;
             }
         }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
-    public partial class HistoryPopupViewModel : ObservableObject
+    public partial class HistoryPopupViewModel : ObservableObject, IDisposable
     {
         private readonly Database _database = new(); // Will use auto-detected host
 
@@ -271,6 +271,17 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 FilteredTransactions.Add(transaction);
             }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                SelectedInventoryItems?.Clear();
+                FilteredTransactions?.Clear();
+                AllTransactions?.Clear();
+            }
+            catch { }
         }
 
     }

@@ -14,9 +14,11 @@ namespace Coftea_Capstone.C_
         {
             InventoryItems.CollectionChanged += (_, __) =>
             {
+                UnhookAddonItemHandlers();
                 HookAddonItemHandlers();
                 OnPropertyChanged(nameof(TotalPrice));
             };
+            UnhookAddonItemHandlers();
             HookAddonItemHandlers();
         }
         public int ProductID { get; set; }
@@ -25,14 +27,14 @@ namespace Coftea_Capstone.C_
         public decimal MediumPrice { get; set; }
         public decimal LargePrice { get; set; }
         public string ImageSet { get; set; }
-        public ImageSource ImageSource
+        public ImageSource ImageSource // Identifies the source of the image
         {
             get
             {
                 try
                 {
                     if (string.IsNullOrWhiteSpace(ImageSet))
-                        return ImageSource.FromFile("coftea_logo.png");
+                        return ImageSource.FromFile("coftea_logo.png"); 
                     
                     if (ImageSet.StartsWith("http"))
                         return ImageSource.FromUri(new Uri(ImageSet));
@@ -76,7 +78,7 @@ namespace Coftea_Capstone.C_
         public int SmallQuantity
         {
             get => smallQuantity;
-            set { SetProperty(ref smallQuantity, value); OnPropertyChanged(nameof(TotalPrice)); }
+            set { SetProperty(ref smallQuantity, value); OnPropertyChanged(nameof(TotalPrice)); } // Update total price when quantity changes   
         }
 
         private int mediumQuantity;
@@ -94,13 +96,13 @@ namespace Coftea_Capstone.C_
         }
 
         private string selectedSize;
-        public string SelectedSize
+        public string SelectedSize // Tracks the currently selected product size.
         {
             get => selectedSize;
             set => SetProperty(ref selectedSize, value);
         }
 
-        public decimal TotalPrice
+        public decimal TotalPrice // Calculates the total price based on sizes and addons
         {
             get
             {
@@ -115,7 +117,7 @@ namespace Coftea_Capstone.C_
             }
         }
 
-        // Linked inventory items (addons/ingredients)
+        // List of selected ingredients/addons for the product selected from the inventory
         public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
 
         private void HookAddonItemHandlers()
@@ -128,7 +130,15 @@ namespace Coftea_Capstone.C_
             }
         }
 
-        private void OnAddonPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void UnhookAddonItemHandlers() 
+        {
+            foreach (var item in InventoryItems)
+            {
+                try { item.PropertyChanged -= OnAddonPropertyChanged; } catch { }
+            }
+        }
+
+        private void OnAddonPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) // Update total price when addon properties change
         {
             if (e.PropertyName == nameof(InventoryPageModel.AddonPrice) || e.PropertyName == nameof(InventoryPageModel.AddonQuantity))
             {

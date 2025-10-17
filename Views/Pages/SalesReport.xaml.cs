@@ -6,13 +6,15 @@ namespace Coftea_Capstone.Views.Pages;
 
 public partial class SalesReport : ContentPage
 {
+    private bool _isDisposed = false;
+
 	public SalesReport()
 	{
 		InitializeComponent();
 		
-		// Create and set the SalesReportPageViewModel
-		var settingsPopup = ((App)Application.Current).SettingsPopup;
-		var viewModel = new SalesReportPageViewModel(settingsPopup);
+		// Use shared SalesReportVM from App to prevent memory leaks
+		var app = (App)Application.Current;
+		var viewModel = app.SalesReportVM;
 		BindingContext = viewModel;
 		
 		// RetryConnectionPopup is now handled globally through App.xaml.cs
@@ -28,16 +30,36 @@ public partial class SalesReport : ContentPage
     {
         base.OnDisappearing();
 
-        // Detach handlers
-        SizeChanged -= OnSizeChanged;
+        _isDisposed = true;
 
-        // Drop heavy bindings to encourage GC
+        // Detach handlers
         try
         {
-            if (Content != null)
+            SizeChanged -= OnSizeChanged;
+        }
+        catch { }
+
+        // Release visual tree in background
+        _ = Task.Run(() =>
+        {
+            try
             {
-                ReleaseVisualTree(Content);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        ReleaseVisualTree(Content);
+                    }
+                    catch { }
+                });
             }
+            catch { }
+        });
+
+        // Force native view detachment
+        try
+        {
+            Handler?.DisconnectHandler();
         }
         catch { }
     }
@@ -99,6 +121,8 @@ public partial class SalesReport : ContentPage
 
     private void OnSizeChanged(object sender, EventArgs e)
     {
+        if (_isDisposed) return;
+
         double pageWidth = Width;
         if (double.IsNaN(pageWidth) || pageWidth <= 0)
         {

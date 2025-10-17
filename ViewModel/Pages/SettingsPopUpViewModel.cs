@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.Views.Pages;
+using Coftea_Capstone.Views.Pages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone;
@@ -222,7 +222,7 @@ namespace Coftea_Capstone.ViewModel
             }
             if (Application.Current?.MainPage is NavigationPage nav)
             {
-                await nav.PushWithAnimationAsync(new UserManagement(), false);
+                await nav.PushAsync(new UserManagement(), false);
             }
         }
 
@@ -234,11 +234,11 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void Logout()
+        private async Task Logout()
         {
             if (Application.Current is App app)
             {
-                app.ResetAppAfterLogout(); // now it works
+                await app.ResetAppAfterLogout(); // now it works
             }
         }
 

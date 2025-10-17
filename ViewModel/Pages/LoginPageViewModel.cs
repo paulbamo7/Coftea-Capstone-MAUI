@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.C_;
@@ -124,8 +124,7 @@ namespace Coftea_Capstone.ViewModel
                 }
 
                 // Navigate to dashboard
-                var mainPage = new NavigationPage(new EmployeeDashboard());
-                Application.Current.MainPage = mainPage;
+                await NavigationService.NavigateToAsync(() => new EmployeeDashboard());
 
                 ClearEntries();
             }
@@ -144,11 +143,7 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                var nav = Application.Current.MainPage as NavigationPage;
-                if (nav != null)
-                {
-                    await nav.PushWithAnimationAsync(new RegisterPage(), false);
-                }
+                await NavigationService.NavigateToAsync(() => new RegisterPage());
             }
             catch (Exception ex)
             {
@@ -159,10 +154,13 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task ForgotPassword() // Navigate to Forgot Password page
         {
-            var nav = Application.Current.MainPage as NavigationPage;
-            if (nav != null)
+            try
             {
-                await nav.PushWithAnimationAsync(new ForgotPasswordPage(), false);
+                await NavigationService.NavigateToAsync(() => new ForgotPasswordPage());
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Unable to open Forgot Password page: {ex.Message}", "OK");
             }
         }
 

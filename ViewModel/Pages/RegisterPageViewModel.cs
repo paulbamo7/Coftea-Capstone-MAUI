@@ -47,7 +47,7 @@ namespace Coftea_Capstone.ViewModel
         {
             if (Application.Current?.MainPage is NavigationPage nav)
             {
-                await nav.PopWithAnimationAsync(false);
+                await nav.PopAsync(false);
             }
         }
 
@@ -182,7 +182,7 @@ namespace Coftea_Capstone.ViewModel
                 // Navigate back to Login page
                 if (Application.Current?.MainPage is NavigationPage nav)
                 {
-                    await nav.PopWithAnimationAsync(false);
+                    await nav.PopAsync(false);
                 }
             }
             catch (MySqlConnector.MySqlException ex)

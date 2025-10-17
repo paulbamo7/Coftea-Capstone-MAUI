@@ -9,13 +9,13 @@ public partial class Inventory : ContentPage
 	{
 		InitializeComponent();
 
-        // Set InventoryPageViewModel as BindingContext
-        var settingsVm = ((App)Application.Current).SettingsPopup;
-        var vm = new InventoryPageViewModel(settingsVm);
+        // Use shared InventoryVM from App to prevent memory leaks
+        var app = (App)Application.Current;
+        var vm = app.InventoryVM;
         BindingContext = vm;
 
         // Set reference to UpdateInventoryDetails control for reset functionality
-        var addItemToInventoryVM = ((App)Application.Current).ManageInventoryPopup.AddItemToInventoryVM;
+        var addItemToInventoryVM = app.ManageInventoryPopup.AddItemToInventoryVM;
         if (addItemToInventoryVM != null)
         {
             addItemToInventoryVM.UpdateInventoryDetailsControl = UpdateInventoryDetailsControl;
@@ -50,7 +50,21 @@ public partial class Inventory : ContentPage
         }
         catch { }
 
+        // Break external references from singletons to page controls
+        try
+        {
+            var addItemToInventoryVM = ((App)Application.Current).ManageInventoryPopup?.AddItemToInventoryVM;
+            if (addItemToInventoryVM != null)
+            {
+                addItemToInventoryVM.UpdateInventoryDetailsControl = null;
+            }
+        }
+        catch { }
+
         // Keep BindingContext to avoid re-creating VM and losing visuals on return
+
+        // Force native view detachment to help GC on Android
+        try { Handler?.DisconnectHandler(); } catch { }
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)

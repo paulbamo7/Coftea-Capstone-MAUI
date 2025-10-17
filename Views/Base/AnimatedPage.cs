@@ -8,5 +8,11 @@ namespace Coftea_Capstone.Views.Base
         {
             base.OnAppearing();
         }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            try { Handler?.DisconnectHandler(); } catch { }
+        }
     }
 }

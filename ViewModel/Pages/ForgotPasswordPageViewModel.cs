@@ -94,10 +94,7 @@ namespace Coftea_Capstone.ViewModel
                     if (emailSent)
                     {
                         // Navigate to the new reset password page to let the user enter the code and new password
-                        if (Application.Current?.MainPage is NavigationPage nav)
-                        {
-                            await nav.PushAsync(new Coftea_Capstone.Views.Pages.ResetPasswordPage(Email.Trim()), false);
-                        }
+                        await NavigationService.NavigateToAsync(() => new Coftea_Capstone.Views.Pages.ResetPasswordPage(Email.Trim()));
                     }
                     else
                     {

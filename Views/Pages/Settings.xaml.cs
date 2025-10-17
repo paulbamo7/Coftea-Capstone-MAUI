@@ -25,7 +25,7 @@ public partial class Settings : ContentView
 
             if (Application.Current is App app)
             {
-                app.ResetAppAfterLogout();
+                await app.ResetAppAfterLogout();
             }
         }
         catch { }

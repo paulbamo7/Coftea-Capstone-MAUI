@@ -3,9 +3,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Coftea_Capstone.Views.Pages.NavigationBar"
-             xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
-             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
-             xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:vmPages="clr-namespace:Coftea_Capstone.ViewModel.Pages"
              >
 
     <StackLayout Grid.Column="0" BackgroundColor="#F8E8D7" Padding="10">
@@ -13,34 +11,58 @@
         <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
 
         <VerticalStackLayout Spacing="6" Margin="0,4,0,0">
-            <Button ImageSource="home.png" Background="#FFEAD6" HeightRequest="80"
+            <VerticalStackLayout.BindingContext>
+                <vmPages:NavigationBarViewModel />
+            </VerticalStackLayout.BindingContext>
+
+            <Button ImageSource="home.png" BackgroundColor="#FFEAD6" HeightRequest="80"
                     x:Name="HomeButton"
-                    Clicked="HomeButton_Clicked"
-                    IsEnabled="{Binding Source={x:Reference HomeButton}, Path=IsEnabled}"/>
+                    Command="{Binding GoHomeCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsHomeActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
             <Label Text="Home" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
-            <Button ImageSource="pos.png" Background="#FFEAD6" HeightRequest="80"
+            <Button ImageSource="pos.png" BackgroundColor="#FFEAD6" HeightRequest="80"
                     x:Name="POSButton"
-                    Clicked="POSButton_Clicked"
-                    IsEnabled="{Binding Source={x:Reference POSButton}, Path=IsEnabled}"/>
+                    Command="{Binding GoPOSCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsPOSActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
             <Label Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
-            <Button ImageSource="inventory.png" Background="#FFEAD6" HeightRequest="80"
+            <Button ImageSource="inventory.png" BackgroundColor="#FFEAD6" HeightRequest="80"
                     x:Name="InventoryButton"
-                    Clicked="InventoryButton_Clicked"
-                    IsEnabled="{Binding Source={x:Reference InventoryButton}, Path=IsEnabled}"/>
+                    Command="{Binding GoInventoryCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsInventoryActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
             <Label Text="Inventory" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
-            <Button ImageSource="sales_report.png" Background="#FFEAD6" HeightRequest="80"
+            <Button ImageSource="sales_report.png" BackgroundColor="#FFEAD6" HeightRequest="80"
                     x:Name="SalesReportButton"
-                    Clicked="SalesReportButton_Clicked"
-                    IsEnabled="{Binding Source={x:Reference SalesReportButton}, Path=IsEnabled}"/>
+                    Command="{Binding GoSalesReportCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsSalesReportActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
             <Label Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="settings2.png"
-                    Background="#FFEAD6"
+                    BackgroundColor="#FFEAD6"
                     HeightRequest="80"
-                    Command="{Binding Source={x:Static Application.Current}, Path=SettingsPopup.ShowSettingsPopupCommand}" />
+                    Command="{Binding ShowSettingsCommand}" />
             <Label Text="Settings" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
         </VerticalStackLayout>
     </StackLayout>
