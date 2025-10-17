@@ -191,26 +191,15 @@ public partial class PointOfSale : ContentPage
             PaymentPopupControl.BindingContext = null;
         }
 
-        // Aggressively release image sources and items sources to avoid GREF growth
+        // Release heavy item sources only (keep images intact to avoid blank UI on return)
         try { ReleaseVisualTree(Content); } catch { }
-
-        // Finally drop page BindingContext (ViewModel is shared elsewhere)
-        BindingContext = null;
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
     {
         if (element == null) return;
 
-        if (element is Image img)
-        {
-            img.Source = null;
-        }
-        else if (element is ImageButton imgBtn)
-        {
-            imgBtn.Source = null;
-        }
-        else if (element is CollectionView cv)
+        if (element is CollectionView cv)
         {
             cv.ItemsSource = null;
         }

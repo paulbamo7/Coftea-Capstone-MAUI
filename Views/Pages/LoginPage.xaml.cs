@@ -39,14 +39,13 @@ public partial class LoginPage : ContentPage
             }
         }
         catch { }
-        BindingContext = null;
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
     {
         if (element == null) return;
-        if (element is Image img) img.Source = null;
-        else if (element is ImageButton imgBtn) imgBtn.Source = null;
+        // Intentionally avoid clearing Image and ImageButton sources so that static assets
+        // like the login logo are preserved when navigating back to this page.
         else if (element is CollectionView cv) cv.ItemsSource = null;
         else if (element is ListView lv) lv.ItemsSource = null;
         if (element is ContentView contentView && contentView.Content != null)

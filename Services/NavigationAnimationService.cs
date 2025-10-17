@@ -5,7 +5,6 @@ namespace Coftea_Capstone.Services
 {
     public static class NavigationAnimationService
     {
-        private static LoadingOverlay _loadingOverlay;
         private static readonly object _navigationLock = new object();
         private static bool _isNavigating = false;
         private static readonly SemaphoreSlim _navSemaphore = new SemaphoreSlim(1, 1);
@@ -149,30 +148,31 @@ namespace Coftea_Capstone.Services
 
                 await _navSemaphore.WaitAsync();
                 MarkNavigation();
-
-                if (!animated)
-                {
-                    // Use safer navigation method
-                    await SafeReplacePageAsync(navigationPage, newPage);
-                    return;
-                }
-
-                var currentPage = navigationPage.CurrentPage;
-                if (currentPage == null) return;
-
-                // Animations disabled
-                await ShowLoadingOverlayAsync(navigationPage);
+                // Always use non-animated, direct replace without overlays
                 await SafeReplacePageAsync(navigationPage, newPage);
-                // Small delay allows compositor to settle frames in Release
-                await Task.Delay(50);
-                await HideLoadingOverlayAsync();
+#if DEBUG
+                // Optional collection during testing to reveal leaks more clearly
+                ForceGC();
+#endif
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
-                // Ensure loading overlay is hidden even if navigation fails
-                await HideLoadingOverlayAsync();
-                throw;
+                System.Diagnostics.Debug.WriteLine($"Navigation error: {ex}");
+                try
+                {
+                    // Last-resort fallback to prevent app crash: reset root
+                    await RunOnMainThreadAsync(() =>
+                    {
+                        Application.Current.MainPage = new NavigationPage(newPage);
+                        return Task.CompletedTask;
+                    });
+                }
+                catch (Exception ex2)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Fallback navigation error: {ex2}");
+                }
+                // Swallow to avoid crashing the app
+                return;
             }
             finally
             {
@@ -219,11 +219,25 @@ namespace Coftea_Capstone.Services
                     if (root?.GetType() == newPage.GetType())
                     {
                         await navigationPage.PopToRootAsync(false);
+                        // Ensure only a single root remains
+                        var s1 = nav.NavigationStack;
+                        for (int i = s1.Count - 1; i > 0; i--)
+                        {
+                            try { nav.RemovePage(s1[i]); } catch { }
+                        }
                         return;
                     }
 
                     nav.InsertPageBefore(newPage, root);
                     await navigationPage.PopToRootAsync(false);
+
+                    // Explicitly clean any residual pages after popping to root
+                    var s2 = nav.NavigationStack;
+                    foreach (var page in s2.Skip(1).ToList())
+                    {
+                        try { nav.RemovePage(page); } catch { }
+                    }
+                    return;
                 });
             }
             catch (Exception ex)
@@ -234,51 +248,19 @@ namespace Coftea_Capstone.Services
             }
         }
 
-        private static async Task ShowLoadingOverlayAsync(NavigationPage navigationPage)
+        // Overlays disabled: keep no-op helpers to avoid refactor churn
+        private static Task ShowLoadingOverlayAsync(NavigationPage navigationPage) => Task.CompletedTask;
+        private static Task HideLoadingOverlayAsync() => Task.CompletedTask;
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void ForceGC()
         {
-            if (_loadingOverlay == null)
+            try
             {
-                _loadingOverlay = new LoadingOverlay();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
-            else
-            {
-                // Remove from current parent if it exists to prevent IllegalStateException
-                ViewParentHelper.SafeRemoveFromParent(_loadingOverlay);
-            }
-
-            // Add overlay to the current page's root content
-            if (navigationPage.CurrentPage is ContentPage currentPage)
-            {
-                // Always wrap in a grid to ensure proper positioning
-                if (currentPage.Content is not Grid)
-                {
-                    var wrapperGrid = new Grid();
-                    wrapperGrid.Children.Add(currentPage.Content);
-                    currentPage.Content = wrapperGrid;
-                }
-
-                if (currentPage.Content is Grid rootGrid)
-                {
-                    // Use safe method to add overlay to prevent IllegalStateException
-                    ViewParentHelper.SafeAddToParent(_loadingOverlay, rootGrid);
-                }
-            }
-
-            await _loadingOverlay.ShowAsync();
-        }
-
-        private static async Task HideLoadingOverlayAsync()
-        {
-            if (_loadingOverlay != null)
-            {
-                await _loadingOverlay.HideAsync();
-                
-                // Remove from parent with additional safety checks
-                ViewParentHelper.SafeRemoveFromParent(_loadingOverlay);
-                // Fully release handler and allow GC to reclaim Android views to reduce GREFs
-                try { _loadingOverlay.Handler?.DisconnectHandler(); } catch { }
-                _loadingOverlay = null;
-            }
+            catch { }
         }
     }
 }

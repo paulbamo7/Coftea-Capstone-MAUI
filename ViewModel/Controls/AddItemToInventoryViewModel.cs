@@ -391,6 +391,12 @@ namespace Coftea_Capstone.ViewModel
                 maximumThreshold = convertedMaxValue;
             }
 
+            // Default rule: if maximum is not provided, set it to the current stock quantity
+            if (maximumThreshold <= 0)
+            {
+                maximumThreshold = finalQuantity;
+            }
+
             // Enforce business rule: current stock must be greater than the relevant minimum
             if (minimumThreshold > 0 && finalQuantity <= minimumThreshold)
             {

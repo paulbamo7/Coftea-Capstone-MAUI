@@ -60,6 +60,9 @@ namespace Coftea_Capstone.Services
                 {
                     parent.Children.Remove(view);
                 }
+
+                // Best-effort: clear common event handlers to avoid leaks
+                try { view.BindingContext = null; } catch { }
                 return true;
             }
             catch (Exception ex)

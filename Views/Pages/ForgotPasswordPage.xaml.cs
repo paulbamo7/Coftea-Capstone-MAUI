@@ -28,15 +28,13 @@ public partial class ForgotPasswordPage : ContentPage
             }
         }
         catch { }
-        BindingContext = null;
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
     {
         if (element == null) return;
-        if (element is Image img) img.Source = null;
-        else if (element is ImageButton imgBtn) imgBtn.Source = null;
-        else if (element is CollectionView cv) cv.ItemsSource = null;
+        // Avoid clearing image sources to prevent blank visuals when returning
+        if (element is CollectionView cv) cv.ItemsSource = null;
         else if (element is ListView lv) lv.ItemsSource = null;
         if (element is ContentView contentView && contentView.Content != null)
             ReleaseVisualTree(contentView.Content);

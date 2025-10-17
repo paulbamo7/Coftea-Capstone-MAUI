@@ -290,199 +290,64 @@ public partial class NavigationBar : ContentView
     private async void POSButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return; // do nothing if logged out
-
-        // Coalesce duplicate requests to same target during cooldown
-        if (_lastRequestedTarget == nameof(PointOfSale) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(PointOfSale))) { _pendingTarget = nameof(PointOfSale); return; }
         CloseOverlays();
-
-        try
-        {
-            var nav = Application.Current.MainPage as NavigationPage;
-            if (nav == null) return;
-
-            // Check if we're already on POS page
-            if (nav.CurrentPage is PointOfSale)
-            {
-                System.Diagnostics.Debug.WriteLine("🚫 Already on POS page, skipping navigation");
-                return;
-            }
-
-            // Use the cancellation token from StartNavigationAsync
-            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
-            
-            // Replace current page with POS using centralized navigation and cached instance
-            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new PointOfSale(), animated: false));
-            ForceGC();
-            UpdateActiveIndicator();
-        }
-        catch (OperationCanceledException)
-        {
-            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
-        }
-        finally
-        {
-            EndNavigation();
-        }
+        try { await SimpleNavigationService.NavigateToAsync(() => new PointOfSale()); }
+        finally { EndNavigation(); }
     }
 
     private async void HomeButton_Clicked(object sender, EventArgs e)
     {
-        if (_lastRequestedTarget == nameof(EmployeeDashboard) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(EmployeeDashboard))) { _pendingTarget = nameof(EmployeeDashboard); return; }
         CloseOverlays();
-
         try
         {
-            var nav = Application.Current.MainPage as NavigationPage;
-            if (nav == null) return;
-
-            // Use the cancellation token from StartNavigationAsync
-            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
-
             if (App.CurrentUser == null)
             {
-                // Check if we're already on Login page
-                if (nav.CurrentPage is LoginPage)
-                {
-                    System.Diagnostics.Debug.WriteLine("🚫 Already on Login page, skipping navigation");
-                    return;
-                }
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    await nav.ReplaceWithAnimationAsync(new LoginPage(), animated: false);
-                });
-            ForceGC();
-                return;
+                await SimpleNavigationService.NavigateToAsync(() => new LoginPage());
             }
-
-            // Check if we're already on Dashboard page
-            if (nav.CurrentPage is EmployeeDashboard)
+            else
             {
-                System.Diagnostics.Debug.WriteLine("🚫 Already on Dashboard page, skipping navigation");
-                return;
+                await SimpleNavigationService.NavigateToAsync(() => new EmployeeDashboard());
             }
-
-            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new EmployeeDashboard(), animated: false));
-            ForceGC();
-            UpdateActiveIndicator();
         }
-        catch (OperationCanceledException)
-        {
-            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
-        }
-        finally
-        {
-            EndNavigation();
-        }
+        finally { EndNavigation(); }
     }
 
     private async void InventoryButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return;
-
-        if (_lastRequestedTarget == nameof(Inventory) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(Inventory))) { _pendingTarget = nameof(Inventory); return; }
         CloseOverlays();
-
         try
         {
-            // Admin users always have access, or check individual permission
             bool hasAccess = (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
-            
             if (!hasAccess)
             {
                 await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Inventory.", "OK");
                 return;
             }
-
-            var nav = Application.Current.MainPage as NavigationPage;
-            if (nav == null) return;
-
-            // Check if we're already on Inventory page
-            if (nav.CurrentPage is Inventory)
-            {
-                System.Diagnostics.Debug.WriteLine("🚫 Already on Inventory page, skipping navigation");
-                return;
-            }
-
-            // Use the cancellation token from StartNavigationAsync
-            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
-
-            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new Inventory(), animated: false));
-            ForceGC();
-            UpdateActiveIndicator();
+            await SimpleNavigationService.NavigateToAsync(() => new Inventory());
         }
-        catch (OperationCanceledException)
-        {
-            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
-        }
-        finally
-        {
-            EndNavigation();
-        }
+        finally { EndNavigation(); }
     }
 
     private async void SalesReportButton_Clicked(object sender, EventArgs e)
     {
         if (App.CurrentUser == null) return;
-
-        if (_lastRequestedTarget == nameof(SalesReport) && (DateTime.Now - _lastNavigationTime) < _navigationCooldown) return;
         if (!await StartNavigationAsync(nameof(SalesReport))) { _pendingTarget = nameof(SalesReport); return; }
         CloseOverlays();
-
         try
         {
-            // Admin users always have access, or check individual permission
             bool hasAccess = (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessSalesReport ?? false);
-            
             if (!hasAccess)
             {
                 await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Sales Reports.", "OK");
                 return;
             }
-
-            var nav = Application.Current.MainPage as NavigationPage;
-            if (nav == null) return;
-
-            // Check if we're already on SalesReport page
-            if (nav.CurrentPage is SalesReport)
-            {
-                System.Diagnostics.Debug.WriteLine("🚫 Already on SalesReport page, skipping navigation");
-                return;
-            }
-
-            // Use the cancellation token from StartNavigationAsync
-            _currentNavigationCts?.Token.ThrowIfCancellationRequested();
-
-            await SafeNavigateAsync(async () => await nav.ReplaceWithAnimationAsync(new SalesReport(), animated: false));
-            ForceGC();
-            UpdateActiveIndicator();
+            await SimpleNavigationService.NavigateToAsync(() => new SalesReport());
         }
-        catch (OperationCanceledException)
-        {
-            System.Diagnostics.Debug.WriteLine("❌ Navigation cancelled");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
-        }
-        finally
-        {
-            EndNavigation();
-        }
+        finally { EndNavigation(); }
     }
 
 

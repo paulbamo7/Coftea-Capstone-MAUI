@@ -11,6 +11,8 @@
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+            <converters:NullToInvertedBoolConverter x:Key="NullToInvertedBoolConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
@@ -30,22 +32,22 @@
                     <Label Text="Add Item To Inventory"
                            FontAttributes="Bold"
                            FontSize="30"
-                           Margin="0,0,0,20"
+                           Margin="0,0,0,10"
                            TextColor="Black" />
 
                     <!-- STOCK NAME -->
-                    <Label Text="STOCK NAME" FontAttributes="Bold" FontSize="16" TextColor="Black" Padding="0,20,0,0"/>
+                    <Label Text="STOCK NAME" FontAttributes="Bold" FontSize="20" TextColor="Black" Padding="0,20,0,0"/>
                     <Entry Placeholder="Enter stock name"
                            Text="{Binding ItemName}"
                            Margin="0,0,0,10"
-                           FontSize="14"
+                           FontSize="18"
                            TextColor="Black"
                            PlaceholderColor="Black"/>
 
                     <!-- STOCK IMAGE (updated with upload prompt) -->
                     <Label Text="STOCK IMAGE"
                            FontAttributes="Bold"
-                           FontSize="16"
+                           FontSize="20"
                            TextColor="Black"
                            Margin="0,20,0,5" />
 
@@ -58,7 +60,7 @@
 
                         <Grid>
                             <!-- Preview area (visible when an image is selected) -->
-                            <Grid IsVisible="{Binding SelectedImageSource}">
+                            <Grid IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToBoolConverter}}">
                                 <Image Source="{Binding SelectedImageSource}"
                                        Aspect="AspectFill"
                                        WidthRequest="360"
@@ -79,7 +81,7 @@
                             <VerticalStackLayout HorizontalOptions="Center"
                                                VerticalOptions="Center"
                                                Spacing="10"
-                                               IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}">
+                                               IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToInvertedBoolConverter}}">
                                 <Image Source="uploadicon.png"
                                        WidthRequest="40"
                                        HeightRequest="40"
@@ -98,6 +100,8 @@
                                         WidthRequest="120"
                                         HeightRequest="36"
                                         CornerRadius="18"
+                                        FontSize="14"
+                                        Padding="0"
                                         BackgroundColor="#E0E0E0"
                                         TextColor="#333333"
                                         FontAttributes="Bold" />
@@ -106,18 +110,18 @@
                             <!-- Invisible overlay so whole area is clickable -->
                             <Button BackgroundColor="Transparent"
                                     Command="{Binding PickImageCommand}"
-                                    IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}"
+                                    IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToInvertedBoolConverter}}"
                                     HorizontalOptions="Fill"
                                     VerticalOptions="Fill" />
                         </Grid>
                     </Frame>
 
                     <!-- PRODUCT CATEGORY -->
-                    <Label Text="PRODUCT CATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5" />
+                    <Label Text="PRODUCT CATEGORY" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5" />
                     <Picker Title="Select Category"
                             ItemsSource="{Binding Categories}"
                             SelectedItem="{Binding ItemCategory}"
-                            FontSize="14"
+                            FontSize="18"
                             TextColor="Black"
                             HeightRequest="40"/>
                 </VerticalStackLayout>
@@ -131,7 +135,7 @@
 
                 <!-- RIGHT PANEL -->
                 <ScrollView Grid.Column="2" Padding="30" BackgroundColor="#F8E8D7">
-                    <VerticalStackLayout Spacing="15" BackgroundColor="#F8E8D7" Padding="20,0,0,0">
+                    <VerticalStackLayout Spacing="15" BackgroundColor="#F8E8D7" Padding="15,0,0,0">
 
                         <!-- HEADER -->
                         <Grid>
@@ -139,7 +143,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Label Text="Measurement Details" FontSize="27" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
+                            <Label Text="Measurement Details" FontSize="30" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
                             <ImageButton Source="close.png"
                                          WidthRequest="25"
                                          HeightRequest="25"
@@ -151,22 +155,22 @@
                         <!-- STOCK QUANTITY & UOM -->
                         <HorizontalStackLayout Spacing="20">
                             <VerticalStackLayout>
-                                <Label Text="STOCK QUANTITY" FontAttributes="Bold" FontSize="16" TextColor="Black" Padding="0,20,0,0"/>
+                                <Label Text="STOCK QUANTITY" FontAttributes="Bold" FontSize="20" TextColor="Black" Padding="0,20,0,0"/>
                                 <Entry Placeholder="Enter quantity"
                                        Text="{Binding UoMQuantity}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
-                                       FontSize="14"
+                                       FontSize="18"
                                        WidthRequest="200"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
-                                <Label Text="UNIT OF MEASUREMENT" FontAttributes="Bold" FontSize="16" TextColor="Black"  Padding="0,20,0,0"/>
+                                <Label Text="UNIT OF MEASUREMENT" FontAttributes="Bold" FontSize="20" TextColor="Black"  Padding="0,20,0,0"/>
                                 <Picker Title="Select UoM"
                                         ItemsSource="{Binding UoMOptions}"
                                         SelectedItem="{Binding SelectedUoM}"
-                                        FontSize="14"
+                                        FontSize="18"
                                         TextColor="Black"
                                         WidthRequest="200"
                                         HeightRequest="40"/>
@@ -177,29 +181,29 @@
                         <Label Text="MINIMUM STOCK LEVEL" FontAttributes="Bold" FontSize="27" TextColor="Black" Margin="0,40,0,0"/>
                         <HorizontalStackLayout Spacing="20">
                             <VerticalStackLayout>
-                                <Label Text="MINIMUM QUANTITY" FontAttributes="Bold" FontSize="18" TextColor="Black" />
+                                <Label Text="MINIMUM QUANTITY" FontAttributes="Bold" FontSize="20" TextColor="Black" />
                                 <Entry Placeholder="Enter minimum quantity"
                                        Text="{Binding MinimumQuantity}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
-                                       FontSize="14"
+                                       FontSize="18"
                                        WidthRequest="200"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
-                                <Label Text="MINIMUM UoM" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
+                                <Label Text="MINIMUM UoM" FontAttributes="Bold" FontSize="20" TextColor="Black"/>
                                 <HorizontalStackLayout Spacing="10">
                                     <Entry Placeholder="Quantity"
                                            Text="{Binding MinimumUoMQuantity}"
                                            Keyboard="Numeric"
                                            TextColor="Black"
-                                           FontSize="14"
+                                           FontSize="18"
                                            WidthRequest="100"/>
                                     <Picker Title="Select UoM"
                                             ItemsSource="{Binding UoMOptions}"
                                             SelectedItem="{Binding SelectedMinimumUoM}"
-                                            FontSize="14"
+                                            FontSize="18"
                                             TextColor="Black"
                                             WidthRequest="150"/>
                                 </HorizontalStackLayout>
@@ -207,10 +211,11 @@
                         </HorizontalStackLayout>
 
                         <!-- DESCRIPTION -->
-                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"/>
+                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5"/>
                         <Editor Placeholder="Enter item description..."
                                 Text="{Binding ItemDescription}"
                                 HeightRequest="120"
+                                FontSize="18"
                                 BackgroundColor="#FFFFFF"
                                 TextColor="Black"/>
 

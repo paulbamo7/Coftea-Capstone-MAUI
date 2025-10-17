@@ -42,8 +42,13 @@
                     <HorizontalStackLayout HorizontalOptions="Center"
                                            Spacing="15"
                                            Margin="0,15,0,0">
-                        <Button Text="{Binding SmallSizeText}"
-                                BackgroundColor="#FFEAD6"
+                        <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="2"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Text="{Binding SmallSizeText}"
+                                BackgroundColor="#5B4F45"
                                 TextColor="Black"
                                 CornerRadius="14"
                                 WidthRequest="100"
@@ -63,8 +68,27 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="{Binding MediumSizeText}"
-                                BackgroundColor="#FFEAD6"
+                        <BoxView Grid.Row="1" HeightRequest="2" Color="#D4A574">
+                            <BoxView.Triggers>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Small">
+                                    <Setter Property="IsVisible" Value="True" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Medium">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Large">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </BoxView.Triggers>
+                        </BoxView>
+                        </Grid>
+                        <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="2"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Text="{Binding MediumSizeText}"
+                                BackgroundColor="#5B4F45"
                                 TextColor="Black"
                                 CornerRadius="14"
                                 WidthRequest="100"
@@ -84,9 +108,28 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Text="{Binding LargeSizeText}"
-                                BackgroundColor="#FFEAD6"
-                                TextColor="Black"
+                        <BoxView Grid.Row="1" HeightRequest="2" Color="#D4A574">
+                            <BoxView.Triggers>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Medium">
+                                    <Setter Property="IsVisible" Value="True" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Small">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Large">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </BoxView.Triggers>
+                        </BoxView>
+                        </Grid>
+                        <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="2"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Text="{Binding LargeSizeText}"
+                                BackgroundColor="#5B4F45"
+                                TextColor="White"
                                 CornerRadius="14"
                                 WidthRequest="100"
                                 IsVisible="{Binding IsLargeSizeVisible}"
@@ -105,8 +148,22 @@
                                 </Style>
                             </Button.Style>
                         </Button>
+                        <BoxView Grid.Row="1" HeightRequest="2" Color="#D4A574">
+                            <BoxView.Triggers>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Large">
+                                    <Setter Property="IsVisible" Value="True" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Small">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Medium">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </BoxView.Triggers>
+                        </BoxView>
+                        </Grid>
                     </HorizontalStackLayout>
-                    <!-- Selected size indicator -->
+                    <!-- Selected size indicator -->sple
                     <Label Text="{Binding SelectedSize, StringFormat='Current size: {0}'}"
                            FontSize="13"
                            TextColor="#5B4F45"
@@ -115,7 +172,7 @@
                 </VerticalStackLayout>
 
                 <!-- Selected Inventory Items Table -->
-                <Grid Grid.Row="1" Padding="20">
+                <Grid Grid.Row="1" Padding="20,5,20,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />

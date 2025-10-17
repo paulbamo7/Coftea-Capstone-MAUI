@@ -11,6 +11,8 @@
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+            <converters:NullToInvertedBoolConverter x:Key="NullToInvertedBoolConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
@@ -34,16 +36,16 @@
                            TextColor="Black" />
 
                     <!-- PRODUCT NAME -->
-                    <Label Text="PRODUCT NAME" FontAttributes="Bold" FontSize="16" TextColor="Black" Padding="0,20,0,0"/>
+                    <Label Text="PRODUCT NAME" FontAttributes="Bold" FontSize="20" TextColor="Black" Padding="0,20,0,0"/>
                     <Entry Placeholder="Enter product name"
                            Text="{Binding ProductName}"
                            Margin="0,0,0,10"
-                           FontSize="14"
+                           FontSize="18"
                            TextColor="Black"
                            PlaceholderColor="Black"/>
 
                     <!-- PRODUCT IMAGE -->
-                    <Label Text="PRODUCT IMAGE" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5" />
+                    <Label Text="PRODUCT IMAGE" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5" />
                     <Frame CornerRadius="12"
                            BackgroundColor="White"
                            HasShadow="False"
@@ -53,7 +55,7 @@
 
                         <Grid>
                             <!-- Preview when image selected -->
-                            <Grid IsVisible="{Binding SelectedImageSource}">
+                            <Grid IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToBoolConverter}}">
                                 <Image Source="{Binding SelectedImageSource}"
                                        Aspect="AspectFill"
                                        WidthRequest="360"
@@ -74,7 +76,7 @@
                             <VerticalStackLayout HorizontalOptions="Center"
                                                  VerticalOptions="Center"
                                                  Spacing="10"
-                                                 IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}">
+                                                 IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToInvertedBoolConverter}}">
                                 <Image Source="uploadicon.png"
                                        WidthRequest="40"
                                        HeightRequest="40"
@@ -93,6 +95,8 @@
                                         WidthRequest="120"
                                         HeightRequest="36"
                                         CornerRadius="18"
+                                        FontSize="14"
+                                        Padding="0"
                                         BackgroundColor="#E0E0E0"
                                         TextColor="#333333"
                                         FontAttributes="Bold" />
@@ -100,18 +104,18 @@
 
                             <Button BackgroundColor="Transparent"
                                     Command="{Binding PickImageCommand}"
-                                    IsVisible="{Binding SelectedImageSource, Converter={StaticResource InvertBoolConverter}}"
+                                    IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToInvertedBoolConverter}}"
                                     HorizontalOptions="Fill"
                                     VerticalOptions="Fill" />
                         </Grid>
                     </Frame>
 
                     <!-- CATEGORY -->
-                    <Label Text="CATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5" />
+                    <Label Text="CATEGORY" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5" />
                     <Picker Title="Select Category"
                             ItemsSource="{Binding Categories}"
                             SelectedItem="{Binding SelectedCategory}"
-                            FontSize="14"
+                            FontSize="18"
                             TextColor="Black"
                             HeightRequest="40"/>
 
@@ -127,12 +131,12 @@
                             IsVisible="{Binding IsFruitSodaSubcategoryVisible}"/>
 
                     <!-- SUBCATEGORY for Coffee -->
-                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"
+                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5"
                            IsVisible="{Binding IsCoffeeSubcategoryVisible}" />
                     <Picker Title="Select Subcategory"
                             ItemsSource="{Binding CoffeeSubcategories}"
                             SelectedItem="{Binding SelectedSubcategory}"
-                            FontSize="14"
+                            FontSize="18"
                             TextColor="Black"
                             HeightRequest="40"
                             IsVisible="{Binding IsCoffeeSubcategoryVisible}"/>
@@ -156,7 +160,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Label Text="Product Pricing" FontSize="27" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
+                            <Label Text="Product Pricing" FontSize="30" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
                             <ImageButton Source="close.png"
                                          WidthRequest="25"
                                          HeightRequest="25"
@@ -166,67 +170,75 @@
                         </Grid>
 
                         <!-- PRICE INPUTS -->
-                        <Label Text="SET PRODUCT PRICES" FontAttributes="Bold" FontSize="18" TextColor="Black" Margin="0,10,0,5"/>
+                        <Label Text="SET PRODUCT PRICES" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,10,0,5"/>
 
                         <HorizontalStackLayout Spacing="20">
                             <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
-                                <Label Text="SMALL" FontAttributes="Bold" FontSize="16" TextColor="Black" />
+                                <Label Text="SMALL" FontAttributes="Bold" FontSize="20" TextColor="Black" />
                                 <Entry Placeholder="Enter small size price"
                                        Text="{Binding SmallPrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
-                                       FontSize="14"
+                                       PlaceholderColor="Black"
+                                       FontSize="18"
                                        WidthRequest="150"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
-                                <Label Text="MEDIUM" FontAttributes="Bold" FontSize="16" TextColor="Black" />
+                                <Label Text="MEDIUM" FontAttributes="Bold" FontSize="20" TextColor="Black" />
                                 <Entry Placeholder="Enter medium size price"
                                        Text="{Binding MediumPrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
-                                       FontSize="14"
+                                       PlaceholderColor="Black"
+                                       FontSize="18"
                                        WidthRequest="150"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
-                                <Label Text="LARGE" FontAttributes="Bold" FontSize="16" TextColor="Black" />
+                                <Label Text="LARGE" FontAttributes="Bold" FontSize="20" TextColor="Black" />
                                 <Entry Placeholder="Enter large size price"
                                        Text="{Binding LargePrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
-                                       FontSize="14"
+                                       PlaceholderColor="Black"
+                                       FontSize="18"
                                        WidthRequest="150"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
 
                         <!-- DESCRIPTION -->
-                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"/>
+                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5"/>
                         <Editor Placeholder="Enter product description..."
                                 Text="{Binding ProductDescription}"
                                 HeightRequest="120"
+                                FontSize="18"
                                 BackgroundColor="#FFFFFF"
                                 TextColor="Black"/>
 
                         <!-- BUTTONS -->
                         <HorizontalStackLayout HorizontalOptions="End" Spacing="20" Margin="0,20,0,0">
                             <Button Text="Cancel"
-                                    WidthRequest="130"
-                                    BackgroundColor="#D3D3D3"
-                                    TextColor="Black"
+                                    WidthRequest="120"
+                                    BackgroundColor="#F44336"
+                                    TextColor="White"
                                     Command="{Binding CloseAddItemToPOSCommand}"
                                     CornerRadius="25"
+                                    FontSize="18"
+                                    Padding="0"
                                     FontAttributes="Bold"/>
 
                             <Button Text="Next"
-                                    WidthRequest="150"
+                                    WidthRequest="120"
                                     BackgroundColor="#FFCC00"
                                     TextColor="Black"
                                     Command="{Binding OpenConnectPOSToInventoryCommand}"
                                     CornerRadius="25"
+                                    FontSize="18"
+                                    Padding="0"
                                     FontAttributes="Bold"/>
                         </HorizontalStackLayout>
                     </VerticalStackLayout>

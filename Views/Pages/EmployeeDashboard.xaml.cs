@@ -28,7 +28,7 @@ public partial class EmployeeDashboard : ContentPage
     {
         base.OnDisappearing();
 
-        // Drop bindings to encourage GC
+        // Drop heavy bindings to encourage GC
         try
         {
             if (Content != null)
@@ -37,22 +37,13 @@ public partial class EmployeeDashboard : ContentPage
             }
         }
         catch { }
-        BindingContext = null;
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
     {
         if (element == null) return;
 
-        if (element is Image img)
-        {
-            img.Source = null;
-        }
-        else if (element is ImageButton imgBtn)
-        {
-            imgBtn.Source = null;
-        }
-        else if (element is CollectionView cv)
+        if (element is CollectionView cv)
         {
             cv.ItemsSource = null;
         }

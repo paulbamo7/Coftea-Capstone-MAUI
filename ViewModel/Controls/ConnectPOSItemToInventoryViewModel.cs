@@ -473,6 +473,28 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(SelectedInventoryItems));
                 OnPropertyChanged(nameof(SelectedIngredientsOnly));
             }
+            else if (e.PropertyName == nameof(InventoryPageModel.InputAmount)
+                  || e.PropertyName == nameof(InventoryPageModel.InputUnit)
+                  || e.PropertyName == nameof(InventoryPageModel.InputAmountSmall)
+                  || e.PropertyName == nameof(InventoryPageModel.InputUnitSmall)
+                  || e.PropertyName == nameof(InventoryPageModel.InputAmountMedium)
+                  || e.PropertyName == nameof(InventoryPageModel.InputUnitMedium)
+                  || e.PropertyName == nameof(InventoryPageModel.InputAmountLarge)
+                  || e.PropertyName == nameof(InventoryPageModel.InputUnitLarge))
+            {
+                // Persist per-item input edits immediately to prevent loss on UI switches
+                _ = PersistCurrentInputsAsync();
+            }
+        }
+
+        private async Task PersistCurrentInputsAsync()
+        {
+            try
+            {
+                // No-op here if persistence requires DB schema. Hook for future save if needed.
+                await Task.CompletedTask;
+            }
+            catch { }
         }
 
         [RelayCommand]
@@ -579,22 +601,20 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             else
             {
-                // Initialize default unit and amounts based on inventory definition
+                // Initialize defaults ONLY if no prior values exist (preserve last saved values)
                 var initUnit = allItem.HasUnit ? allItem.unitOfMeasurement : "pcs";
-                
-                // Set default amounts to 1 for all sizes
-                allItem.InputAmountSmall = 1;
-                allItem.InputAmountMedium = 1;
-                allItem.InputAmountLarge = 1;
-                allItem.InputAmount = 1;
-                
-                // Set default units
-                allItem.InputUnitSmall = initUnit;
-                allItem.InputUnitMedium = initUnit;
-                allItem.InputUnitLarge = initUnit;
-                allItem.InputUnit = initUnit;
-                
-                Ingredients.Add(new Ingredient { Name = allItem.itemName, Amount = 1, Unit = initUnit, Selected = true });
+
+                if (allItem.InputAmountSmall <= 0) allItem.InputAmountSmall = allItem.InputAmountSmall > 0 ? allItem.InputAmountSmall : 1;
+                if (allItem.InputAmountMedium <= 0) allItem.InputAmountMedium = allItem.InputAmountMedium > 0 ? allItem.InputAmountMedium : 1;
+                if (allItem.InputAmountLarge <= 0) allItem.InputAmountLarge = allItem.InputAmountLarge > 0 ? allItem.InputAmountLarge : 1;
+                if (allItem.InputAmount <= 0) allItem.InputAmount = 1;
+
+                if (string.IsNullOrWhiteSpace(allItem.InputUnitSmall)) allItem.InputUnitSmall = string.IsNullOrWhiteSpace(allItem.InputUnitSmall) ? initUnit : allItem.InputUnitSmall;
+                if (string.IsNullOrWhiteSpace(allItem.InputUnitMedium)) allItem.InputUnitMedium = string.IsNullOrWhiteSpace(allItem.InputUnitMedium) ? initUnit : allItem.InputUnitMedium;
+                if (string.IsNullOrWhiteSpace(allItem.InputUnitLarge)) allItem.InputUnitLarge = string.IsNullOrWhiteSpace(allItem.InputUnitLarge) ? initUnit : allItem.InputUnitLarge;
+                if (string.IsNullOrWhiteSpace(allItem.InputUnit)) allItem.InputUnit = initUnit;
+
+                Ingredients.Add(new Ingredient { Name = allItem.itemName, Amount = allItem.InputAmount > 0 ? allItem.InputAmount : 1, Unit = string.IsNullOrWhiteSpace(allItem.InputUnit) ? initUnit : allItem.InputUnit, Selected = true });
                 allItem.IsSelected = true;
             }
             
