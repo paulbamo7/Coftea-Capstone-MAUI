@@ -79,6 +79,15 @@ namespace Coftea_Capstone
                     if (Current.Resources.ContainsKey("Primary")) Current.Resources["Primary"] = Color.FromArgb("#5B4F45");
                     if (Current.Resources.ContainsKey("Tertiary")) Current.Resources["Tertiary"] = Color.FromArgb("#5B4F45");
                     if (Current.Resources.ContainsKey("Secondary")) Current.Resources["Secondary"] = Color.FromArgb("#C1A892");
+                    
+                    // Set global background color for navigation transitions
+                    if (Current.Resources.ContainsKey("BackgroundColor")) Current.Resources["BackgroundColor"] = Color.FromArgb("#C1A892");
+                }
+                
+                // Set the main page background color
+                if (MainPage != null)
+                {
+                    MainPage.BackgroundColor = Color.FromArgb("#C1A892");
                 }
             });
 

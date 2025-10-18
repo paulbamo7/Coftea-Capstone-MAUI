@@ -5,18 +5,42 @@ using Android.Views;
 
 namespace Coftea_Capstone
 {
-    [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+    [Activity(Theme = "@style/MainTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
     public class MainActivity : MauiAppCompatActivity
     {
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            
+            // Set background color programmatically for Android tablets
+            try
+            {
+                Window.SetBackgroundDrawableResource(Resource.Color.backgroundColor);
+                System.Diagnostics.Debug.WriteLine("✅ Android: Set background color to #C1A892");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Android: Failed to set background color: {ex.Message}");
+            }
+            
             ApplyImmersiveMode();
         }
 
         protected override void OnResume()
         {
             base.OnResume();
+            
+            // Ensure background color is set on resume (for tablets)
+            try
+            {
+                Window.SetBackgroundDrawableResource(Resource.Color.backgroundColor);
+                System.Diagnostics.Debug.WriteLine("✅ Android: OnResume - Set background color to #C1A892");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Android: OnResume - Failed to set background color: {ex.Message}");
+            }
+            
             ApplyImmersiveMode();
         }
 

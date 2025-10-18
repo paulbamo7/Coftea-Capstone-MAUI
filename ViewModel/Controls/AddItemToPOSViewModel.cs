@@ -276,16 +276,16 @@ namespace Coftea_Capstone.ViewModel
                     inv.SelectedSize = size; // Trigger the size change handler to update InputAmount and InputUnit
                     inv.InputAmount = size switch
                     {
-                        "Small" => inv.InputAmountSmall,
-                        "Medium" => inv.InputAmountMedium,
-                        "Large" => inv.InputAmountLarge,
+                        "Small" => inv.InputAmountSmall > 0 ? inv.InputAmountSmall : sharedAmt,
+                        "Medium" => inv.InputAmountMedium > 0 ? inv.InputAmountMedium : sharedAmt,
+                        "Large" => inv.InputAmountLarge > 0 ? inv.InputAmountLarge : sharedAmt,
                         _ => sharedAmt
                     };
                     inv.InputUnit = size switch
                     {
-                        "Small" => string.IsNullOrWhiteSpace(inv.InputUnitSmall) ? sharedUnit : inv.InputUnitSmall,
-                        "Medium" => string.IsNullOrWhiteSpace(inv.InputUnitMedium) ? sharedUnit : inv.InputUnitMedium,
-                        "Large" => string.IsNullOrWhiteSpace(inv.InputUnitLarge) ? sharedUnit : inv.InputUnitLarge,
+                        "Small" => !string.IsNullOrWhiteSpace(inv.InputUnitSmall) ? inv.InputUnitSmall : sharedUnit,
+                        "Medium" => !string.IsNullOrWhiteSpace(inv.InputUnitMedium) ? inv.InputUnitMedium : sharedUnit,
+                        "Large" => !string.IsNullOrWhiteSpace(inv.InputUnitLarge) ? inv.InputUnitLarge : sharedUnit,
                         _ => sharedUnit
                     };
                 }
@@ -749,17 +749,22 @@ namespace Coftea_Capstone.ViewModel
         private static string NormalizeUnit(string unit)
         {
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
-            
-            var normalized = unit.Trim().ToLowerInvariant();
-            
-            // Handle full unit names from database
-            if (normalized.Contains("kilograms") || normalized == "kg") return "kg";
-            if (normalized.Contains("grams") || normalized == "g") return "g";
-            if (normalized.Contains("liters") || normalized == "l") return "l";
-            if (normalized.Contains("milliliters") || normalized == "ml") return "ml";
-            if (normalized.Contains("pcs") || normalized.Contains("pieces")) return "pcs";
-            
-            return normalized;
+
+            var u = unit.Trim().ToLowerInvariant();
+            // Strip decorations like "liters (l)" → "liters l"
+            u = u.Replace("(", " ").Replace(")", " ").Replace(".", " ");
+            // Collapse multiple spaces
+            u = System.Text.RegularExpressions.Regex.Replace(u, "\\s+", " ").Trim();
+
+            // Prefer specific tokens first
+            if (u.Contains("ml")) return "ml";
+            if (u.Contains(" l" ) || u.StartsWith("l") || u.Contains("liter")) return "l";
+            if (u.Contains("kg")) return "kg";
+            // Ensure 'g' check after 'kg'
+            if (u.Contains(" g") || u == "g" || u.Contains("gram")) return "g";
+            if (u.Contains("pcs") || u.Contains("piece")) return "pcs";
+
+            return u;
         }
 
         private static bool IsMassUnit(string unit)
@@ -777,8 +782,9 @@ namespace Coftea_Capstone.ViewModel
         private static bool IsCountUnit(string unit)
         {
             var normalized = NormalizeUnit(unit);
-            return normalized == "pcs" || string.IsNullOrEmpty(normalized);
+            return normalized == "pcs" || normalized == "pc";
         }
+
 
         private void ResetForm()
         {

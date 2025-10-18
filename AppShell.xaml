@@ -8,6 +8,7 @@
     xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
     xmlns:controls="clr-namespace:Coftea_Capstone.Views.Controls"
     Shell.BackgroundColor="#C1A892"
+    BackgroundColor="#C1A892"
     NavigationPage.HasNavigationBar="False"
     >
 

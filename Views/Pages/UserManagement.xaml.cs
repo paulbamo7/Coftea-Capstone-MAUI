@@ -92,22 +92,9 @@ public partial class UserManagement : ContentPage
         }
         catch { }
 
-        _ = Task.Run(() =>
-        {
-            try
-            {
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    try
-                    {
-                        ReleaseVisualTree(Content);
-                        BindingContext = null;
-                    }
-                    catch { }
-                });
-            }
-            catch { }
-        });
+        // Don't dispose BindingContext or clear CollectionView ItemsSource
+        // This prevents data loss when navigating between pages
+        // The data will persist and be available when returning to the page
 
         try
         {

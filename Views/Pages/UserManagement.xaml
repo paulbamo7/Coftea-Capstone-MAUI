@@ -60,7 +60,7 @@
                            FontSize="20"
                            FontAttributes="Bold"
                            TextColor="Black"/>
-                        <Entry Placeholder="Search" Text="{Binding SearchText}" WidthRequest="250"/>
+                        <Entry Placeholder="Search" Text="{Binding SearchText}" PlaceholderColor="Black" WidthRequest="250"/>
                         <Button Text="Sort By" Command="{Binding SortByCommand}" WidthRequest="100"/>
                     </FlexLayout>
 

@@ -584,39 +584,23 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 item.SelectedSize = size;
                 
-                // Update Amount Used based on the selected size
+                // Update Amount Used based on the selected size - use saved values from database
                 item.InputAmount = size switch
                 {
-                    "Small" => item.InputAmountSmall,
-                    "Medium" => item.InputAmountMedium,
-                    "Large" => item.InputAmountLarge,
+                    "Small" => item.InputAmountSmall > 0 ? item.InputAmountSmall : 1,
+                    "Medium" => item.InputAmountMedium > 0 ? item.InputAmountMedium : 1,
+                    "Large" => item.InputAmountLarge > 0 ? item.InputAmountLarge : 1,
                     _ => 1
                 };
                 
-                // Update input unit based on the selected size
-                // If the target size has no unit yet, inherit the current unit (so user doesn't reselect)
-                var currentUnit = string.IsNullOrWhiteSpace(item.InputUnit) ? item.unitOfMeasurement : item.InputUnit;
-                switch (size)
+                // Update input unit based on the selected size - use saved values from database
+                item.InputUnit = size switch
                 {
-                    case "Small":
-                        if (string.IsNullOrWhiteSpace(item.InputUnitSmall))
-                            item.InputUnitSmall = currentUnit;
-                        item.InputUnit = item.InputUnitSmall;
-                        break;
-                    case "Medium":
-                        if (string.IsNullOrWhiteSpace(item.InputUnitMedium))
-                            item.InputUnitMedium = currentUnit;
-                        item.InputUnit = item.InputUnitMedium;
-                        break;
-                    case "Large":
-                        if (string.IsNullOrWhiteSpace(item.InputUnitLarge))
-                            item.InputUnitLarge = currentUnit;
-                        item.InputUnit = item.InputUnitLarge;
-                        break;
-                    default:
-                        // keep existing
-                        break;
-                }
+                    "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : item.unitOfMeasurement,
+                    "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : item.unitOfMeasurement,
+                    "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : item.unitOfMeasurement,
+                    _ => item.unitOfMeasurement
+                };
                 
                 // Explicitly notify UI that the text binding should update
                 OnPropertyChanged(nameof(item.InputAmountText));
