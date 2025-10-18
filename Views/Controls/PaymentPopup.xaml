@@ -55,28 +55,33 @@
                         <Grid RowDefinitions="Auto, Auto, *">
                             <!-- Payment Method Selector -->
                             <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto" Margin="0,0,0,20">
-                            <HorizontalStackLayout Spacing="12">
+                            <VerticalStackLayout Spacing="8">
                                 <Label Text="Payment Method:" 
                                        FontSize="16"
                                        FontAttributes="Bold"
                                        TextColor="Black" />
-                                <RadioButton x:Name="CashRadio"
-                                             Content="Cash"
-                                             GroupName="PaymentMethod"
-                                             IsChecked="True"
-                                             TextColor="#5B4F45"
-                                             CheckedChanged="OnPaymentMethodChanged"/>
-                                <RadioButton x:Name="GCashRadio"
-                                             Content="GCash"
-                                             GroupName="PaymentMethod"
-                                             TextColor="#5B4F45"
-                                             CheckedChanged="OnPaymentMethodChanged"/>
-                                <RadioButton x:Name="BankRadio"
-                                             Content="Bank"
-                                             GroupName="PaymentMethod"
-                                             TextColor="#5B4F45"
-                                             CheckedChanged="OnPaymentMethodChanged"/>
-                            </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="20">
+                                    <RadioButton x:Name="CashRadio"
+                                                 Content="Cash"
+                                                 GroupName="PaymentMethod"
+                                                 IsChecked="True"
+                                                 TextColor="#5B4F45"
+                                                 VerticalOptions="Center"
+                                                 CheckedChanged="OnPaymentMethodChanged" />
+                                    <RadioButton x:Name="GCashRadio"
+                                                 Content="GCash"
+                                                 GroupName="PaymentMethod"
+                                                 TextColor="#5B4F45"
+                                                 VerticalOptions="Center"
+                                                 CheckedChanged="OnPaymentMethodChanged" />
+                                    <RadioButton x:Name="BankRadio"
+                                                 Content="Bank"
+                                                 GroupName="PaymentMethod"
+                                                 TextColor="#5B4F45"
+                                                 VerticalOptions="Center"
+                                                 CheckedChanged="OnPaymentMethodChanged" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
                         </Grid>
 
                         <!-- CASH SECTION (kept as-is) -->
@@ -423,9 +428,9 @@
                                                     </StackLayout>
                                                     
                                                     <!-- Add-ons -->
-                                                    <Label Text="{Binding SelectedAddons}" 
+                                                    <Label Text="{Binding AddOnsDisplay}" 
                                                            FontSize="12" TextColor="#8B5CF6" 
-                                                           IsVisible="{Binding SelectedAddons, Converter={StaticResource NullToBoolConverter}}" />
+                                                           IsVisible="{Binding AddOnsDisplay, Converter={StaticResource NullToBoolConverter}}" />
                                                 </StackLayout>
                                                 
                                                 <!-- Price -->

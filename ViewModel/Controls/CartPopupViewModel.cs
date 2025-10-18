@@ -55,10 +55,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Convert POSPageModel items to CartItem format - show ALL items in cart
                 CartItems.Clear();
                 var flatItems = (items ?? new ObservableCollection<POSPageModel>())
-                    .Where(item => item != null)
+                    .Where(item => item != null && (item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0))
                     .ToList();
                 
-                System.Diagnostics.Debug.WriteLine($"🛒 Processing {flatItems.Count} items for cart display");
+                System.Diagnostics.Debug.WriteLine($"🛒 Processing {flatItems.Count} items with quantities > 0 for cart display");
 
                 foreach (var it in flatItems)
                 {
@@ -147,6 +147,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     }
                 }
                 
+                System.Diagnostics.Debug.WriteLine($"🛒 Final CartItems count: {CartItems.Count}");
                 CalculateTotal();
                 IsCartVisible = true;
             }

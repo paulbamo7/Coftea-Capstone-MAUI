@@ -16,6 +16,7 @@ namespace Coftea_Capstone.ViewModel.Others
                 System.Diagnostics.Debug.WriteLine($"FilterButtonConverter: selectedFilter='{selectedFilter}', filterOption='{filterOption}', isSelected={isSelected}");
                 return isSelected;
             }
+            
             System.Diagnostics.Debug.WriteLine($"FilterButtonConverter: value='{value}', parameter='{parameter}'");
             return false;
         }

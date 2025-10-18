@@ -68,7 +68,10 @@
 
                                 <!-- Sort -->
                                 <Frame CornerRadius="12" Padding="8,0" BackgroundColor="White" HasShadow="False" VerticalOptions="Center">
-                                    <Picker Title="Sort By" SelectedItem="{Binding SelectedSort}" FontSize="14">
+                                    <Picker Title="Sort By" 
+                                            SelectedItem="{Binding SelectedSort}" 
+                                            FontSize="14"
+                                            TextColor="Black">
                                         <Picker.Items>
                                             <x:String>Name (A-Z)</x:String>
                                             <x:String>Name (Z-A)</x:String>

@@ -40,6 +40,7 @@ namespace Coftea_Capstone
         public InventoryPageViewModel InventoryVM { get; private set; }
         public SalesReportPageViewModel SalesReportVM { get; private set; }
 
+
         // Shared transactions store for History
         public ObservableCollection<TransactionHistoryModel> Transactions { get; private set; }
 

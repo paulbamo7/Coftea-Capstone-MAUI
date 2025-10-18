@@ -654,41 +654,8 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task DeductSelectedIngredientsAsync()
-        {
-            if (ConnectPOSToInventoryVM?.InventoryItems == null || !ConnectPOSToInventoryVM.InventoryItems.Any(i => i.IsSelected))
-                return;
-
-            // Get selected ingredients with their input amounts and units
-            var selected = ConnectPOSToInventoryVM.InventoryItems.Where(i => i.IsSelected);
-            var pairs = new List<(string name, double amount)>();
-            
-            // Add selected ingredients
-            foreach (var i in selected)
-            {
-                var inputAmount = i.InputAmount > 0 ? i.InputAmount : 1;
-                var inputUnit = i.InputUnit ?? i.DefaultUnit;
-                var convertedAmount = ConvertUnits(inputAmount, inputUnit, i.unitOfMeasurement);
-                
-                pairs.Add((name: i.itemName, amount: convertedAmount));
-            }
-            
-            // Automatically add cup and straw based on selected size and input amount
-            await AddAutomaticCupAndStraw(pairs);
-
-            try
-            {
-                var affectedRows = await _database.DeductInventoryAsync(pairs);
-                if (affectedRows > 0)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Successfully deducted inventory for {affectedRows} items");
-                }
-            }
-            catch (Exception ex)
-            {
-                await Application.Current.MainPage.DisplayAlert("Warning", $"Product saved but failed to deduct inventory: {ex.Message}", "OK");
-            }
-        }
+        // REMOVED: DeductSelectedIngredientsAsync method
+        // Inventory should only be deducted during actual transactions/payments, not when creating products
 
         private async Task AddAutomaticCupAndStraw(List<(string name, double amount)> pairs)
         {

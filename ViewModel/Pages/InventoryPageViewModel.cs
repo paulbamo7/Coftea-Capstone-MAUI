@@ -22,6 +22,7 @@ namespace Coftea_Capstone.ViewModel
 
         // ===================== State & Models =====================
         private readonly Database _database;
+        private bool _hasLoadedData = false; // Track if data has been loaded
 
         // Full set loaded from database, used for applying filters
         private ObservableCollection<InventoryPageModel> allInventoryItems = new();
@@ -71,43 +72,69 @@ namespace Coftea_Capstone.ViewModel
         // ===================== Data Loading =====================
         public async Task LoadDataAsync()
         {
-            await RunWithLoading(async () =>
+            // Only show loading if data hasn't been loaded before
+            if (!_hasLoadedData)
             {
-                StatusMessage = "Loading inventory items...";
-
-                if (!EnsureInternetOrShowRetry(LoadDataAsync, "No internet connection detected. Please check your network settings and try again."))
-                    return;
-
-                try
+                await RunWithLoading(async () =>
                 {
-                    var inventoryList = await _database.GetInventoryItemsAsyncCached();
-                    System.Diagnostics.Debug.WriteLine($"🔍 Loaded {inventoryList?.Count ?? 0} inventory items from database");
-                    
-                    if (inventoryList != null && inventoryList.Any())
+                    await LoadDataInternal();
+                });
+            }
+            else
+            {
+                // Data already loaded, just refresh without showing loading
+                await LoadDataInternal();
+            }
+        }
+
+        private async Task LoadDataInternal()
+        {
+            StatusMessage = "Loading inventory items...";
+
+            if (!EnsureInternetOrShowRetry(LoadDataAsync, "No internet connection detected. Please check your network settings and try again."))
+                return;
+
+            try
+            {
+                var inventoryList = await _database.GetInventoryItemsAsyncCached();
+                System.Diagnostics.Debug.WriteLine($"🔍 Loaded {inventoryList?.Count ?? 0} inventory items from database");
+                
+                if (inventoryList != null && inventoryList.Any())
+                {
+                    foreach (var item in inventoryList.Take(3)) // Log first 3 items for debugging
                     {
-                        foreach (var item in inventoryList.Take(3)) // Log first 3 items for debugging
-                        {
-                            System.Diagnostics.Debug.WriteLine($"📦 Item: {item.itemName} | Category: {item.itemCategory} | Quantity: {item.itemQuantity}");
-                        }
+                        System.Diagnostics.Debug.WriteLine($"📦 Item: {item.itemName} | Category: {item.itemCategory} | Quantity: {item.itemQuantity}");
                     }
-                    
-                    allInventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
-                    ApplyCategoryFilter();
+                }
+                
+                allInventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
+                ApplyCategoryFilter();
 
-                    StatusMessage = InventoryItems.Any()
-                        ? "Inventory items loaded successfully."
-                        : "No inventory items found.";
-                        
-                    System.Diagnostics.Debug.WriteLine($"📊 After filtering: {InventoryItems.Count} items displayed");
-                }
-                catch (Exception ex)
-                {
-                    HasError = true;
-                    StatusMessage = $"Failed to load inventory items: {ex.Message}";
-                    System.Diagnostics.Debug.WriteLine($"❌ Error loading inventory: {ex.Message}");
-                    GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load inventory items: {ex.Message}");
-                }
-            });
+                StatusMessage = InventoryItems.Any()
+                    ? "Inventory items loaded successfully."
+                    : "No inventory items found.";
+
+                System.Diagnostics.Debug.WriteLine($"📊 After filtering: {InventoryItems.Count} items displayed");
+                
+                // Mark data as loaded
+                _hasLoadedData = true;
+            }
+            catch (Exception ex)
+            {
+                HasError = true;
+                StatusMessage = $"Failed to load inventory items: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"❌ Error loading inventory: {ex.Message}");
+                GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load inventory items: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Force reload data with loading indicator (useful for refresh operations)
+        /// </summary>
+        public async Task ForceReloadDataAsync()
+        {
+            _hasLoadedData = false; // Reset the flag to show loading
+            await LoadDataAsync();
         }
 
         partial void OnDemoQuantityChanged(double value)

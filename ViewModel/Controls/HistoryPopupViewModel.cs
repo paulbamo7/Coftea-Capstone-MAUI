@@ -117,9 +117,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Update the selected filter first to trigger UI updates
             SelectedFilter = timePeriod?.Trim();
             
-            // Force property change notification
-            OnPropertyChanged(nameof(SelectedFilter));
-
+            // Force property change notification on main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                OnPropertyChanged(nameof(SelectedFilter));
+            });
+            
             await LoadAllTransactionsAsync();
             ApplyTransactionFilter();
             

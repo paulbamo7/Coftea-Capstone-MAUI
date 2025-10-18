@@ -377,6 +377,7 @@ namespace Coftea_Capstone.ViewModel
             }
             
             SelectedProduct = product;
+            System.Diagnostics.Debug.WriteLine($"🔧 SelectProduct: Set SelectedProduct to {product.ProductName} (ID: {product.ProductID})");
 
             AvailableSizes.Clear();
             if (product.HasSmall) AvailableSizes.Add("Small");
@@ -388,6 +389,9 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(IsMediumSizeVisibleInCart));
             OnPropertyChanged(nameof(IsLargeSizeVisibleInCart));
 
+            // Force UI update for SelectedProduct
+            OnPropertyChanged(nameof(SelectedProduct));
+
             // Load linked addons from DB for this product
             _ = LoadAddonsForSelectedAsync();
         }
@@ -396,26 +400,48 @@ namespace Coftea_Capstone.ViewModel
         // ===================== Addons =====================
         private async Task LoadAddonsForSelectedAsync()
         {
-            if (SelectedProduct == null) return;
+            if (SelectedProduct == null) 
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonsForSelectedAsync: SelectedProduct is null");
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonsForSelectedAsync: Loading addons for product ID: {SelectedProduct.ProductID}, Name: {SelectedProduct.ProductName}");
+            
             try
             {
                 var addons = await _database.GetProductAddonsAsync(SelectedProduct.ProductID);
+                System.Diagnostics.Debug.WriteLine($"🔧 Database returned {addons?.Count ?? 0} addons");
+                
                 SelectedProduct.InventoryItems.Clear();
-                foreach (var a in addons)
+                
+                if (addons != null && addons.Any())
                 {
-                    // Default: addons unchecked and hidden until user selects
-                    a.IsSelected = false;
-                    a.AddonQuantity = 0;
-                    // Keep the AddonPrice from database
-                    a.AddonUnit = a.DefaultUnit;
-                    System.Diagnostics.Debug.WriteLine($"🔧 Loaded addon: {a.itemName}, IsSelected: {a.IsSelected}, AddonQuantity: {a.AddonQuantity}, AddonPrice: {a.AddonPrice}");
-                    SelectedProduct.InventoryItems.Add(a);
+                    foreach (var a in addons)
+                    {
+                        // Default: addons unchecked and hidden until user selects
+                        a.IsSelected = false;
+                        a.AddonQuantity = 0;
+                        // Keep the AddonPrice from database
+                        a.AddonUnit = a.DefaultUnit;
+                        System.Diagnostics.Debug.WriteLine($"🔧 Loaded addon: {a.itemName}, IsSelected: {a.IsSelected}, AddonQuantity: {a.AddonQuantity}, AddonPrice: {a.AddonPrice}");
+                        SelectedProduct.InventoryItems.Add(a);
+                    }
+                    System.Diagnostics.Debug.WriteLine($"🔧 Successfully loaded {addons.Count} addons for product: {SelectedProduct.ProductName}");
                 }
-                System.Diagnostics.Debug.WriteLine($"🔧 Loaded {addons.Count} addons for product: {SelectedProduct.ProductName}");
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 No addons found for product: {SelectedProduct.ProductName}");
+                }
+                
+                // Force UI update
+                OnPropertyChanged(nameof(SelectedProduct));
+                OnPropertyChanged(nameof(SelectedProduct.InventoryItems));
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to load addons: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Failed to load addons: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
             }
         }
 

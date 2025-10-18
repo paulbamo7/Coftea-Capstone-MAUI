@@ -676,11 +676,23 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All")
             {
                 var filter = SelectedFilter?.Trim() ?? string.Empty;
+                System.Diagnostics.Debug.WriteLine($"🔍 Applying filter: {filter}");
+                
                 if (string.Equals(filter, "Ingredients", StringComparison.OrdinalIgnoreCase))
                 {
                     // Show only allowed ingredient categories
                     var allowed = new[] { "Syrups", "Powdered", "Fruit Series", "Sinkers", "Sinkers & etc.", "Liquid" };
+                    System.Diagnostics.Debug.WriteLine($"🔍 Allowed ingredient categories: {string.Join(", ", allowed)}");
+                    
+                    var beforeCount = query.Count();
                     query = query.Where(i => allowed.Any(a => string.Equals(i.itemCategory?.Trim(), a, StringComparison.OrdinalIgnoreCase)));
+                    var afterCount = query.Count();
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔍 Ingredients filter: {beforeCount} -> {afterCount} items");
+                    
+                    // Debug: show what categories we actually have
+                    var actualCategories = AllInventoryItems.Select(i => i.itemCategory?.Trim()).Distinct().Where(c => !string.IsNullOrEmpty(c));
+                    System.Diagnostics.Debug.WriteLine($"🔍 Actual categories in database: {string.Join(", ", actualCategories)}");
                 }
                 else if (string.Equals(filter, "Supplies", StringComparison.OrdinalIgnoreCase))
                 {
@@ -716,8 +728,10 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void FilterByCategory(string category)
         {
+            System.Diagnostics.Debug.WriteLine($"🔍 FilterByCategory called with: {category}");
             SelectedFilter = category;
             ApplyFilters();
+            System.Diagnostics.Debug.WriteLine($"🔍 After filtering, InventoryItems count: {InventoryItems.Count}");
         }
 
         partial void OnSearchTextChanged(string value)
