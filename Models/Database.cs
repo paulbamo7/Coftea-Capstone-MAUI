@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.Models;
+using Coftea_Capstone.Models;
 using MySqlConnector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1545,7 +1545,10 @@ namespace Coftea_Capstone.Models
             // Generate 6-digit numeric reset code (store in reset_token)
             var rng = new Random();
             var resetToken = rng.Next(100000, 999999).ToString();
-            var resetExpiry = DateTime.Now.AddHours(1); // Token expires in 1 hour
+            var resetExpiry = DateTime.UtcNow.AddHours(1); // Token expires in 1 hour (using UTC)
+
+            System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Generated token: '{resetToken}' (Length: {resetToken.Length})");
+            System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Token expiry set to: {resetExpiry}");
 
             reader.Close();
 
@@ -1558,6 +1561,21 @@ namespace Coftea_Capstone.Models
             updateCmd.Parameters.AddWithValue("@Email", email);
 
             int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
+            System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Database update affected {rowsAffected} rows");
+            
+            // Verify what was actually stored
+            var verifySql = "SELECT reset_token, reset_expiry FROM users WHERE email = @Email LIMIT 1;";
+            await using var verifyCmd = new MySqlCommand(verifySql, conn);
+            verifyCmd.Parameters.AddWithValue("@Email", email);
+            await using var verifyReader = await verifyCmd.ExecuteReaderAsync();
+            if (await verifyReader.ReadAsync())
+            {
+                var storedToken = verifyReader.IsDBNull(0) ? null : verifyReader.GetString(0);
+                var storedExpiry = verifyReader.IsDBNull(1) ? (DateTime?)null : verifyReader.GetDateTime(1);
+                System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Verified stored token: '{storedToken}' (Length: {storedToken?.Length})");
+                System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Verified stored expiry: {storedExpiry}");
+            }
+            
             return rowsAffected > 0 ? resetToken : null;
         }
     
@@ -1566,8 +1584,33 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            // Verify token and expiry
-            var sql = "SELECT * FROM users WHERE email = @Email AND reset_token = @ResetToken AND reset_expiry > NOW() LIMIT 1;";
+            System.Diagnostics.Debug.WriteLine($"[ResetPassword] Attempting password reset for email: {email}");
+            System.Diagnostics.Debug.WriteLine($"[ResetPassword] Provided reset token: '{resetToken}' (Length: {resetToken?.Length})");
+
+            // First, let's check what token is stored in the database
+            var checkSql = "SELECT reset_token, reset_expiry FROM users WHERE email = @Email LIMIT 1;";
+            await using var checkCmd = new MySqlCommand(checkSql, conn);
+            checkCmd.Parameters.AddWithValue("@Email", email);
+            
+            await using var checkReader = await checkCmd.ExecuteReaderAsync();
+            if (await checkReader.ReadAsync())
+            {
+                var storedToken = checkReader.IsDBNull(0) ? null : checkReader.GetString(0);
+                var storedExpiry = checkReader.IsDBNull(1) ? (DateTime?)null : checkReader.GetDateTime(1);
+                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Stored token in DB: '{storedToken}' (Length: {storedToken?.Length})");
+                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token expiry: {storedExpiry}");
+                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Current time (UTC): {DateTime.UtcNow}");
+                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token expired: {storedExpiry.HasValue && storedExpiry.Value < DateTime.UtcNow}");
+                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Tokens match: {storedToken == resetToken}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[ResetPassword] No user found with email: {email}");
+            }
+            checkReader.Close();
+
+            // Verify token and expiry (using UTC time)
+            var sql = "SELECT * FROM users WHERE email = @Email AND reset_token = @ResetToken AND reset_expiry > UTC_TIMESTAMP() LIMIT 1;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Email", email);
             cmd.Parameters.AddWithValue("@ResetToken", resetToken);
@@ -1575,8 +1618,11 @@ namespace Coftea_Capstone.Models
             await using var reader = await cmd.ExecuteReaderAsync();
             if (!await reader.ReadAsync())
             {
+                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token verification failed - no matching record found");
                 return false; // Invalid or expired token
             }
+
+            System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token verified successfully, proceeding with password reset");
 
             reader.Close();
 

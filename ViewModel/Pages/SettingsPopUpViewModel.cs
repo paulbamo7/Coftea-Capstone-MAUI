@@ -220,10 +220,7 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only admins can access User Management.", "OK");
                 return;
             }
-            if (Application.Current?.MainPage is NavigationPage nav)
-            {
-                await nav.PushAsync(new UserManagement(), false);
-            }
+            await SimpleNavigationService.NavigateToAsync("//usermanagement");
         }
 
         [RelayCommand]

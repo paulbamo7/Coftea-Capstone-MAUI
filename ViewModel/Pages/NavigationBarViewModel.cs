@@ -32,13 +32,13 @@ namespace Coftea_Capstone.ViewModel.Pages
             GoHomeCommand = new Command(async () => 
             {
                 UiOverlayService.CloseGlobalOverlays();
-                await NavigationService.NavigateToAsync<EmployeeDashboard>();
+                await SimpleNavigationService.NavigateToAsync("//dashboard");
             });
             GoPOSCommand = new Command(async () =>
             {
                 if (App.CurrentUser == null) return;
                 UiOverlayService.CloseGlobalOverlays();
-                await NavigationService.NavigateToAsync(() => new PointOfSale());
+                await SimpleNavigationService.NavigateToAsync("//pos");
             });
             GoInventoryCommand = new Command(async () =>
             {
@@ -50,7 +50,7 @@ namespace Coftea_Capstone.ViewModel.Pages
                     await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Inventory.", "OK");
                     return;
                 }
-                await NavigationService.NavigateToAsync(() => new Inventory());
+                await SimpleNavigationService.NavigateToAsync("//inventory");
             });
             GoSalesReportCommand = new Command(async () =>
             {
@@ -62,7 +62,7 @@ namespace Coftea_Capstone.ViewModel.Pages
                     await Application.Current.MainPage.DisplayAlert("Unauthorized", "You don't have permission to access Sales Reports.", "OK");
                     return;
                 }
-                await NavigationService.NavigateToAsync(() => new SalesReport());
+                await SimpleNavigationService.NavigateToAsync("//salesreport");
             });
             ShowSettingsCommand = new Command(() => GlobalSettingsService.ShowSettings());
         }

@@ -124,7 +124,7 @@ namespace Coftea_Capstone.ViewModel
                 }
 
                 // Navigate to dashboard
-                await NavigationService.NavigateToAsync(() => new EmployeeDashboard());
+                await SimpleNavigationService.NavigateToAsync("//dashboard");
 
                 ClearEntries();
             }
@@ -143,7 +143,7 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                await NavigationService.NavigateToAsync(() => new RegisterPage());
+                await SimpleNavigationService.NavigateToAsync("//register");
             }
             catch (Exception ex)
             {
@@ -156,7 +156,7 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                await NavigationService.NavigateToAsync(() => new ForgotPasswordPage());
+                await SimpleNavigationService.NavigateToAsync("//forgotpassword");
             }
             catch (Exception ex)
             {

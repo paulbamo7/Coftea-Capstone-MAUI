@@ -105,12 +105,6 @@
 
             </Grid>
 
-            <!-- Temporary test navigation button -->
-            <Button Text="Go To Test Page (Leak Check)"
-                    BackgroundColor="#D4A574"
-                    TextColor="#2b2b2b"
-                    Clicked="OnGoToTestPage" />
-
             <!-- Recent Actions + Today's Sales Report -->
             <Grid ColumnDefinitions="*,*" RowDefinitions="300" ColumnSpacing="15">
                 <!-- Recent Orders -->

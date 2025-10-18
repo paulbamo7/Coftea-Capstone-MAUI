@@ -5,9 +5,20 @@
     x:Class="Coftea_Capstone.AppShell"
     Shell.NavBarIsVisible="False"
     Shell.TabBarIsVisible="False"
-    xmlns:views="clr-namespace:Coftea_Capstone.Views.Controls"
-    Shell.BackgroundColor="Transparent"
+    xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+    Shell.BackgroundColor="#FFF9F4"
     NavigationPage.HasNavigationBar="False"
     >
+
+    <!-- Define navigation routes -->
+    <ShellContent Route="login" ContentTemplate="{DataTemplate views:LoginPage}" />
+    <ShellContent Route="register" ContentTemplate="{DataTemplate views:RegisterPage}" />
+    <ShellContent Route="forgotpassword" ContentTemplate="{DataTemplate views:ForgotPasswordPage}" />
+    <ShellContent Route="resetpassword" ContentTemplate="{DataTemplate views:ResetPasswordPage}" />
+    <ShellContent Route="dashboard" ContentTemplate="{DataTemplate views:EmployeeDashboard}" />
+    <ShellContent Route="pos" ContentTemplate="{DataTemplate views:PointOfSale}" />
+    <ShellContent Route="inventory" ContentTemplate="{DataTemplate views:Inventory}" />
+    <ShellContent Route="salesreport" ContentTemplate="{DataTemplate views:SalesReport}" />
+    <ShellContent Route="usermanagement" ContentTemplate="{DataTemplate views:UserManagement}" />
 
 </Shell>

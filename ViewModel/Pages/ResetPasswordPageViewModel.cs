@@ -51,6 +51,9 @@ namespace Coftea_Capstone.ViewModel
 			try
 			{
 				IsLoading = true;
+				System.Diagnostics.Debug.WriteLine($"[ResetPasswordVM] Email: {_email}");
+				System.Diagnostics.Debug.WriteLine($"[ResetPasswordVM] Code entered: '{Code}' (Length: {Code?.Length})");
+				System.Diagnostics.Debug.WriteLine($"[ResetPasswordVM] Code trimmed: '{Code.Trim()}' (Length: {Code.Trim()?.Length})");
 				var ok = await _database.ResetPasswordAsync(_email.Trim(), NewPassword, Code.Trim());
 				if (!ok)
 				{

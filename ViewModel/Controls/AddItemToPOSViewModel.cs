@@ -296,8 +296,8 @@ namespace Coftea_Capstone.ViewModel
                 // Force UI update for all selected items to reflect loaded values
                 foreach (var selectedItem in ConnectPOSToInventoryVM.SelectedIngredientsOnly)
                 {
-                    selectedItem.OnPropertyChanged(nameof(selectedItem.InputAmountText));
-                    selectedItem.OnPropertyChanged(nameof(selectedItem.InputUnit));
+                    OnPropertyChanged(nameof(selectedItem.InputAmountText));
+                    OnPropertyChanged(nameof(selectedItem.InputUnit));
                 }
             }
             catch (Exception ex)

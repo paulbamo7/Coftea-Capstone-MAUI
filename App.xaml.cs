@@ -49,6 +49,9 @@ namespace Coftea_Capstone
 
             InitializeViewModels();
 
+            // Set AppShell as main page
+            MainPage = new AppShell();
+
             // Ensure database exists and tables are created, then adjust theme colors to match Login page
             MainThread.BeginInvokeOnMainThread(async () =>
             {
@@ -115,7 +118,7 @@ namespace Coftea_Capstone
                         Preferences.Set("IsLoggedIn", false);
                         Preferences.Set("IsAdmin", false);
                     }
-                    await NavigationService.SetRootAsync(() => new LoginPage());
+                    await SimpleNavigationService.NavigateToAsync("//login");
                 }
             });
 
@@ -128,8 +131,7 @@ namespace Coftea_Capstone
         private void SetRootPage(Page page)
         {
             try { MainPage?.Handler?.DisconnectHandler(); } catch { }
-            var nav = new NavigationPage(page);
-            MainPage = nav;
+            MainPage = new AppShell();
             try { NavigationStateService.SetCurrentPageType(page.GetType()); } catch { }
         }
 
@@ -184,7 +186,7 @@ namespace Coftea_Capstone
         private async void NavigateToDashboard(bool isAdmin)
         {
             // Route all users to EmployeeDashboard; frames are data-bound
-            await NavigationService.SetRootAsync(() => new EmployeeDashboard());
+            await SimpleNavigationService.NavigateToAsync("//dashboard");
         }
 
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -268,8 +270,8 @@ namespace Coftea_Capstone
             DisposeViewModels();
             InitializeViewModels(); // reset all viewmodels
 
-            // Create a new NavigationPage and set it as MainPage
-            await NavigationService.SetRootAsync(() => new LoginPage());
+            // Navigate to login page
+            await SimpleNavigationService.NavigateToAsync("//login");
         }
 
         private void DisposeViewModels()

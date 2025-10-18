@@ -64,6 +64,7 @@ namespace Coftea_Capstone.ViewModel
         // ===================== Lifecycle =====================
         public async Task InitializeAsync()
         {
+            System.Diagnostics.Debug.WriteLine("🔄 InventoryPageViewModel.InitializeAsync called");
             await LoadDataAsync();
         }
 
@@ -79,18 +80,31 @@ namespace Coftea_Capstone.ViewModel
 
                 try
                 {
-                var inventoryList = await _database.GetInventoryItemsAsyncCached();
+                    var inventoryList = await _database.GetInventoryItemsAsyncCached();
+                    System.Diagnostics.Debug.WriteLine($"🔍 Loaded {inventoryList?.Count ?? 0} inventory items from database");
+                    
+                    if (inventoryList != null && inventoryList.Any())
+                    {
+                        foreach (var item in inventoryList.Take(3)) // Log first 3 items for debugging
+                        {
+                            System.Diagnostics.Debug.WriteLine($"📦 Item: {item.itemName} | Category: {item.itemCategory} | Quantity: {item.itemQuantity}");
+                        }
+                    }
+                    
                     allInventoryItems = new ObservableCollection<InventoryPageModel>(inventoryList);
                     ApplyCategoryFilter();
 
                     StatusMessage = InventoryItems.Any()
                         ? "Inventory items loaded successfully."
                         : "No inventory items found.";
+                        
+                    System.Diagnostics.Debug.WriteLine($"📊 After filtering: {InventoryItems.Count} items displayed");
                 }
                 catch (Exception ex)
                 {
                     HasError = true;
                     StatusMessage = $"Failed to load inventory items: {ex.Message}";
+                    System.Diagnostics.Debug.WriteLine($"❌ Error loading inventory: {ex.Message}");
                     GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, $"Failed to load inventory items: {ex.Message}");
                 }
             });
@@ -127,12 +141,16 @@ namespace Coftea_Capstone.ViewModel
         private void ApplyCategoryFilterInternal()
         {
             IEnumerable<InventoryPageModel> query = allInventoryItems;
+            System.Diagnostics.Debug.WriteLine($"🔍 Starting filter with {allInventoryItems.Count} total items");
 
             var category = (SelectedCategory ?? string.Empty).Trim();
+            System.Diagnostics.Debug.WriteLine($"🏷️ Selected category: '{category}'");
+            
             if (string.Equals(category, "Supplies", StringComparison.OrdinalIgnoreCase))
             {
                 // For supplies, show only Others category
                 query = query.Where(i => string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));
+                System.Diagnostics.Debug.WriteLine($"📦 Filtered for Supplies (Others): {query.Count()} items");
             }
             else if (string.Equals(category, "Ingredients", StringComparison.OrdinalIgnoreCase))
             {
@@ -147,6 +165,12 @@ namespace Coftea_Capstone.ViewModel
                     "Liquid"
                 };
                 query = query.Where(i => allowed.Contains((i.itemCategory ?? string.Empty).Trim()));
+                System.Diagnostics.Debug.WriteLine($"🥤 Filtered for Ingredients: {query.Count()} items");
+            }
+            else
+            {
+                // Show all items when no specific category is selected
+                System.Diagnostics.Debug.WriteLine($"📋 Showing all items: {query.Count()} items");
             }
 
             // Apply search by name
@@ -154,12 +178,14 @@ namespace Coftea_Capstone.ViewModel
             if (!string.IsNullOrWhiteSpace(nameQuery))
             {
                 query = query.Where(i => (i.itemName ?? string.Empty).IndexOf(nameQuery, StringComparison.OrdinalIgnoreCase) >= 0);
+                System.Diagnostics.Debug.WriteLine($"🔍 After search '{nameQuery}': {query.Count()} items");
             }
 
             // Apply sorting
             query = ApplySorting(query);
 
             InventoryItems = new ObservableCollection<InventoryPageModel>(query);
+            System.Diagnostics.Debug.WriteLine($"✅ Final result: {InventoryItems.Count} items in InventoryItems collection");
         }
 
         private IEnumerable<InventoryPageModel> ApplySorting(IEnumerable<InventoryPageModel> query)

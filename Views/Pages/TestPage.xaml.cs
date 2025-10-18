@@ -12,7 +12,7 @@ public partial class TestPage : ContentPage
 
     private async void OnBackClicked(object sender, EventArgs e)
     {
-        await NavigationService.GoBackAsync();
+        await SimpleNavigationService.GoBackAsync();
     }
 }
 

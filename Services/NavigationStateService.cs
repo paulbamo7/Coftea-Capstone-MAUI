@@ -27,5 +27,3 @@ namespace Coftea_Capstone.Services
         }
     }
 }
-
-

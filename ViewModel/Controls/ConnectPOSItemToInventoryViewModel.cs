@@ -553,8 +553,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
                 
                 // Explicitly notify UI that the text binding should update
-                item.OnPropertyChanged(nameof(item.InputAmountText));
-                item.OnPropertyChanged(nameof(item.InputUnit));
+                OnPropertyChanged(nameof(item.InputAmountText));
+                OnPropertyChanged(nameof(item.InputUnit));
             }
             
             // Preserve addon selections when switching sizes

@@ -29,8 +29,19 @@ public partial class Inventory : ContentPage
 
         // RetryConnectionPopup is now handled globally through App.xaml.cs
 
-        Appearing += async (_, __) => await vm.InitializeAsync();
-
+        // Initialize data immediately when page is created
+        Appearing += async (_, __) => 
+        {
+            System.Diagnostics.Debug.WriteLine("🔄 Inventory page appearing - reloading data");
+            await vm.InitializeAsync();
+        };
+        
+        // Also try to load data immediately in case Appearing doesn't fire
+        _ = Task.Run(async () => 
+        {
+            await Task.Delay(100); // Small delay to ensure page is fully loaded
+            await vm.InitializeAsync();
+        });
     }
 
     protected override void OnDisappearing()
@@ -39,16 +50,6 @@ public partial class Inventory : ContentPage
 
         // Unsubscribe messaging to avoid retaining the page
         MessagingCenter.Unsubscribe<AddItemToInventoryViewModel>(this, "InventoryChanged");
-
-        // Release heavy UI bindings if any
-        try
-        {
-            if (Content != null)
-            {
-                ReleaseVisualTree(Content);
-            }
-        }
-        catch { }
 
         // Break external references from singletons to page controls
         try
@@ -61,7 +62,8 @@ public partial class Inventory : ContentPage
         }
         catch { }
 
-        // Keep BindingContext to avoid re-creating VM and losing visuals on return
+        // Keep BindingContext and ItemsSource to avoid re-creating VM and losing visuals on return
+        // Don't clear the CollectionView's ItemsSource as it causes data to disappear when returning
 
         // Force native view detachment to help GC on Android
         try { Handler?.DisconnectHandler(); } catch { }

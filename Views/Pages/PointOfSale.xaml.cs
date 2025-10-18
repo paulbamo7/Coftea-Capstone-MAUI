@@ -51,7 +51,7 @@ public partial class PointOfSale : ContentPage
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 await DisplayAlert("POS Error", $"Failed to initialize POS page: {ex.Message}", "OK");
-                await NavigationService.GoBackAsync();
+                await SimpleNavigationService.GoBackAsync();
             });
         }
     }
@@ -155,7 +155,7 @@ public partial class PointOfSale : ContentPage
             if (POSViewModel == null)
             {
                 await DisplayAlert("POS Error", "POSViewModel is not available", "OK");
-                await NavigationService.GoBackAsync();
+                await SimpleNavigationService.GoBackAsync();
                 return;
             }
 
@@ -178,7 +178,7 @@ public partial class PointOfSale : ContentPage
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
                 await DisplayAlert("POS Error", $"Failed to load POS data: {ex.Message}", "OK");
-                await NavigationService.GoBackAsync();
+                await SimpleNavigationService.GoBackAsync();
             });
         }
     }
@@ -368,7 +368,7 @@ public partial class PointOfSale : ContentPage
             if (Navigation?.NavigationStack?.Count > 1)
             {
                 // Use async void to fire and forget
-                _ = NavigationService.GoBackAsync();
+                _ = SimpleNavigationService.GoBackAsync();
                 return true;
             }
         }

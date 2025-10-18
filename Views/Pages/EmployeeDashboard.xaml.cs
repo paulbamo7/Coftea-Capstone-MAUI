@@ -98,18 +98,6 @@ public partial class EmployeeDashboard : ContentPage
         }
     }
 
-    private async void OnGoToTestPage(object sender, EventArgs e)
-    {
-        try
-        {
-            await NavigationService.NavigateToAsync<TestPage>();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error navigating to TestPage: {ex.Message}");
-        }
-    }
-
 	private async Task LoadTodaysMetricsAsync()
 	{
 		try
