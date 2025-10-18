@@ -1005,6 +1005,8 @@ namespace Coftea_Capstone.Models
         // ===================== Sales Report =====================
         public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction)
         {
+            System.Diagnostics.Debug.WriteLine($"💾 SaveTransactionAsync called for: {transaction.DrinkName}, Total: {transaction.Total}");
+            
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
@@ -1012,6 +1014,7 @@ namespace Coftea_Capstone.Models
             {
                 // Get current user ID with proper validation
                 int userId = await GetValidUserIdAsync(conn, tx);
+                System.Diagnostics.Debug.WriteLine($"👤 Using user ID: {userId}");
                 
                 // Insert into transactions table
                 var transactionSql = "INSERT INTO transactions (userID, total, transactionDate, status, paymentMethod) VALUES (@UserID, @Total, @TransactionDate, @Status, @PaymentMethod);";
@@ -1024,6 +1027,7 @@ namespace Coftea_Capstone.Models
 
                 await transactionCmd.ExecuteNonQueryAsync();
                 int transactionId = (int)transactionCmd.LastInsertedId;
+                System.Diagnostics.Debug.WriteLine($"✅ Transaction saved with ID: {transactionId}");
 
                 // Find product ID by name (safer than using hardcoded ID)
                 int productId = await GetProductIdByNameAsync(transaction.DrinkName, conn, (MySqlTransaction)tx);

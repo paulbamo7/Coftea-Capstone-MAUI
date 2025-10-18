@@ -114,13 +114,16 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             System.Diagnostics.Debug.WriteLine($"FilterByTimePeriod called with: {timePeriod}");
             
-            // Update the selected filter, then load precisely that range
+            // Update the selected filter first to trigger UI updates
             SelectedFilter = timePeriod?.Trim();
+            
+            // Force property change notification
+            OnPropertyChanged(nameof(SelectedFilter));
 
             await LoadAllTransactionsAsync();
             ApplyTransactionFilter();
             
-            System.Diagnostics.Debug.WriteLine($"SelectedFilter is now: {SelectedFilter}");
+            System.Diagnostics.Debug.WriteLine($"SelectedFilter is now: {SelectedFilter}, Filtered transactions: {FilteredTransactions.Count}");
         }
 
         private void ApplyFilter()
@@ -172,6 +175,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"LoadAllTransactionsAsync called with SelectedFilter: {SelectedFilter}");
+                
                 // Load transactions based on selected filter
                 DateTime startDate;
                 DateTime endDate = DateTime.Today.AddDays(1);
@@ -206,6 +211,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                         break;
                 }
                 
+                System.Diagnostics.Debug.WriteLine($"Loading transactions from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+                
                 var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
                 
                 AllTransactions.Clear();
@@ -225,9 +232,12 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         private void ApplyTransactionFilter()
         {
+            System.Diagnostics.Debug.WriteLine($"ApplyTransactionFilter called with SelectedFilter: {SelectedFilter}");
+            
             if (AllTransactions == null || !AllTransactions.Any())
             {
                 FilteredTransactions.Clear();
+                System.Diagnostics.Debug.WriteLine("No transactions to filter");
                 return;
             }
 
@@ -238,6 +248,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 var now = DateTime.Now;
                 var filter = SelectedFilter?.Trim() ?? string.Empty;
+                
+                System.Diagnostics.Debug.WriteLine($"Applying filter: {filter}");
                 
                 switch (filter)
                 {
@@ -271,6 +283,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 FilteredTransactions.Add(transaction);
             }
+            
+            System.Diagnostics.Debug.WriteLine($"Filtered transactions count: {FilteredTransactions.Count}");
         }
 
         public void Dispose()
