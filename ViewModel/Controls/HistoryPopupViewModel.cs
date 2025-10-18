@@ -27,22 +27,13 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private string selectedFilter = "Today";
 
-
-        public ObservableCollection<string> FilterOptions { get; } = new()
-        {
-            "All",
-            "Ingredients",
-            "Addons", 
-            "Supplies"
-        };
-
         public HistoryPopupViewModel()
         {
             // Set default filter to Today
             SelectedFilter = "Today";
         }
 
-        public void ShowSelectedItems(ObservableCollection<InventoryPageModel> items)
+        public void ShowSelectedItems(ObservableCollection<InventoryPageModel> items) // Show inventory items popup
         {
             System.Diagnostics.Debug.WriteLine($"HistoryPopup.ShowSelectedItems called with {items?.Count ?? 0} items");
             SelectedInventoryItems = items ?? new ObservableCollection<InventoryPageModel>();
@@ -51,7 +42,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             System.Diagnostics.Debug.WriteLine($"IsHistoryVisible set to: {IsHistoryVisible}");
         }
 
-        public async Task ShowHistory(ObservableCollection<TransactionHistoryModel> transactions = null)
+        public async Task ShowHistory(ObservableCollection<TransactionHistoryModel> transactions = null) // Show transaction history popup
         {
             System.Diagnostics.Debug.WriteLine($"HistoryPopup.ShowHistory called");
             
@@ -97,20 +88,20 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void CloseHistory()
+        private void CloseHistory() // Close the history popup
         {
             IsHistoryVisible = false;
         }
 
         [RelayCommand]
-        private void FilterByCategory(string filter)
+        private void FilterByCategory(string filter) // Filter inventory items by category
         {
             SelectedFilter = filter;
             ApplyFilter();
         }
 
         [RelayCommand]
-        private async Task FilterByTimePeriod(string timePeriod)
+        private async Task FilterByTimePeriod(string timePeriod) // Filter transactions by time period
         {
             System.Diagnostics.Debug.WriteLine($"FilterByTimePeriod called with: {timePeriod}");
             
@@ -129,7 +120,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             System.Diagnostics.Debug.WriteLine($"SelectedFilter is now: {SelectedFilter}, Filtered transactions: {FilteredTransactions.Count}");
         }
 
-        private void ApplyFilter()
+        private void ApplyFilter() // Apply category filter to selected inventory items
         {
             if (SelectedInventoryItems == null || !SelectedInventoryItems.Any())
             {
@@ -169,12 +160,12 @@ namespace Coftea_Capstone.ViewModel.Controls
 
 
         [RelayCommand]
-        private void RefreshHistory()
-        {
+        private void RefreshHistory() // Refresh the transaction history based on the selected filter
+        { 
             ApplyTransactionFilter();
         }
 
-        private async Task LoadAllTransactionsAsync()
+        private async Task LoadAllTransactionsAsync() // Load all transactions from the database based on the selected filter
         {
             try
             {
@@ -213,27 +204,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                         startDate = DateTime.Today.AddDays(-30); // Default to 30 days
                         break;
                 }
-                
-                System.Diagnostics.Debug.WriteLine($"Loading transactions from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
-                
+
                 var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
                 
                 AllTransactions.Clear();
                 foreach (var transaction in transactions)
                 {
                     AllTransactions.Add(transaction);
-                }
-                
-                System.Diagnostics.Debug.WriteLine($"Loaded {AllTransactions.Count} transactions from database for period: {SelectedFilter}");
+                }              
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading transactions from database: {ex.Message}");
-                AllTransactions.Clear();
+                AllTransactions.Clear(); // Clear on error
             }
         }
 
-        private void ApplyTransactionFilter()
+        private void ApplyTransactionFilter() // Apply the selected time period filter to the transactions
         {
             System.Diagnostics.Debug.WriteLine($"ApplyTransactionFilter called with SelectedFilter: {SelectedFilter}");
             
@@ -280,7 +266,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
             }
 
-            // Update the filtered transactions collection
             FilteredTransactions.Clear();
             foreach (var transaction in filteredItems)
             {
@@ -290,7 +275,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             System.Diagnostics.Debug.WriteLine($"Filtered transactions count: {FilteredTransactions.Count}");
         }
 
-        public void Dispose()
+        public void Dispose() // Cleanup
         {
             try
             {

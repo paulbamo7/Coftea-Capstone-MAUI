@@ -34,26 +34,6 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string searchText = string.Empty;
 
-        // Demo controls for showing inventory progress behavior
-        [ObservableProperty]
-        private double demoQuantity = 50;
-
-        [ObservableProperty]
-        private double demoMinimum = 100;
-
-        public double DemoProgress
-        {
-            get
-            {
-                if (DemoMinimum <= 0) return 1.0;
-                var ratio = DemoQuantity / DemoMinimum;
-                if (ratio < 0) return 0;
-                if (ratio > 1) return 1;
-                return ratio;
-            }
-        }
-
-        public string DemoStockFillColor => DemoQuantity < DemoMinimum ? "#C62828" : "#2E7D32";
 
         public InventoryPageViewModel(SettingsPopUpViewModel settingsPopup)
         {
@@ -62,15 +42,14 @@ namespace Coftea_Capstone.ViewModel
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
-        // ===================== Lifecycle =====================
-        public async Task InitializeAsync()
+
+        public async Task InitializeAsync() // Call this when the page appears
         {
             System.Diagnostics.Debug.WriteLine("🔄 InventoryPageViewModel.InitializeAsync called");
             await LoadDataAsync();
         }
 
-        // ===================== Data Loading =====================
-        public async Task LoadDataAsync()
+        public async Task LoadDataAsync() // Load inventory data with loading indicator
         {
             // Only show loading if data hasn't been loaded before
             if (!_hasLoadedData)
@@ -87,7 +66,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task LoadDataInternal()
+        private async Task LoadDataInternal() // Actual data loading logic
         {
             StatusMessage = "Loading inventory items...";
 
@@ -128,28 +107,12 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        /// <summary>
-        /// Force reload data with loading indicator (useful for refresh operations)
-        /// </summary>
-        public async Task ForceReloadDataAsync()
+        public async Task ForceReloadDataAsync() // Force reload data from database 
         {
             _hasLoadedData = false; // Reset the flag to show loading
             await LoadDataAsync();
         }
 
-        partial void OnDemoQuantityChanged(double value)
-        {
-            OnPropertyChanged(nameof(DemoProgress));
-            OnPropertyChanged(nameof(DemoStockFillColor));
-        }
-
-        partial void OnDemoMinimumChanged(double value)
-        {
-            OnPropertyChanged(nameof(DemoProgress));
-            OnPropertyChanged(nameof(DemoStockFillColor));
-        }
-
-        // ===================== Filtering =====================
         // Selected category from UI buttons: "Ingredients" or "Supplies"
         [ObservableProperty]
         private string selectedCategory = "";
@@ -159,13 +122,13 @@ namespace Coftea_Capstone.ViewModel
         private int selectedSortIndex = 0;
 
         [RelayCommand]
-        private void FilterByCategory(string category)
+        private void FilterByCategory(string category) // Filter inventory by category
         {
             SelectedCategory = category ?? string.Empty;
             ApplyCategoryFilterInternal();
         }
 
-        private void ApplyCategoryFilterInternal()
+        private void ApplyCategoryFilterInternal() // Internal method to apply category filter, search, and sorting
         {
             IEnumerable<InventoryPageModel> query = allInventoryItems;
             System.Diagnostics.Debug.WriteLine($"🔍 Starting filter with {allInventoryItems.Count} total items");
@@ -215,7 +178,7 @@ namespace Coftea_Capstone.ViewModel
             System.Diagnostics.Debug.WriteLine($"✅ Final result: {InventoryItems.Count} items in InventoryItems collection");
         }
 
-        private IEnumerable<InventoryPageModel> ApplySorting(IEnumerable<InventoryPageModel> query)
+        private IEnumerable<InventoryPageModel> ApplySorting(IEnumerable<InventoryPageModel> query) // Apply sorting based on selected index
         {
             return SelectedSortIndex switch
             {
@@ -227,17 +190,17 @@ namespace Coftea_Capstone.ViewModel
             };
         }
 
-        partial void OnSearchTextChanged(string value)
+        partial void OnSearchTextChanged(string value) // Apply search filter
         {
             ApplyCategoryFilterInternal();
         }
 
-        partial void OnSelectedSortIndexChanged(int value)
+        partial void OnSelectedSortIndexChanged(int value) // Apply sorting
         {
             ApplyCategoryFilterInternal();
         }
 
-        public void ApplyCategoryFilter()
+        public void ApplyCategoryFilter() // Public method to apply category filter
         {
             ApplyCategoryFilterInternal();
         }

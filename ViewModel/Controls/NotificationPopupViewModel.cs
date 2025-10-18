@@ -25,7 +25,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             _ = LoadStoredNotificationsAsync();
         }
 
-        public void ShowNotification(string message, string type = "Success", bool autoHide = true, int delay = 3000)
+        public void ShowNotification(string message, string type = "Success", bool autoHide = true, int delay = 2200) // 2.2 seconds
         {
             if (string.IsNullOrWhiteSpace(message))
                 return;
@@ -37,7 +37,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             NotificationCount++;
         }
 
-        public async Task AddSuccess(string title, string entityName, string idText)
+        public async Task AddSuccess(string title, string entityName, string idText) // Success popup
         {
             var notification = new NotificationItem
             {
@@ -61,7 +61,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void Toggle()
+        private void Toggle() // Toggle notification popup visibility
         {
             IsNotificationVisible = !IsNotificationVisible;
             if (IsNotificationVisible)
@@ -71,26 +71,18 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        // Convenience for short-lived toast on bottom-left
-        public void ShowToast(string message, int milliseconds = 1500)
-        {
-            ShowNotification(message, "Success", true, milliseconds);
-        }
-
         [RelayCommand]
-        private void CloseNotification()
+        private void CloseNotification() // Close notification popup
         {
             IsNotificationVisible = false;
         }
 
         [RelayCommand]
-        private void HideNotification()
+        private void HideNotification() // Hide notification popup
         {
             IsNotificationVisible = false;
         }
-
-        // Storage methods
-        private async Task LoadStoredNotificationsAsync()
+        private async Task LoadStoredNotificationsAsync() // Load notifications from storage
         {
             try
             {
@@ -114,7 +106,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task SaveNotificationsAsync()
+        private async Task SaveNotificationsAsync() // Save notifications to storage
         {
             try
             {
@@ -127,7 +119,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task ClearAllNotifications()
+        private async Task ClearAllNotifications() // Clear all notifications
         {
             try
             {
@@ -142,7 +134,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         // Method to add any type of notification with storage
-        public async Task AddNotification(string title, string message, string idText = "", string type = "Info")
+        public async Task AddNotification(string title, string message, string idText = "", string type = "Info") // type: Info, Warning, Error
         {
             var notification = new NotificationItem
             {
@@ -163,38 +155,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             // Save to storage
             await SaveNotificationsAsync();
-        }
-
-        // Convenience methods for different notification types
-        public async Task AddError(string title, string message, string idText = "")
-        {
-            await AddNotification(title, message, idText, "Error");
-        }
-
-        public async Task AddWarning(string title, string message, string idText = "")
-        {
-            await AddNotification(title, message, idText, "Warning");
-        }
-
-        public async Task AddInfo(string title, string message, string idText = "")
-        {
-            await AddNotification(title, message, idText, "Info");
-        }
-
-        // Method to mark notification as read
-        public async Task MarkAsRead(NotificationItem notification)
-        {
-            if (notification != null)
-            {
-                notification.IsRead = true;
-                await SaveNotificationsAsync();
-            }
-        }
-
-        // Method to get unread notification count
-        public int GetUnreadCount()
-        {
-            return Notifications.Count(n => !n.IsRead);
         }
     }
 }

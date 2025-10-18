@@ -37,23 +37,22 @@ namespace Coftea_Capstone.ViewModel
 
         public bool IsNotLoading => !IsLoading;
 
-        // ===================== Initialization =====================
         public ForgotPasswordPageViewModel()
         {
             _database = new Database();
             _emailService = new EmailService();
         }
 
-        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup() // Access the RetryConnectionPopupViewModel from the App class
         {
             return ((App)Application.Current).RetryConnectionPopup;
         }
 
-        // ===================== Commands =====================
+        // Commands
         [RelayCommand]
-        private async Task SendResetLink()
+        private async Task SendResetLink() // Send password reset link to the provided email
         {
-            if (string.IsNullOrWhiteSpace(Email))
+            if (string.IsNullOrWhiteSpace(Email)) // Basic empty check
             {
                 ShowError("Please enter your email address");
                 return;
@@ -93,6 +92,8 @@ namespace Coftea_Capstone.ViewModel
                     
                     if (emailSent)
                     {
+                        // Store the email for the reset password page
+                        App.ResetPasswordEmail = Email.Trim();
                         // Navigate to the new reset password page to let the user enter the code and new password
                         await SimpleNavigationService.NavigateToAsync("//resetpassword");
                     }
@@ -121,27 +122,20 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task GoBack()
+        private async Task GoBack() // Navigate back to the previous page
         {
             await Application.Current.MainPage.Navigation.PopAsync();
         }
 
-        // ===================== Helpers =====================
-        private void ShowError(string message)
+        private void ShowError(string message) // Display an error message
         {
             ErrorMessage = message;
             HasError = true;
             HasSuccess = false;
         }
 
-        private void ShowSuccess(string message)
-        {
-            SuccessMessage = message;
-            HasSuccess = true;
-            HasError = false;
-        }
 
-        private void ClearMessages()
+        private void ClearMessages() // Clear error and success messages
         {
             ErrorMessage = string.Empty;
             SuccessMessage = string.Empty;
@@ -149,7 +143,7 @@ namespace Coftea_Capstone.ViewModel
             HasSuccess = false;
         }
 
-        private bool IsValidEmail(string email)
+        private bool IsValidEmail(string email) // Basic email format validation
         {
             try
             {

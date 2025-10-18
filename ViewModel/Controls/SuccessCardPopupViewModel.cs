@@ -10,7 +10,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private string message = string.Empty;
         [ObservableProperty] private string subtext = string.Empty;
 
-        public void Show(string title, string message, string subtext, int milliseconds = 1500)
+        public void Show(string title, string message, string subtext, int milliseconds = 1500) // Show success card popup
         {
             Title = title;
             Message = message;

@@ -14,6 +14,9 @@ public partial class EmployeeDashboard : ContentPage
 	{
 		InitializeComponent();
 		
+		// Update navigation state for indicator
+		Appearing += (_, __) => NavigationStateService.SetCurrentPageType(typeof(EmployeeDashboard));
+		
 	// Use shared SettingsPopup from App directly
 		BindingContext = ((App)Application.Current).SettingsPopup;
 		

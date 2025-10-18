@@ -20,10 +20,10 @@ namespace Coftea_Capstone.ViewModel.Controls
         private ObservableCollection<CartItem> cartItems = new();
 
         [ObservableProperty]
-        private string customerName = "Sanchez"; // Default customer name
+        private decimal totalAmount;
 
         [ObservableProperty]
-        private decimal totalAmount;
+        private string customerName = string.Empty;
 
         private ObservableCollection<POSPageModel> _originalItems;
 
@@ -43,7 +43,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        public void ShowCart(ObservableCollection<POSPageModel> items)
+        public void ShowCart(ObservableCollection<POSPageModel> items) // Load and display cart items
         {
             try
             {
@@ -104,7 +104,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                         
                         System.Diagnostics.Debug.WriteLine($"Product: {it.ProductName}, Addon Total: {addonTotalPrice}");
                         
-                        var cartItem = new CartItem
+                        var cartItem = new CartItem // Create CartItem from POSPageModel
                         {
                             ProductId = it.ProductID,
                             ProductName = it.ProductName ?? "Unknown Product",
@@ -137,29 +137,21 @@ namespace Coftea_Capstone.ViewModel.Controls
                                     IsSelected = addon.IsSelected
                                 });
                             }
-                        }
-                        
-                        System.Diagnostics.Debug.WriteLine($"🛒 CartItem created: {cartItem.ProductName}");
-                        System.Diagnostics.Debug.WriteLine($"🛒 AddOns collection count: {cartItem.AddOns?.Count ?? 0}");
-                        System.Diagnostics.Debug.WriteLine($"🛒 AddOnsDisplay: '{cartItem.AddOnsDisplay}'");
-                        
+                        }                                              
                         CartItems.Add(cartItem);
                     }
                 }
-                
-                System.Diagnostics.Debug.WriteLine($"🛒 Final CartItems count: {CartItems.Count}");
                 CalculateTotal();
                 IsCartVisible = true;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error showing cart: {ex.Message}");
                 // Ensure cart is not visible if there's an error
                 IsCartVisible = false;
             }
         }
 
-        private void CalculateTotal()
+        private void CalculateTotal() // Recalculate total amount
         {
             try
             {
@@ -172,7 +164,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private string GetCombinedSizeDisplay(POSPageModel item)
+        private string GetCombinedSizeDisplay(POSPageModel item) // Get combined size display string
         {
             try
             {
@@ -199,7 +191,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void EditCartItem(CartItem item)
+        private void EditCartItem(CartItem item) // Reopen item in POS for editing
         {
             if (item == null) return;
             
@@ -218,7 +210,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private void SetSelectedProductInCurrentPOS(POSPageModel product)
+        private void SetSelectedProductInCurrentPOS(POSPageModel product) // Set selected product in current POS page
         {
             try
             {
@@ -250,7 +242,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void DeleteCartItem(CartItem item)
+        private void DeleteCartItem(CartItem item) // Remove item from cart
         {
             if (item == null) return;
             
@@ -286,7 +278,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         // Quantity controls for cart
         [RelayCommand]
-        private void IncreaseCartQty(CartItem item)
+        private void IncreaseCartQty(CartItem item) // Increase item quantity
         {
             if (item == null) return;
             // Prefer bumping the currently selected size if any, else small
@@ -304,7 +296,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void DecreaseCartQty(CartItem item)
+        private void DecreaseCartQty(CartItem item) // Decrease item quantity
         {
             if (item == null) return;
             var total = item.SmallQuantity + item.MediumQuantity + item.LargeQuantity;
@@ -321,33 +313,27 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task Checkout()
+        private async Task Checkout() // Proceed to checkout
         {
             try
-            {
-                System.Diagnostics.Debug.WriteLine($"🛒 Checkout called with {CartItems?.Count ?? 0} items, total: {TotalAmount}");
-                
+            {       
                 if (CartItems == null || !CartItems.Any())
                 {
-                    System.Diagnostics.Debug.WriteLine("🛒 No items in cart, cannot checkout");
                     return;
                 }
 
                 // Navigate to payment screen
                 IsCartVisible = false;
-                System.Diagnostics.Debug.WriteLine("🛒 Cart closed, showing payment popup");
+
                 
                 // Show payment popup using the shared instance from App
                 var app = (App)Application.Current;
                 if (app?.PaymentPopup != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"🛒 Calling ShowPayment with total: {TotalAmount}, items: {CartItems.Count}");
                     app.PaymentPopup.ShowPayment(TotalAmount, CartItems.ToList());
-                    System.Diagnostics.Debug.WriteLine("🛒 ShowPayment completed");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("❌ PaymentPopup is null!");
                     // Try to show error notification
                     if (app?.NotificationPopup != null)
                     {

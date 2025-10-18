@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
@@ -42,6 +42,11 @@
 		<EnableSourceControlManager>false</EnableSourceControlManager>
 		<Deterministic>false</Deterministic>
 		<UseGitVersioning>false</UseGitVersioning>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<EnableGitInfo>false</EnableGitInfo>
+		<GitInfoReportImportance>low</GitInfoReportImportance>
+		<GitInfoSkipCache>true</GitInfoSkipCache>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -95,7 +95,7 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool showConversionInfo = false;
 
-        public ObservableCollection<string> UoMOptions { get; set; } = new ObservableCollection<string>
+        public ObservableCollection<string> UoMOptions { get; set; } = new ObservableCollection<string> // All possible UoM options
         {
             "Pieces (pcs)",
             "Kilograms (kg)",
@@ -104,7 +104,7 @@ namespace Coftea_Capstone.ViewModel
             "Milliliters (ml)"
         };
 
-        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>
+        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string> // Predefined categories
         {
             "Syrups",
             "Powdered",
@@ -119,7 +119,7 @@ namespace Coftea_Capstone.ViewModel
             _database = new Database(); // Will use auto-detected host
         }
 
-        partial void OnItemCategoryChanged(string value)
+        partial void OnItemCategoryChanged(string value) // Triggered when item category changes
         {
             // Toggle UI sections based on selected category
             // Pieces-only: only quantity field is shown
@@ -150,32 +150,32 @@ namespace Coftea_Capstone.ViewModel
             UpdateConversionDisplays();
         }
 
-        partial void OnUoMQuantityChanged(double value)
+        partial void OnUoMQuantityChanged(double value) // Triggered when UoM quantity changes
         {
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedUoMChanged(string value)
+        partial void OnSelectedUoMChanged(string value) // Triggered when selected UoM changes
         {
             UpdateConversionDisplays();
         }
 
-        partial void OnMinimumUoMQuantityChanged(double value)
+        partial void OnMinimumUoMQuantityChanged(double value) // Triggered when minimum UoM quantity changes
         {
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedMinimumUoMChanged(string value)
+        partial void OnSelectedMinimumUoMChanged(string value) // Triggered when selected minimum UoM changes
         {
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedMaximumUoMChanged(string value)
+        partial void OnSelectedMaximumUoMChanged(string value) // Triggered when selected maximum UoM changes
         {
             UpdateConversionDisplays();
         }
 
-        private void UpdateUoMOptionsForCategory(string category)
+        private void UpdateUoMOptionsForCategory(string category) // Update allowed UoM options based on category
         {
             var cat = category?.Trim() ?? string.Empty;
             // Define allowed sets
@@ -217,21 +217,21 @@ namespace Coftea_Capstone.ViewModel
             }
 
             // Coerce selections to valid values
-            if (!UoMOptions.Contains(SelectedUoM))
+            if (!UoMOptions.Contains(SelectedUoM)) // Coerce to first valid option if current selection is invalid
             {
                 SelectedUoM = UoMOptions.FirstOrDefault();
             }
-            if (!UoMOptions.Contains(SelectedMinimumUoM))
+            if (!UoMOptions.Contains(SelectedMinimumUoM)) // Coerce to first valid option if current selection is invalid
             {
                 SelectedMinimumUoM = UoMOptions.FirstOrDefault();
             }
-            if (!UoMOptions.Contains(SelectedMaximumUoM))
+            if (!UoMOptions.Contains(SelectedMaximumUoM)) // Coerce to first valid option if current selection is invalid
             {
                 SelectedMaximumUoM = UoMOptions.FirstOrDefault();
             }
         }
 
-        private void UpdateConversionDisplays()
+        private void UpdateConversionDisplays() // Update conversion display strings
         {
             // Update quantity conversion display
             if (UoMQuantity > 0 && !string.IsNullOrWhiteSpace(SelectedUoM))
@@ -257,7 +257,7 @@ namespace Coftea_Capstone.ViewModel
             }
 
             // Update minimum quantity conversion display
-            if (MinimumUoMQuantity > 0 && !string.IsNullOrWhiteSpace(SelectedMinimumUoM))
+            if (MinimumUoMQuantity > 0 && !string.IsNullOrWhiteSpace(SelectedMinimumUoM)) // Triggered when selected minimum UoM changes
             {
                 var (convertedValue, convertedUnit) = UnitConversionService.ConvertToBestUnit(MinimumUoMQuantity, SelectedMinimumUoM);
                 var originalUnit = UnitConversionService.Normalize(SelectedMinimumUoM);
@@ -297,20 +297,20 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        public void BeginEdit(int itemId)
+        public void BeginEdit(int itemId) // Start editing an existing item
         {
             _editingItemId = itemId;
         }
 
         [RelayCommand]
-        private void CloseAddItemToInventory()
+        private void CloseAddItemToInventory() // Close the add item overlay
         {
             IsAddItemToInventoryVisible = false;
             ResetForm();
         }
 
         [RelayCommand]
-        private void CloseUpdateInventoryDetails()
+        private void CloseUpdateInventoryDetails() // Close the update item overlay
         {
             IsUpdateInventoryDetailsVisible = false;
             ResetForm();
@@ -318,7 +318,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        public async Task AddItem()
+        public async Task AddItem() // Add or update inventory item
         {
             if (string.IsNullOrWhiteSpace(ItemName))
             {
@@ -480,7 +480,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        public async Task PickImageAsync()
+        public async Task PickImageAsync() // Pick an image from device storage
         {
             try
             {
@@ -503,13 +503,13 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void ClearImage()
+        private void ClearImage() // Clear the selected image
         {
             ImagePath = string.Empty;
             SelectedImageSource = null;
         }
 
-        private void ResetForm()
+        private void ResetForm() // Reset all form fields to default
         {
             ItemName = string.Empty;
             ItemCategory = string.Empty;

@@ -16,12 +16,10 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class SettingsPopUpViewModel : ObservableObject
     {
-        // ===================== Dependencies & Services =====================
         private readonly AddItemToPOSViewModel _addItemToPOSViewModel;
         private readonly ManagePOSOptionsViewModel _managePOSOptionsViewModel;
         private readonly ManageInventoryOptionsViewModel _manageInventoryOptionsViewModel;
 
-        // ===================== State =====================
         [ObservableProperty] private bool isSettingsPopupVisible = false;
         [ObservableProperty] private bool isAddItemToPOSVisible = false;
         [ObservableProperty] private bool isAddItemToInventoryVisible = false;
@@ -63,13 +61,9 @@ namespace Coftea_Capstone.ViewModel
             set => SetProperty(ref _inventoryAlerts, value);
         }
 
-        // Database IP setting - COMMENTED OUT
-        // [ObservableProperty] private string databaseIP = string.Empty;
-
         public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
 
-        // ===================== Initialization =====================
         public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel, ManagePOSOptionsViewModel managePOSOptionsViewModel, ManageInventoryOptionsViewModel manageInventoryOptionsViewModel)
         {
             _addItemToPOSViewModel = addItemToPOSViewModel;
@@ -104,8 +98,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Data Loading =====================
-        public async Task LoadTodaysMetricsAsync()
+        public async Task LoadTodaysMetricsAsync() // Load today's metrics for dashboard
         {
             try
             {
@@ -156,19 +149,18 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Commands =====================
+
         [RelayCommand]
-        public void ShowSettingsPopup() 
+        public void ShowSettingsPopup() // Show settings popup
         {
-            // LoadCurrentDatabaseIP(); // COMMENTED OUT
             IsSettingsPopupVisible = true;
         }
 
         [RelayCommand]
-        private void CloseSettingsPopup() => IsSettingsPopupVisible = false;
+        private void CloseSettingsPopup() => IsSettingsPopupVisible = false; // Close settings popup
 
         [RelayCommand]
-        private void OpenAddItemToPOS()
+        private void OpenAddItemToPOS() // Open the Add Item to POS panel
         {
             IsSettingsPopupVisible = false;
             _addItemToPOSViewModel.IsAddItemToPOSVisible = true;
@@ -190,13 +182,13 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void OpenAddItemToInventory()
+        private void OpenAddItemToInventory() // Open the Add Item to Inventory panel
         {
             IsSettingsPopupVisible = false;
             IsAddItemToInventoryVisible = true;
         }
 
-        [RelayCommand]
+        [RelayCommand] // Open the Manage POS Options panel
         private void OpenManagePOSOptions()
         {
             System.Diagnostics.Debug.WriteLine("OpenManagePOSOptions called");
@@ -239,86 +231,8 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // COMMENTED OUT - Database IP functionality
-        /*
         [RelayCommand]
-        private void SaveDatabaseIP()
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(DatabaseIP))
-                {
-                    Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid IP address", "OK");
-                    return;
-                }
-
-                // Validate IP format (basic validation)
-                if (!IsValidIPAddress(DatabaseIP))
-                {
-                    Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid IP address format (e.g., 192.168.1.100)", "OK");
-                    return;
-                }
-
-                // Set the database host
-                NetworkConfigurationService.SetManualDatabaseHost(DatabaseIP.Trim());
-                
-                System.Diagnostics.Debug.WriteLine($"🔧 Database IP set to: {DatabaseIP}");
-                Application.Current.MainPage.DisplayAlert("Success", $"Database IP set to {DatabaseIP}\n\nYou may need to restart the app for changes to take effect.", "OK");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Error setting database IP: {ex.Message}");
-                Application.Current.MainPage.DisplayAlert("Error", $"Failed to set database IP: {ex.Message}", "OK");
-            }
-        }
-        */
-
-        // COMMENTED OUT - Database IP functionality
-        /*
-        private void LoadCurrentDatabaseIP()
-        {
-            try
-            {
-                var currentSettings = NetworkConfigurationService.GetCurrentSettings();
-                if (currentSettings.ContainsKey("Database Host"))
-                {
-                    DatabaseIP = currentSettings["Database Host"];
-                }
-                else
-                {
-                    DatabaseIP = string.Empty;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Error loading current database IP: {ex.Message}");
-                DatabaseIP = string.Empty;
-            }
-        }
-        */
-
-        // COMMENTED OUT - Database IP functionality
-        /*
-        private bool IsValidIPAddress(string ip)
-        {
-            if (string.IsNullOrWhiteSpace(ip)) return false;
-            
-            var parts = ip.Split('.');
-            if (parts.Length != 4) return false;
-            
-            foreach (var part in parts)
-            {
-                if (!int.TryParse(part, out int num) || num < 0 || num > 255)
-                    return false;
-            }
-            
-            return true;
-        }
-        */
-
-        // ===================== Backup =====================
-        [RelayCommand]
-        private async Task CreateBackup()
+        private async Task CreateBackup() // Create a JSON backup of the database
         {
             try
             {
@@ -352,63 +266,7 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Backup Failed", ex.Message, "OK");
             }
         }
-
-        // COMMENTED OUT - Database backup functionality
-        /*
-        [RelayCommand]
-        private async Task RestoreBackup()
-        {
-            try
-            {
-                // Get all backup files
-                var backupFiles = Directory.GetFiles(FileSystem.AppDataDirectory, "database_backup_*.json")
-                    .OrderByDescending(f => File.GetCreationTime(f))
-                    .ToList();
-                
-                if (backupFiles.Count == 0)
-                {
-                    await Application.Current.MainPage.DisplayAlert("No Backups", "No backup files found. Please create a backup first.", "OK");
-                    return;
-                }
-                
-                // Show backup selection
-                var fileNames = backupFiles.Select(f => Path.GetFileName(f)).ToArray();
-                var selectedFile = await Application.Current.MainPage.DisplayActionSheet("Select Backup to Restore", "Cancel", null, fileNames);
-                
-                if (selectedFile == "Cancel" || string.IsNullOrEmpty(selectedFile))
-                    return;
-                
-                var selectedFilePath = backupFiles.First(f => Path.GetFileName(f) == selectedFile);
-                
-                // Confirm restore
-                var confirm = await Application.Current.MainPage.DisplayAlert("Confirm Restore", 
-                    $"Are you sure you want to restore from {selectedFile}?\n\nThis will overwrite all current data!", "Yes", "No");
-                
-                if (!confirm) return;
-                
-                // Read backup file
-                var json = await File.ReadAllTextAsync(selectedFilePath);
-                var backupData = System.Text.Json.JsonSerializer.Deserialize<dynamic>(json);
-                
-                // Show loading message
-                await Application.Current.MainPage.DisplayAlert("Restoring Backup", "Please wait while we restore your database...", "OK");
-                
-                // Note: Full restore would require implementing restore methods in Database.cs
-                // For now, just show success message
-                System.Diagnostics.Debug.WriteLine($"🔄 Restore initiated from: {selectedFilePath}");
-                await Application.Current.MainPage.DisplayAlert("Restore Initiated", 
-                    $"Backup restore initiated from {selectedFile}.\n\nNote: Full restore functionality needs to be implemented in the Database class.", "OK");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Error restoring backup: {ex.Message}");
-                await Application.Current.MainPage.DisplayAlert("Restore Failed", $"Failed to restore backup: {ex.Message}", "OK");
-            }
-        }
-        */
-
-        // ===================== Helpers =====================
-        private async Task LoadTopSellingProductsAsync()
+        private async Task LoadTopSellingProductsAsync() // Load top selling products for dashboard
         {
             try
             {
@@ -452,7 +310,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task LoadRecentOrdersAsync(List<TransactionHistoryModel> transactions)
+        private async Task LoadRecentOrdersAsync(List<TransactionHistoryModel> transactions) // Load recent orders for dashboard
         {
             try
             {
@@ -496,7 +354,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task LoadMostBoughtAndTrendingAsync(List<TransactionHistoryModel> transactions)
+        private async Task LoadMostBoughtAndTrendingAsync(List<TransactionHistoryModel> transactions) // Load most bought and trending items for dashboard
         {
             try
             {
@@ -551,7 +409,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task LoadInventoryAlertsAsync()
+        private async Task LoadInventoryAlertsAsync() // Load inventory alerts for dashboard
         {
             try
             {

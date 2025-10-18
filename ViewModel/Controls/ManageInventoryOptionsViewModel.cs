@@ -29,7 +29,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void AddItem()
+        private void AddItem() // Open the Add Item to Inventory panel
         {
             IsInventoryManagementPopupVisible = false;
             if (_addItemToInventoryViewModel != null)
@@ -39,14 +39,14 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task EditItem()
+        private async Task EditItem() // Open the edit inventory popup where each row has Edit/Delete actions
         {
             IsInventoryManagementPopupVisible = false;
             await _editInventoryPopupViewModel.ShowEditInventoryPopup();
         }
 
         [RelayCommand]
-        private async Task DeleteItem()
+        private async Task DeleteItem() // Open the delete inventory popup where each row has Edit/Delete actions
         {
             IsInventoryManagementPopupVisible = false;
             // Open the edit inventory popup where each row has Edit/Delete actions
@@ -54,7 +54,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void CloseInventoryManagementPopup()
+        private void CloseInventoryManagementPopup() // Close the popup
         {
             IsInventoryManagementPopupVisible = false;
         }

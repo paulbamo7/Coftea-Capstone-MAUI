@@ -99,6 +99,30 @@ namespace Coftea_Capstone.ViewModel.Controls
                     }
                 }
                 
+                // Update InputAmount and InputUnit for all selected items based on current size
+                // This ensures the UI shows the correct saved values when editing
+                foreach (var item in SelectedIngredientsOnly)
+                {
+                    var size = SelectedSize;
+                    item.InputAmount = size switch
+                    {
+                        "Small" => item.InputAmountSmall > 0 ? item.InputAmountSmall : 1,
+                        "Medium" => item.InputAmountMedium > 0 ? item.InputAmountMedium : 1,
+                        "Large" => item.InputAmountLarge > 0 ? item.InputAmountLarge : 1,
+                        _ => 1
+                    };
+                    
+                    item.InputUnit = size switch
+                    {
+                        "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : item.unitOfMeasurement,
+                        "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : item.unitOfMeasurement,
+                        "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : item.unitOfMeasurement,
+                        _ => item.unitOfMeasurement
+                    };
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 Updated {item.itemName}: Amount={item.InputAmount}, Unit={item.InputUnit} for size {size}");
+                }
+                
                 OnPropertyChanged(nameof(SelectedIngredientsOnly));
                 System.Diagnostics.Debug.WriteLine($"🔧 Final SelectedIngredientsOnly count: {SelectedIngredientsOnly.Count}");
             }
@@ -349,11 +373,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Load cup sizes from database
             await LoadCupSizesAsync();
             
-            // Preserve current selection state
+            // Preserve current selection state AND input values for ALL items (not just selected)
+            // This ensures that when editing an existing product, the saved amounts/units are preserved
             var currentSelections = new Dictionary<int, SelectionState>();
             if (AllInventoryItems != null)
             {
-                foreach (var item in AllInventoryItems.Where(i => i.IsSelected))
+                foreach (var item in AllInventoryItems)
                 {
                     currentSelections[item.itemID] = new SelectionState
                     {

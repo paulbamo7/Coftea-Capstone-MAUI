@@ -18,7 +18,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
         }
 
-        public void ShowRetryPopup(Func<Task> retryAction, string customMessage = null, Action onRetrySuccess = null, Action onRetryCancel = null)
+        public void ShowRetryPopup(Func<Task> retryAction, string customMessage = null, Action onRetrySuccess = null, Action onRetryCancel = null) // Show the retry popup with specified actions and message
         {
             _retryAction = retryAction;
             _onRetrySuccess = onRetrySuccess;
@@ -33,7 +33,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task RetryConnection()
+        private async Task RetryConnection() // Attempt to retry the connection
         {
             if (_retryAction == null) return;
 
@@ -66,14 +66,14 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void CancelRetry()
+        private void CancelRetry() // Cancel the retry operation
         {
             IsRetryPopupVisible = false;
             _onRetryCancel?.Invoke();
         }
 
         [RelayCommand]
-        private void CloseRetryPopup()
+        private void CloseRetryPopup() // Close the retry popup
         {
             IsRetryPopupVisible = false;
         }

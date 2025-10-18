@@ -53,10 +53,10 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public ProfilePopupViewModel()
         {
-            _ = Task.Run(async () => await LoadUserProfile());
+            _ = Task.Run(async () => await LoadUserProfile()); // Load profile data on initialization
         }
 
-        public async void ShowProfile()
+        public async void ShowProfile() // Open the profile popup
         {
             System.Diagnostics.Debug.WriteLine("ShowProfile called - starting to load user profile");
             await LoadUserProfile();
@@ -71,7 +71,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task SaveProfile()
+        private async Task SaveProfile() // Save profile changes
         {
             try
             {
@@ -142,7 +142,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
 
         [RelayCommand]
-        private void ToggleImagePicker()
+        private void ToggleImagePicker() // Show/hide image picker
         {
             IsImagePickerVisible = !IsImagePickerVisible;
             if (IsImagePickerVisible)
@@ -153,7 +153,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task ChangeProfileImage()
+        private async Task ChangeProfileImage() // Change profile image
         {
             try
             {
@@ -221,7 +221,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task SaveProfileImageToDatabase()
+        private async Task SaveProfileImageToDatabase() // Save profile image to database
         {
             try
             {
@@ -237,7 +237,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task LoadUserProfile()
+        private async Task LoadUserProfile() // Load profile data
         {
             try
             {
@@ -265,7 +265,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task LoadUserFromDatabase()
+        private async Task LoadUserFromDatabase() // Load user data from database
         {
             try
             {
@@ -350,8 +350,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
-
-        private async Task SaveUserProfileToStorage()
+        private async Task SaveUserProfileToStorage() // Save profile data to preferences
         {
             try
             {
@@ -374,7 +373,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task SaveProfileToDatabase()
+        private async Task SaveProfileToDatabase() // Save profile data to database
         {
             try
             {
@@ -403,7 +402,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task ResetProfile()
+        private async Task ResetProfile() // Reset profile changes
         {
             await LoadUserProfile();
             StatusMessage = "Profile reset to saved values";
@@ -411,7 +410,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         // Method to refresh profile display across the app
-        public void RefreshProfileDisplay()
+        public void RefreshProfileDisplay() // Notify UI to refresh profile display
         {
             try
             {
@@ -448,7 +447,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private ImageSource GetProfileImageSource(string imageFileName)
+        private ImageSource GetProfileImageSource(string imageFileName) // Get ImageSource for profile image
         {
             try
             {

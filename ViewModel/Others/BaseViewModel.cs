@@ -56,5 +56,3 @@ namespace Coftea_Capstone.ViewModel
 		}
 	}
 }
-
-

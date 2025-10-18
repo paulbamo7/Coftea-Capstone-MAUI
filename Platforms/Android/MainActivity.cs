@@ -1,4 +1,4 @@
-﻿using Android.App;
+using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
@@ -11,6 +11,20 @@ namespace Coftea_Capstone
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
+            
+            // Hide the title bar/action bar
+            try
+            {
+                if (SupportActionBar != null)
+                {
+                    SupportActionBar.Hide();
+                }
+                System.Diagnostics.Debug.WriteLine("✅ Android: Hidden action bar");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Android: Failed to hide action bar: {ex.Message}");
+            }
             
             // Set background color programmatically for Android tablets
             try

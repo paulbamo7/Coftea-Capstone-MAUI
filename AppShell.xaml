@@ -23,5 +23,4 @@
     <ShellContent Route="salesreport" ContentTemplate="{DataTemplate views:SalesReport}" />
     <ShellContent Route="usermanagement" ContentTemplate="{DataTemplate views:UserManagement}" />
 
-
 </Shell>

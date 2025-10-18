@@ -246,7 +246,6 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int recentOrdersCount;
 
-        // ===================== Initialization =====================
         public SalesReportPageViewModel(SettingsPopUpViewModel settingsPopup, Services.ISalesReportService salesReportService = null)
         {
             _database = new Database(); // Will use auto-detected host
@@ -257,13 +256,12 @@ namespace Coftea_Capstone.ViewModel
             _ = LoadCumulativeTotalsAsync();
         }
 
-        // ===================== Helpers =====================
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
             return ((App)Application.Current).RetryConnectionPopup;
         }
 
-        private async Task LoadRecentOrdersAsync()
+        private async Task LoadRecentOrdersAsync() // Load recent orders from today
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             
@@ -297,7 +295,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task CalculatePaymentMethodTotalsAsync()
+        private async Task CalculatePaymentMethodTotalsAsync() // Calculate today's totals by payment method
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             
@@ -339,14 +337,12 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Lifecycle =====================
-        public async Task InitializeAsync()
+        public async Task InitializeAsync() // Initial data load
         {
             await LoadDataAsync();
         }
 
-        // ===================== Data Loading =====================
-        public async Task LoadDataAsync()
+        public async Task LoadDataAsync() // Load sales report data
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
             
@@ -435,12 +431,12 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        partial void OnSelectedCategoryChanged(string value)
+        partial void OnSelectedCategoryChanged(string value) // Apply category filter
         {
             ApplyCategoryFilter();
         }
 
-        partial void OnSelectedTimePeriodChanged(string value)
+        partial void OnSelectedTimePeriodChanged(string value) // Update display totals
         {
             OnPropertyChanged(nameof(DisplayCashTotal));
             OnPropertyChanged(nameof(DisplayGCashTotal));
@@ -448,15 +444,14 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(DisplayTotalSales));
         }
 
-        // ===================== Filtering =====================
         [RelayCommand]
-        private void SelectCategory(string category)
+        private void SelectCategory(string category) // Select category and apply filter
         {
             SelectedCategory = category;
         }
 
         [RelayCommand]
-        private async Task SelectTimePeriod(string timePeriod)
+        private async Task SelectTimePeriod(string timePeriod) // Select time period and recalculate totals
         {
             SelectedTimePeriod = timePeriod;
             await CalculateTimePeriodTotalsAsync();
@@ -466,8 +461,7 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(DisplayTotalSales));
         }
 
-        // ===================== Aggregation & Presentation =====================
-        private void UpdateCombinedCollections()
+        private void UpdateCombinedCollections() // Combine coffee and milktea into single collections
         {
             // Filter today's items based on selected category
             var todayItems = GetFilteredItems(TopCoffeeToday, TopMilkteaToday, SelectedCategory);
@@ -501,7 +495,7 @@ namespace Coftea_Capstone.ViewModel
             TopItemsMonthly = new ObservableCollection<TrendItem>(TopItemsMonthly?.ToList() ?? new List<TrendItem>());
         }
 
-        private void UpdatePieChartNames(List<TrendItem> items)
+        private void UpdatePieChartNames(List<TrendItem> items) // Update pie chart item names and counts
         {
             Item1Name = items.Count > 0 ? items[0].Name : "No Data";
             Item2Name = items.Count > 1 ? items[1].Name : "";
@@ -532,7 +526,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private List<TrendItem> GetFilteredItems(ObservableCollection<TrendItem> coffeeItems, ObservableCollection<TrendItem> milkTeaItems, string category)
+        private List<TrendItem> GetFilteredItems(ObservableCollection<TrendItem> coffeeItems, ObservableCollection<TrendItem> milkTeaItems, string category) // Filter items based on category
         {
             var filteredItems = new List<TrendItem>();
 
@@ -612,15 +606,11 @@ namespace Coftea_Capstone.ViewModel
             return filteredItems;
         }
 
-        private void ApplyCategoryFilter()
+        private void ApplyCategoryFilter() // Apply category filter to combined collections
         {
-            // Update combined collections when category changes
             UpdateCombinedCollections();
         }
-
-
-        // ===================== Cumulative Totals =====================
-        private async Task LoadCumulativeTotalsAsync()
+        private async Task LoadCumulativeTotalsAsync() // Load cumulative totals from preferences
         {
             try
             {
@@ -644,7 +634,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task UpdateCumulativeTotalsAsync()
+        private async Task UpdateCumulativeTotalsAsync() // Update cumulative totals if it's a new day
         {
             try
             {
@@ -683,7 +673,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task ResetCumulativeTotals()
+        private async Task ResetCumulativeTotals() // Reset cumulative totals to zero
         {
             try
             {
@@ -708,8 +698,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Calculations =====================
-        private async Task CalculateTimePeriodTotalsAsync()
+        private async Task CalculateTimePeriodTotalsAsync() // Calculate totals for selected time period
         {
             try
             {
@@ -787,8 +776,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Fallback =====================
-        private void SetFallbackData()
+        private void SetFallbackData() // Set fallback data on error
         {
             // Set fallback data when loading fails
             MostBoughtToday = "No data available";

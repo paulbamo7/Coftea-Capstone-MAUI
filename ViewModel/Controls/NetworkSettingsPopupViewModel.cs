@@ -18,26 +18,26 @@ namespace Coftea_Capstone.ViewModel.Controls
             _ = LoadCurrentSettingsAsync();
         }
 
-        public async Task ShowAsync()
+        public async Task ShowAsync() // Open the popup
         {
             IsVisible = true;
             await LoadCurrentSettingsAsync();
         }
 
         [RelayCommand]
-        private async Task CloseAsync()
+        private async Task CloseAsync() // Close the popup
         {
             IsVisible = false;
         }
 
         [RelayCommand]
-        private async Task RefreshAsync()
+        private async Task RefreshAsync() // Refresh current settings
         {
             await LoadCurrentSettingsAsync();
         }
 
         [RelayCommand]
-        private async Task SaveAsync()
+        private async Task SaveAsync() // Save custom settings
         {
             try
             {
@@ -70,7 +70,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task LoadCurrentSettingsAsync()
+        private async Task LoadCurrentSettingsAsync() // Load current settings
         {
             try
             {

@@ -38,7 +38,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task LoadInventoryAsync()
+        private async Task LoadInventoryAsync() // Load inventory items from database
         {
             IsLoading = true;
             StatusMessage = "Loading inventory...";
@@ -61,7 +61,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task EditItem(InventoryPageModel item)
+        private async Task EditItem(InventoryPageModel item) // Open EditInventoryPopup with selected item
         {
             if (item == null) return;
             IsEditInventoryPopupVisible = false;
@@ -103,19 +103,19 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void CloseEditInventoryPopup()
+        private void CloseEditInventoryPopup() // Close the popup
         {
             IsEditInventoryPopupVisible = false;
         }
 
-        public async Task ShowEditInventoryPopup()
+        public async Task ShowEditInventoryPopup() // Show the popup and load inventory
         {
             IsEditInventoryPopupVisible = true;
             await LoadInventoryAsync();
         }
 
         [RelayCommand]
-        private void FilterByCategory(string category)
+        private void FilterByCategory(string category) // Filter inventory items by category
         {
             SelectedCategory = category;
             Items.Clear();
@@ -124,8 +124,7 @@ namespace Coftea_Capstone.ViewModel
                 foreach (var it in AllItems) Items.Add(it);
                 return;
             }
-            
-            // Special rules:
+           
             // - Ingredients: show Syrups, Powdered, Fruit Series, Sinkers & etc., Liquid
             // - Supplies: show Others category (supplies like cups, straws, etc.)
             bool isIngredients = string.Equals(category, "Ingredients", StringComparison.OrdinalIgnoreCase);
@@ -157,7 +156,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task DeleteItem(InventoryPageModel item)
+        private async Task DeleteItem(InventoryPageModel item) // Delete selected inventory item
         {
             if (item == null) return;
 

@@ -12,5 +12,3 @@ namespace Coftea_Capstone.ViewModel.Controls
         public bool IsRead { get; set; } = false;
     }
 }
-
-

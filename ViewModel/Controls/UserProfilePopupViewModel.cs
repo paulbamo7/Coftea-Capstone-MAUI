@@ -39,7 +39,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private int userId = 0;
 
-        public void ShowUserProfile(UserInfoModel user)
+        public void ShowUserProfile(UserInfoModel user) // Show profile from UserInfoModel
         {
             if (user == null) return;
 
@@ -56,7 +56,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsVisible = true;
         }
 
-        public void ShowUserProfile(UserEntry user)
+        public void ShowUserProfile(UserEntry user) 
         {
             if (user == null) return;
 
@@ -73,7 +73,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsVisible = true;
         }
 
-        private string MaskEmail(string email)
+        private string MaskEmail(string email) // Mask email for privacy
         {
             if (string.IsNullOrEmpty(email) || !email.Contains("@"))
                 return email;
@@ -87,7 +87,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task ToggleInventoryPermission()
+        private async Task ToggleInventoryPermission() // Toggle inventory permission
         {
             try
             {
@@ -102,7 +102,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task TogglePOSMenuPermission()
+        private async Task TogglePOSMenuPermission() // Toggle POS menu permission
         {
             try
             {
@@ -117,7 +117,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void Close()
+        private void Close() // Close the user profile popup
         {
             IsVisible = false;
         }

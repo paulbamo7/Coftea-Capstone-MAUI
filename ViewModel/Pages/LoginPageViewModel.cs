@@ -25,7 +25,6 @@ namespace Coftea_Capstone.ViewModel
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
         public PasswordResetPopupViewModel PasswordResetPopup { get; set; }
 
-        // ===================== Initialization =====================
         public LoginPageViewModel()
         {
             _database = new Database();
@@ -47,9 +46,8 @@ namespace Coftea_Capstone.ViewModel
             return ((App)Application.Current).RetryConnectionPopup;
         }
 
-        // ===================== Commands =====================
         [RelayCommand]
-        private async Task Login()
+        private async Task Login() // Login command
         {
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {

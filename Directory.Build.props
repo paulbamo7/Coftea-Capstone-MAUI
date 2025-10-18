@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <EnableSourceControlManager>false</EnableSourceControlManager>
+    <UseGitVersioning>false</UseGitVersioning>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Deterministic>false</Deterministic>
+    <EnableGitInfo>false</EnableGitInfo>
+    <GitInfoReportImportance>low</GitInfoReportImportance>
+    <GitInfoSkipCache>true</GitInfoSkipCache>
+  </PropertyGroup>
+</Project>

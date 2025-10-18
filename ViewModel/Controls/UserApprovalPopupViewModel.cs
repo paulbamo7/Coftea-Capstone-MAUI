@@ -27,7 +27,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        public async Task ApproveRequest(UserPendingRequest request)
+        public async Task ApproveRequest(UserPendingRequest request) // Approve a pending user registration
         {
             try
             {
@@ -55,7 +55,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        public async Task DenyRequest(UserPendingRequest request)
+        public async Task DenyRequest(UserPendingRequest request) // Deny a pending user registration
         {
             try
             {
@@ -82,7 +82,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        public async Task LoadPendingRequests()
+        public async Task LoadPendingRequests() // Load pending user registration requests from the database
         {
             try
             {
@@ -95,7 +95,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        public async Task ShowUserApprovalPopup()
+        public async Task ShowUserApprovalPopup() // Show the user approval popup
         {
             await LoadPendingRequests();
             IsUserApprovalPopupVisible = true;

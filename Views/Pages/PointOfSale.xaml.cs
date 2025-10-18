@@ -148,6 +148,9 @@ public partial class PointOfSale : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        
+        // Update navigation state for indicator
+        NavigationStateService.SetCurrentPageType(typeof(PointOfSale));
 
         try
         {
@@ -293,23 +296,6 @@ public partial class PointOfSale : ContentPage
         }
         }
         catch { }
-    }
-
-    private void OnTestPaymentClicked(object sender, EventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine("Test Payment button clicked");
-        var app = (App)Application.Current;
-        if (app?.PaymentPopup != null)
-        {
-            System.Diagnostics.Debug.WriteLine("Calling ShowPayment from test button");
-            app.PaymentPopup.ShowPayment(100.00m, new List<Models.CartItem>());
-            
-            // PaymentPopup binding is handled via XAML
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine("PaymentPopup is null in test button");
-        }
     }
 
     protected override bool OnBackButtonPressed()

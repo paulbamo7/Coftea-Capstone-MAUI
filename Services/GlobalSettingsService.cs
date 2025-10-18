@@ -1,5 +1,3 @@
-using Coftea_Capstone.ViewModel;
-
 namespace Coftea_Capstone.Services
 {
     public static class GlobalSettingsService

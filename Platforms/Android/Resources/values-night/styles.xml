@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Tablet-specific styles -->
     <style name="MainTheme" parent="MainTheme.Base">
         <item name="android:windowBackground">@color/backgroundColor</item>
         <item name="android:colorBackground">@color/backgroundColor</item>
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
         <item name="android:navigationBarColor">@color/backgroundColor</item>
-        <!-- Tablet-specific: ensure full screen background coverage -->
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
     </style>
     
-    <style name="MainTheme.Base" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <style name="MainTheme.Base" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="android:windowBackground">@color/backgroundColor</item>
         <item name="android:colorBackground">@color/backgroundColor</item>
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
@@ -24,9 +19,5 @@
         <item name="colorSurface">@color/backgroundColor</item>
         <item name="colorOnSurface">@android:color/black</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <!-- Tablet-specific: ensure full screen background coverage -->
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
     </style>
 </resources>

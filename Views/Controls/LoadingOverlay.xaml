@@ -6,8 +6,10 @@
              IsVisible="False"
              BackgroundColor="#C1A892"
              ZIndex="1000"
-             HorizontalOptions="FillAndExpand"
-             VerticalOptions="FillAndExpand">
+             HorizontalOptions="Fill"
+             VerticalOptions="Fill"
+             AbsoluteLayout.LayoutBounds="0,0,1,1"
+             AbsoluteLayout.LayoutFlags="All">
     
     <AbsoluteLayout HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20"

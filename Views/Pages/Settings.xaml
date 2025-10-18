@@ -46,11 +46,14 @@
 
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
                         <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
-                            <ImageButton Source="usermanagementicon.png"
-                                         BackgroundColor="Transparent"
-                                         HeightRequest="90"
-                                         WidthRequest="90"
-                                         Command="{Binding OpenUserManagementCommand}" />
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenUserManagementCommand}" />
+                            </Frame.GestureRecognizers>
+                            <Image Source="usermanagementicon.png"
+                                   HeightRequest="90"
+                                   WidthRequest="90"
+                                   Aspect="AspectFit"
+                                   InputTransparent="True" />
                         </Frame>
                         <Label Text="User Management"
                                HorizontalOptions="Center"
@@ -61,11 +64,14 @@
                     
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
                         <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
-                            <ImageButton Source="manageposicon.png"
-                                         BackgroundColor="Transparent"
-                                         HeightRequest="90"
-                                         WidthRequest="90"
-                                         Command="{Binding OpenManagePOSOptionsCommand}" />
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenManagePOSOptionsCommand}" />
+                            </Frame.GestureRecognizers>
+                            <Image Source="manageposicon.png"
+                                   HeightRequest="90"
+                                   WidthRequest="90"
+                                   Aspect="AspectFit"
+                                   InputTransparent="True" />
                         </Frame>
                         <Label Text="Manage POS Menu"
                                HorizontalOptions="Center"
@@ -76,11 +82,14 @@
 
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
                         <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
-                            <ImageButton Source="manageinventoryicon.png"
-                                         BackgroundColor="Transparent"
-                                         HeightRequest="90"
-                                         WidthRequest="90"
-                                         Command="{Binding OpenManageInventoryOptionsCommand}" />
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenManageInventoryOptionsCommand}" />
+                            </Frame.GestureRecognizers>
+                            <Image Source="manageinventoryicon.png"
+                                   HeightRequest="90"
+                                   WidthRequest="90"
+                                   Aspect="AspectFit"
+                                   InputTransparent="True" />
                         </Frame>
                         <Label Text="Manage Inventory"
                                HorizontalOptions="Center"
@@ -91,11 +100,14 @@
 
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
                         <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#F28C8C">
-                            <ImageButton Source="logouticon.png"
-                                         BackgroundColor="Transparent"
-                                         HeightRequest="90"
-                                         WidthRequest="90"
-                                         Clicked="OnLogoutClicked" />
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLogoutClicked" />
+                            </Frame.GestureRecognizers>
+                            <Image Source="logouticon.png"
+                                   HeightRequest="90"
+                                   WidthRequest="90"
+                                   Aspect="AspectFit"
+                                   InputTransparent="True" />
                         </Frame>
                         <Label Text="Logout"
                                HorizontalOptions="Center"

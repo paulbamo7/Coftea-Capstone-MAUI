@@ -27,7 +27,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        public async Task DeleteUser(UserEntry user)
+        public async Task DeleteUser(UserEntry user) // Delete the specified user
         {
             try
             {
@@ -72,7 +72,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        public async Task LoadUsers()
+        public async Task LoadUsers() // Load users from database
         {
             try
             {
@@ -93,7 +93,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private string GetLastActiveText(int userId)
+        private string GetLastActiveText(int userId) 
         {
             // For now, return a placeholder. In a real app, you'd query the database for actual last login time
             return DateTime.Now.AddDays(-new Random().Next(1, 30)).ToString("MMM dd, yyyy");

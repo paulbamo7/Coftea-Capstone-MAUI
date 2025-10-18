@@ -56,7 +56,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             System.Diagnostics.Debug.WriteLine("PaymentPopupViewModel initialized with IsPaymentVisible = false");
         }
 
-        public void ShowPayment(decimal total, List<CartItem> items)
+        public void ShowPayment(decimal total, List<CartItem> items) // Show payment popup with total and cart items
         {
             System.Diagnostics.Debug.WriteLine($"ShowPayment called with total: {total}, items: {items.Count}");
             TotalAmount = total;
@@ -72,13 +72,13 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void ClosePayment()
+        private void ClosePayment() // Close payment popup
         {
             IsPaymentVisible = false;
         }
 
         [RelayCommand]
-        private void SelectPaymentMethod(string method)
+        private void SelectPaymentMethod(string method) // Cash, GCash, Bank
         {
             SelectedPaymentMethod = method;
             System.Diagnostics.Debug.WriteLine($"Payment method selected: {method}");
@@ -99,7 +99,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        public void UpdateAmountPaid(string amount)
+        public void UpdateAmountPaid(string amount) // Update amount paid from input
         {
             if (decimal.TryParse(amount, out decimal paid))
             {
@@ -118,7 +118,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task ConfirmPayment()
+        private async Task ConfirmPayment() // Confirm and process payment
         {
             // For non-cash methods (GCash/Bank), auto-approve regardless of AmountPaid
             var isNonCash = IsGCashSelected || IsBankSelected;
@@ -236,8 +236,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Close payment popup
             IsPaymentVisible = false;
         }
-
-        private async Task ProcessPaymentWithSteps()
+        private async Task ProcessPaymentWithSteps() // Simulate payment processing steps
         {
             try
             {
@@ -292,8 +291,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 await Task.Delay(1000);
             }
         }
-
-        private async Task<List<TransactionHistoryModel>> SaveTransaction()
+        private async Task<List<TransactionHistoryModel>> SaveTransaction() // Save transaction to database and in-memory store
         {
             try
             {
@@ -406,7 +404,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             return null;
         }
 
-        private async Task DeductInventoryForItemAsync(Models.Database database, CartItem cartItem)
+        private async Task DeductInventoryForItemAsync(Models.Database database, CartItem cartItem) // Deduct inventory based on cart item
         {
             try
             {
@@ -519,18 +517,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private int GetTotalQuantityForSize(CartItem item, string size)
-        {
-            return size?.ToLowerInvariant() switch
-            {
-                "small" => item.SmallQuantity,
-                "medium" => item.MediumQuantity,
-                "large" => item.LargeQuantity,
-                _ => item.Quantity
-            };
-        }
-
-        private async Task AddAutomaticCupAndStrawForSize(List<(string name, double amount)> deductions, string size, int quantity)
+        private async Task AddAutomaticCupAndStrawForSize(List<(string name, double amount)> deductions, string size, int quantity) // Add cup and straw deductions based on size
         {
             try
             {
@@ -565,7 +552,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private static double ConvertUnits(double amount, string fromUnit, string toUnit)
+        private static double ConvertUnits(double amount, string fromUnit, string toUnit) // Convert amount from one unit to another
         {
             if (string.IsNullOrWhiteSpace(toUnit)) return amount;
             
@@ -614,7 +601,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             return 0;
         }
 
-        private static string NormalizeUnit(string unit)
+        private static string NormalizeUnit(string unit) // Normalize unit strings to standard short forms
         {
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
 
@@ -635,25 +622,25 @@ namespace Coftea_Capstone.ViewModel.Controls
             return u;
         }
 
-        private static bool IsMassUnit(string unit)
+        private static bool IsMassUnit(string unit) // Check if unit is a mass unit
         {
             var normalized = NormalizeUnit(unit);
             return normalized == "kg" || normalized == "g";
         }
 
-        private static bool IsVolumeUnit(string unit)
+        private static bool IsVolumeUnit(string unit) // Check if unit is a volume unit
         {
             var normalized = NormalizeUnit(unit);
             return normalized == "l" || normalized == "ml";
         }
 
-        private static bool IsCountUnit(string unit)
+        private static bool IsCountUnit(string unit) // Check if unit is a count/pieces unit
         {
             var normalized = NormalizeUnit(unit);
             return normalized == "pcs" || normalized == "pc";
         }
 
-        private async Task<InventoryValidationResult> ValidateInventoryAvailabilityAsync()
+        private async Task<InventoryValidationResult> ValidateInventoryAvailabilityAsync() // Validate if inventory is sufficient for cart items
         {
             try
             {
@@ -730,7 +717,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task ValidateAutomaticCupAndStrawForSize(Models.Database database, List<string> issues, string size, int quantity)
+        private async Task ValidateAutomaticCupAndStrawForSize(Models.Database database, List<string> issues, string size, int quantity) // Validate cup and straw availability based on size
         {
             try
             {
@@ -766,7 +753,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
     }
 
-    public class InventoryValidationResult
+    public class InventoryValidationResult // Result of inventory validation
     {
         public bool IsValid { get; set; }
         public string ErrorMessage { get; set; } = "";

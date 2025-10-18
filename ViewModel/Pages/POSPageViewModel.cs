@@ -84,7 +84,7 @@ namespace Coftea_Capstone.ViewModel
         // ===================== Initialization =====================
         public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
         {
-            _database = new Database(); // Will use auto-detected host
+            _database = new Database(); 
             SettingsPopup = settingsPopupViewModel;
             AddItemToPOSViewModel = addItemToPOSViewModel;
             NotificationPopup = ((App)Application.Current).NotificationPopup;
@@ -133,7 +133,6 @@ namespace Coftea_Capstone.ViewModel
             };
         }
 
-        // ===================== Cart Operations =====================
         [RelayCommand]
         private async void AddToCart(POSPageModel product) // Adds products to cart with their quantities and addons
         {
@@ -221,19 +220,15 @@ namespace Coftea_Capstone.ViewModel
             _ = _cartStorage.SaveCartAsync(CartItems);
         }
 
-        // ===================== UI Commands =====================
-
         [RelayCommand]
-        private void ShowNotificationBell()
+        private void ShowNotificationBell() // Opens the notification popup
         {
-            // Toggle the global notification popup. Data should be added by callers using NotificationPopup.Notifications.
             NotificationPopup?.ToggleCommand.Execute(null);
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
 
-        // ===================== Product Events =====================
-        private async void OnProductAdded(POSPageModel newProduct)
+        private async void OnProductAdded(POSPageModel newProduct) // Handles product addition from AddItemToPOSViewModel
         {
             if (newProduct != null)
             {
@@ -243,7 +238,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async void OnProductUpdated(POSPageModel updatedProduct)
+        private async void OnProductUpdated(POSPageModel updatedProduct) // Handles product updates from AddItemToPOSViewModel
         {
             if (updatedProduct == null || Products == null || FilteredProducts == null)
                 return;
@@ -266,9 +261,8 @@ namespace Coftea_Capstone.ViewModel
             await LoadDataAsync();
         }
 
-        // ===================== Filtering =====================
         [RelayCommand]
-        private async Task FilterByCategory(object category)
+        private async Task FilterByCategory(object category) // Filter products by main category
         {
             try
             {
@@ -289,13 +283,13 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task FilterBySubcategory(object subcategory)
+        private async Task FilterBySubcategory(object subcategory) // Filter products by subcategory
         {
             SelectedSubcategory = subcategory?.ToString() ?? string.Empty;
             ApplyFilters();
         }
 
-        private void ApplyFilters()
+        private void ApplyFilters() // Applies the selected filters to the product list
         {
             try
             {
@@ -362,10 +356,10 @@ namespace Coftea_Capstone.ViewModel
                 }
             });
         }
-        
-        // ===================== Product Selection =====================
+       
+
         [RelayCommand]
-        private void SelectProduct(POSPageModel product)
+        private void SelectProduct(POSPageModel product) // Selects a product and loads its details
         {
             System.Diagnostics.Debug.WriteLine($"SelectProduct called with product: {product?.ProductName ?? "null"}");
             
@@ -397,8 +391,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
 
-        // ===================== Addons =====================
-        private async Task LoadAddonsForSelectedAsync()
+        private async Task LoadAddonsForSelectedAsync() // Loads addons for the selected product from the database
         {
             if (SelectedProduct == null) 
             {
@@ -445,9 +438,9 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Product Editing =====================
+        
         [RelayCommand]
-        private void EditProduct(POSPageModel product)
+        private void EditProduct(POSPageModel product) // Opens the Edit Product panel
         {
             if (product == null) return;
 
@@ -455,9 +448,9 @@ namespace Coftea_Capstone.ViewModel
             SettingsPopup.OpenAddItemToPOSCommand.Execute(null);
         }
 
-        // ===================== Cart Editing =====================
+        
         [RelayCommand]
-        private void RemoveFromCart(POSPageModel product)
+        private void RemoveFromCart(POSPageModel product) // Removes a product from the cart
         {
             if (product == null || CartItems == null) return;
 
@@ -471,8 +464,8 @@ namespace Coftea_Capstone.ViewModel
         _ = _cartStorage.SaveCartAsync(CartItems);
         }
 
-        // ===================== Inventory Checks =====================
-        private async Task CheckStockLevelsForAllProducts()
+
+        private async Task CheckStockLevelsForAllProducts() // Checks stock levels for all products and marks low stock
         {
             try
             {
@@ -553,7 +546,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task<bool> CheckCupsAndStrawsAvailability()
+        private async Task<bool> CheckCupsAndStrawsAvailability() // Checks if cups and straws are available in inventory
         {
             try
             {
@@ -576,7 +569,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Quantity Adjustments =====================
+
         [RelayCommand]
         private void IncreaseSmallQty() 
         { 
@@ -619,9 +612,9 @@ namespace Coftea_Capstone.ViewModel
                 SelectedProduct.LargeQuantity--; 
         }
 
-        // ===================== Cart UI =====================
+
         [RelayCommand]
-        private void ShowCart()
+        private void ShowCart() // Opens the cart popup with current cart items
         {
             try
             {
@@ -665,17 +658,16 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-    // ===================== Cart Persistence =====================
-    public Task SaveCartToStorageAsync() => _cartStorage.SaveCartAsync(CartItems);
-    public async Task LoadCartFromStorageAsync()
-    {
+    public Task SaveCartToStorageAsync() => _cartStorage.SaveCartAsync(CartItems); // Saves the current cart to persistent storage
+    public async Task LoadCartFromStorageAsync() // Loads the cart from persistent storage
+        {
         var loaded = await _cartStorage.LoadCartAsync();
         if (loaded != null)
             CartItems = loaded;
     }
 
-    public async Task ClearCartAsync()
-    {
+    public async Task ClearCartAsync() // Clears the cart both in memory and persistent storage
+        {
         try
         {
             System.Diagnostics.Debug.WriteLine("🧹 Clearing cart in POSPageViewModel");
@@ -689,9 +681,9 @@ namespace Coftea_Capstone.ViewModel
         }
     }
 
-        // ===================== History =====================
-        [RelayCommand]
-        private async Task ShowHistory()
+
+        [RelayCommand] 
+        private async Task ShowHistory() // Opens the transaction history popup
         {
             System.Diagnostics.Debug.WriteLine("ShowHistory command called");
 
@@ -703,7 +695,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void Cart()
+        private void Cart() // Opens the cart popup
         {
             try
             {
@@ -723,9 +715,8 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Profile =====================
         [RelayCommand]
-        private void ShowProfile()
+        private void ShowProfile() // Open the profile popup
         {
             try
             {
@@ -755,7 +746,7 @@ namespace Coftea_Capstone.ViewModel
                 }
             }
         }
-        public async Task InitializeAsync()
+        public async Task InitializeAsync() // Initializes the ViewModel, loading user info and persisted cart
         {
             if (App.CurrentUser != null)
                 IsAdmin = App.CurrentUser.IsAdmin;

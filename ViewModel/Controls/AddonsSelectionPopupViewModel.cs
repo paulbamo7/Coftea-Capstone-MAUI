@@ -14,13 +14,12 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         [ObservableProperty] private bool isAddonsPopupVisible;
         [ObservableProperty] private string selectedFilter = "All";
-        [ObservableProperty] private string searchText = string.Empty;
+        [ObservableProperty] private string searchText = string.Empty; 
 
-        public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new();
-        public ObservableCollection<InventoryPageModel> SelectedAddons { get; set; } = new();
+        public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new(); // All addons available for selection
+        public ObservableCollection<InventoryPageModel> SelectedAddons { get; set; } = new(); // Currently selected addons
 
-        // Event to notify parent when addons are selected
-        public event Action<List<InventoryPageModel>> AddonsSelected;
+        public event Action<List<InventoryPageModel>> AddonsSelected; // List of selected addons
 
         // Preload/remember last selections when editing
         public void SyncSelectionsFrom(IEnumerable<InventoryPageModel> items)
@@ -42,7 +41,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        public async Task OpenAddonsPopup()
+        public async Task OpenAddonsPopup() // Load addons and show popup
         {
             System.Diagnostics.Debug.WriteLine($"🔍 AddonsSelectionPopupViewModel.OpenAddonsPopup called");
             try
@@ -59,13 +58,13 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void CloseAddonPopup()
+        private void CloseAddonPopup() // Close popup without saving
         {
             IsAddonsPopupVisible = false;
         }
 
         [RelayCommand]
-        private void ConfirmAddonSelection()
+        private void ConfirmAddonSelection() // Confirm selected addons and notify parent
         {
             // Get selected addons and ensure they have proper quantities
             var selectedAddons = AvailableAddons.Where(a => a.IsSelected).ToList();
@@ -87,7 +86,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        public async Task LoadAddonsAsync()
+        public async Task LoadAddonsAsync() // Load addons from database
         {
             try
             {
@@ -129,18 +128,18 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void FilterByCategory(string category)
+        private void FilterByCategory(string category) // Filter addons by category
         {
             SelectedFilter = category;
             ApplyFilters();
         }
 
-        partial void OnSearchTextChanged(string value)
+        partial void OnSearchTextChanged(string value) // Apply search filter
         {
             ApplyFilters();
         }
 
-        private void ApplyFilters()
+        private void ApplyFilters() // Apply current filters to AvailableAddons
         {
             var query = AvailableAddons.AsEnumerable();
 
@@ -175,7 +174,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void ToggleAddonSelection(InventoryPageModel addon)
+        private void ToggleAddonSelection(InventoryPageModel addon) // Toggle selection state of an addon
         {
             if (addon == null) return;
             
@@ -198,7 +197,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        public void Dispose()
+        public void Dispose() // Cleanup
         {
             try
             {

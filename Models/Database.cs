@@ -2,7 +2,6 @@ using Coftea_Capstone.Models;
 using MySqlConnector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using System.Linq;
 using Microsoft.Maui.Devices;
 
@@ -25,10 +24,9 @@ namespace Coftea_Capstone.Models
                         string user = "root",
                         string password = "")
         {
-            // Use provided host or auto-detect based on platform
             var server = host ?? GetDefaultHostForPlatform();
             
-            _db = new MySqlConnectionStringBuilder
+            _db = new MySqlConnectionStringBuilder // Configuration for connecting to MySQL XAMPP server database
             {
                 Server = server,
                 Port = 3306,
@@ -39,7 +37,7 @@ namespace Coftea_Capstone.Models
             }.ConnectionString;
         }
 
-        // Quick connectivity test to detect if DB server is reachable
+        // Connectivity test to detect if DB server is reachable
         public async Task<bool> CanConnectAsync(CancellationToken cancellationToken = default)
         {
             try
@@ -75,25 +73,23 @@ namespace Coftea_Capstone.Models
             return conn;
         }
 
-        private static string GetDefaultHostForPlatform()
+        private static string GetDefaultHostForPlatform() // Detects which platform the app is running on
         {
             try
             {
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    // 10.0.2.2 = Android emulator loopback to host; 10.0.3.2 = Genymotion
-                    return "192.168.1.7" /*, "192.168.0.202"*/;
+                    return "192.168.1.6" /*, "192.168.0.202"*/;
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
                 {
-                    // iOS simulator can reach host via localhost; real devices via LAN IPs
-                    return "192.168.1.7";
+                    return "192.168.1.6";
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.WinUI || DeviceInfo.Platform == DevicePlatform.macOS || DeviceInfo.Platform == DevicePlatform.MacCatalyst)
                 {
-                    return "192.168.1.7";
+                    return "192.168.1.6";
                 }
             }
             catch
@@ -230,12 +226,6 @@ namespace Coftea_Capstone.Models
                     CONSTRAINT fk_tx_items_product FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
                 );
                 
-                -- Update existing columns to have better precision
-                ALTER TABLE product_addons 
-                MODIFY COLUMN amount DECIMAL(10,4) NOT NULL;
-                ALTER TABLE product_ingredients
-                MODIFY COLUMN amount DECIMAL(10,4) NOT NULL;
-                
                 CREATE TABLE IF NOT EXISTS pending_registrations (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     email VARCHAR(255) NOT NULL,
@@ -252,23 +242,6 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(createTablesSql, conn);
             await cmd.ExecuteNonQueryAsync();
 
-            // Add per-size columns to product_ingredients (idempotent – ignore if already exist)
-            try
-            {
-                var alterPerSize = @"ALTER TABLE product_ingredients
-                    ADD COLUMN amount_small  DECIMAL(10,4) NULL AFTER amount,
-                    ADD COLUMN unit_small    VARCHAR(50)   NULL AFTER amount_small,
-                    ADD COLUMN amount_medium DECIMAL(10,4) NULL AFTER unit_small,
-                    ADD COLUMN unit_medium   VARCHAR(50)   NULL AFTER amount_medium,
-                    ADD COLUMN amount_large  DECIMAL(10,4) NULL AFTER unit_medium,
-                    ADD COLUMN unit_large    VARCHAR(50)   NULL AFTER amount_large;";
-                await using var alterCmd = new MySqlCommand(alterPerSize, conn);
-                await alterCmd.ExecuteNonQueryAsync();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Per-size columns already exist or failed to add: {ex.Message}");
-            }
 
             // Ensure at least one user exists to prevent foreign key constraint errors
             await EnsureDefaultUserExistsAsync(conn);
@@ -291,19 +264,15 @@ namespace Coftea_Capstone.Models
 
             await using var seedCmd = new MySqlCommand(seedSql, conn);
             await seedCmd.ExecuteNonQueryAsync();
-
-            // Legacy Fruit/Soda UoM fix removed; units should be set correctly at source.
         }
 
-        // ===================== Shared DB Helpers =====================
-        // Shared DB helpers to reduce redundancy
-        private static object DbValue(object? value)
-		{
+        private static object DbValue(object? value) // Handles null values for database parameters
+        {
 			return value ?? DBNull.Value;
 		}
 
-		private static void AddParameters(MySqlCommand cmd, IDictionary<string, object?>? parameters)
-		{
+		private static void AddParameters(MySqlCommand cmd, IDictionary<string, object?>? parameters) // Adds parameters to a MySQL command
+        {
 			if (parameters == null) return;
 			foreach (var kvp in parameters)
 			{
@@ -311,26 +280,19 @@ namespace Coftea_Capstone.Models
 			}
 		}
 
-		private async Task<int> ExecuteNonQueryAsync(string sql, IDictionary<string, object?>? parameters = null, CancellationToken cancellationToken = default)
-		{
+		private async Task<int> ExecuteNonQueryAsync(string sql, IDictionary<string, 
+                                                     object?>? parameters = null, CancellationToken cancellationToken = default) // Executes a non-query SQL command
+        {
 			await using var conn = await GetOpenConnectionAsync(cancellationToken);
 			await using var cmd = new MySqlCommand(sql, conn);
 			AddParameters(cmd, parameters);
 			return await cmd.ExecuteNonQueryAsync(cancellationToken);
 		}
 
-		private async Task<T?> ExecuteScalarAsync<T>(string sql, IDictionary<string, object?>? parameters = null, CancellationToken cancellationToken = default)
-		{
-			await using var conn = await GetOpenConnectionAsync(cancellationToken);
-			await using var cmd = new MySqlCommand(sql, conn);
-			AddParameters(cmd, parameters);
-			var result = await cmd.ExecuteScalarAsync(cancellationToken);
-			if (result == null || result is DBNull) return default;
-			return (T)Convert.ChangeType(result, typeof(T));
-		}
-
-		private async Task<List<T>> QueryAsync<T>(string sql, Func<MySqlDataReader, T> map, IDictionary<string, object?>? parameters = null, CancellationToken cancellationToken = default)
-		{
+		private async Task<List<T>> QueryAsync<T>(string sql, Func<MySqlDataReader, T> map, 
+                                                  IDictionary<string, object?>? parameters = null, 
+                                                  CancellationToken cancellationToken = default) // Executes a query and maps the results to a list of type T
+        {
 			await using var conn = await GetOpenConnectionAsync(cancellationToken);
 			await using var cmd = new MySqlCommand(sql, conn);
 			AddParameters(cmd, parameters);
@@ -342,12 +304,11 @@ namespace Coftea_Capstone.Models
 			}
 			return list;
 		}
-        // ===================== POS =====================
 
-        // ===================== POS =====================
+        // ===================== POS =====================        
         // POS Database
-		public async Task<List<POSPageModel>> GetProductsAsync()
-		{
+		public async Task<List<POSPageModel>> GetProductsAsync() // Gets all products from the database
+        {
 			var sql = "SELECT * FROM products;";
 			return await QueryAsync(sql, reader => new POSPageModel
 			{
@@ -363,9 +324,8 @@ namespace Coftea_Capstone.Models
 				ColorCode = reader.IsDBNull(reader.GetOrdinal("colorCode")) ? "" : reader.GetString("colorCode")
 			});
 		}
-
-		public async Task<List<POSPageModel>> GetProductsAsyncCached()
-		{
+		public async Task<List<POSPageModel>> GetProductsAsyncCached() // Gets all products with caching
+        {
 			if (_productsCache.HasValue && IsFresh(_productsCache.Value.ts))
 				return _productsCache.Value.items;
 
@@ -385,8 +345,8 @@ namespace Coftea_Capstone.Models
                                         pi.amount_large, pi.unit_large,
                                         i.itemID, i.itemName, i.itemQuantity, i.itemCategory, i.imageSet,
                                         i.itemDescription, i.unitOfMeasurement, i.minimumQuantity, i.maximumQuantity
-                                   FROM product_ingredients pi
-                                   JOIN inventory i ON i.itemID = pi.itemID
+                                  FROM product_ingredients pi
+                                  JOIN inventory i ON i.itemID = pi.itemID
                                   WHERE pi.productID = @ProductID";
 
             await using var cmd = new MySqlCommand(sql, conn);
@@ -443,16 +403,6 @@ namespace Coftea_Capstone.Models
             return results;
         }
 
-		public async Task<List<(InventoryPageModel item, double amount, string unit, string role)>> GetProductIngredientsAsyncCached(int productId)
-		{
-			if (_productIngredientsCache.TryGetValue(productId, out var cache) && IsFresh(cache.ts))
-				return cache.items;
-
-			var items = await GetProductIngredientsAsync(productId);
-			_productIngredientsCache[productId] = (DateTime.UtcNow, items);
-			return items;
-		}
-
         // Get add-ons (linked inventory items) for a product from product_addons
         public async Task<List<InventoryPageModel>> GetProductAddonsAsync(int productId)
         {
@@ -472,7 +422,7 @@ namespace Coftea_Capstone.Models
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                var item = new InventoryPageModel
+                var item = new InventoryPageModel 
                 {
                     itemID = reader.GetInt32("itemID"),
                     itemName = reader.GetString("itemName"),
@@ -506,21 +456,10 @@ namespace Coftea_Capstone.Models
 
                 results.Add(item);
             }
-
             return results;
         }
 
-		public async Task<List<InventoryPageModel>> GetProductAddonsAsyncCached(int productId)
-		{
-			if (_productAddonsCache.TryGetValue(productId, out var cache) && IsFresh(cache.ts))
-				return cache.items;
-
-			var items = await GetProductAddonsAsync(productId);
-			_productAddonsCache[productId] = (DateTime.UtcNow, items);
-			return items;
-		}
-
-        public async Task<int> SaveProductAsync(POSPageModel product)
+        public async Task<int> SaveProductAsync(POSPageModel product) // Saves a new product to the database
         {
             await using var conn = await GetOpenConnectionAsync();
 
@@ -584,10 +523,8 @@ namespace Coftea_Capstone.Models
             int total = 0;
             try
             {
-                System.Diagnostics.Debug.WriteLine($"Saving product links for productId={productId}");
                 var ingredientList = ingredients?.ToList() ?? new List<(int inventoryItemId, double amount, string? unit)>();
                 var addonList = addons?.ToList() ?? new List<(int inventoryItemId, double amount, string? unit, decimal addonPrice)>();
-                System.Diagnostics.Debug.WriteLine($"Ingredients to save: {ingredientList.Count}, Addons to save: {addonList.Count}");
 
                 // Clear previous links
                 await using (var clearIngCmd = new MySqlCommand(sqlClearIngredients, conn, (MySqlTransaction)tx))
@@ -617,13 +554,10 @@ namespace Coftea_Capstone.Models
                     cmd.Parameters.AddWithValue("@UnitL", (object?)link.unit ?? DBNull.Value);
                     var affected = await cmd.ExecuteNonQueryAsync();
                     total += affected;
-                    System.Diagnostics.Debug.WriteLine($"Inserted ingredient link itemId={link.inventoryItemId}, amount={link.amount}, unit={link.unit} → rows={affected}");
                 }
 
                 foreach (var link in addonList)
                 {
-                    System.Diagnostics.Debug.WriteLine($"💾 Saving addon to database: itemId={link.inventoryItemId}, amount={link.amount}, unit='{link.unit}', price={link.addonPrice}");
-                    System.Diagnostics.Debug.WriteLine($"💾 Raw values: amount={link.amount} (type: {link.amount.GetType()}), unit='{link.unit}'");
                     await using var cmd = new MySqlCommand(sqlAddons, conn, (MySqlTransaction)tx);
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
@@ -632,12 +566,10 @@ namespace Coftea_Capstone.Models
                     cmd.Parameters.AddWithValue("@AddonPrice", link.addonPrice);
                     var affected = await cmd.ExecuteNonQueryAsync();
                     total += affected;
-                    System.Diagnostics.Debug.WriteLine($"Upserted addon link itemId={link.inventoryItemId}, amount={link.amount}, unit={link.unit}, price={link.addonPrice} → rows={affected}");
                 }
 
                 await tx.CommitAsync();
                 InvalidateProductLinksCache(productId);
-                System.Diagnostics.Debug.WriteLine($"Finished saving links. Total affected rows={total}");
                 return total;
             }
             catch
@@ -713,7 +645,7 @@ namespace Coftea_Capstone.Models
                 throw;
             }
         }
-        public async Task<POSPageModel?> GetProductByNameAsync(string name)
+        public async Task<POSPageModel?> GetProductByNameAsync(string name) // Gets a product by name from the database
         {
             await using var conn = await GetOpenConnectionAsync();
             var sql = "SELECT * FROM products WHERE productName = @Name LIMIT 1;";
@@ -738,13 +670,13 @@ namespace Coftea_Capstone.Models
             return null;
         }
 
-		public async Task<POSPageModel?> GetProductByNameAsyncCached(string name)
-		{
+		public async Task<POSPageModel?> GetProductByNameAsyncCached(string name) // Gets a product by name with caching
+        {
 			var list = await GetProductsAsyncCached();
 			return list.FirstOrDefault(p => string.Equals(p.ProductName?.Trim(), name?.Trim(), StringComparison.OrdinalIgnoreCase));
 		}
 
-        public async Task<POSPageModel?> GetProductByIdAsync(int productId)
+        public async Task<POSPageModel?> GetProductByIdAsync(int productId) // Gets a product by ID from the database
         {
             await using var conn = await GetOpenConnectionAsync();
             var sql = "SELECT * FROM products WHERE productID = @Id LIMIT 1;";
@@ -769,7 +701,7 @@ namespace Coftea_Capstone.Models
             return null;
         }
 
-        public async Task<int> UpdateProductAsync(POSPageModel product)
+        public async Task<int> UpdateProductAsync(POSPageModel product) // Updates the product details 
         {
             await using var conn = await GetOpenConnectionAsync();
 
@@ -793,7 +725,7 @@ namespace Coftea_Capstone.Models
             return rows;
         }
 
-        public async Task<int> DeleteProductAsync(int productId)
+        public async Task<int> DeleteProductAsync(int productId) // Deletes a product from the database
         {
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
@@ -822,18 +754,17 @@ namespace Coftea_Capstone.Models
                 InvalidateProductLinksCache(productId);
                 return rows;
             }
-            catch (Exception ex)
+            catch
             {
                 await tx.RollbackAsync();
-                System.Diagnostics.Debug.WriteLine($"Error deleting product: {ex.Message}");
                 throw;
             }
         }
 
         // ===================== Inventory =====================
         // Inventory Database Methods
-		public async Task<List<InventoryPageModel>> GetInventoryItemsAsync()
-		{
+		public async Task<List<InventoryPageModel>> GetInventoryItemsAsync() // Gets all inventory items from the database
+        {
 			var sql = "SELECT * FROM inventory;";
 			return await QueryAsync(sql, reader => new InventoryPageModel
 			{
@@ -848,9 +779,8 @@ namespace Coftea_Capstone.Models
 				maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
 			});
 		}
-
-		private static bool HasColumn(System.Data.Common.DbDataReader reader, string columnName)
-		{
+		private static bool HasColumn(System.Data.Common.DbDataReader reader, string columnName) // Checks if a column exists in the data reader
+        {
 			try
 			{
 				return reader.GetOrdinal(columnName) >= 0;
@@ -861,8 +791,8 @@ namespace Coftea_Capstone.Models
 			}
 		}
 
-		public async Task<List<InventoryPageModel>> GetInventoryItemsAsyncCached()
-		{
+		public async Task<List<InventoryPageModel>> GetInventoryItemsAsyncCached() // Gets all inventory items with caching
+        {
 			if (_inventoryCache.HasValue && IsFresh(_inventoryCache.Value.ts))
 				return _inventoryCache.Value.items;
 
@@ -871,7 +801,7 @@ namespace Coftea_Capstone.Models
 			return items;
 		}
 
-        public async Task<InventoryPageModel?> GetInventoryItemByIdAsync(int itemId)
+        public async Task<InventoryPageModel?> GetInventoryItemByIdAsync(int itemId) // Gets an inventory item by ID from the database
         {
             await using var conn = await GetOpenConnectionAsync();
 
@@ -898,7 +828,7 @@ namespace Coftea_Capstone.Models
             return null;
         }
 
-        public async Task<InventoryPageModel?> GetInventoryItemByNameAsync(string itemName)
+        public async Task<InventoryPageModel?> GetInventoryItemByNameAsync(string itemName) // Gets an inventory item by name from the database
         {
             await using var conn = await GetOpenConnectionAsync();
 
@@ -924,15 +854,14 @@ namespace Coftea_Capstone.Models
             }
             return null;
         }
-
-		public async Task<InventoryPageModel?> GetInventoryItemByNameCachedAsync(string itemName)
-		{
+		public async Task<InventoryPageModel?> GetInventoryItemByNameCachedAsync(string itemName) // Gets an inventory item by name with caching
+        {
 			var list = await GetInventoryItemsAsyncCached();
 			return list.FirstOrDefault(i => string.Equals(i.itemName?.Trim(), itemName?.Trim(), StringComparison.OrdinalIgnoreCase));
 		}
 
         // Deduct inventory quantities by item name and amount
-        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions)
+        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions) // Deducts inventory quantities
         {
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
@@ -959,8 +888,7 @@ namespace Coftea_Capstone.Models
                 throw;
             }
         }
-
-        public async Task<int> SaveInventoryItemAsync(InventoryPageModel inventory)
+        public async Task<int> SaveInventoryItemAsync(InventoryPageModel inventory) // Saves a new inventory item to the database
         {
             await using var conn = await GetOpenConnectionAsync();
 
@@ -988,7 +916,65 @@ namespace Coftea_Capstone.Models
             return rows;
         }
 
-        private string GetDefaultUnitForCategory(string category)
+        public async Task<int> UpdateInventoryItemAsync(InventoryPageModel inventory) // Updates an existing inventory item in the database
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "UPDATE inventory SET itemName = @ItemName, itemQuantity = @ItemQuantity, itemCategory = @ItemCategory, " +
+                      "imageSet = @ImageSet, itemDescription = @ItemDescription, unitOfMeasurement = @UnitOfMeasurement, " +
+                      "minimumQuantity = @MinimumQuantity, maximumQuantity = @MaximumQuantity WHERE itemID = @ItemID;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ItemID", inventory.itemID);
+            cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
+            cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
+            cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
+            cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
+            cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
+            cmd.Parameters.AddWithValue("@MaximumQuantity", inventory.maximumQuantity);
+
+            var rows = await cmd.ExecuteNonQueryAsync();
+            InvalidateInventoryCache();
+            return rows;
+        }
+
+        public async Task<int> DeleteInventoryItemAsync(int itemId) // Deletes an inventory item from the database
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            try
+            {
+                // Ensure the item exists
+                var checkSql = "SELECT COUNT(*) FROM inventory WHERE itemID = @ItemID;";
+                await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
+                checkCmd.Parameters.AddWithValue("@ItemID", itemId);
+                var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+                if (exists == 0)
+                {
+                    await tx.RollbackAsync();
+                    return 0;
+                }
+
+                // Let FK cascades handle link cleanup; just delete the inventory row
+                var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
+                await using var cmd = new MySqlCommand(sql, conn, tx);
+                cmd.Parameters.AddWithValue("@ItemID", itemId);
+                var rows = await cmd.ExecuteNonQueryAsync();
+
+                await tx.CommitAsync();
+                InvalidateInventoryCache();
+                return rows;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        private string GetDefaultUnitForCategory(string category) // Determines default unit of measurement based on category
         {
             return category?.ToLowerInvariant() switch
             {
@@ -1003,10 +989,8 @@ namespace Coftea_Capstone.Models
         }
 
         // ===================== Sales Report =====================
-        public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction)
+        public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction) // Saves a transaction to the database
         {
-            System.Diagnostics.Debug.WriteLine($"💾 SaveTransactionAsync called for: {transaction.DrinkName}, Total: {transaction.Total}");
-            
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
@@ -1014,7 +998,6 @@ namespace Coftea_Capstone.Models
             {
                 // Get current user ID with proper validation
                 int userId = await GetValidUserIdAsync(conn, tx);
-                System.Diagnostics.Debug.WriteLine($"👤 Using user ID: {userId}");
                 
                 // Insert into transactions table
                 var transactionSql = "INSERT INTO transactions (userID, total, transactionDate, status, paymentMethod) VALUES (@UserID, @Total, @TransactionDate, @Status, @PaymentMethod);";
@@ -1027,7 +1010,6 @@ namespace Coftea_Capstone.Models
 
                 await transactionCmd.ExecuteNonQueryAsync();
                 int transactionId = (int)transactionCmd.LastInsertedId;
-                System.Diagnostics.Debug.WriteLine($"✅ Transaction saved with ID: {transactionId}");
 
                 // Find product ID by name (safer than using hardcoded ID)
                 int productId = await GetProductIdByNameAsync(transaction.DrinkName, conn, (MySqlTransaction)tx);
@@ -1044,7 +1026,6 @@ namespace Coftea_Capstone.Models
                 itemCmd.Parameters.AddWithValue("@MediumPrice", transaction.MediumPrice);
                 itemCmd.Parameters.AddWithValue("@LargePrice", transaction.LargePrice);
                 itemCmd.Parameters.AddWithValue("@AddonPrice", transaction.AddonPrice);
-                System.Diagnostics.Debug.WriteLine($"💾 Saving AddOns to database: '{transaction.AddOns}'");
                 itemCmd.Parameters.AddWithValue("@AddOns", transaction.AddOns ?? "");
                 itemCmd.Parameters.AddWithValue("@Size", transaction.Size ?? "");
 
@@ -1053,22 +1034,19 @@ namespace Coftea_Capstone.Models
                 await tx.CommitAsync();
                 return transactionId;
             }
-            catch (Exception ex)
+            catch
             {
                 await tx.RollbackAsync();
-                System.Diagnostics.Debug.WriteLine($"Transaction save error: {ex.Message}");
                 throw;
             }
         }
 
-        private async Task<int> GetValidUserIdAsync(MySqlConnection conn, MySqlTransaction tx)
+        private async Task<int> GetValidUserIdAsync(MySqlConnection conn, MySqlTransaction tx) // Gets a valid user ID for transactions
         {
             try
             {
-                // First, try to use the current user's ID if available
                 if (App.CurrentUser?.ID > 0)
                 {
-                    // Verify the user exists in the database
                     var checkSql = "SELECT id FROM users WHERE id = @UserId LIMIT 1;";
                     await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
                     checkCmd.Parameters.AddWithValue("@UserId", App.CurrentUser.ID);
@@ -1076,44 +1054,27 @@ namespace Coftea_Capstone.Models
                     var result = await checkCmd.ExecuteScalarAsync();
                     if (result != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"✅ Using current user ID: {App.CurrentUser.ID}");
                         return App.CurrentUser.ID;
                     }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"⚠️ Current user ID {App.CurrentUser.ID} not found in database");
-                    }
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ App.CurrentUser is null or has invalid ID");
-                }
-
-                // Fallback: Get the first available user ID
                 var fallbackSql = "SELECT id FROM users WHERE status = 'approved' ORDER BY id ASC LIMIT 1;";
                 await using var fallbackCmd = new MySqlCommand(fallbackSql, conn, tx);
                 var fallbackResult = await fallbackCmd.ExecuteScalarAsync();
                 
                 if (fallbackResult != null)
                 {
-                    int fallbackUserId = Convert.ToInt32(fallbackResult);
-                    System.Diagnostics.Debug.WriteLine($"✅ Using fallback user ID: {fallbackUserId}");
-                    return fallbackUserId;
+                    return Convert.ToInt32(fallbackResult);
                 }
 
-                // Last resort: Do NOT create a seed/default user; return 0 to save transaction with NULL userID
-                System.Diagnostics.Debug.WriteLine($"⚠️ No users found, not creating default system user");
                 return 0;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error getting valid user ID: {ex.Message}");
-                // Return 1 as absolute fallback (will be handled by foreign key constraint)
                 return 1;
             }
         }
 
-        private async Task EnsureDefaultUserExistsAsync(MySqlConnection conn)
+        private async Task EnsureDefaultUserExistsAsync(MySqlConnection conn) // Ensures at least one user exists in the database
         {
             try
             {
@@ -1122,19 +1083,10 @@ namespace Coftea_Capstone.Models
                 await using var checkCmd = new MySqlCommand(checkSql, conn);
                 var userCount = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
                 
-                // Never create default users automatically. First registration becomes admin elsewhere
-                if (userCount == 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ No users found, not creating default admin user - waiting for first registration");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"✅ Found {userCount} existing users");
-                }
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error ensuring default user exists: {ex.Message}");
+                // Silently handle errors
             }
         }
 
@@ -1149,9 +1101,8 @@ namespace Coftea_Capstone.Models
                 var result = await cmd.ExecuteScalarAsync();
                 return result != null ? Convert.ToInt32(result) : 0;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Error getting product ID: {ex.Message}");
                 return 0;
             }
         }
@@ -1275,65 +1226,6 @@ namespace Coftea_Capstone.Models
             }
 
             return results;
-        }
-
-        public async Task<int> UpdateInventoryItemAsync(InventoryPageModel inventory)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-
-            var sql = "UPDATE inventory SET itemName = @ItemName, itemQuantity = @ItemQuantity, itemCategory = @ItemCategory, " +
-                      "imageSet = @ImageSet, itemDescription = @ItemDescription, unitOfMeasurement = @UnitOfMeasurement, " +
-                      "minimumQuantity = @MinimumQuantity, maximumQuantity = @MaximumQuantity WHERE itemID = @ItemID;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@ItemID", inventory.itemID);
-            cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
-            cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
-            cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
-            cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
-            cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
-            cmd.Parameters.AddWithValue("@MaximumQuantity", inventory.maximumQuantity);
-
-            var rows = await cmd.ExecuteNonQueryAsync();
-            InvalidateInventoryCache();
-            return rows;
-        }
-
-        public async Task<int> DeleteInventoryItemAsync(int itemId)
-        {
-            await using var conn = await GetOpenConnectionAsync();
-            await using var tx = await conn.BeginTransactionAsync();
-
-            try
-            {
-                // Ensure the item exists
-                var checkSql = "SELECT COUNT(*) FROM inventory WHERE itemID = @ItemID;";
-                await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
-                checkCmd.Parameters.AddWithValue("@ItemID", itemId);
-                var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
-                if (exists == 0)
-                {
-                    await tx.RollbackAsync();
-                    return 0;
-                }
-
-                // Let FK cascades handle link cleanup; just delete the inventory row
-                var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
-                await using var cmd = new MySqlCommand(sql, conn, tx);
-                cmd.Parameters.AddWithValue("@ItemID", itemId);
-                var rows = await cmd.ExecuteNonQueryAsync();
-
-                await tx.CommitAsync();
-                InvalidateInventoryCache();
-                return rows;
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                System.Diagnostics.Debug.WriteLine($"Error deleting inventory item: {ex.Message}");
-                throw;
-            }
         }
 
         // ===================== User Management =====================
@@ -1551,11 +1443,7 @@ namespace Coftea_Capstone.Models
             var resetToken = rng.Next(100000, 999999).ToString();
             var resetExpiry = DateTime.UtcNow.AddHours(1); // Token expires in 1 hour (using UTC)
 
-            System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Generated token: '{resetToken}' (Length: {resetToken.Length})");
-            System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Token expiry set to: {resetExpiry}");
-
             reader.Close();
-
 
             // Update user with reset token
             var updateSql = "UPDATE users SET reset_token = @ResetToken, reset_expiry = @ResetExpiry WHERE email = @Email;";
@@ -1565,21 +1453,6 @@ namespace Coftea_Capstone.Models
             updateCmd.Parameters.AddWithValue("@Email", email);
 
             int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
-            System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Database update affected {rowsAffected} rows");
-            
-            // Verify what was actually stored
-            var verifySql = "SELECT reset_token, reset_expiry FROM users WHERE email = @Email LIMIT 1;";
-            await using var verifyCmd = new MySqlCommand(verifySql, conn);
-            verifyCmd.Parameters.AddWithValue("@Email", email);
-            await using var verifyReader = await verifyCmd.ExecuteReaderAsync();
-            if (await verifyReader.ReadAsync())
-            {
-                var storedToken = verifyReader.IsDBNull(0) ? null : verifyReader.GetString(0);
-                var storedExpiry = verifyReader.IsDBNull(1) ? (DateTime?)null : verifyReader.GetDateTime(1);
-                System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Verified stored token: '{storedToken}' (Length: {storedToken?.Length})");
-                System.Diagnostics.Debug.WriteLine($"[RequestPasswordReset] Verified stored expiry: {storedExpiry}");
-            }
-            
             return rowsAffected > 0 ? resetToken : null;
         }
     
@@ -1587,31 +1460,6 @@ namespace Coftea_Capstone.Models
         public async Task<bool> ResetPasswordAsync(string email, string newPassword, string resetToken)
         {
             await using var conn = await GetOpenConnectionAsync();
-
-            System.Diagnostics.Debug.WriteLine($"[ResetPassword] Attempting password reset for email: {email}");
-            System.Diagnostics.Debug.WriteLine($"[ResetPassword] Provided reset token: '{resetToken}' (Length: {resetToken?.Length})");
-
-            // First, let's check what token is stored in the database
-            var checkSql = "SELECT reset_token, reset_expiry FROM users WHERE email = @Email LIMIT 1;";
-            await using var checkCmd = new MySqlCommand(checkSql, conn);
-            checkCmd.Parameters.AddWithValue("@Email", email);
-            
-            await using var checkReader = await checkCmd.ExecuteReaderAsync();
-            if (await checkReader.ReadAsync())
-            {
-                var storedToken = checkReader.IsDBNull(0) ? null : checkReader.GetString(0);
-                var storedExpiry = checkReader.IsDBNull(1) ? (DateTime?)null : checkReader.GetDateTime(1);
-                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Stored token in DB: '{storedToken}' (Length: {storedToken?.Length})");
-                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token expiry: {storedExpiry}");
-                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Current time (UTC): {DateTime.UtcNow}");
-                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token expired: {storedExpiry.HasValue && storedExpiry.Value < DateTime.UtcNow}");
-                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Tokens match: {storedToken == resetToken}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"[ResetPassword] No user found with email: {email}");
-            }
-            checkReader.Close();
 
             // Verify token and expiry (using UTC time)
             var sql = "SELECT * FROM users WHERE email = @Email AND reset_token = @ResetToken AND reset_expiry > UTC_TIMESTAMP() LIMIT 1;";
@@ -1622,11 +1470,8 @@ namespace Coftea_Capstone.Models
             await using var reader = await cmd.ExecuteReaderAsync();
             if (!await reader.ReadAsync())
             {
-                System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token verification failed - no matching record found");
                 return false; // Invalid or expired token
             }
-
-            System.Diagnostics.Debug.WriteLine($"[ResetPassword] Token verified successfully, proceeding with password reset");
 
             reader.Close();
 
@@ -1661,9 +1506,8 @@ namespace Coftea_Capstone.Models
                 var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 return count > 0;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Error checking product dependencies: {ex.Message}");
                 return false;
             }
         }
@@ -1686,9 +1530,8 @@ namespace Coftea_Capstone.Models
                 var count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 return count > 0;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Error checking inventory dependencies: {ex.Message}");
                 return false;
             }
         }
@@ -1718,15 +1561,8 @@ namespace Coftea_Capstone.Models
         // Update existing users to approved status
         public async Task UpdateExistingUsersToApprovedAsync()
         {
-            await using var conn = await GetOpenConnectionAsync();
-            
-            // This method can be used to update user statuses or other initialization tasks
-            // For now, it's a placeholder for future user management features
-            var sql = "SELECT COUNT(*) FROM users;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            var userCount = await cmd.ExecuteScalarAsync();
-            
-            System.Diagnostics.Debug.WriteLine($"Database initialized with {userCount} users.");
+            // Placeholder for future user management features
+            await Task.CompletedTask;
         }
         
 

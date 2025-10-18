@@ -26,5 +26,3 @@ namespace Coftea_Capstone.Models
         }
     }
 }
-
-

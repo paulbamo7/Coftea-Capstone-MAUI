@@ -1,6 +1,7 @@
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Views.Controls;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -11,6 +12,9 @@ public partial class SalesReport : ContentPage
 	public SalesReport()
 	{
 		InitializeComponent();
+		
+		// Update navigation state for indicator
+		Appearing += (_, __) => NavigationStateService.SetCurrentPageType(typeof(SalesReport));
 		
 		// Use shared SalesReportVM from App to prevent memory leaks
 		var app = (App)Application.Current;

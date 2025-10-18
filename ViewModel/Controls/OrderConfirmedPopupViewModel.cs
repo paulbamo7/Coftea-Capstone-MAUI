@@ -22,7 +22,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         private CancellationTokenSource _hideCancellationTokenSource;
 
-        public async Task ShowOrderConfirmationAsync(string orderId, decimal total, string paymentMethod)
+        public async Task ShowOrderConfirmationAsync(string orderId, decimal total, string paymentMethod) // Show order confirmed popup
         {
             // Cancel any existing hide operation
             _hideCancellationTokenSource?.Cancel();
@@ -58,19 +58,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                     // Animation was cancelled, do nothing
                 }
             });
-        }
-
-        private async Task AnimateOpacity(double from, double to, uint duration)
-        {
-            // No animation
-            Opacity = to;
-        }
-
-        public void HideImmediately()
-        {
-            _hideCancellationTokenSource?.Cancel();
-            IsVisible = false;
-            Opacity = 0;
         }
     }
 }

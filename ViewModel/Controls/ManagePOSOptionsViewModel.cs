@@ -28,7 +28,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void AddItem()
+        private void AddItem() // Open Add Item to POS popup
         {
             IsPOSManagementPopupVisible = false;
             if (_addItemToPOSViewModel != null)
@@ -38,21 +38,21 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task EditItem()
+        private async Task EditItem() // Open Edit Product popup
         {
             IsPOSManagementPopupVisible = false;
             await _editProductPopupViewModel.ShowEditProductPopup();
         }
 
         [RelayCommand]
-        private void DeleteItem()
+        private void DeleteItem() // Close the popup
         {
             IsPOSManagementPopupVisible = false;
 
         }
 
         [RelayCommand]
-        private void ClosePOSManagementPopup()
+        private void ClosePOSManagementPopup() // Close the popup
         {
             IsPOSManagementPopupVisible = false;
         }

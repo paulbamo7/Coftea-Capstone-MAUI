@@ -43,7 +43,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task LoadProductsAsync()
+        private async Task LoadProductsAsync() // Load products from database
         {
             IsLoading = true;
             StatusMessage = "Loading products...";
@@ -73,7 +73,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void EditProduct(POSPageModel product)
+        private void EditProduct(POSPageModel product) // Open edit popup for selected product
         {
             if (product == null) return;
 
@@ -86,7 +86,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void FilterByCategory(string category)
+        private void FilterByCategory(string category) // Filter products by category
         {
             SelectedCategory = category;
             
@@ -112,7 +112,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task DeleteProduct(POSPageModel product)
+        private async Task DeleteProduct(POSPageModel product) // Delete selected product
         {
             if (product == null) return;
 
@@ -171,12 +171,12 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void CloseEditProductPopup()
+        private void CloseEditProductPopup() // Close the edit product popup
         {
             IsEditProductPopupVisible = false;
         }
 
-        public async Task ShowEditProductPopup()
+        public async Task ShowEditProductPopup() // Show the edit product popup
         {
             IsEditProductPopupVisible = true;
             await LoadProductsAsync();

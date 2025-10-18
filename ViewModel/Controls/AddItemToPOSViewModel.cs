@@ -25,13 +25,14 @@ namespace Coftea_Capstone.ViewModel
         private string selectedImagePath;
 
         [ObservableProperty]
-        private ImageSource selectedImageSource;
+        private ImageSource selectedImageSource; 
+
         [ObservableProperty]
         private bool isConnectPOSToInventoryVisible = false;
 
         private readonly Database _database;
 
-        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string>
+        public ObservableCollection<string> Categories { get; set; } = new ObservableCollection<string> // Predefined categories
         {
             "Frappe",
             "Fruit/Soda",
@@ -42,24 +43,24 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedCategory;
 
-        public ObservableCollection<string> FruitSodaSubcategories { get; } = new ObservableCollection<string>
+        public ObservableCollection<string> FruitSodaSubcategories { get; } = new ObservableCollection<string> // Predefined subcategories for Fruit/Soda
         {
             "Fruit",
             "Soda"
         };
 
-        public ObservableCollection<string> CoffeeSubcategories { get; } = new ObservableCollection<string>
+        public ObservableCollection<string> CoffeeSubcategories { get; } = new ObservableCollection<string> // Predefined subcategories for Coffee
         {
             "Americano",
             "Latte"
         };
 
         [ObservableProperty]
-        private string selectedSubcategory;
+        private string selectedSubcategory; 
 
-        public bool IsFruitSodaSubcategoryVisible => string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase);
-        
-        public bool IsCoffeeSubcategoryVisible => string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
+        public bool IsFruitSodaSubcategoryVisible => string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase); // Show when Fruit/Soda is selected
+
+        public bool IsCoffeeSubcategoryVisible => string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase); // Show when Coffee is selected
 
         // Pricing field visibility properties
         public bool IsSmallPriceVisible => string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
@@ -68,14 +69,14 @@ namespace Coftea_Capstone.ViewModel
         
         public bool IsLargePriceVisible => true; // Always visible
 
-        public string EffectiveCategory =>
+        public string EffectiveCategory => 
             string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase)
                 ? (string.IsNullOrWhiteSpace(SelectedSubcategory) ? null : SelectedSubcategory)
                 : string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase)
                     ? (string.IsNullOrWhiteSpace(SelectedSubcategory) ? null : SelectedSubcategory)
-                    : SelectedCategory;
+                    : SelectedCategory; // Use Subcategory for Fruit/Soda and Coffee, else Category
 
-        partial void OnSelectedCategoryChanged(string value)
+        partial void OnSelectedCategoryChanged(string value) // Handle category changes
         {
             // Notify visibility change for subcategory UI
             OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
@@ -126,9 +127,9 @@ namespace Coftea_Capstone.ViewModel
         public event Action<POSPageModel> ProductAdded;
         public event Action<POSPageModel> ProductUpdated;
 
-        public AddItemToPOSViewModel()
+        public AddItemToPOSViewModel() 
         {
-            _database = new Database(); // Will use auto-detected host
+            _database = new Database();
 
             IsAddItemToPOSVisible = false;
             IsConnectPOSToInventoryVisible = false;
@@ -145,169 +146,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void CloseAddItemToPOS()
-        {
-            IsAddItemToPOSVisible = false;
-            IsEditMode = false;
-            ProductName = string.Empty;
-            SmallPrice = string.Empty;
-            MediumPrice = string.Empty;
-            LargePrice = string.Empty;
-            SelectedCategory = string.Empty;
-            SelectedSubcategory = null;
-            ImagePath = string.Empty;
-            SelectedImageSource = null;
-            ProductDescription = string.Empty;
-            EditingProductId = 0;
-        }
-
-        public void SetEditMode(POSPageModel product)
-        {
-            IsEditMode = true;
-            EditingProductId = product.ProductID;
-            ProductName = product.ProductName;
-            SmallPrice = product.SmallPrice > 0 ? product.SmallPrice.ToString() : string.Empty;
-            MediumPrice = product.MediumPrice > 0 ? product.MediumPrice.ToString() : string.Empty;
-            LargePrice = product.LargePrice > 0 ? product.LargePrice.ToString() : string.Empty;
-            ImagePath = product.ImageSet;
-            SelectedImageSource = !string.IsNullOrEmpty(product.ImageSet) ? ImageSource.FromFile(product.ImageSet) : null;
-            ProductDescription = product.ProductDescription ?? string.Empty;
-
-            // Set category and subcategory based on the product's data (prefer Subcategory when present)
-            if (!string.IsNullOrEmpty(product.Subcategory))
-            {
-                if (product.Subcategory == "Fruit" || product.Subcategory == "Soda")
-                {
-                    SelectedCategory = "Fruit/Soda";
-                    SelectedSubcategory = product.Subcategory;
-                }
-                else if (product.Subcategory == "Americano" || product.Subcategory == "Latte")
-                {
-                    SelectedCategory = "Coffee";
-                    SelectedSubcategory = product.Subcategory;
-                }
-                else
-                {
-                    SelectedCategory = product.Category;
-                    SelectedSubcategory = product.Subcategory;
-                }
-            }
-            else if (!string.IsNullOrEmpty(product.Category))
-            {
-                // No explicit subcategory saved; infer from category if possible
-                if (product.Category == "Fruit" || product.Category == "Soda")
-                {
-                    SelectedCategory = "Fruit/Soda";
-                    SelectedSubcategory = product.Category;
-                }
-                else if (product.Category == "Americano" || product.Category == "Latte")
-                {
-                    SelectedCategory = "Coffee";
-                    SelectedSubcategory = product.Category;
-                }
-                else
-                {
-                    SelectedCategory = product.Category;
-                    SelectedSubcategory = null;
-                }
-            }
-            // Preload existing linked ingredients and mark them selected
-            _ = PreloadLinkedIngredientsAsync(product.ProductID);
-        }
-
-        // Helper to show the AddItemToPOS overlay when returning from child popups
-        public void SetIsAddItemToPOSVisibleTrue()
-        {
-            IsAddItemToPOSVisible = true;
-        }
-
-        private async Task PreloadLinkedIngredientsAsync(int productId)
-        {
-            try
-            {
-                // Ensure inventory is loaded
-                if (ConnectPOSToInventoryVM.AllInventoryItems == null || !ConnectPOSToInventoryVM.AllInventoryItems.Any())
-                {
-                    await ConnectPOSToInventoryVM.LoadInventoryAsync();
-                }
-
-                var links = await _database.GetProductIngredientsAsync(productId);
-                foreach (var (item, amount, unit, role) in links)
-                {
-                    // Find matching inventory item
-                    var inv = ConnectPOSToInventoryVM.AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
-                    if (inv == null)
-                    {
-                        // If not found yet, add it to collections
-                        inv = item;
-                        ConnectPOSToInventoryVM.AllInventoryItems.Add(inv);
-                        ConnectPOSToInventoryVM.InventoryItems.Add(inv);
-                    }
-
-                    // Mark as selected and set input fields from link
-                    inv.IsSelected = true;
-                    // Preserve per-size values loaded from DB if present
-                    var hasS = inv.InputAmountSmall > 0;
-                    var hasM = inv.InputAmountMedium > 0;
-                    var hasL = inv.InputAmountLarge > 0;
-
-                    // Shared fallback from link when a size is missing
-                    var sharedAmt = amount > 0 ? amount : 1;
-                    var sharedUnit = string.IsNullOrWhiteSpace(unit) ? inv.DefaultUnit : unit;
-
-                    if (!hasS)
-                    {
-                        inv.InputAmountSmall = sharedAmt;
-                        inv.InputUnitSmall = sharedUnit;
-                    }
-                    if (!hasM)
-                    {
-                        inv.InputAmountMedium = sharedAmt;
-                        inv.InputUnitMedium = sharedUnit;
-                    }
-                    if (!hasL)
-                    {
-                        inv.InputAmountLarge = sharedAmt;
-                        inv.InputUnitLarge = sharedUnit;
-                    }
-
-                    // Set current working amount/unit to the current selected size in the popup
-                    var size = ConnectPOSToInventoryVM.SelectedSize;
-                    inv.SelectedSize = size; // Trigger the size change handler to update InputAmount and InputUnit
-                    inv.InputAmount = size switch
-                    {
-                        "Small" => inv.InputAmountSmall > 0 ? inv.InputAmountSmall : sharedAmt,
-                        "Medium" => inv.InputAmountMedium > 0 ? inv.InputAmountMedium : sharedAmt,
-                        "Large" => inv.InputAmountLarge > 0 ? inv.InputAmountLarge : sharedAmt,
-                        _ => sharedAmt
-                    };
-                    inv.InputUnit = size switch
-                    {
-                        "Small" => !string.IsNullOrWhiteSpace(inv.InputUnitSmall) ? inv.InputUnitSmall : sharedUnit,
-                        "Medium" => !string.IsNullOrWhiteSpace(inv.InputUnitMedium) ? inv.InputUnitMedium : sharedUnit,
-                        "Large" => !string.IsNullOrWhiteSpace(inv.InputUnitLarge) ? inv.InputUnitLarge : sharedUnit,
-                        _ => sharedUnit
-                    };
-                }
-
-                // Update derived collections and flags using public method
-                ConnectPOSToInventoryVM.RefreshSelectionAndFilter();
-                
-                // Force UI update for all selected items to reflect loaded values
-                foreach (var selectedItem in ConnectPOSToInventoryVM.SelectedIngredientsOnly)
-                {
-                    OnPropertyChanged(nameof(selectedItem.InputAmountText));
-                    OnPropertyChanged(nameof(selectedItem.InputUnit));
-                }
-            }
-            catch (Exception ex)
-            {
-                await Application.Current.MainPage.DisplayAlert("Warning", $"Failed to preload ingredients: {ex.Message}", "OK");
-            }
-        }
-
-        [RelayCommand]
-        public async Task AddProduct()
+        public async Task AddProduct() // Validates and adds/updates the product
         {
             if (string.IsNullOrWhiteSpace(ProductName))
             {
@@ -418,11 +257,11 @@ namespace Coftea_Capstone.ViewModel
                                     amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
                                     unit: (string?)i.unitOfMeasurement,
                                     amtS: ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement),
-                                    unitS: (string?) (string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall),
+                                    unitS: (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall),
                                     amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
-                                    unitM: (string?) (string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
+                                    unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
                                     amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
-                                    unitL: (string?) (string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
+                                    unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
                                 ));
 
                             var addons = selectedAddonsOnly
@@ -483,35 +322,35 @@ namespace Coftea_Capstone.ViewModel
 
                     // Build product→inventory links (addons/ingredients)
                     {
-						var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
-						var ingredients = selectedIngredientsOnly
-							.Where(i => !addonIds.Contains(i.itemID))
-							.Select(i => (
-								inventoryItemId: i.itemID,
-								amount: (i.InputAmount > 0 ? i.InputAmount : 1),
-								unit: (string?)(i.InputUnit ?? i.unitOfMeasurement)
-							));
+                        var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
+                        var ingredients = selectedIngredientsOnly
+                            .Where(i => !addonIds.Contains(i.itemID))
+                            .Select(i => (
+                                inventoryItemId: i.itemID,
+                                amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                unit: (string?)(i.InputUnit ?? i.unitOfMeasurement)
+                            ));
 
-						var addons = selectedAddonsOnly
-							.Select(i => {
-								System.Diagnostics.Debug.WriteLine($"🔧 Addon: {i.itemName}");
-								System.Diagnostics.Debug.WriteLine($"🔧 InputAmount: {i.InputAmount}, InputUnit: '{i.InputUnit}'");
-								System.Diagnostics.Debug.WriteLine($"🔧 InventoryUnit: '{i.unitOfMeasurement}'");
-								System.Diagnostics.Debug.WriteLine($"🔧 DefaultUnit: '{i.DefaultUnit}'");
-								
-								// Keep original values without any conversion
-								var finalAmount = i.InputAmount > 0 ? i.InputAmount : 1;
-								var finalUnit = i.InputUnit ?? "g"; // Default to grams if no unit specified
-								
-								System.Diagnostics.Debug.WriteLine($"🔧 Final values: amount={finalAmount}, unit='{finalUnit}'");
-								
-								return (
-									inventoryItemId: i.itemID,
-									amount: finalAmount,
-									unit: finalUnit,
-									addonPrice: i.AddonPrice
-								);
-							});
+                        var addons = selectedAddonsOnly
+                            .Select(i => {
+                                System.Diagnostics.Debug.WriteLine($"🔧 Addon: {i.itemName}");
+                                System.Diagnostics.Debug.WriteLine($"🔧 InputAmount: {i.InputAmount}, InputUnit: '{i.InputUnit}'");
+                                System.Diagnostics.Debug.WriteLine($"🔧 InventoryUnit: '{i.unitOfMeasurement}'");
+                                System.Diagnostics.Debug.WriteLine($"🔧 DefaultUnit: '{i.DefaultUnit}'");
+
+                                // Keep original values without any conversion
+                                var finalAmount = i.InputAmount > 0 ? i.InputAmount : 1;
+                                var finalUnit = i.InputUnit ?? "g"; // Default to grams if no unit specified
+
+                                System.Diagnostics.Debug.WriteLine($"🔧 Final values: amount={finalAmount}, unit='{finalUnit}'");
+
+                                return (
+                                    inventoryItemId: i.itemID,
+                                    amount: finalAmount,
+                                    unit: finalUnit,
+                                    addonPrice: i.AddonPrice
+                                );
+                            });
 
                         try
                         {
@@ -550,7 +389,7 @@ namespace Coftea_Capstone.ViewModel
                     // Do NOT deduct inventory here; deduction happens only upon successful transaction/payment
                     ResetForm();
                     ProductAdded?.Invoke(product);
-                        }
+                }
             }
             catch (Exception ex)
             {
@@ -559,7 +398,170 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task<bool> ValidateInventorySufficiencyAsync()
+
+        [RelayCommand]
+        private void CloseAddItemToPOS() // Closes the AddItemToPOS Overlay
+        {
+            IsAddItemToPOSVisible = false;
+            IsEditMode = false;
+            ProductName = string.Empty;
+            SmallPrice = string.Empty;
+            MediumPrice = string.Empty;
+            LargePrice = string.Empty;
+            SelectedCategory = string.Empty;
+            SelectedSubcategory = null;
+            ImagePath = string.Empty;
+            SelectedImageSource = null;
+            ProductDescription = string.Empty;
+            EditingProductId = 0;
+        }
+
+        public void SetEditMode(POSPageModel product) // Prepares the ViewModel for editing an existing product
+        {
+            IsEditMode = true;
+            EditingProductId = product.ProductID;
+            ProductName = product.ProductName;
+            SmallPrice = product.SmallPrice > 0 ? product.SmallPrice.ToString() : string.Empty;
+            MediumPrice = product.MediumPrice > 0 ? product.MediumPrice.ToString() : string.Empty;
+            LargePrice = product.LargePrice > 0 ? product.LargePrice.ToString() : string.Empty;
+            ImagePath = product.ImageSet;
+            SelectedImageSource = !string.IsNullOrEmpty(product.ImageSet) ? ImageSource.FromFile(product.ImageSet) : null;
+            ProductDescription = product.ProductDescription ?? string.Empty;
+
+            // Set category and subcategory based on the product's data (prefer Subcategory when present)
+            if (!string.IsNullOrEmpty(product.Subcategory))
+            {
+                if (product.Subcategory == "Fruit" || product.Subcategory == "Soda")
+                {
+                    SelectedCategory = "Fruit/Soda";
+                    SelectedSubcategory = product.Subcategory;
+                }
+                else if (product.Subcategory == "Americano" || product.Subcategory == "Latte")
+                {
+                    SelectedCategory = "Coffee";
+                    SelectedSubcategory = product.Subcategory;
+                }
+                else
+                {
+                    SelectedCategory = product.Category;
+                    SelectedSubcategory = product.Subcategory;
+                }
+            }
+            else if (!string.IsNullOrEmpty(product.Category))
+            {
+                // No explicit subcategory saved; infer from category if possible
+                if (product.Category == "Fruit" || product.Category == "Soda")
+                {
+                    SelectedCategory = "Fruit/Soda";
+                    SelectedSubcategory = product.Category;
+                }
+                else if (product.Category == "Americano" || product.Category == "Latte")
+                {
+                    SelectedCategory = "Coffee";
+                    SelectedSubcategory = product.Category;
+                }
+                else
+                {
+                    SelectedCategory = product.Category;
+                    SelectedSubcategory = null;
+                }
+            }
+            // Preload existing linked ingredients and mark them selected
+            _ = PreloadLinkedIngredientsAsync(product.ProductID);
+        }
+
+        // Shows the AddItemToPOS overlay when returning from child popups
+        public void SetIsAddItemToPOSVisibleTrue()
+        {
+            IsAddItemToPOSVisible = true;
+        }
+
+        private async Task PreloadLinkedIngredientsAsync(int productId) // Preloads linked ingredients for editing
+        {
+            try
+            {
+                // Ensure inventory is loaded
+                if (ConnectPOSToInventoryVM.AllInventoryItems == null || !ConnectPOSToInventoryVM.AllInventoryItems.Any())
+                {
+                    await ConnectPOSToInventoryVM.LoadInventoryAsync();
+                }
+
+                var links = await _database.GetProductIngredientsAsync(productId);
+                foreach (var (item, amount, unit, role) in links)
+                {
+                    // Find matching inventory item
+                    var inv = ConnectPOSToInventoryVM.AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
+                    if (inv == null)
+                    {
+                        // If not found yet, add it to collections
+                        inv = item;
+                        ConnectPOSToInventoryVM.AllInventoryItems.Add(inv);
+                        ConnectPOSToInventoryVM.InventoryItems.Add(inv);
+                    }
+
+                    // Mark as selected and set input fields from link
+                    inv.IsSelected = true;
+                    // Preserve per-size values loaded from DB if present
+                    var hasS = inv.InputAmountSmall > 0;
+                    var hasM = inv.InputAmountMedium > 0;
+                    var hasL = inv.InputAmountLarge > 0;
+
+                    // Shared fallback from link when a size is missing
+                    var sharedAmt = amount > 0 ? amount : 1;
+                    var sharedUnit = string.IsNullOrWhiteSpace(unit) ? inv.DefaultUnit : unit;
+
+                    if (!hasS)
+                    {
+                        inv.InputAmountSmall = sharedAmt;
+                        inv.InputUnitSmall = sharedUnit;
+                    }
+                    if (!hasM)
+                    {
+                        inv.InputAmountMedium = sharedAmt;
+                        inv.InputUnitMedium = sharedUnit;
+                    }
+                    if (!hasL)
+                    {
+                        inv.InputAmountLarge = sharedAmt;
+                        inv.InputUnitLarge = sharedUnit;
+                    }
+
+                    // Set current working amount/unit to the current selected size in the popup
+                    var size = ConnectPOSToInventoryVM.SelectedSize;
+                    inv.SelectedSize = size; // Trigger the size change handler to update InputAmount and InputUnit
+                    inv.InputAmount = size switch
+                    {
+                        "Small" => inv.InputAmountSmall > 0 ? inv.InputAmountSmall : sharedAmt,
+                        "Medium" => inv.InputAmountMedium > 0 ? inv.InputAmountMedium : sharedAmt,
+                        "Large" => inv.InputAmountLarge > 0 ? inv.InputAmountLarge : sharedAmt,
+                        _ => sharedAmt
+                    };
+                    inv.InputUnit = size switch
+                    {
+                        "Small" => !string.IsNullOrWhiteSpace(inv.InputUnitSmall) ? inv.InputUnitSmall : sharedUnit,
+                        "Medium" => !string.IsNullOrWhiteSpace(inv.InputUnitMedium) ? inv.InputUnitMedium : sharedUnit,
+                        "Large" => !string.IsNullOrWhiteSpace(inv.InputUnitLarge) ? inv.InputUnitLarge : sharedUnit,
+                        _ => sharedUnit
+                    };
+                }
+
+                // Update derived collections and flags using public method
+                ConnectPOSToInventoryVM.RefreshSelectionAndFilter();
+                
+                // Force UI update for all selected items to reflect loaded values
+                foreach (var selectedItem in ConnectPOSToInventoryVM.SelectedIngredientsOnly)
+                {
+                    OnPropertyChanged(nameof(selectedItem.InputAmountText));
+                    OnPropertyChanged(nameof(selectedItem.InputUnit));
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Warning", $"Failed to preload ingredients: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task<bool> ValidateInventorySufficiencyAsync() // Validates if selected ingredients have sufficient inventory amount
         {
             var selected = ConnectPOSToInventoryVM?.InventoryItems?.Where(i => i.IsSelected).ToList();
             if (selected == null || selected.Count == 0) return true; // nothing to validate
@@ -602,7 +604,7 @@ namespace Coftea_Capstone.ViewModel
             return true;
         }
 
-        private async Task ValidateAutomaticCupAndStraw(List<string> issues)
+        private async Task ValidateAutomaticCupAndStraw(List<string> issues) // Validates if cups and straw have sufficient inventory amount
         {
             try
             {
@@ -654,50 +656,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // REMOVED: DeductSelectedIngredientsAsync method
-        // Inventory should only be deducted during actual transactions/payments, not when creating products
-
-        private async Task AddAutomaticCupAndStraw(List<(string name, double amount)> pairs)
-        {
-            try
-            {
-                // Get the selected size from the ConnectPOSItemToInventoryViewModel
-                var selectedSize = ConnectPOSToInventoryVM?.SelectedSize ?? "Medium";
-                var inputAmount = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.FirstOrDefault()?.InputAmount ?? 1;
-                
-                // Add appropriate cup based on size
-                string cupName = selectedSize switch
-                {
-                    "Small" => "Small Cup",
-                    "Medium" => "Medium Cup", 
-                    "Large" => "Large Cup",
-                    _ => "Medium Cup"
-                };
-                
-                // Add 1 cup per serving (input amount)
-                pairs.Add((name: cupName, amount: inputAmount));
-                
-                // Add 1 straw per serving (input amount)
-                pairs.Add((name: "Straw", amount: inputAmount));
-                
-                System.Diagnostics.Debug.WriteLine($"Automatically added: {inputAmount} {cupName} and {inputAmount} Straw");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error adding automatic cup and straw: {ex.Message}");
-            }
-        }
-
-		private static bool IsAddonCategory(string? category)
-		{
-			var normalized = (category ?? string.Empty).Trim();
-			if (string.IsNullOrEmpty(normalized)) return false;
-			return string.Equals(normalized, "Addons", StringComparison.OrdinalIgnoreCase)
-				|| string.Equals(normalized, "Sinkers & etc.", StringComparison.OrdinalIgnoreCase)
-				|| normalized.Contains("Sinker", StringComparison.OrdinalIgnoreCase);
-		}
-
-        private static double ConvertUnits(double amount, string fromUnit, string toUnit)
+        private static double ConvertUnits(double amount, string fromUnit, string toUnit) // Converts amount from one unit to another
         {
             if (string.IsNullOrWhiteSpace(toUnit)) return amount; // no target unit, pass-through
             
@@ -746,7 +705,7 @@ namespace Coftea_Capstone.ViewModel
             return 0;
         }
 
-        private static string NormalizeUnit(string unit)
+        private static string NormalizeUnit(string unit) // Normalizes various unit strings to standard short forms
         {
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
 
@@ -767,26 +726,25 @@ namespace Coftea_Capstone.ViewModel
             return u;
         }
 
-        private static bool IsMassUnit(string unit)
+        private static bool IsMassUnit(string unit) // Checks if the unit is a mass unit
         {
             var normalized = NormalizeUnit(unit);
             return normalized == "kg" || normalized == "g";
         }
 
-        private static bool IsVolumeUnit(string unit)
-        {
+        private static bool IsVolumeUnit(string unit) // Checks if the unit is a volume unit
+        { 
             var normalized = NormalizeUnit(unit);
             return normalized == "l" || normalized == "ml";
         }
 
-        private static bool IsCountUnit(string unit)
+        private static bool IsCountUnit(string unit) // Checks if the unit is a count/pieces unit
         {
             var normalized = NormalizeUnit(unit);
             return normalized == "pcs" || normalized == "pc";
         }
 
-
-        private void ResetForm()
+        private void ResetForm() // Resets the form fields to default values
         {
             ProductName = string.Empty;
             SmallPrice = string.Empty;
@@ -816,23 +774,7 @@ namespace Coftea_Capstone.ViewModel
                 ConnectPOSToInventoryVM.LargePrice = string.Empty;
                 ConnectPOSToInventoryVM.SelectedImageSource = null;
                 ConnectPOSToInventoryVM.ProductDescription = string.Empty;
-                
-                // Don't clear inventory selections to preserve SelectedIngredientsOnly collection
-                // This prevents the InputIngredientsAmountUsed popup from losing its items
-                // The selections will be cleared when the user explicitly cancels or completes the product creation
-                /*
-                if (ConnectPOSToInventoryVM.InventoryItems != null)
-                {
-                    foreach (var item in ConnectPOSToInventoryVM.InventoryItems)
-                    {
-                        item.IsSelected = false;
-                        item.InputAmount = 0;
-                        item.InputUnit = string.Empty;
-                        item.AddonQuantity = 0;
-                    }
-                }
-                */
-                
+                          
                 // Reset addons popup if it exists
                 if (ConnectPOSToInventoryVM.AddonsPopup != null)
                 {
@@ -841,7 +783,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
         [RelayCommand]
-        private void OpenConnectPOSToInventory()
+        private void OpenConnectPOSToInventory() // Opens the ConnectPOSToInventory popup
         {
             // Hide parent view and show the popup from the child VM
             IsAddItemToPOSVisible = false;
@@ -862,7 +804,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        public async Task PickImageAsync()
+        public async Task PickImageAsync() // Opens file picker to select an image
         {
             try
             {

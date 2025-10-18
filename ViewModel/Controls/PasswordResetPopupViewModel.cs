@@ -26,7 +26,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             _emailService = new EmailService();
         }
 
-        public void ShowPasswordResetPopup(string email, string token)
+        public void ShowPasswordResetPopup(string email, string token) // Initialize and show the popup
         {
             Email = email;
             ResetToken = token;
@@ -37,7 +37,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task ResetPassword()
+        private async Task ResetPassword() // Validate and reset the password
         {
             if (string.IsNullOrWhiteSpace(NewPassword))
             {
@@ -95,7 +95,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void ClosePasswordResetPopup()
+        private void ClosePasswordResetPopup() // Close and reset the popup
         {
             IsPasswordResetPopupVisible = false;
             Email = string.Empty;
@@ -106,7 +106,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private async Task RequestNewReset()
+        private async Task RequestNewReset() // Request a new password reset email
         {
             try
             {

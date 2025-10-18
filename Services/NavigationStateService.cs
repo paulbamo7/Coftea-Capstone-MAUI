@@ -1,5 +1,4 @@
 using System;
-using Microsoft.Maui;
 
 namespace Coftea_Capstone.Services
 {

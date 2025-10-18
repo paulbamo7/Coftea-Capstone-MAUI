@@ -34,10 +34,8 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private DeleteUserPopupViewModel deleteUserPopup = new();
 
-        // Smart loading flag to prevent unnecessary reloads
         private bool _hasLoadedData = false;
 
-        // ===================== Initialization =====================
         public UserManagementPageViewModel()
         {
             // Subscribe to the approval event to refresh user list
@@ -46,34 +44,34 @@ namespace Coftea_Capstone.ViewModel
             DeleteUserPopup.OnUserDeleted += OnUserDeleted;
         }
 
-        private async void OnUserApprovedOrDenied()
+        private async void OnUserApprovedOrDenied() // Refresh user list when a user is approved or denied
         {
-            await ForceReloadDataAsync(); // Force refresh the user list
+            await ForceReloadDataAsync(); 
         }
 
-        private async void OnUserDeleted()
+        private async void OnUserDeleted() // Refresh user list when a user is deleted
         {
-            await ForceReloadDataAsync(); // Force refresh the user list
-        }
+            await ForceReloadDataAsync();
+        } 
 
-        // ===================== Commands =====================
+
         [RelayCommand]
-        private async Task AddUser()
+        private async Task AddUser() // Open the add user popup
         {
             await UserApprovalPopup.ShowUserApprovalPopup();
         }
 
         [RelayCommand]
-        private async Task DeleteUser()
+        private async Task DeleteUser() // Open the delete user popup
         {
             await DeleteUserPopup.ShowDeleteUserPopup();
         }
 
         [RelayCommand]
-        private Task SortBy() => Task.CompletedTask;
+        private Task SortBy() => Task.CompletedTask; // Future: implement sorting functionality
 
         [RelayCommand]
-        private async Task ViewProfile(UserEntry entry)
+        private async Task ViewProfile(UserEntry entry) // Open the user profile popup
         {
             if (entry == null) return;
             
@@ -93,7 +91,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task OpenRowMenu(UserEntry entry)
+        private async Task OpenRowMenu(UserEntry entry) // Open action sheet for user options
         {
             if (entry == null) return;
             
@@ -112,11 +110,9 @@ namespace Coftea_Capstone.ViewModel
             {
                 await DeleteSpecificUser(entry);
             }
-            // Future: handle other actions here
         }
 
-        // ===================== Helpers =====================
-        private async Task DeleteSpecificUser(UserEntry user)
+        private async Task DeleteSpecificUser(UserEntry user) // Delete a specific user after confirmation
         {
             // Confirm deletion
             var confirm = await Application.Current.MainPage.DisplayAlert(
@@ -140,8 +136,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // ===================== Lifecycle =====================
-        public async Task InitializeAsync()
+        public async Task InitializeAsync() // Initial data load
         {
             // Only load data if it hasn't been loaded before
             if (!_hasLoadedData)
@@ -151,7 +146,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task LoadUsersAsync()
+        private async Task LoadUsersAsync() // Load users from database and populate the Users collection
         {
             try
             {
@@ -178,8 +173,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        // Force reload data (useful for refresh operations)
-        public async Task ForceReloadDataAsync()
+        public async Task ForceReloadDataAsync() // Force reload user data from database
         {
             _hasLoadedData = false; // Reset the flag to show loading
             await InitializeAsync();
@@ -192,7 +186,7 @@ namespace Coftea_Capstone.ViewModel
             return DateTime.Now.AddDays(-new Random().Next(1, 30)).ToString("MMM dd, yyyy");
         }
 
-        private string GetDateAddedText(int userId)
+        private string GetDateAddedText(int userId) 
         {
             // For now, return a placeholder. In a real app, you'd use the actual creation date
             // This could be stored in a created_at column in the users table

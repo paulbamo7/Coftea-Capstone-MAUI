@@ -1,5 +1,6 @@
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -32,6 +33,9 @@ public partial class Inventory : ContentPage
         // Initialize data immediately when page is created
         Appearing += async (_, __) => 
         {
+            // Update navigation state for indicator
+            NavigationStateService.SetCurrentPageType(typeof(Inventory));
+            
             System.Diagnostics.Debug.WriteLine("🔄 Inventory page appearing - reloading data");
             await vm.InitializeAsync();
         };

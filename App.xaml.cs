@@ -17,6 +17,7 @@ namespace Coftea_Capstone
     {
 
         public static UserInfoModel CurrentUser { get; private set; }
+        public static string ResetPasswordEmail { get; set; }
 
         // Shared ViewModels
         public AddItemToPOSViewModel AddItemPopup { get; private set; }
@@ -44,14 +45,30 @@ namespace Coftea_Capstone
         // Shared transactions store for History
         public ObservableCollection<TransactionHistoryModel> Transactions { get; private set; }
 
+        // Global loading overlay instance
+        public static Views.Controls.LoadingOverlay LoadingOverlay { get; private set; }
+        
         public App()
         {
             InitializeComponent();
 
             InitializeViewModels();
-
+            
             // Set AppShell as main page
             MainPage = new AppShell();
+            
+            // Create loading overlay and add it to the visual tree after MainPage is set
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                LoadingOverlay = new Views.Controls.LoadingOverlay();
+                SimpleNavigationService.InitializeLoadingOverlay(LoadingOverlay);
+                
+                // Add loading overlay to the page's visual tree
+                if (MainPage is Shell shell && shell.CurrentPage != null)
+                {
+                    // We'll add it dynamically when needed
+                }
+            });
 
             // Ensure database exists and tables are created, then adjust theme colors to match Login page
             MainThread.BeginInvokeOnMainThread(async () =>

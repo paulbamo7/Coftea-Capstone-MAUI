@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.ComponentModel;
 
 namespace Coftea_Capstone.Models
 {
@@ -56,5 +55,3 @@ namespace Coftea_Capstone.Models
         }
     }
 }
-
-

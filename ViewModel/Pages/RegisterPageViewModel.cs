@@ -15,11 +15,9 @@ namespace Coftea_Capstone.ViewModel
 {
     public partial class RegisterPageViewModel : ObservableObject
     {
-        // ===================== Dependencies & Services =====================
         private readonly Database _database;
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
 
-        // ===================== Initialization =====================
         public RegisterPageViewModel()
         {
             _database = new Database();
@@ -52,7 +50,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task Register()
+        private async Task Register() // Handle user registration
         {
             // Validations
             if (string.IsNullOrWhiteSpace(FirstName))
