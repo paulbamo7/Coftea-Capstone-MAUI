@@ -33,8 +33,7 @@ public partial class PointOfSale : ContentPage
 
             // RetryConnectionPopup is now handled globally through App.xaml.cs
             
-            // Set PaymentPopup binding context to shared instance
-            PaymentPopupControl.BindingContext = ((App)Application.Current).PaymentPopup;
+            // PaymentPopup binding context is now set via XAML binding
             
             // Ensure CartPopup binding context is set (important for tablet compatibility)
             // The CartPopup is bound via XAML but we need to ensure it's properly initialized
@@ -229,15 +228,7 @@ public partial class PointOfSale : ContentPage
         }
         catch { }
 
-        // Release heavy bindings
-        if (PaymentPopupControl != null)
-        {
-            try
-            {
-                PaymentPopupControl.BindingContext = null;
-            }
-            catch { }
-        }
+        // PaymentPopup binding is now handled via XAML
 
         // Release visual tree in background to avoid blocking main thread
         _ = Task.Run(() =>
@@ -312,8 +303,7 @@ public partial class PointOfSale : ContentPage
             System.Diagnostics.Debug.WriteLine("Calling ShowPayment from test button");
             app.PaymentPopup.ShowPayment(100.00m, new List<Models.CartItem>());
             
-            // Also try to show it directly on the control
-            PaymentPopupControl.BindingContext = app.PaymentPopup;
+            // PaymentPopup binding is handled via XAML
         }
         else
         {

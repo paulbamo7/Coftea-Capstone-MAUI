@@ -47,14 +47,18 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🛒 ShowCart called with {items?.Count ?? 0} items");
+                
                 // Store reference to original items for quantity reset
                 _originalItems = items;
                 
-                // Convert POSPageModel items to CartItem format - combine same products
+                // Convert POSPageModel items to CartItem format - show ALL items in cart
                 CartItems.Clear();
                 var flatItems = (items ?? new ObservableCollection<POSPageModel>())
-                    .Where(item => item != null && (item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0))
+                    .Where(item => item != null)
                     .ToList();
+                
+                System.Diagnostics.Debug.WriteLine($"🛒 Processing {flatItems.Count} items for cart display");
 
                 foreach (var it in flatItems)
                 {
@@ -318,24 +322,42 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task Checkout()
         {
-            if (CartItems == null || !CartItems.Any())
-                return;
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🛒 Checkout called with {CartItems?.Count ?? 0} items, total: {TotalAmount}");
+                
+                if (CartItems == null || !CartItems.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine("🛒 No items in cart, cannot checkout");
+                    return;
+                }
 
-            System.Diagnostics.Debug.WriteLine($"Checkout called with {CartItems.Count} items, total: {TotalAmount}");
-            
-            // Navigate to payment screen
-            IsCartVisible = false;
-            
-            // Show payment popup using the shared instance from App
-            var app = (App)Application.Current;
-            if (app?.PaymentPopup != null)
-            {
-                System.Diagnostics.Debug.WriteLine("Calling ShowPayment on PaymentPopup");
-                app.PaymentPopup.ShowPayment(TotalAmount, CartItems.ToList());
+                // Navigate to payment screen
+                IsCartVisible = false;
+                System.Diagnostics.Debug.WriteLine("🛒 Cart closed, showing payment popup");
+                
+                // Show payment popup using the shared instance from App
+                var app = (App)Application.Current;
+                if (app?.PaymentPopup != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🛒 Calling ShowPayment with total: {TotalAmount}, items: {CartItems.Count}");
+                    app.PaymentPopup.ShowPayment(TotalAmount, CartItems.ToList());
+                    System.Diagnostics.Debug.WriteLine("🛒 ShowPayment completed");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ PaymentPopup is null!");
+                    // Try to show error notification
+                    if (app?.NotificationPopup != null)
+                    {
+                        app.NotificationPopup.ShowNotification("Payment system is not available", "Error");
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("PaymentPopup is null!");
+                System.Diagnostics.Debug.WriteLine($"❌ Error in Checkout: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
             }
         }
     }

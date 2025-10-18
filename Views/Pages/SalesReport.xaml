@@ -120,35 +120,26 @@
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
                             <!-- Cash Payment -->
                             <Frame BackgroundColor="#E8F5E8" CornerRadius="12" HeightRequest="100" Padding="12" HasShadow="True" Grid.Column="0">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <Label Text="💵" FontSize="24" VerticalOptions="Center" Grid.Column="0"/>
-                                    <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                        <Label Text="Cash" FontAttributes="Bold" FontSize="14" TextColor="#2E7D32"/>
-                                        <Label Text="{Binding CashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#2E7D32" FontAttributes="Bold"/>
-                                    </VerticalStackLayout>
-                                </Grid>
+                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="Cash" FontAttributes="Bold" FontSize="16" TextColor="#2E7D32"/>
+                                    <Label Text="{Binding CashTotal, StringFormat='₱{0:N2}'}" FontSize="20" TextColor="#2E7D32" FontAttributes="Bold"/>
+                                </VerticalStackLayout>
                             </Frame>
 
                             <!-- GCash Payment -->
                             <Frame BackgroundColor="#E3F2FD" CornerRadius="12" HeightRequest="100" Padding="12" HasShadow="True" Grid.Column="1">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <Label Text="📱" FontSize="24" VerticalOptions="Center" Grid.Column="0"/>
-                                    <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                        <Label Text="GCash" FontAttributes="Bold" FontSize="14" TextColor="#1976D2"/>
-                                        <Label Text="{Binding GCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#1976D2" FontAttributes="Bold"/>
-                                    </VerticalStackLayout>
-                                </Grid>
+                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="GCash" FontAttributes="Bold" FontSize="16" TextColor="#1976D2"/>
+                                    <Label Text="{Binding GCashTotal, StringFormat='₱{0:N2}'}" FontSize="20" TextColor="#1976D2" FontAttributes="Bold"/>
+                                </VerticalStackLayout>
                             </Frame>
 
                             <!-- Bank Payment -->
                             <Frame BackgroundColor="#F3E5F5" CornerRadius="12" HeightRequest="100" Padding="12" HasShadow="True" Grid.Column="2">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <Label Text="🏦" FontSize="24" VerticalOptions="Center" Grid.Column="0"/>
-                                    <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                        <Label Text="Bank" FontAttributes="Bold" FontSize="14" TextColor="#7B1FA2"/>
-                                        <Label Text="{Binding BankTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#7B1FA2" FontAttributes="Bold"/>
-                                    </VerticalStackLayout>
-                                </Grid>
+                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="Bank" FontAttributes="Bold" FontSize="16" TextColor="#7B1FA2"/>
+                                    <Label Text="{Binding BankTotal, StringFormat='₱{0:N2}'}" FontSize="20" TextColor="#7B1FA2" FontAttributes="Bold"/>
+                                </VerticalStackLayout>
                             </Frame>
                         </Grid>
                     </VerticalStackLayout>
@@ -206,7 +197,7 @@
                     <Frame Grid.Column="2" BackgroundColor="#2E7D32" CornerRadius="12" Padding="20" HasShadow="True" HeightRequest="230" VerticalOptions="Start">
                         <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
                             <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                                <Label Text="💰 Total Sales" FontAttributes="Bold" FontSize="18" TextColor="White" HorizontalOptions="Center"/>
+                                <Label Text="Total Sales" FontAttributes="Bold" FontSize="18" TextColor="White" HorizontalOptions="Center"/>
                                 <Label Text="{Binding SelectedTimePeriod, StringFormat='{0} sales totals'}" FontSize="12" TextColor="#E8F5E8" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
                             

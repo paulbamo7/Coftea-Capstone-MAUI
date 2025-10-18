@@ -599,11 +599,23 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"ShowCart called with {CartItems?.Count ?? 0} items");
+                System.Diagnostics.Debug.WriteLine($"🛒 ShowCart called with {CartItems?.Count ?? 0} items");
+                
+                if (CartItems != null && CartItems.Any())
+                {
+                    foreach (var item in CartItems)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🛒 Cart item: {item.ProductName}, Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("🛒 Cart is empty or null");
+                }
                 
                 if (CartPopup == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("CartPopup is null!");
+                    System.Diagnostics.Debug.WriteLine("❌ CartPopup is null!");
                     if (NotificationPopup != null)
                     {
                         NotificationPopup.ShowNotification("Cart is not available", "Error");
@@ -611,13 +623,14 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
                 
+                System.Diagnostics.Debug.WriteLine("🛒 Calling CartPopup.ShowCart");
                 CartPopup.ShowCart(CartItems);
-                System.Diagnostics.Debug.WriteLine("CartPopup.ShowCart completed successfully");
+                System.Diagnostics.Debug.WriteLine("✅ CartPopup.ShowCart completed successfully");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in ShowCart: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error in ShowCart: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 
                 if (NotificationPopup != null)
                 {
