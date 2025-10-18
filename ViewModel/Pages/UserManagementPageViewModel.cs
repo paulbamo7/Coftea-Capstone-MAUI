@@ -34,6 +34,9 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private DeleteUserPopupViewModel deleteUserPopup = new();
 
+        // Smart loading flag to prevent unnecessary reloads
+        private bool _hasLoadedData = false;
+
         // ===================== Initialization =====================
         public UserManagementPageViewModel()
         {
@@ -45,12 +48,12 @@ namespace Coftea_Capstone.ViewModel
 
         private async void OnUserApprovedOrDenied()
         {
-            await InitializeAsync(); // Refresh the user list
+            await ForceReloadDataAsync(); // Force refresh the user list
         }
 
         private async void OnUserDeleted()
         {
-            await InitializeAsync(); // Refresh the user list
+            await ForceReloadDataAsync(); // Force refresh the user list
         }
 
         // ===================== Commands =====================
@@ -127,7 +130,7 @@ namespace Coftea_Capstone.ViewModel
                 try
                 {
                     await _database.DeleteUserAsync(user.Id);
-                    await InitializeAsync(); // Refresh the user list
+                    await ForceReloadDataAsync(); // Force refresh the user list
                     await Application.Current.MainPage.DisplayAlert("Success", $"User '{user.Username}' has been deleted.", "OK");
                 }
                 catch (Exception ex)
@@ -140,17 +143,46 @@ namespace Coftea_Capstone.ViewModel
         // ===================== Lifecycle =====================
         public async Task InitializeAsync()
         {
-            var allUsers = await _database.GetAllUsersAsync();
-            Users = new ObservableCollection<UserEntry>(allUsers.Select(u => new UserEntry
+            // Only load data if it hasn't been loaded before
+            if (!_hasLoadedData)
             {
-                Id = u.ID,
-                Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
-                LastActive = GetLastActiveText(u.ID), // Get real last active data
-                DateAdded = GetDateAddedText(u.ID), // Get real date added data
-                // Admin users (ID = 1) always have full access, regular users use database values
-                CanAccessInventory = u.ID == 1 ? true : u.CanAccessInventory,
-                CanAccessSalesReport = u.ID == 1 ? true : u.CanAccessSalesReport
-            }));
+                await LoadUsersAsync();
+                _hasLoadedData = true;
+            }
+        }
+
+        private async Task LoadUsersAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🔧 Loading users from database...");
+                var allUsers = await _database.GetAllUsersAsync();
+                System.Diagnostics.Debug.WriteLine($"🔧 Loaded {allUsers?.Count ?? 0} users from database");
+
+                Users = new ObservableCollection<UserEntry>(allUsers.Select(u => new UserEntry
+                {
+                    Id = u.ID,
+                    Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
+                    LastActive = GetLastActiveText(u.ID), // Get real last active data
+                    DateAdded = GetDateAddedText(u.ID), // Get real date added data
+                    // Admin users (ID = 1) always have full access, regular users use database values
+                    CanAccessInventory = u.ID == 1 ? true : u.CanAccessInventory,
+                    CanAccessSalesReport = u.ID == 1 ? true : u.CanAccessSalesReport
+                }));
+
+                System.Diagnostics.Debug.WriteLine($"🔧 Created {Users.Count} UserEntry objects");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error loading users: {ex.Message}");
+            }
+        }
+
+        // Force reload data (useful for refresh operations)
+        public async Task ForceReloadDataAsync()
+        {
+            _hasLoadedData = false; // Reset the flag to show loading
+            await InitializeAsync();
         }
 
         private string GetLastActiveText(int userId)

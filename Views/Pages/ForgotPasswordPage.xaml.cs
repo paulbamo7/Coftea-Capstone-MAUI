@@ -34,7 +34,8 @@ public partial class ForgotPasswordPage : ContentPage
     {
         if (element == null) return;
         // Avoid clearing image sources to prevent blank visuals when returning
-        if (element is CollectionView cv) cv.ItemsSource = null;
+        // Don't clear CollectionView ItemsSource to prevent data loss when navigating
+        // if (element is CollectionView cv) cv.ItemsSource = null;
         else if (element is ListView lv) lv.ItemsSource = null;
         if (element is ContentView contentView && contentView.Content != null)
             ReleaseVisualTree(contentView.Content);

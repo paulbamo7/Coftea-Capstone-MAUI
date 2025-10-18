@@ -264,7 +264,8 @@ public partial class PointOfSale : ContentPage
 
         if (element is CollectionView cv)
         {
-            cv.ItemsSource = null;
+            // Don't clear CollectionView ItemsSource to prevent data loss when navigating
+            // cv.ItemsSource = null;
         }
         else if (element is ListView lv)
         {

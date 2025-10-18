@@ -46,7 +46,8 @@ public partial class LoginPage : ContentPage
         if (element == null) return;
         // Intentionally avoid clearing Image and ImageButton sources so that static assets
         // like the login logo are preserved when navigating back to this page.
-        else if (element is CollectionView cv) cv.ItemsSource = null;
+        // Don't clear CollectionView ItemsSource to prevent data loss when navigating
+        // else if (element is CollectionView cv) cv.ItemsSource = null;
         else if (element is ListView lv) lv.ItemsSource = null;
         if (element is ContentView contentView && contentView.Content != null)
             ReleaseVisualTree(contentView.Content);

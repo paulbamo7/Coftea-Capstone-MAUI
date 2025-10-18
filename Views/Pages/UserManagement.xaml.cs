@@ -10,13 +10,31 @@ public partial class UserManagement : ContentPage
     public UserManagement()
     {
         InitializeComponent();
+        
+        // Ensure data loads properly, even if Appearing event doesn't fire consistently with Shell navigation
+        Task.Run(async () =>
+        {
+            await Task.Delay(100); // Small delay to ensure page is fully loaded
+            if (BindingContext is UserManagementPageViewModel vm)
+            {
+                await vm.InitializeAsync();
+            }
+        });
+
+        // Responsive behavior
+        SizeChanged += OnSizeChanged;
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        System.Diagnostics.Debug.WriteLine("🔧 UserManagement page appearing");
+        
+        // Ensure data is loaded when page becomes visible
         if (BindingContext is UserManagementPageViewModel vm)
         {
             _ = vm.InitializeAsync();
         }
-
-        // Responsive behavior
-        SizeChanged += OnSizeChanged;
     }
 
     private void OnBellClicked(object sender, EventArgs e)
@@ -103,7 +121,8 @@ public partial class UserManagement : ContentPage
         if (element == null) return;
         if (element is Image img) img.Source = null;
         else if (element is ImageButton imgBtn) imgBtn.Source = null;
-        else if (element is CollectionView cv) cv.ItemsSource = null;
+        // Don't clear CollectionView ItemsSource to prevent data loss when navigating
+        // else if (element is CollectionView cv) cv.ItemsSource = null;
         else if (element is ListView lv) lv.ItemsSource = null;
         if (element is ContentView contentView && contentView.Content != null)
             ReleaseVisualTree(contentView.Content);

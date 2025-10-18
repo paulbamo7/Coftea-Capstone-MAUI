@@ -811,7 +811,10 @@ namespace Coftea_Capstone.ViewModel
                 ConnectPOSToInventoryVM.SelectedImageSource = null;
                 ConnectPOSToInventoryVM.ProductDescription = string.Empty;
                 
-                // Clear inventory selections
+                // Don't clear inventory selections to preserve SelectedIngredientsOnly collection
+                // This prevents the InputIngredientsAmountUsed popup from losing its items
+                // The selections will be cleared when the user explicitly cancels or completes the product creation
+                /*
                 if (ConnectPOSToInventoryVM.InventoryItems != null)
                 {
                     foreach (var item in ConnectPOSToInventoryVM.InventoryItems)
@@ -822,6 +825,7 @@ namespace Coftea_Capstone.ViewModel
                         item.AddonQuantity = 0;
                     }
                 }
+                */
                 
                 // Reset addons popup if it exists
                 if (ConnectPOSToInventoryVM.AddonsPopup != null)

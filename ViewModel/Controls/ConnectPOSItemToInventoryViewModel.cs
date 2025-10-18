@@ -25,6 +25,11 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Initialize addons popup
             AddonsPopup = new AddonsSelectionPopupViewModel();
             AddonsPopup.AddonsSelected += OnAddonsSelected;
+            
+            // Initialize collections
+            SelectedIngredientsOnly = new ObservableCollection<InventoryPageModel>();
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 ConnectPOSItemToInventoryViewModel constructor - SelectedIngredientsOnly initialized");
         }
 
         private void OnAddonsSelected(List<InventoryPageModel> selectedAddons)
@@ -63,6 +68,41 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private bool isConnectPOSToInventoryVisible;
         [ObservableProperty] private bool isPreviewVisible;
         [ObservableProperty] private bool isInputIngredientsVisible;
+        
+        partial void OnIsInputIngredientsVisibleChanged(bool value)
+        {
+            if (value)
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 InputIngredients popup became visible - refreshing collection");
+                
+                // Ensure the collection is properly initialized
+                if (SelectedIngredientsOnly == null)
+                {
+                    SelectedIngredientsOnly = new ObservableCollection<InventoryPageModel>();
+                    System.Diagnostics.Debug.WriteLine($"🔧 SelectedIngredientsOnly collection was null, reinitialized");
+                }
+                
+                // Force refresh when popup becomes visible
+                UpdateSelectedIngredientsOnly();
+                
+                // If the collection is still empty, try to populate it from AllInventoryItems
+                if (SelectedIngredientsOnly.Count == 0 && AllInventoryItems != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 SelectedIngredientsOnly is empty, trying to populate from AllInventoryItems");
+                    var selectedItems = AllInventoryItems.Where(i => i != null && i.IsSelected).ToList();
+                    System.Diagnostics.Debug.WriteLine($"🔧 Found {selectedItems.Count} selected items in AllInventoryItems");
+                    
+                    foreach (var item in selectedItems)
+                    {
+                        SelectedIngredientsOnly.Add(item);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Added to SelectedIngredientsOnly: {item.itemName}");
+                    }
+                }
+                
+                OnPropertyChanged(nameof(SelectedIngredientsOnly));
+                System.Diagnostics.Debug.WriteLine($"🔧 Final SelectedIngredientsOnly count: {SelectedIngredientsOnly.Count}");
+            }
+        }
 
         public ObservableCollection<Ingredient> Ingredients { get; set; } = new();
         public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
@@ -247,9 +287,32 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void OpenInputIngredients()
         {
+            System.Diagnostics.Debug.WriteLine($"🔧 OpenInputIngredients called");
+            System.Diagnostics.Debug.WriteLine($"🔧 AllInventoryItems count: {AllInventoryItems?.Count ?? 0}");
+            System.Diagnostics.Debug.WriteLine($"🔧 Selected items count: {AllInventoryItems?.Count(i => i.IsSelected) ?? 0}");
+            
+            // Force refresh the SelectedIngredientsOnly collection
+            UpdateSelectedIngredientsOnly();
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 SelectedIngredientsOnly count after update: {SelectedIngredientsOnly?.Count ?? 0}");
+            
+            // Log each selected ingredient
+            if (SelectedIngredientsOnly != null)
+            {
+                foreach (var item in SelectedIngredientsOnly)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 Selected ingredient: {item.itemName} (ID: {item.itemID}) - IsSelected: {item.IsSelected}");
+                }
+            }
+            
             IsConnectPOSToInventoryVisible = false;
             IsPreviewVisible = false;
             IsInputIngredientsVisible = true;
+            
+            // Force property change notifications
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
         [RelayCommand]
@@ -467,6 +530,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (e.PropertyName == nameof(InventoryPageModel.IsSelected))
             {
+                var item = sender as InventoryPageModel;
+                System.Diagnostics.Debug.WriteLine($"🔧 Item {item?.itemName} IsSelected changed to: {item?.IsSelected}");
+                
                 // Update the SelectedIngredientsOnly collection when IsSelected changes
                 UpdateSelectedIngredientsOnly();
                 OnPropertyChanged(nameof(HasSelectedIngredients));
@@ -636,13 +702,33 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         private void UpdateSelectedIngredientsOnly()
         {
+            System.Diagnostics.Debug.WriteLine($"🔧 UpdateSelectedIngredientsOnly called");
+            System.Diagnostics.Debug.WriteLine($"🔧 AllInventoryItems count: {AllInventoryItems?.Count ?? 0}");
+            
+            // Don't clear the collection if AllInventoryItems is null or empty
+            // This prevents the collection from being cleared when the ViewModel is being disposed
+            if (AllInventoryItems == null || AllInventoryItems.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 AllInventoryItems is null or empty, skipping update");
+                return;
+            }
+            
             SelectedIngredientsOnly.Clear();
-            var selected = AllInventoryItems.Where(i => i.IsSelected).ToList();
+            var selected = AllInventoryItems?.Where(i => i != null && i.IsSelected).ToList() ?? new List<InventoryPageModel>();
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 Found {selected.Count} selected items");
             
             foreach (var item in selected)
             {
+                bool isCupOrStraw = IsCupOrStraw(item);
+                System.Diagnostics.Debug.WriteLine($"🔧 Item: {item.itemName} (ID: {item.itemID}) - IsCupOrStraw: {isCupOrStraw}");
+                
+                // For now, let's include ALL selected items, not just non-cup/straw items
+                // This will help us debug if the issue is with the filtering
                 SelectedIngredientsOnly.Add(item);
             }
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 SelectedIngredientsOnly final count: {SelectedIngredientsOnly.Count}");
         }
 
         // Public helper to refresh filters and selection-related bindings after external updates
@@ -653,6 +739,41 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(HasSelectedIngredients));
             OnPropertyChanged(nameof(SelectedInventoryItems));
             OnPropertyChanged(nameof(SelectedIngredientsOnly));
+        }
+        
+        // Public method to force refresh SelectedIngredientsOnly collection
+        public void ForceRefreshSelectedIngredients()
+        {
+            System.Diagnostics.Debug.WriteLine($"🔧 ForceRefreshSelectedIngredients called");
+            UpdateSelectedIngredientsOnly();
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+        }
+        
+        // Public method to clear all inventory selections (call this when user cancels or completes product creation)
+        public void ClearAllSelections()
+        {
+            System.Diagnostics.Debug.WriteLine($"🔧 ClearAllSelections called");
+            
+            if (InventoryItems != null)
+            {
+                foreach (var item in InventoryItems)
+                {
+                    item.IsSelected = false;
+                    item.InputAmount = 0;
+                    item.InputUnit = string.Empty;
+                    item.AddonQuantity = 0;
+                }
+            }
+            
+            // Clear the SelectedIngredientsOnly collection
+            SelectedIngredientsOnly?.Clear();
+            
+            // Notify property changes
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 All selections cleared");
         }
 
         public void ApplyFilters()
@@ -922,7 +1043,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 AllInventoryItems?.Clear();
                 AvailableAddons?.Clear();
                 SelectedAddons?.Clear();
-                SelectedIngredientsOnly?.Clear();
+                // Don't clear SelectedIngredientsOnly here as it might be needed for the InputIngredientsAmountUsed popup
+                // SelectedIngredientsOnly?.Clear();
 
                 // Clear events
                 ConfirmPreviewRequested = null;
