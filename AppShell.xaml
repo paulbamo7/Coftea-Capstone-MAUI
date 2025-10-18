@@ -22,8 +22,4 @@
     <ShellContent Route="salesreport" ContentTemplate="{DataTemplate views:SalesReport}" />
     <ShellContent Route="usermanagement" ContentTemplate="{DataTemplate views:UserManagement}" />
 
-    <!-- Loading Screen Overlay -->
-    <controls:PageTransitionLoadingScreen x:Name="LoadingScreen" 
-                                          IsVisible="False" />
-
 </Shell>
