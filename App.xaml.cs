@@ -132,6 +132,9 @@ namespace Coftea_Capstone
                     var db = new Database();
                     await db.EnsureServerAndDatabaseAsync(cts.Token);
                     await db.InitializeDatabaseAsync(cts.Token);
+                    
+                    // Check for minimum stock levels after database initialization
+                    await db.CheckAllMinimumStockLevelsAsync();
                 }
                 catch (OperationCanceledException)
                 {

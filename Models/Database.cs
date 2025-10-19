@@ -880,6 +880,10 @@ namespace Coftea_Capstone.Models
 
                 await tx.CommitAsync();
                 InvalidateInventoryCache();
+                
+                // Check for minimum stock levels after deduction
+                await CheckMinimumStockLevelsAsync();
+                
                 return totalAffected;
             }
             catch
@@ -937,6 +941,87 @@ namespace Coftea_Capstone.Models
             var rows = await cmd.ExecuteNonQueryAsync();
             InvalidateInventoryCache();
             return rows;
+        }
+
+        // Check for minimum stock levels and send notifications
+        public async Task CheckMinimumStockLevelsAsync()
+        {
+            try
+            {
+                var inventoryItems = await GetInventoryItemsAsync();
+                var lowStockItems = inventoryItems.Where(item => 
+                    item.minimumQuantity > 0 && 
+                    item.itemQuantity <= item.minimumQuantity).ToList();
+
+                if (lowStockItems.Any())
+                {
+                    // Send notification for each low stock item
+                    foreach (var item in lowStockItems)
+                    {
+                        await SendLowStockNotificationAsync(item);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking minimum stock levels: {ex.Message}");
+            }
+        }
+
+        // Manual check for minimum stock levels (can be called on app startup or manually)
+        public async Task CheckAllMinimumStockLevelsAsync()
+        {
+            try
+            {
+                var inventoryItems = await GetInventoryItemsAsync();
+                var lowStockItems = inventoryItems.Where(item => 
+                    item.minimumQuantity > 0 && 
+                    item.itemQuantity <= item.minimumQuantity).ToList();
+
+                if (lowStockItems.Any())
+                {
+                    // Send a single notification with all low stock items
+                    var app = (App)Application.Current;
+                    if (app?.NotificationPopup != null)
+                    {
+                        var itemList = string.Join(", ", lowStockItems.Select(item => $"{item.itemName} ({item.itemQuantity:F1}/{item.minimumQuantity:F1})"));
+                        var message = $"Low Stock Alert: {lowStockItems.Count} item(s) below minimum level - {itemList}";
+                        await app.NotificationPopup.AddNotification(
+                            "Inventory Alert", 
+                            message, 
+                            $"Items: {lowStockItems.Count}", 
+                            "Warning"
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking all minimum stock levels: {ex.Message}");
+            }
+        }
+
+        // Send low stock notification
+        private async Task SendLowStockNotificationAsync(InventoryPageModel item)
+        {
+            try
+            {
+                var app = (App)Application.Current;
+                if (app?.NotificationPopup != null)
+                {
+                    var message = $"Low Stock Alert: {item.itemName} is at {item.itemQuantity:F1} {item.unitOfMeasurement} (minimum: {item.minimumQuantity:F1} {item.unitOfMeasurement})";
+                    await app.NotificationPopup.AddNotification(
+                        "Low Stock Alert", 
+                        message, 
+                        $"ID: {item.itemID}", 
+                        "Warning"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error sending low stock notification: {ex.Message}");
+            }
         }
 
         public async Task<int> DeleteInventoryItemAsync(int itemId) // Deletes an inventory item from the database

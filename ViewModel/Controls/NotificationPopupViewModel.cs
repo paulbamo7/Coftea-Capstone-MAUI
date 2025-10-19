@@ -13,7 +13,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         public ObservableCollection<NotificationItem> Notifications { get; } = new();
         [ObservableProperty] private bool isNotificationVisible = false;
         [ObservableProperty] private string notificationMessage = "";
-        [ObservableProperty] private string notificationType = "Success"; // Success, Error, Info
+        [ObservableProperty] private string notificationType = "Success"; // Success, Error, Info, Warning
         [ObservableProperty] private bool isAutoHide = true;
         [ObservableProperty] private int autoHideDelay = 3000; // 3 seconds
         // Badge count for notification bell
