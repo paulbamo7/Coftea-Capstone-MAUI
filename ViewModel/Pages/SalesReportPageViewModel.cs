@@ -844,9 +844,11 @@ namespace Coftea_Capstone.ViewModel
                     
                 case "fruit/soda":
                 case "fruitsoda":
+                    System.Diagnostics.Debug.WriteLine($"🍹 Filtering for Fruit/Soda category");
                     // First check dedicated fruit soda items
                     if (fruitSodaItems != null && fruitSodaItems.Any())
                     {
+                        System.Diagnostics.Debug.WriteLine($"🍹 Found {fruitSodaItems.Count} dedicated fruit/soda items");
                         filteredItems.AddRange(fruitSodaItems);
                     }
                     
@@ -854,7 +856,9 @@ namespace Coftea_Capstone.ViewModel
                     var fruitSodaKeywords = new[] { 
                         "soda", "orange", "lemon", "grape", "fruit", "berry", "mango", 
                         "strawberry", "blueberry", "raspberry", "passion", "pineapple",
-                        "kiwi", "watermelon", "peach", "pear", "apple", "cranberry"
+                        "kiwi", "watermelon", "peach", "pear", "apple", "cranberry",
+                        "cherry", "banana", "coconut", "lime", "pomegranate", "guava",
+                        "lychee", "dragon", "bubble", "tapioca", "jelly", "sago"
                     };
                     
                     if (coffeeItems != null)
@@ -863,6 +867,7 @@ namespace Coftea_Capstone.ViewModel
                             .Where(item => fruitSodaKeywords.Any(keyword => 
                                 item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
                             .ToList();
+                        System.Diagnostics.Debug.WriteLine($"🍹 Found {fruitSodaFromCoffee.Count} fruit/soda items from coffee collection");
                         filteredItems.AddRange(fruitSodaFromCoffee);
                     }
                     
@@ -872,24 +877,29 @@ namespace Coftea_Capstone.ViewModel
                             .Where(item => fruitSodaKeywords.Any(keyword => 
                                 item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
                             .ToList();
+                        System.Diagnostics.Debug.WriteLine($"🍹 Found {fruitSodaFromMilkTea.Count} fruit/soda items from milk tea collection");
                         filteredItems.AddRange(fruitSodaFromMilkTea);
                     }
                     
                     // If still no items, try to find any items that might be fruit/soda
                     if (!filteredItems.Any())
                     {
+                        System.Diagnostics.Debug.WriteLine($"🍹 No fruit/soda items found, trying fallback search");
                         var allItems = new List<TrendItem>();
                         if (coffeeItems != null) allItems.AddRange(coffeeItems);
                         if (milkTeaItems != null) allItems.AddRange(milkTeaItems);
                         
+                        // More specific fallback - look for items that contain fruit/soda keywords
                         var possibleFruitSodas = allItems
-                            .Where(item => item.Name.IndexOf("coffee", StringComparison.OrdinalIgnoreCase) < 0 &&
-                                         item.Name.IndexOf("tea", StringComparison.OrdinalIgnoreCase) < 0 &&
-                                         item.Name.IndexOf("milk", StringComparison.OrdinalIgnoreCase) < 0)
+                            .Where(item => fruitSodaKeywords.Any(keyword => 
+                                item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
                             .ToList();
-                            
+                        
+                        System.Diagnostics.Debug.WriteLine($"🍹 Fallback found {possibleFruitSodas.Count} possible fruit/soda items");
                         filteredItems.AddRange(possibleFruitSodas.Take(5));
                     }
+                    
+                    System.Diagnostics.Debug.WriteLine($"🍹 Total fruit/soda items after filtering: {filteredItems.Count}");
                     break;
             }
 

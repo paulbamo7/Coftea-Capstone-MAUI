@@ -1149,6 +1149,43 @@ namespace Coftea_Capstone.Models
                         transaction.MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice");
                         transaction.LargePrice = reader.IsDBNull(reader.GetOrdinal("largePrice")) ? 0 : reader.GetDecimal("largePrice");
                         transaction.AddonPrice = reader.IsDBNull(reader.GetOrdinal("addonPrice")) ? 0 : reader.GetDecimal("addonPrice");
+                        
+                        // If all size prices are 0, try to distribute the total price based on size
+                        if (transaction.SmallPrice == 0 && transaction.MediumPrice == 0 && transaction.LargePrice == 0)
+                        {
+                            var totalPrice = reader.GetDecimal("price");
+                            var size = reader.IsDBNull(reader.GetOrdinal("size")) ? "" : reader.GetString("size");
+                            var quantity = reader.GetInt32("quantity");
+                            
+                            // Calculate unit price first
+                            var unitPrice = quantity > 0 ? totalPrice / quantity : totalPrice;
+                            
+                            if (size.Contains("Small") || size.Contains("S"))
+                            {
+                                transaction.SmallPrice = unitPrice;
+                                transaction.MediumPrice = 0;
+                                transaction.LargePrice = 0;
+                            }
+                            else if (size.Contains("Medium") || size.Contains("M"))
+                            {
+                                transaction.SmallPrice = 0;
+                                transaction.MediumPrice = unitPrice;
+                                transaction.LargePrice = 0;
+                            }
+                            else if (size.Contains("Large") || size.Contains("L"))
+                            {
+                                transaction.SmallPrice = 0;
+                                transaction.MediumPrice = 0;
+                                transaction.LargePrice = unitPrice;
+                            }
+                            else
+                            {
+                                // Default fallback - put all price in medium
+                                transaction.SmallPrice = 0;
+                                transaction.MediumPrice = unitPrice;
+                                transaction.LargePrice = 0;
+                            }
+                        }
                     }
                     catch
                     {
@@ -1226,6 +1263,18 @@ namespace Coftea_Capstone.Models
             }
 
             return results;
+        }
+
+        public async Task<int> GetNextTransactionIdAsync()
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "SELECT COALESCE(MAX(transactionID), 0) + 1 as nextId FROM transactions";
+
+            await using var cmd = new MySqlCommand(sql, conn);
+            var result = await cmd.ExecuteScalarAsync();
+
+            return result != null ? Convert.ToInt32(result) : 1;
         }
 
         // ===================== User Management =====================

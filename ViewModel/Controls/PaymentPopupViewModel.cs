@@ -218,8 +218,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             PaymentStatus = "Payment Confirmed";
             var appInstance = (App)Application.Current;
             
-            // Generate a single order number for all popups
-            var orderNumber = new Random().Next(1000, 9999).ToString();
+            // Use the actual transaction ID for order number consistency
+            var orderNumber = savedTransactions?.FirstOrDefault()?.TransactionId.ToString() ?? "Unknown";
             
             if (appInstance?.OrderCompletePopup != null)
             {
@@ -374,14 +374,21 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 if (transactions != null)
                 {
-                    int nextId = (transactions.Count > 0 ? transactions.Max(t => t.TransactionId) : 0) + 1;
+                    // Get the next available transaction ID from the database to ensure persistence
+                    var nextId = await database.GetNextTransactionIdAsync();
                     var saved = new List<TransactionHistoryModel>();
 
                     // Create a single transaction for the entire order
                     var orderTotal = CartItems.Sum(item => item.TotalPrice);
-                    var transactionId = nextId++;
+                    var transactionId = nextId;
                     
                     // Create a combined transaction record for the entire order
+                    // Calculate size-specific prices for the transaction
+                    var smallTotal = CartItems.Sum(item => item.SmallPrice * item.SmallQuantity);
+                    var mediumTotal = CartItems.Sum(item => item.MediumPrice * item.MediumQuantity);
+                    var largeTotal = CartItems.Sum(item => item.LargePrice * item.LargeQuantity);
+                    var addonTotal = CartItems.Sum(item => Math.Max(0, item.TotalPrice - ((item.SmallPrice * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity))));
+
                     var orderTransaction = new TransactionHistoryModel
                     {
                         TransactionId = transactionId,
@@ -389,10 +396,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                         Size = CartItems.Count == 1 ? CartItems[0].SelectedSize : "Multiple",
                         Quantity = CartItems.Sum(item => item.Quantity),
                         Price = orderTotal,
-                        SmallPrice = 0, // Not applicable for combined order
-                        MediumPrice = 0, // Not applicable for combined order
-                        LargePrice = 0, // Not applicable for combined order
-                        AddonPrice = CartItems.Sum(item => Math.Max(0, item.TotalPrice - ((item.SmallPrice * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity)))),
+                        SmallPrice = smallTotal,
+                        MediumPrice = mediumTotal,
+                        LargePrice = largeTotal,
+                        AddonPrice = addonTotal,
                         Vat = 0m,
                         Total = orderTotal,
                         AddOns = string.Join(", ", CartItems.Where(item => !string.IsNullOrWhiteSpace(item.AddOnsDisplay) && item.AddOnsDisplay != "No add-ons").Select(item => $"{item.ProductName}: {item.AddOnsDisplay}")),
