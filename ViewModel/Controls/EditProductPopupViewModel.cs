@@ -36,7 +36,7 @@ namespace Coftea_Capstone.ViewModel
         private ObservableCollection<POSPageModel> allProducts = new();
 
         // Admin permission check
-        public bool IsAdmin => ((App)Application.Current)?.CurrentUser?.IsAdmin ?? false;
+        public bool IsAdmin => App.CurrentUser?.IsAdmin ?? false;
 
         public EditProductPopupViewModel(AddItemToPOSViewModel addItemToPOSViewModel)
         {

@@ -179,9 +179,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"Current MainPage type: {currentApp?.MainPage?.GetType().Name}");
                 
                 // For Shell-based navigation, access the POS ViewModel directly from App
-                if (currentApp?.POSPageViewModel != null)
+                if (currentApp?.POSVM != null)
                 {
-                    await currentApp.POSPageViewModel.ClearCartAsync();
+                    await currentApp.POSVM.ClearCartAsync();
                     System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via App reference");
                 }
                 else

@@ -210,12 +210,6 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            // Image is optional; no validation required
-
-            // NOTE: We do NOT validate inventory sufficiency when creating/editing products
-            // Inventory validation happens during POS transactions when actually selling the product
-            // This allows creating product recipes even when ingredients are temporarily out of stock
-
             var product = new POSPageModel
             {
                 ProductName = ProductName,
@@ -239,11 +233,11 @@ namespace Coftea_Capstone.ViewModel
                     int rowsAffected = await _database.UpdateProductAsync(product);
                     if (rowsAffected > 0)
                     {
-                        // Always update inventory links during edit to handle unchecked items
+                        // Build product→inventory links (addons/ingredients)
                         var selectedIngredientsOnly = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
                         var selectedAddonsOnly = ConnectPOSToInventoryVM?.SelectedAddons?.ToList() ?? new();
                         
-                        // Validate unit compatibility before saving (only if there are items)
+                        // Validate unit compatibility before saving
                         foreach (var ingredient in selectedIngredientsOnly)
                         {
                             if (!AreUnitsCompatible(ingredient.InputUnit, ingredient.unitOfMeasurement))
@@ -270,8 +264,10 @@ namespace Coftea_Capstone.ViewModel
                                 // Only save Small size data if product has Small size
                                 amtS: hasSmallSize ? ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement) : 0,
                                 unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
+
                                 amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
                                 unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
+
                                 amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
                                 unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
                             ));
