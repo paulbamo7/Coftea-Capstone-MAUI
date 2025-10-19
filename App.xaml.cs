@@ -113,6 +113,12 @@ namespace Coftea_Capstone
                 bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
                 bool rememberMe = Preferences.Get("RememberMe", false);
                 bool isAdmin = Preferences.Get("IsAdmin", false);
+                
+                System.Diagnostics.Debug.WriteLine("🚀 ===== APP STARTUP - CHECKING AUTO-LOGIN =====");
+                System.Diagnostics.Debug.WriteLine($"📋 IsLoggedIn: {isLoggedIn}");
+                System.Diagnostics.Debug.WriteLine($"📋 RememberMe: {rememberMe}");
+                System.Diagnostics.Debug.WriteLine($"📋 IsAdmin: {isAdmin}");
+                System.Diagnostics.Debug.WriteLine($"📋 Email: {Preferences.Get("Email", "NOT SET")}");
 
                 // Only auto-login if both IsLoggedIn and RememberMe are true
                 if (isLoggedIn && rememberMe)
@@ -140,13 +146,17 @@ namespace Coftea_Capstone
                     // Load profile data from database to display username and profile image
                     await ProfilePopup.LoadUserProfile();
                     
+                    System.Diagnostics.Debug.WriteLine("✅ Auto-login successful - Navigating to Dashboard");
                     NavigateToDashboard(isAdmin);
                 }
                 else
                 {
+                    System.Diagnostics.Debug.WriteLine("❌ Auto-login failed - Navigating to Login");
+                    
                     // Clear login state if Remember Me is not checked
                     if (isLoggedIn && !rememberMe)
                     {
+                        System.Diagnostics.Debug.WriteLine("⚠️ IsLoggedIn was true but RememberMe was false - Clearing IsLoggedIn");
                         Preferences.Set("IsLoggedIn", false);
                         Preferences.Set("IsAdmin", false);
                     }

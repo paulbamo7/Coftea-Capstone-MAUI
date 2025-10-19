@@ -109,18 +109,26 @@ namespace Coftea_Capstone.ViewModel
                 Preferences.Set("IsLoggedIn", true);
                 Preferences.Set("IsAdmin", user.IsAdmin);
                 Preferences.Set("UserID", user.ID);
+                
+                System.Diagnostics.Debug.WriteLine($"💾 Saving login preferences - RememberMe: {RememberMe}");
+                
                 if (RememberMe) 
                 {
                     Preferences.Set("RememberMe", true);
                     Preferences.Set("Email", Email);
                     Preferences.Set("Password", Password);
+                    System.Diagnostics.Debug.WriteLine($"✅ Remember Me enabled - Email: {Email}");
                 }
                 else
                 {
                     Preferences.Set("RememberMe", false);
                     Preferences.Remove("Email");
                     Preferences.Remove("Password");
+                    System.Diagnostics.Debug.WriteLine("❌ Remember Me disabled - Credentials cleared");
                 }
+                
+                // Verify preferences were saved
+                System.Diagnostics.Debug.WriteLine($"🔍 Verification - IsLoggedIn: {Preferences.Get("IsLoggedIn", false)}, RememberMe: {Preferences.Get("RememberMe", false)}");
 
                 // Navigate to dashboard
                 await SimpleNavigationService.NavigateToAsync("//dashboard");

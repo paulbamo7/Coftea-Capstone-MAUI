@@ -80,7 +80,7 @@
                                TextColor="#4B3832"/>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10" IsVisible="{Binding CanManageInventory}">
                         <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding OpenManageInventoryOptionsCommand}" />

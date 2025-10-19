@@ -56,6 +56,10 @@
                         <Grid>
                             <!-- Preview when image selected -->
                             <Grid IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToBoolConverter}}">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding PickImageCommand}" />
+                                </Grid.GestureRecognizers>
+                                
                                 <Image Source="{Binding SelectedImageSource}"
                                        Aspect="AspectFill"
                                        WidthRequest="360"

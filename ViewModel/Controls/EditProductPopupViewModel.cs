@@ -35,6 +35,9 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<POSPageModel> allProducts = new();
 
+        // Admin permission check
+        public bool IsAdmin => ((App)Application.Current)?.CurrentUser?.IsAdmin ?? false;
+
         public EditProductPopupViewModel(AddItemToPOSViewModel addItemToPOSViewModel)
         {
             _database = new Database(); // Will use auto-detected host
@@ -115,6 +118,14 @@ namespace Coftea_Capstone.ViewModel
         private async Task DeleteProduct(POSPageModel product) // Delete selected product
         {
             if (product == null) return;
+
+            // Check admin permission
+            if (!IsAdmin)
+            {
+                await Application.Current.MainPage.DisplayAlert("Permission Denied", 
+                    "Only administrators can delete products.", "OK");
+                return;
+            }
 
             // Check for dependencies first
             try

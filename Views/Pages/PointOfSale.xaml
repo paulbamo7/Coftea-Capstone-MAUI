@@ -294,7 +294,7 @@
                                     </BindableLayout.EmptyViewTemplate>
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate>
-                                            <Frame Padding="6" Margin="3" BackgroundColor="White" CornerRadius="10" HasShadow="False" BorderColor="#E0E0E0" WidthRequest="160">
+                                            <Frame Padding="6" Margin="3" BackgroundColor="White" CornerRadius="10" HasShadow="False" BorderColor="#E0E0E0" WidthRequest="140" HeightRequest="80">
                                                 <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
                                                     <Grid.GestureRecognizers>
                                                         <TapGestureRecognizer Command="{Binding ToggleSelectedCommand}" />

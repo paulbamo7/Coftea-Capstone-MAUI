@@ -418,7 +418,7 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            var inventoryItem = new InventoryPageModel
+            var inventoryItem = new InventoryPageModel 
             {
                 itemName = ItemName,
                 itemCategory = ItemCategory,

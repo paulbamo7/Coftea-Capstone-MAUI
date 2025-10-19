@@ -178,32 +178,29 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var currentApp = (App)Application.Current;
                 System.Diagnostics.Debug.WriteLine($"Current MainPage type: {currentApp?.MainPage?.GetType().Name}");
                 
-                // Try direct access to POS page
-                if (currentApp?.MainPage is NavigationPage navPage)
+                // For Shell-based navigation, access the POS ViewModel directly from App
+                if (currentApp?.POSPageViewModel != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"NavigationPage found, CurrentPage: {navPage.CurrentPage?.GetType().Name}");
-                    if (navPage.CurrentPage is Coftea_Capstone.Views.Pages.PointOfSale posPage)
-                    {
-                        if (posPage.BindingContext is POSPageViewModel posViewModel)
-                        {
-                            await posViewModel.ClearCartAsync();
-                            System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via NavigationPage");
-                        }
-                    }
+                    await currentApp.POSPageViewModel.ClearCartAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via App reference");
                 }
-                // Try TabbedPage access
-                else if (currentApp?.MainPage is TabbedPage tabbedPage)
+                else
                 {
-                    System.Diagnostics.Debug.WriteLine("TabbedPage found, searching for POS page...");
-                    foreach (var page in tabbedPage.Children)
+                    System.Diagnostics.Debug.WriteLine("⚠️ POSPageViewModel not found in App");
+                    
+                    // Fallback: Try to find POS page in Shell
+                    if (currentApp?.MainPage is Shell shell)
                     {
-                        if (page is Coftea_Capstone.Views.Pages.PointOfSale posPage)
+                        System.Diagnostics.Debug.WriteLine("Shell found, attempting to access current page...");
+                        var currentPage = shell.CurrentPage;
+                        System.Diagnostics.Debug.WriteLine($"Current Shell page: {currentPage?.GetType().Name}");
+                        
+                        if (currentPage is Coftea_Capstone.Views.Pages.PointOfSale posPage)
                         {
                             if (posPage.BindingContext is POSPageViewModel posViewModel)
                             {
                                 await posViewModel.ClearCartAsync();
-                                System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via TabbedPage");
-                                break;
+                                System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via Shell.CurrentPage");
                             }
                         }
                     }

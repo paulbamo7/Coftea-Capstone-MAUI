@@ -61,6 +61,9 @@ namespace Coftea_Capstone.ViewModel
         public ManagePOSOptionsViewModel ManagePOSOptionsVM => _managePOSOptionsViewModel;
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
 
+        // Permission check for Manage Inventory visibility
+        public bool CanManageInventory => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
+
         public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel, ManagePOSOptionsViewModel managePOSOptionsViewModel, ManageInventoryOptionsViewModel manageInventoryOptionsViewModel)
         {
             _addItemToPOSViewModel = addItemToPOSViewModel;
@@ -168,11 +171,18 @@ namespace Coftea_Capstone.ViewModel
         {
             System.Diagnostics.Debug.WriteLine("OpenManageInventoryOptions called");
             IsSettingsPopupVisible = false;
-            if (!(App.CurrentUser?.IsAdmin ?? false))
+            
+            // Check if user is admin OR has been granted inventory access
+            var currentUser = App.CurrentUser;
+            bool hasAccess = (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessInventory ?? false);
+            
+            if (!hasAccess)
             {
-                Application.Current?.MainPage?.DisplayAlert("Unauthorized", "Only admins can manage Inventory.", "OK");
+                Application.Current?.MainPage?.DisplayAlert("Access Denied", 
+                    "You don't have permission to manage inventory. Please contact an administrator.", "OK");
                 return;
             }
+            
             System.Diagnostics.Debug.WriteLine($"Setting ManageInventoryPopup visibility to true. Current value: {_manageInventoryOptionsViewModel.IsInventoryManagementPopupVisible}");
             _manageInventoryOptionsViewModel.IsInventoryManagementPopupVisible = true;
             System.Diagnostics.Debug.WriteLine($"ManageInventoryPopup visibility set to: {_manageInventoryOptionsViewModel.IsInventoryManagementPopupVisible}");

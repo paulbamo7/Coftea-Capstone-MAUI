@@ -157,6 +157,7 @@
                                                         WidthRequest="60" 
                                                         HeightRequest="30"
                                                         Padding="0"
+                                                        IsVisible="{Binding BindingContext.IsAdmin, Source={x:Reference EditProductPopupView}}"
                                                         Command="{Binding BindingContext.DeleteProductCommand, Source={x:Reference EditProductPopupView}}" 
                                                         CommandParameter="{Binding .}" />
                                                 

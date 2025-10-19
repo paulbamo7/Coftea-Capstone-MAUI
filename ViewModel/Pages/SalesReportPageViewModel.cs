@@ -117,6 +117,8 @@ namespace Coftea_Capstone.ViewModel
             "Yesterday" => YesterdayCashTotal,
             "Weekly" => WeeklyCashTotal,
             "Monthly" => MonthlyCashTotal,
+            "Today" => CashTotal,
+            "All" => CumulativeCashTotal,
             _ => CumulativeCashTotal
         };
 
@@ -125,6 +127,8 @@ namespace Coftea_Capstone.ViewModel
             "Yesterday" => YesterdayGCashTotal,
             "Weekly" => WeeklyGCashTotal,
             "Monthly" => MonthlyGCashTotal,
+            "Today" => GCashTotal,
+            "All" => CumulativeGCashTotal,
             _ => CumulativeGCashTotal
         };
 
@@ -133,6 +137,8 @@ namespace Coftea_Capstone.ViewModel
             "Yesterday" => YesterdayBankTotal,
             "Weekly" => WeeklyBankTotal,
             "Monthly" => MonthlyBankTotal,
+            "Today" => BankTotal,
+            "All" => CumulativeBankTotal,
             _ => CumulativeBankTotal
         };
 
@@ -141,6 +147,8 @@ namespace Coftea_Capstone.ViewModel
             "Yesterday" => YesterdayTotalSales,
             "Weekly" => WeeklyTotalSales,
             "Monthly" => MonthlyTotalSales,
+            "Today" => TotalSalesToday,
+            "All" => CumulativeTotalSales,
             _ => CumulativeTotalSales
         };
 
