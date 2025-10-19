@@ -420,6 +420,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                     saved.Add(orderTransaction);
 
                     System.Diagnostics.Debug.WriteLine($"✅ Order transaction {transactionId} saved successfully with {CartItems.Count} items");
+                    
+                    // Refresh sales report data
+                    try 
+                    {
+                        var currentApp = (App)Application.Current;
+                        if (currentApp?.SalesReportVM != null)
+                        {
+                            await currentApp.SalesReportVM.LoadDataAsync();
+                            System.Diagnostics.Debug.WriteLine("✅ Sales report data refreshed after transaction");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Error refreshing sales report: {ex.Message}");
+                    }
+                    
                     return saved;
                 }
                 else

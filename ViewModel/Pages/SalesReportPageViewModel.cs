@@ -115,40 +115,40 @@ namespace Coftea_Capstone.ViewModel
         public decimal DisplayCashTotal => SelectedTimePeriod switch
         {
             "Yesterday" => YesterdayCashTotal,
-            "Weekly" => WeeklyCashTotal,
-            "Monthly" => MonthlyCashTotal,
+            "1 Week" => WeeklyCashTotal,
+            "1 Month" => MonthlyCashTotal,
             "Today" => CashTotal,
-            "All" => CumulativeCashTotal,
+            "All Time" => CumulativeCashTotal,
             _ => CumulativeCashTotal
         };
 
         public decimal DisplayGCashTotal => SelectedTimePeriod switch
         {
             "Yesterday" => YesterdayGCashTotal,
-            "Weekly" => WeeklyGCashTotal,
-            "Monthly" => MonthlyGCashTotal,
+            "1 Week" => WeeklyGCashTotal,
+            "1 Month" => MonthlyGCashTotal,
             "Today" => GCashTotal,
-            "All" => CumulativeGCashTotal,
+            "All Time" => CumulativeGCashTotal,
             _ => CumulativeGCashTotal
         };
 
         public decimal DisplayBankTotal => SelectedTimePeriod switch
         {
             "Yesterday" => YesterdayBankTotal,
-            "Weekly" => WeeklyBankTotal,
-            "Monthly" => MonthlyBankTotal,
+            "1 Week" => WeeklyBankTotal,
+            "1 Month" => MonthlyBankTotal,
             "Today" => BankTotal,
-            "All" => CumulativeBankTotal,
+            "All Time" => CumulativeBankTotal,
             _ => CumulativeBankTotal
         };
 
         public decimal DisplayTotalSales => SelectedTimePeriod switch
         {
             "Yesterday" => YesterdayTotalSales,
-            "Weekly" => WeeklyTotalSales,
-            "Monthly" => MonthlyTotalSales,
+            "1 Week" => WeeklyTotalSales,
+            "1 Month" => MonthlyTotalSales,
             "Today" => TotalSalesToday,
-            "All" => CumulativeTotalSales,
+            "All Time" => CumulativeTotalSales,
             _ => CumulativeTotalSales
         };
 
@@ -352,12 +352,60 @@ namespace Coftea_Capstone.ViewModel
                 {
                     var today = DateTime.Today;
                     var tomorrow = today.AddDays(1);
-                    var topDict = await _database.GetTopProductsByDateRangeAsync(today, tomorrow, 5);
-                    var items = topDict.Select(kv => new TrendItem { Name = kv.Key, Count = kv.Value }).ToList();
-                    SetMaxCountForItems(items);
-                    TopItemsToday = new ObservableCollection<TrendItem>(items);
-                    // Re-raise to force chart refresh bindings
-                    TopItemsToday = new ObservableCollection<TrendItem>(TopItemsToday?.ToList() ?? new List<TrendItem>());
+                    var topDict = await _database.GetTopProductsByDateRangeAsync(today, tomorrow, 50);
+                    
+                    // Categorize products properly
+                    var allProducts = await _database.GetProductsAsyncCached();
+                    var productLookup = allProducts.ToDictionary(p => p.ProductName, p => new { p.Category, ColorCode = p.ColorCode ?? "" });
+                    
+                    // Separate by category
+                    var coffeeProducts = new List<TrendItem>();
+                    var milkTeaProducts = new List<TrendItem>();
+                    var frappeProducts = new List<TrendItem>();
+                    var fruitSodaProducts = new List<TrendItem>();
+                    
+                    foreach (var product in topDict)
+                    {
+                        var productInfo = productLookup.GetValueOrDefault(product.Key, new { Category = "Coffee", ColorCode = "" });
+                        
+                        var trendItem = new TrendItem 
+                        { 
+                            Name = product.Key, 
+                            Count = product.Value,
+                            ColorCode = productInfo.ColorCode
+                        };
+                        
+                        // Categorize based on product category from database
+                        switch (productInfo.Category?.ToLower())
+                        {
+                            case "frappe":
+                                frappeProducts.Add(trendItem);
+                                break;
+                            case "fruitsoda":
+                            case "fruit soda":
+                            case "fruit_soda":
+                                fruitSodaProducts.Add(trendItem);
+                                break;
+                            case "milktea":
+                            case "milk tea":
+                            case "milk_tea":
+                                milkTeaProducts.Add(trendItem);
+                                break;
+                            case "coffee":
+                            default:
+                                coffeeProducts.Add(trendItem);
+                                break;
+                        }
+                    }
+                    
+                    // Update category collections
+                    TopCoffeeToday = new ObservableCollection<TrendItem>(coffeeProducts.OrderByDescending(i => i.Count).Take(5));
+                    TopMilkteaToday = new ObservableCollection<TrendItem>(milkTeaProducts.OrderByDescending(i => i.Count).Take(5));
+                    TopFrappeToday = new ObservableCollection<TrendItem>(frappeProducts.OrderByDescending(i => i.Count).Take(5));
+                    TopFruitSodaToday = new ObservableCollection<TrendItem>(fruitSodaProducts.OrderByDescending(i => i.Count).Take(5));
+                    
+                    // Apply current category filter
+                    ApplyCategoryFilter();
                 }
                 catch (Exception ex)
                 {
@@ -469,6 +517,12 @@ namespace Coftea_Capstone.ViewModel
                 TopCoffeeWeekly = new ObservableCollection<TrendItem>(summary.TopCoffeeWeekly ?? new List<TrendItem>());
                 TopMilkteaWeekly = new ObservableCollection<TrendItem>(summary.TopMilkteaWeekly ?? new List<TrendItem>());
 
+                // Populate category-specific collections
+                TopFrappeToday = new ObservableCollection<TrendItem>(summary.TopFrappeToday ?? new List<TrendItem>());
+                TopFruitSodaToday = new ObservableCollection<TrendItem>(summary.TopFruitSodaToday ?? new List<TrendItem>());
+                TopFrappeWeekly = new ObservableCollection<TrendItem>(summary.TopFrappeWeekly ?? new List<TrendItem>());
+                TopFruitSodaWeekly = new ObservableCollection<TrendItem>(summary.TopFruitSodaWeekly ?? new List<TrendItem>());
+
                 // Populate combined collections for new layout
                 UpdateCombinedCollections();
 
@@ -508,15 +562,28 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSelectedCategoryChanged(string value) // Apply category filter
         {
+            System.Diagnostics.Debug.WriteLine($"Category changed to: {value}");
             ApplyCategoryFilter();
+            
+            // Force UI updates for all filtered collections
+            OnPropertyChanged(nameof(TopItemsToday));
+            OnPropertyChanged(nameof(TopItemsWeekly));
+            OnPropertyChanged(nameof(TopItemsMonthly));
+            OnPropertyChanged(nameof(FilteredTodayOrders));
+            OnPropertyChanged(nameof(FilteredWeeklyOrders));
+            OnPropertyChanged(nameof(MonthlyOrders));
         }
 
         partial void OnSelectedTimePeriodChanged(string value) // Update display totals
         {
+            System.Diagnostics.Debug.WriteLine($"Time period changed to: {value}");
             OnPropertyChanged(nameof(DisplayCashTotal));
             OnPropertyChanged(nameof(DisplayGCashTotal));
             OnPropertyChanged(nameof(DisplayBankTotal));
             OnPropertyChanged(nameof(DisplayTotalSales));
+            
+            // Also update category-specific data when time period changes
+            ApplyCategoryFilter();
         }
 
         [RelayCommand]
@@ -528,46 +595,124 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task SelectTimePeriod(string timePeriod) // Select time period and recalculate totals
         {
-            SelectedTimePeriod = timePeriod;
-            await CalculateTimePeriodTotalsAsync();
-            OnPropertyChanged(nameof(DisplayCashTotal));
-            OnPropertyChanged(nameof(DisplayGCashTotal));
-            OnPropertyChanged(nameof(DisplayBankTotal));
-            OnPropertyChanged(nameof(DisplayTotalSales));
+            try
+            {
+                if (string.Equals(SelectedTimePeriod, timePeriod, StringComparison.OrdinalIgnoreCase))
+                    return; // Skip if already on the selected time period
+
+                // Set loading state
+                IsLoading = true;
+                
+                // Update the selected time period
+                SelectedTimePeriod = timePeriod;
+                
+                // Clear previous data to prevent showing stale data
+                CashTotal = GCashTotal = BankTotal = 0;
+                
+                // Calculate the new totals
+                await CalculateTimePeriodTotalsAsync();
+                
+                // Notify UI of all property changes in a single batch
+                OnPropertyChanged(nameof(DisplayCashTotal));
+                OnPropertyChanged(nameof(DisplayGCashTotal));
+                OnPropertyChanged(nameof(DisplayBankTotal));
+                OnPropertyChanged(nameof(DisplayTotalSales));
+                
+                // Force UI update
+                await Task.Delay(50); // Small delay to allow UI to catch up
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in SelectTimePeriod: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private void UpdateCombinedCollections() // Combine categories into single collections
         {
-            // Filter today's items based on selected category
-            var todayItems = GetFilteredItems(TopCoffeeToday, TopMilkteaToday, TopFrappeToday, TopFruitSodaToday, SelectedCategory);
-            var topTodayItems = todayItems.OrderByDescending(x => x.Count).Take(5).ToList();
-            SetMaxCountForItems(topTodayItems);
-            TopItemsToday = new ObservableCollection<TrendItem>(topTodayItems);
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Updating combined collections for category: {SelectedCategory}");
 
-            // Filter weekly items based on selected category
-            var weeklyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, TopFrappeWeekly, TopFruitSodaWeekly, SelectedCategory);
-            var topWeeklyItems = weeklyItems.OrderByDescending(x => x.Count).Take(5).ToList();
-            SetMaxCountForItems(topWeeklyItems);
-            TopItemsWeekly = new ObservableCollection<TrendItem>(topWeeklyItems);
+                // Filter today's items based on selected category
+                var todayItems = GetFilteredItems(TopCoffeeToday, TopMilkteaToday, TopFrappeToday, TopFruitSodaToday, SelectedCategory);
+                var topTodayItems = todayItems.OrderByDescending(x => x.Count).Take(5).ToList();
+                
+                System.Diagnostics.Debug.WriteLine($"Found {todayItems.Count} today items, top {topTodayItems.Count} after filtering");
+                
+                // Set max count for proper scaling of bars
+                SetMaxCountForItems(topTodayItems);
+                
+                // Filter weekly items based on selected category
+                var weeklyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, TopFrappeWeekly, TopFruitSodaWeekly, SelectedCategory);
+                var topWeeklyItems = weeklyItems.OrderByDescending(x => x.Count).Take(5).ToList();
+                SetMaxCountForItems(topWeeklyItems);
+                
+                // Create monthly data (combine weekly data for demo)
+                var monthlyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, TopFrappeWeekly, TopFruitSodaWeekly, SelectedCategory);
+                var topMonthlyItems = monthlyItems.OrderByDescending(x => x.Count).Take(5).ToList();
+                SetMaxCountForItems(topMonthlyItems);
+                
+                // Update filtered order counts
+                FilteredTodayOrders = todayItems.Sum(x => x.Count);
+                FilteredWeeklyOrders = weeklyItems.Sum(x => x.Count);
+                MonthlyOrders = monthlyItems.Sum(x => x.Count);
+                
+                System.Diagnostics.Debug.WriteLine($"Order counts - Today: {FilteredTodayOrders}, Weekly: {FilteredWeeklyOrders}, Monthly: {MonthlyOrders}");
 
-            // Create monthly data (combine weekly data for demo)
-            var monthlyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, TopFrappeWeekly, TopFruitSodaWeekly, SelectedCategory);
-            var topMonthlyItems = monthlyItems.OrderByDescending(x => x.Count).Take(5).ToList();
-            SetMaxCountForItems(topMonthlyItems);
-            TopItemsMonthly = new ObservableCollection<TrendItem>(topMonthlyItems);
-
-            // Update filtered order counts
-            FilteredTodayOrders = todayItems.Sum(x => x.Count);
-            FilteredWeeklyOrders = weeklyItems.Sum(x => x.Count);
-            MonthlyOrders = monthlyItems.Sum(x => x.Count);
-
-            // Update pie chart item names
-            UpdatePieChartNames(topTodayItems);
-
-            // Force pie charts to refresh bindings by setting new instances
-            TopItemsToday = new ObservableCollection<TrendItem>(TopItemsToday?.ToList() ?? new List<TrendItem>());
-            TopItemsWeekly = new ObservableCollection<TrendItem>(TopItemsWeekly?.ToList() ?? new List<TrendItem>());
-            TopItemsMonthly = new ObservableCollection<TrendItem>(TopItemsMonthly?.ToList() ?? new List<TrendItem>());
+                // Update the collections with new data on the main thread
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        // Update the collections with new data
+                        TopItemsToday = new ObservableCollection<TrendItem>(topTodayItems);
+                        TopItemsWeekly = new ObservableCollection<TrendItem>(topWeeklyItems);
+                        TopItemsMonthly = new ObservableCollection<TrendItem>(topMonthlyItems);
+                        
+                        // Update pie chart with the filtered items
+                        UpdatePieChartNames(topTodayItems);
+                        
+                        // Force UI to update
+                        OnPropertyChanged(nameof(TopItemsToday));
+                        OnPropertyChanged(nameof(TopItemsWeekly));
+                        OnPropertyChanged(nameof(TopItemsMonthly));
+                        OnPropertyChanged(nameof(Item1Name));
+                        OnPropertyChanged(nameof(Item2Name));
+                        OnPropertyChanged(nameof(Item3Name));
+                        OnPropertyChanged(nameof(Item1Count));
+                        OnPropertyChanged(nameof(Item2Count));
+                        OnPropertyChanged(nameof(Item3Count));
+                        OnPropertyChanged(nameof(Item1HasTrend));
+                        OnPropertyChanged(nameof(Item2HasTrend));
+                        OnPropertyChanged(nameof(Item3HasTrend));
+                        
+                        System.Diagnostics.Debug.WriteLine($"UI collections updated with {topTodayItems.Count} items for {SelectedCategory}");
+                        
+                        // Debug output for pie chart data
+                        if (topTodayItems.Any())
+                        {
+                            System.Diagnostics.Debug.WriteLine("Pie Chart Data:");
+                            for (int i = 0; i < Math.Min(3, topTodayItems.Count); i++)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"  Item {i + 1}: {topTodayItems[i].Name} - {topTodayItems[i].Count}");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error updating UI collections: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in UpdateCombinedCollections: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+            }
         }
 
         private void UpdatePieChartNames(List<TrendItem> items) // Update pie chart item names and counts
@@ -601,103 +746,210 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private List<TrendItem> GetFilteredItems(ObservableCollection<TrendItem> coffeeItems, ObservableCollection<TrendItem> milkTeaItems, ObservableCollection<TrendItem> frappeItems, ObservableCollection<TrendItem> fruitSodaItems, string category) // Filter items based on category
+        private List<TrendItem> GetFilteredItems(ObservableCollection<TrendItem> coffeeItems, ObservableCollection<TrendItem> milkTeaItems, 
+            ObservableCollection<TrendItem> frappeItems, ObservableCollection<TrendItem> fruitSodaItems, string category)
         {
             var filteredItems = new List<TrendItem>();
+            var categoryLower = category?.ToLower() ?? string.Empty;
 
-            switch (category?.ToLower())
+            // Handle Overview/All category - get top item from each category
+            if (string.IsNullOrEmpty(category) || 
+                categoryLower.Equals("all", StringComparison.OrdinalIgnoreCase) ||
+                categoryLower.Equals("overview", StringComparison.OrdinalIgnoreCase))
             {
+                // Get all items from all categories
+                var allItems = new List<TrendItem>();
+                if (coffeeItems != null) allItems.AddRange(coffeeItems);
+                if (milkTeaItems != null) allItems.AddRange(milkTeaItems);
+                if (frappeItems != null) allItems.AddRange(frappeItems);
+                if (fruitSodaItems != null) allItems.AddRange(fruitSodaItems);
+                
+                // Group by name and sum counts for duplicate items
+                var groupedItems = allItems
+                    .GroupBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+                    .Select(g => new TrendItem 
+                    { 
+                        Name = g.Key, 
+                        Count = g.Sum(x => x.Count),
+                        ColorCode = g.First().ColorCode,
+                        MaxCount = g.Max(x => x.MaxCount)
+                    })
+                    .OrderByDescending(x => x.Count)
+                    .Take(5) // Get top 5 overall
+                    .ToList();
+                    
+                return groupedItems;
+            }
+
+            // For specific categories, use the appropriate collection
+            switch (categoryLower)
+            {
+                case "coffee":
+                    if (coffeeItems != null) 
+                    {
+                        filteredItems.AddRange(coffeeItems);
+                    }
+                    break;
+                    
+                case "milktea":
+                    if (milkTeaItems != null) 
+                    {
+                        filteredItems.AddRange(milkTeaItems);
+                    }
+                    break;
+                    
                 case "frappe":
-                    if (frappeItems != null && frappeItems.Count > 0)
+                    // First check dedicated frappe items
+                    if (frappeItems != null && frappeItems.Any())
                     {
                         filteredItems.AddRange(frappeItems);
                     }
-                    else
+                    
+                    // Always check coffee and milk tea items for frappe products
+                    var frappeKeywords = new[] { "frappe", "frap" };
+                    
+                    if (coffeeItems != null)
                     {
-                        filteredItems.AddRange(coffeeItems.Where(item => 
-                            item.Name.Contains("Frappe", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Frappé", StringComparison.OrdinalIgnoreCase)));
-                        filteredItems.AddRange(milkTeaItems.Where(item => 
-                            item.Name.Contains("Frappe", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Frappé", StringComparison.OrdinalIgnoreCase)));
+                        var frappeFromCoffee = coffeeItems
+                            .Where(item => frappeKeywords.Any(keyword => 
+                                item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
+                            .ToList();
+                        filteredItems.AddRange(frappeFromCoffee);
+                    }
+                    
+                    if (milkTeaItems != null)
+                    {
+                        var frappeFromMilkTea = milkTeaItems
+                            .Where(item => frappeKeywords.Any(keyword => 
+                                item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
+                            .ToList();
+                        filteredItems.AddRange(frappeFromMilkTea);
+                    }
+                    
+                    // If still no items, try to find any items that might be frappes
+                    if (!filteredItems.Any())
+                    {
+                        var allItems = new List<TrendItem>();
+                        if (coffeeItems != null) allItems.AddRange(coffeeItems);
+                        if (milkTeaItems != null) allItems.AddRange(milkTeaItems);
+                        
+                        var possibleFrappes = allItems
+                            .Where(item => item.Name.IndexOf("fr", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                         item.Name.IndexOf("fp", StringComparison.OrdinalIgnoreCase) >= 0)
+                            .ToList();
+                            
+                        filteredItems.AddRange(possibleFrappes);
                     }
                     break;
-
+                    
                 case "fruit/soda":
-                    if (fruitSodaItems != null && fruitSodaItems.Count > 0)
+                case "fruitsoda":
+                    // First check dedicated fruit soda items
+                    if (fruitSodaItems != null && fruitSodaItems.Any())
                     {
                         filteredItems.AddRange(fruitSodaItems);
                     }
-                    else
+                    
+                    // Always check coffee and milk tea items for fruit/soda products
+                    var fruitSodaKeywords = new[] { 
+                        "soda", "orange", "lemon", "grape", "fruit", "berry", "mango", 
+                        "strawberry", "blueberry", "raspberry", "passion", "pineapple",
+                        "kiwi", "watermelon", "peach", "pear", "apple", "cranberry"
+                    };
+                    
+                    if (coffeeItems != null)
                     {
-                        filteredItems.AddRange(coffeeItems.Where(item => 
-                            item.Name.Contains("Soda", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Orange", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Lemon", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Grape", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Fruit", StringComparison.OrdinalIgnoreCase)));
-                        filteredItems.AddRange(milkTeaItems.Where(item => 
-                            item.Name.Contains("Soda", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Orange", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Lemon", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Grape", StringComparison.OrdinalIgnoreCase) ||
-                            item.Name.Contains("Fruit", StringComparison.OrdinalIgnoreCase)));
+                        var fruitSodaFromCoffee = coffeeItems
+                            .Where(item => fruitSodaKeywords.Any(keyword => 
+                                item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
+                            .ToList();
+                        filteredItems.AddRange(fruitSodaFromCoffee);
                     }
-                    break;
-
-                case "milktea":
-                    // Filter for milktea items from both collections
-                    filteredItems.AddRange(coffeeItems.Where(item => 
-                        item.Name.Contains("Matcha", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Brown Sugar", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Hokkaido", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Taro", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Wintermelon", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Milktea", StringComparison.OrdinalIgnoreCase)));
-                    filteredItems.AddRange(milkTeaItems.Where(item => 
-                        item.Name.Contains("Matcha", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Brown Sugar", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Hokkaido", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Taro", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Wintermelon", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Milktea", StringComparison.OrdinalIgnoreCase)));
-                    break;
-
-                case "coffee":
-                    // Filter for coffee items from both collections
-                    filteredItems.AddRange(coffeeItems.Where(item => 
-                        item.Name.Contains("Coffee", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Americano", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Latte", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Cappuccino", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Espresso", StringComparison.OrdinalIgnoreCase) ||
-                        (!item.Name.Contains("Frappe", StringComparison.OrdinalIgnoreCase) &&
-                         !item.Name.Contains("Soda", StringComparison.OrdinalIgnoreCase) &&
-                         !item.Name.Contains("Matcha", StringComparison.OrdinalIgnoreCase) &&
-                         !item.Name.Contains("Milktea", StringComparison.OrdinalIgnoreCase))));
-                    filteredItems.AddRange(milkTeaItems.Where(item => 
-                        item.Name.Contains("Coffee", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Americano", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Latte", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Cappuccino", StringComparison.OrdinalIgnoreCase) ||
-                        item.Name.Contains("Espresso", StringComparison.OrdinalIgnoreCase)));
-                    break;
-
-                default:
-                    // Show all items for overview or unknown categories
-                    filteredItems.AddRange(coffeeItems);
-                    filteredItems.AddRange(milkTeaItems);
-                    if (frappeItems != null) filteredItems.AddRange(frappeItems);
-                    if (fruitSodaItems != null) filteredItems.AddRange(fruitSodaItems);
+                    
+                    if (milkTeaItems != null)
+                    {
+                        var fruitSodaFromMilkTea = milkTeaItems
+                            .Where(item => fruitSodaKeywords.Any(keyword => 
+                                item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
+                            .ToList();
+                        filteredItems.AddRange(fruitSodaFromMilkTea);
+                    }
+                    
+                    // If still no items, try to find any items that might be fruit/soda
+                    if (!filteredItems.Any())
+                    {
+                        var allItems = new List<TrendItem>();
+                        if (coffeeItems != null) allItems.AddRange(coffeeItems);
+                        if (milkTeaItems != null) allItems.AddRange(milkTeaItems);
+                        
+                        var possibleFruitSodas = allItems
+                            .Where(item => item.Name.IndexOf("coffee", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                         item.Name.IndexOf("tea", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                         item.Name.IndexOf("milk", StringComparison.OrdinalIgnoreCase) < 0)
+                            .ToList();
+                            
+                        filteredItems.AddRange(possibleFruitSodas.Take(5));
+                    }
                     break;
             }
 
-            return filteredItems;
+            // Group by name and sum counts for duplicate items
+            var groupedFilteredItems = filteredItems
+                .GroupBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(g => new TrendItem 
+                { 
+                    Name = g.Key, 
+                    Count = g.Sum(x => x.Count),
+                    ColorCode = g.First().ColorCode,
+                    MaxCount = g.Max(x => x.MaxCount)
+                })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            return groupedFilteredItems;
+        }
+        
+        private TrendItem FindTopItemByName(IEnumerable<TrendItem> items, params string[] searchTerms)
+        {
+            if (items == null || !items.Any()) return null;
+            
+            return items
+                .Where(item => searchTerms.Any(term => 
+                    item.Name.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0))
+                .OrderByDescending(item => item.Count)
+                .FirstOrDefault();
         }
 
+        // Helper method to find items by name patterns
+        private IEnumerable<TrendItem> FindItemsByName(IEnumerable<TrendItem> items, params string[] searchTerms)
+        {
+            if (items == null) return Enumerable.Empty<TrendItem>();
+            
+            return items.Where(item => 
+                searchTerms.Any(term => 
+                    item.Name.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0));
+        }
         private void ApplyCategoryFilter() // Apply category filter to combined collections
         {
+            System.Diagnostics.Debug.WriteLine($"Applying category filter for: {SelectedCategory}");
             UpdateCombinedCollections();
+            
+            // Force UI updates for all related properties
+            OnPropertyChanged(nameof(TopItemsToday));
+            OnPropertyChanged(nameof(TopItemsWeekly));
+            OnPropertyChanged(nameof(TopItemsMonthly));
+            OnPropertyChanged(nameof(FilteredTodayOrders));
+            OnPropertyChanged(nameof(FilteredWeeklyOrders));
+            OnPropertyChanged(nameof(MonthlyOrders));
+            OnPropertyChanged(nameof(Item1Name));
+            OnPropertyChanged(nameof(Item2Name));
+            OnPropertyChanged(nameof(Item3Name));
+            OnPropertyChanged(nameof(Item1Count));
+            OnPropertyChanged(nameof(Item2Count));
+            OnPropertyChanged(nameof(Item3Count));
+            OnPropertyChanged(nameof(Item1HasTrend));
+            OnPropertyChanged(nameof(Item2HasTrend));
+            OnPropertyChanged(nameof(Item3HasTrend));
         }
         private async Task LoadCumulativeTotalsAsync() // Load cumulative totals from preferences
         {
@@ -791,7 +1043,8 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
-                var today = DateTime.Today;
+                var now = DateTime.Now;
+                var today = now.Date;
                 
                 if (SelectedTimePeriod == "Today")
                 {
@@ -820,30 +1073,65 @@ namespace Coftea_Capstone.ViewModel
                 else if (SelectedTimePeriod == "Yesterday")
                 {
                     var yesterday = today.AddDays(-1);
-                    var yesterdayEnd = yesterday.AddDays(1);
+                    var yesterdayStart = yesterday;
+                    var yesterdayEnd = today;
                     
-                    var yesterdayTransactions = await _database.GetTransactionsByDateRangeAsync(yesterday, yesterdayEnd);
+                    // Get transactions from yesterday to today (to show cumulative data up to today)
+                    var allTransactions = await _database.GetTransactionsByDateRangeAsync(yesterdayStart, today.AddDays(1));
                     
-                    YesterdayCashTotal = yesterdayTransactions
+                    // Filter for just yesterday
+                    var yesterdayOnly = allTransactions
+                        .Where(t => t.TransactionDate >= yesterdayStart && t.TransactionDate < yesterdayEnd)
+                        .ToList();
+                    
+                    // Calculate yesterday's totals
+                    var cashTotal = yesterdayOnly
                         .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
                         .Sum(t => t.Total);
                     
-                    YesterdayGCashTotal = yesterdayTransactions
+                    var gcashTotal = yesterdayOnly
                         .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
                         .Sum(t => t.Total);
                     
-                    YesterdayBankTotal = yesterdayTransactions
+                    var bankTotal = yesterdayOnly
                         .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
                         .Sum(t => t.Total);
                     
-                    YesterdayTotalSales = yesterdayTransactions.Sum(t => t.Total);
-                }
-                else if (SelectedTimePeriod == "Weekly")
-                {
-                    var weekStart = today.AddDays(-(int)today.DayOfWeek);
-                    var weekEnd = weekStart.AddDays(7);
+                    var totalSales = yesterdayOnly.Sum(t => t.Total);
                     
-                    var weeklyTransactions = await _database.GetTransactionsByDateRangeAsync(weekStart, weekEnd);
+                    // Update properties on the main thread
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        YesterdayCashTotal = allTransactions
+                            .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                            .Sum(t => t.Total);
+                            
+                        YesterdayGCashTotal = allTransactions
+                            .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                            .Sum(t => t.Total);
+                            
+                        YesterdayBankTotal = allTransactions
+                            .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                            .Sum(t => t.Total);
+                            
+                        YesterdayTotalSales = allTransactions.Sum(t => t.Total);
+                        
+                        // Force UI update
+                        OnPropertyChanged(nameof(DisplayCashTotal));
+                        OnPropertyChanged(nameof(DisplayGCashTotal));
+                        OnPropertyChanged(nameof(DisplayBankTotal));
+                        OnPropertyChanged(nameof(DisplayTotalSales));
+                    });
+                    
+                    System.Diagnostics.Debug.WriteLine($"Yesterday's totals - Cash: {cashTotal}, GCash: {gcashTotal}, Bank: {bankTotal}, Total: {totalSales}");
+                    System.Diagnostics.Debug.WriteLine($"Cumulative totals - Cash: {YesterdayCashTotal}, GCash: {YesterdayGCashTotal}, Bank: {YesterdayBankTotal}, Total: {YesterdayTotalSales}");
+                }
+                else if (SelectedTimePeriod == "1 Week")
+                {
+                    var weekStart = today.AddDays(-7);
+                    
+                    // Get transactions for the past 7 days up to now
+                    var weeklyTransactions = await _database.GetTransactionsByDateRangeAsync(weekStart, today.AddDays(1));
                     
                     WeeklyCashTotal = weeklyTransactions
                         .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
@@ -858,13 +1146,15 @@ namespace Coftea_Capstone.ViewModel
                         .Sum(t => t.Total);
                     
                     WeeklyTotalSales = weeklyTransactions.Sum(t => t.Total);
-                }
-                else if (SelectedTimePeriod == "Monthly")
-                {
-                    var monthStart = new DateTime(today.Year, today.Month, 1);
-                    var monthEnd = monthStart.AddMonths(1);
                     
-                    var monthlyTransactions = await _database.GetTransactionsByDateRangeAsync(monthStart, monthEnd);
+                    System.Diagnostics.Debug.WriteLine($"Weekly totals (last 7 days) - Cash: {WeeklyCashTotal}, GCash: {WeeklyGCashTotal}, Bank: {WeeklyBankTotal}, Total: {WeeklyTotalSales}");
+                }
+                else if (SelectedTimePeriod == "1 Month")
+                {
+                    var monthStart = today.AddMonths(-1);
+                    
+                    // Get transactions for the past 30 days up to now
+                    var monthlyTransactions = await _database.GetTransactionsByDateRangeAsync(monthStart, today.AddDays(1));
                     
                     MonthlyCashTotal = monthlyTransactions
                         .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
@@ -879,16 +1169,18 @@ namespace Coftea_Capstone.ViewModel
                         .Sum(t => t.Total);
                     
                     MonthlyTotalSales = monthlyTransactions.Sum(t => t.Total);
+                    
+                    System.Diagnostics.Debug.WriteLine($"Monthly totals (last 30 days) - Cash: {MonthlyCashTotal}, GCash: {MonthlyGCashTotal}, Bank: {MonthlyBankTotal}, Total: {MonthlyTotalSales}");
                 }
-                else if (SelectedTimePeriod == "All")
+                else if (SelectedTimePeriod == "All Time")
                 {
-                    // For "All" time period, get all transactions from the beginning of time
+                    // For "All Time" period, get all transactions from the beginning of time
                     var allStart = DateTime.MinValue;
                     var allEnd = DateTime.MaxValue;
                     
                     var allTransactions = await _database.GetTransactionsByDateRangeAsync(allStart, allEnd);
                     
-                    // Update cumulative totals (used by "All" time period)
+                    // Update cumulative totals (used by "All Time" time period)
                     CumulativeCashTotal = allTransactions
                         .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
                         .Sum(t => t.Total);

@@ -1,4 +1,4 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              x:Class="Coftea_Capstone.Views.Pages.SalesReport" 
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" 
@@ -235,7 +235,7 @@
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
-                                <Button Text="Weekly" 
+                                <Button Text="1 Week" 
                                         Padding="0"
                                         Grid.Column="2"
                                         FontSize="12" 
@@ -244,14 +244,14 @@
                                         HeightRequest="31" 
                                         CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="Weekly">
+                                        CommandParameter="1 Week">
                                     <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Weekly">
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="1 Week">
                                             <Setter Property="BackgroundColor" Value="#81C784" />
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
-                                <Button Text="Monthly" 
+                                <Button Text="1 Month" 
                                         Padding="0"
                                         Grid.Column="3"
                                         FontSize="12" 
@@ -260,14 +260,14 @@
                                         HeightRequest="31" 
                                         CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="Monthly">
+                                        CommandParameter="1 Month">
                                     <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Monthly">
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="1 Month">
                                             <Setter Property="BackgroundColor" Value="#81C784" />
                                         </DataTrigger>
                                     </Button.Triggers>
                                 </Button>
-                                <Button Text="All" 
+                                <Button Text="All Time" 
                                         Padding="0"
                                         Grid.Column="4"
                                         FontSize="12" 
@@ -276,9 +276,9 @@
                                         HeightRequest="31" 
                                         CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="All">
+                                        CommandParameter="All Time">
                                     <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="All">
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="All Time">
                                             <Setter Property="BackgroundColor" Value="#81C784" />
                                         </DataTrigger>
                                     </Button.Triggers>

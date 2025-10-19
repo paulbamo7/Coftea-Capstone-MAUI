@@ -52,13 +52,12 @@ namespace Coftea_Capstone
         {
             InitializeComponent();
 
-            InitializeViewModels();
-
             // Determine start route BEFORE showing Shell to avoid login flash
             bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
             bool rememberMe = Preferences.Get("RememberMe", false);
             bool isAdmin = Preferences.Get("IsAdmin", false);
-
+            
+            // Initialize user if remembered
             if (isLoggedIn && rememberMe && CurrentUser == null)
             {
                 var user = new UserInfoModel
@@ -76,26 +75,40 @@ namespace Coftea_Capstone
                 SetCurrentUser(user);
             }
 
-            // Set AppShell as main page
-            MainPage = new AppShell();
+            // Initialize view models
+            InitializeViewModels();
 
-            // Navigate immediately to prevent brief login display
-            MainThread.BeginInvokeOnMainThread(async () =>
+            // Set initial page based on login status
+            if (isLoggedIn && rememberMe)
             {
-                if (isLoggedIn && rememberMe)
+                // Start with dashboard as the main page
+                MainPage = new AppShell();
+                
+                // Load profile in background
+                _ = Task.Run(async () =>
                 {
-                    try
-                    {
-                        await ProfilePopup.LoadUserProfile();
-                    }
+                    try 
+                    { 
+                        await ProfilePopup.LoadUserProfile(); 
+                    } 
                     catch { }
-                    await SimpleNavigationService.NavigateToAsync("//dashboard");
-                }
-                else
+                });
+                
+                // Set initial route to dashboard
+                Shell.Current.GoToAsync("//dashboard").ContinueWith(t =>
                 {
-                    await SimpleNavigationService.NavigateToAsync("//login");
-                }
-            });
+                    // This ensures the navigation completes before the UI is shown
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
+            else
+            {
+                // Start with login page
+                MainPage = new AppShell();
+                Shell.Current.GoToAsync("//login").ContinueWith(t =>
+                {
+                    // This ensures the navigation completes before the UI is shown
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
 
             // Create loading overlay and add it to the visual tree after MainPage is set
             MainThread.BeginInvokeOnMainThread(() =>

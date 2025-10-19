@@ -69,42 +69,41 @@ namespace Coftea_Capstone.Services
                 var frappeProducts = new List<TrendItem>();
                 var fruitSodaProducts = new List<TrendItem>();
 
-                // Get product details to include color codes
+                // Get product details to include color codes and categories
                 var allProducts = await _database.GetProductsAsyncCached();
-                var productLookup = allProducts.ToDictionary(p => p.ProductName, p => p.ColorCode ?? "");
+                var productLookup = allProducts.ToDictionary(p => p.ProductName, p => new { p.Category, ColorCode = p.ColorCode ?? "" });
                 
                 foreach (var product in topProducts)
                 {
+                    var productInfo = productLookup.GetValueOrDefault(product.Key, new { Category = "Coffee", ColorCode = "" });
+                    
                     var trendItem = new TrendItem 
                     { 
                         Name = product.Key, 
                         Count = product.Value,
-                        ColorCode = productLookup.GetValueOrDefault(product.Key, "")
+                        ColorCode = productInfo.ColorCode
                     };
                     
-                    // Categorize based on product name patterns
-                    if (product.Key.Contains("Frappe", StringComparison.OrdinalIgnoreCase))
+                    // Categorize based on product category from database
+                    switch (productInfo.Category?.ToLower())
                     {
-                        frappeProducts.Add(trendItem);
-                    }
-                    else if (product.Key.Contains("Soda", StringComparison.OrdinalIgnoreCase) || 
-                             product.Key.Contains("Orange", StringComparison.OrdinalIgnoreCase) ||
-                             product.Key.Contains("Lemon", StringComparison.OrdinalIgnoreCase) ||
-                             product.Key.Contains("Grape", StringComparison.OrdinalIgnoreCase))
-                    {
-                        fruitSodaProducts.Add(trendItem);
-                    }
-                    else if (product.Key.Contains("Matcha", StringComparison.OrdinalIgnoreCase) ||
-                             product.Key.Contains("Brown Sugar", StringComparison.OrdinalIgnoreCase) ||
-                             product.Key.Contains("Hokkaido", StringComparison.OrdinalIgnoreCase) ||
-                             product.Key.Contains("Taro", StringComparison.OrdinalIgnoreCase) ||
-                             product.Key.Contains("Wintermelon", StringComparison.OrdinalIgnoreCase))
-                    {
-                        milkTeaProducts.Add(trendItem);
-                    }
-                    else
-                    {
-                        coffeeProducts.Add(trendItem);
+                        case "frappe":
+                            frappeProducts.Add(trendItem);
+                            break;
+                        case "fruitsoda":
+                        case "fruit soda":
+                        case "fruit_soda":
+                            fruitSodaProducts.Add(trendItem);
+                            break;
+                        case "milktea":
+                        case "milk tea":
+                        case "milk_tea":
+                            milkTeaProducts.Add(trendItem);
+                            break;
+                        case "coffee":
+                        default:
+                            coffeeProducts.Add(trendItem);
+                            break;
                     }
                 }
 
@@ -171,8 +170,12 @@ namespace Coftea_Capstone.Services
                     TotalOrdersThisWeek = 0,
                     TopCoffeeToday = new List<TrendItem>(),
                     TopMilkteaToday = new List<TrendItem>(),
+                    TopFrappeToday = new List<TrendItem>(),
+                    TopFruitSodaToday = new List<TrendItem>(),
                     TopCoffeeWeekly = new List<TrendItem>(),
                     TopMilkteaWeekly = new List<TrendItem>(),
+                    TopFrappeWeekly = new List<TrendItem>(),
+                    TopFruitSodaWeekly = new List<TrendItem>(),
                     Reports = new List<SalesReportPageModel>()
                 };
             }
@@ -192,8 +195,12 @@ namespace Coftea_Capstone.Services
                     TotalOrdersThisWeek = 0,
                     TopCoffeeToday = new List<TrendItem>(),
                     TopMilkteaToday = new List<TrendItem>(),
+                    TopFrappeToday = new List<TrendItem>(),
+                    TopFruitSodaToday = new List<TrendItem>(),
                     TopCoffeeWeekly = new List<TrendItem>(),
                     TopMilkteaWeekly = new List<TrendItem>(),
+                    TopFrappeWeekly = new List<TrendItem>(),
+                    TopFruitSodaWeekly = new List<TrendItem>(),
                     Reports = new List<SalesReportPageModel>()
                 };
             }
@@ -298,13 +305,18 @@ namespace Coftea_Capstone.Services
                 ActiveDays = 0,
                 MostBoughtToday = "No data available",
                 TrendingToday = "No data available",
+                TrendingPercentage = 0,
                 TotalSalesToday = 0,
                 TotalOrdersToday = 0,
                 TotalOrdersThisWeek = 0,
                 TopCoffeeToday = new List<TrendItem>(),
                 TopMilkteaToday = new List<TrendItem>(),
+                TopFrappeToday = new List<TrendItem>(),
+                TopFruitSodaToday = new List<TrendItem>(),
                 TopCoffeeWeekly = new List<TrendItem>(),
                 TopMilkteaWeekly = new List<TrendItem>(),
+                TopFrappeWeekly = new List<TrendItem>(),
+                TopFruitSodaWeekly = new List<TrendItem>(),
                 Reports = new List<SalesReportPageModel>()
             };
             return Task.FromResult(summary);
