@@ -376,27 +376,9 @@ namespace Coftea_Capstone.ViewModel
                 finalUnit = UnitConversionService.FormatUnit(convertedUnit);
             }
 
-            // Determine the relevant minimum by category type
-            var minimumThreshold = IsPiecesOnlyCategory ? MinimumQuantity : MinimumUoMQuantity;
-            var minimumUnit = IsPiecesOnlyCategory ? SelectedUoM : SelectedMinimumUoM;
-
-            // Determine the relevant maximum by category type
-            var maximumThreshold = IsPiecesOnlyCategory ? MaximumQuantity : MaximumUoMQuantity;
-            var maximumUnit = IsPiecesOnlyCategory ? SelectedUoM : SelectedMaximumUoM;
-
-            // Convert minimum to best unit if needed
-            if (!string.IsNullOrWhiteSpace(minimumUnit) && minimumThreshold > 0)
-            {
-                var (convertedMinValue, convertedMinUnit) = UnitConversionService.ConvertToBestUnit(minimumThreshold, minimumUnit);
-                minimumThreshold = convertedMinValue;
-            }
-
-            // Convert maximum to best unit if needed
-            if (!string.IsNullOrWhiteSpace(maximumUnit) && maximumThreshold > 0)
-            {
-                var (convertedMaxValue, convertedMaxUnit) = UnitConversionService.ConvertToBestUnit(maximumThreshold, maximumUnit);
-                maximumThreshold = convertedMaxValue;
-            }
+            // Use the same properties that the UI is binding to
+            var minimumThreshold = MinimumQuantity;
+            var maximumThreshold = MaximumQuantity;
 
             // Default rule: if maximum is not provided, set it to the current stock quantity
             if (maximumThreshold <= 0)

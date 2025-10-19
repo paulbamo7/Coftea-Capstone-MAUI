@@ -170,7 +170,6 @@
                                                FontSize="16"/>
                                 </Frame>
 
-                                <Button Text="Select All" Command="{Binding SelectAllVisibleCommand}" BackgroundColor="#E6DE9D" TextColor="#333" FontSize="16" FontAttributes="Bold"/>
                                 <Button Text="Unselect All" Command="{Binding UnselectAllVisibleCommand}" BackgroundColor="#F0C0C0" TextColor="#333" FontSize="16" FontAttributes="Bold"/>
                             </HorizontalStackLayout>
                         </ScrollView>

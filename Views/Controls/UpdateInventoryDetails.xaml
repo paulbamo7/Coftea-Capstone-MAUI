@@ -154,6 +154,7 @@
                                            Grid.Column="0"
                                            Placeholder="Add to stock (e.g. 1kg or 500 g)"
                                            TextColor="Black"
+                                           PlaceholderColor="Black"
                                            FontSize="16"/>
                                     <Picker x:Name="AddUnitPicker"
                                             Grid.Column="1"
@@ -161,7 +162,7 @@
                                             ItemsSource="{Binding UoMOptions}"
                                             TextColor="Black"
                                             SelectedItem="{Binding SelectedUoM}" />
-                                    <Button Grid.Column="2" Text="Add" Clicked="OnApplyAddStockClicked" />
+                                    <Button Grid.Column="2" WidthRequest="60" HeightRequest="35" Padding="0" Text="Add" Clicked="OnApplyAddStockClicked" />
                                 </Grid>
 
                                 <!-- Conversion Display -->

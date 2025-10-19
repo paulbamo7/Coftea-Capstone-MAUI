@@ -53,7 +53,7 @@
            </Button.Style>
        </Button>
                     <Button Text="Ingredients" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" 
-                            WidthRequest="100" HeightRequest="40" CornerRadius="12"
+                            WidthRequest="120" HeightRequest="40" CornerRadius="12"
                             Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients" TextColor="#2b2b2b">
                         <Button.Style>
                             <Style TargetType="Button">
@@ -101,7 +101,7 @@
                         </Button.Style>
                     </Button>
                     <Button Text="Powdered" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14"
-                            WidthRequest="100" HeightRequest="40" CornerRadius="12"
+                            WidthRequest="110" HeightRequest="40" CornerRadius="12"
                             Command="{Binding FilterByCategoryCommand}" CommandParameter="Powdered" TextColor="#2b2b2b">
                         <Button.Style>
                             <Style TargetType="Button">

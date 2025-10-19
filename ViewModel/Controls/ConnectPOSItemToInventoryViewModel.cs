@@ -887,23 +887,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             ApplyFilters();
         }
 
-        [RelayCommand]
-        private void SelectAllVisible()
-        {
-            foreach (var item in InventoryItems)
-            {
-                // Find the corresponding item in AllInventoryItems
-                var allItem = AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
-                if (allItem != null && !allItem.IsSelected)
-                {
-                    Ingredients.Add(new Ingredient { Name = allItem.itemName, Amount = 1, Selected = true });
-                    allItem.IsSelected = true;
-                }
-            }
-            OnPropertyChanged(nameof(HasSelectedIngredients));
-            OnPropertyChanged(nameof(SelectedInventoryItems));
-            OnPropertyChanged(nameof(SelectedIngredientsOnly));
-        }
 
         [RelayCommand]
         private void UnselectAllVisible()
