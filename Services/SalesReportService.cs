@@ -18,8 +18,12 @@ namespace Coftea_Capstone.Services
         public int TotalOrdersThisWeek { get; set; }
         public IEnumerable<TrendItem> TopCoffeeToday { get; set; }
         public IEnumerable<TrendItem> TopMilkteaToday { get; set; }
+        public IEnumerable<TrendItem> TopFrappeToday { get; set; }
+        public IEnumerable<TrendItem> TopFruitSodaToday { get; set; }
         public IEnumerable<TrendItem> TopCoffeeWeekly { get; set; }
         public IEnumerable<TrendItem> TopMilkteaWeekly { get; set; }
+        public IEnumerable<TrendItem> TopFrappeWeekly { get; set; }
+        public IEnumerable<TrendItem> TopFruitSodaWeekly { get; set; }
         public IEnumerable<SalesReportPageModel> Reports { get; set; }
     }
 
@@ -144,8 +148,12 @@ namespace Coftea_Capstone.Services
                     TotalOrdersThisWeek = totalOrders, // Same as today for now
                     TopCoffeeToday = coffeeProducts.Take(5),
                     TopMilkteaToday = milkTeaProducts.Take(5),
+                    TopFrappeToday = frappeProducts.Take(5),
+                    TopFruitSodaToday = fruitSodaProducts.Take(5),
                     TopCoffeeWeekly = coffeeProducts.Take(5),
                     TopMilkteaWeekly = milkTeaProducts.Take(5),
+                    TopFrappeWeekly = frappeProducts.Take(5),
+                    TopFruitSodaWeekly = fruitSodaProducts.Take(5),
                     Reports = new List<SalesReportPageModel>()
                 };
             }

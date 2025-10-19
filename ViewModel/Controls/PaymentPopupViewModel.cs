@@ -217,9 +217,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Show success: order-complete popup with auto-disappear
             PaymentStatus = "Payment Confirmed";
             var appInstance = (App)Application.Current;
+            
+            // Generate a single order number for all popups
+            var orderNumber = new Random().Next(1000, 9999).ToString();
+            
             if (appInstance?.OrderCompletePopup != null)
             {
-                var orderNumber = new Random().Next(1000, 9999).ToString();
                 await appInstance.OrderCompletePopup.ShowOrderCompleteAsync(orderNumber);
             }
             
@@ -227,7 +230,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             var orderConfirmedPopup = appInstance?.OrderConfirmedPopup;
             if (orderConfirmedPopup != null)
             {
-                var orderNumber = new Random().Next(1000, 9999).ToString();
                 await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod);
             }
             
@@ -375,63 +377,49 @@ namespace Coftea_Capstone.ViewModel.Controls
                     int nextId = (transactions.Count > 0 ? transactions.Max(t => t.TransactionId) : 0) + 1;
                     var saved = new List<TransactionHistoryModel>();
 
+                    // Create a single transaction for the entire order
+                    var orderTotal = CartItems.Sum(item => item.TotalPrice);
+                    var transactionId = nextId++;
+                    
+                    // Create a combined transaction record for the entire order
+                    var orderTransaction = new TransactionHistoryModel
+                    {
+                        TransactionId = transactionId,
+                        DrinkName = CartItems.Count == 1 ? CartItems[0].ProductName : $"{CartItems.Count} items",
+                        Size = CartItems.Count == 1 ? CartItems[0].SelectedSize : "Multiple",
+                        Quantity = CartItems.Sum(item => item.Quantity),
+                        Price = orderTotal,
+                        SmallPrice = 0, // Not applicable for combined order
+                        MediumPrice = 0, // Not applicable for combined order
+                        LargePrice = 0, // Not applicable for combined order
+                        AddonPrice = CartItems.Sum(item => Math.Max(0, item.TotalPrice - ((item.SmallPrice * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity)))),
+                        Vat = 0m,
+                        Total = orderTotal,
+                        AddOns = string.Join(", ", CartItems.Where(item => !string.IsNullOrWhiteSpace(item.AddOnsDisplay) && item.AddOnsDisplay != "No add-ons").Select(item => $"{item.ProductName}: {item.AddOnsDisplay}")),
+                        CustomerName = CartItems.FirstOrDefault()?.CustomerName ?? "",
+                        PaymentMethod = SelectedPaymentMethod,
+                        Status = "Completed",
+                        TransactionDate = DateTime.Now
+                    };
+
+                    // Save the combined transaction to database
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    await database.SaveTransactionAsync(orderTransaction);
+                    System.Diagnostics.Debug.WriteLine($"✅ Database save successful for order: {transactionId}");
+                    
+                    // Deduct inventory for each item
                     foreach (var item in CartItems)
                     {
-                        System.Diagnostics.Debug.WriteLine($"💾 Saving transaction for: {item.ProductName}");
-                        
-                        // Calculate addon price from the difference between total price and base product price
-                        var baseProductPrice = (item.SmallPrice * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity);
-                        var addonPrice = Math.Max(0, item.TotalPrice - baseProductPrice);
-                        System.Diagnostics.Debug.WriteLine($"Transaction: {item.ProductName}, Base Price: {baseProductPrice}, Total Price: {item.TotalPrice}, Addon Price: {addonPrice}");
-                        
-                        System.Diagnostics.Debug.WriteLine($"💾 Creating transaction for: {item.ProductName}");
-                        System.Diagnostics.Debug.WriteLine($"💾 AddOnsDisplay: '{item.AddOnsDisplay}'");
-                        System.Diagnostics.Debug.WriteLine($"💾 AddOns collection count: {item.AddOns?.Count ?? 0}");
-                        if (item.AddOns != null)
-                        {
-                            foreach (var addon in item.AddOns)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"💾 Addon in collection: '{addon}'");
-                            }
-                        }
-                        
-                        var transaction = new TransactionHistoryModel
-                        {
-                            TransactionId = nextId++,
-                            DrinkName = item.ProductName,
-                            Size = item.SelectedSize,
-                            Quantity = item.Quantity,
-                            Price = item.Price,
-                            SmallPrice = item.SmallPrice, // Store unit prices, not total prices
-                            MediumPrice = item.MediumPrice, // Store unit prices, not total prices
-                            LargePrice = item.LargePrice, // Store unit prices, not total prices
-                            AddonPrice = addonPrice,
-                            Vat = 0m,
-                            Total = item.TotalPrice,
-                            AddOns = string.IsNullOrWhiteSpace(item.AddOnsDisplay) || item.AddOnsDisplay == "No add-ons" ? "" : item.AddOnsDisplay,
-                            CustomerName = item.CustomerName,
-                            PaymentMethod = SelectedPaymentMethod,
-                            Status = "Completed",
-                            TransactionDate = DateTime.Now
-                        };
-                        
-                        System.Diagnostics.Debug.WriteLine($"💾 Transaction AddOns: '{transaction.AddOns}'");
-
-                        // Save to database with timeout
-                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                        await database.SaveTransactionAsync(transaction);
-                        System.Diagnostics.Debug.WriteLine($"✅ Database save successful for: {item.ProductName}");
-                        
-                        // Deduct inventory for this item
+                        System.Diagnostics.Debug.WriteLine($"💾 Deducting inventory for: {item.ProductName}");
                         await DeductInventoryForItemAsync(database, item);
                         System.Diagnostics.Debug.WriteLine($"✅ Inventory deduction successful for: {item.ProductName}");
-                        
-                        // Also add to in-memory collection for history popup
-                        transactions.Add(transaction);
-                        saved.Add(transaction);
                     }
+                    
+                    // Add to in-memory collection for history popup
+                    transactions.Add(orderTransaction);
+                    saved.Add(orderTransaction);
 
-                    System.Diagnostics.Debug.WriteLine($"✅ All {saved.Count} transactions saved successfully");
+                    System.Diagnostics.Debug.WriteLine($"✅ Order transaction {transactionId} saved successfully with {CartItems.Count} items");
                     return saved;
                 }
                 else

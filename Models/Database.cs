@@ -1229,7 +1229,7 @@ namespace Coftea_Capstone.Models
         }
 
         // ===================== User Management =====================
-        public async Task<UserInfoModel> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+        public async Task<UserInfoModel> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default) // Gets a user by email from the database
         {
             await using var conn = await GetOpenConnectionAsync(cancellationToken);
 
@@ -1268,7 +1268,8 @@ namespace Coftea_Capstone.Models
                 {"@Id", userId}
             });
         }
-        public async Task<List<UserInfoModel>> GetAllUsersAsync()
+
+        public async Task<List<UserInfoModel>> GetAllUsersAsync() 
         {
             var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
             return await QueryAsync(sql, reader => new UserInfoModel

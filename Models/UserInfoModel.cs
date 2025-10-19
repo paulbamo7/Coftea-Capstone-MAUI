@@ -5,7 +5,6 @@ namespace Coftea_Capstone.Models
 {
     public class UserInfoModel : ObservableObject
     {
-      
         public int ID { get; set; }
 
         public string Email { get; set; }

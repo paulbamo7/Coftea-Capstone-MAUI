@@ -119,7 +119,7 @@ Coftea Management System
 ";
         }
 
-        private string CreatePasswordResetEmailBodyWithCode(string code)
+        private string CreatePasswordResetEmailBodyWithCode(string code) // Updated to use code instead of link
         {
             return $@"
 <!DOCTYPE html>

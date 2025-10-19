@@ -208,26 +208,37 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void EditCartItem(CartItem item) // Reopen item in POS for editing
+        private async void EditCartItem(CartItem item) // Reopen item in POS for editing
         {
             if (item == null) return;
             
-            // Close the cart popup immediately
-            IsCartVisible = false;
-            
-            // Find the original POSPageModel item
-            if (_originalItems != null)
+            try
             {
-                var originalItem = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
-                if (originalItem != null)
+                // Close the cart popup immediately
+                IsCartVisible = false;
+                
+                // Find the original POSPageModel item
+                if (_originalItems != null)
                 {
-                    // Set the selected product in the current POS page
-                    SetSelectedProductInCurrentPOS(originalItem);
+                    var originalItem = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
+                    if (originalItem != null)
+                    {
+                        // Navigate to POS page if not already there, then set the selected product
+                        await SetSelectedProductInCurrentPOS(originalItem);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Original item not found for ProductID: {item.ProductId}");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in EditCartItem: {ex.Message}");
             }
         }
 
-        private void SetSelectedProductInCurrentPOS(POSPageModel product) // Set selected product in current POS page
+        private async Task SetSelectedProductInCurrentPOS(POSPageModel product) // Set selected product in current POS page
         {
             try
             {
@@ -243,13 +254,47 @@ namespace Coftea_Capstone.ViewModel.Controls
                     // Get the POS page's ViewModel and set the selected product
                     if (posPage.BindingContext is POSPageViewModel posViewModel)
                     {
-                        posViewModel.SelectedProduct = product;
-                        System.Diagnostics.Debug.WriteLine($"Selected product set to: {product.ProductName} in current POS page");
+                        // Find the product in the current product list to ensure it exists
+                        var currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
+                        if (currentProduct != null)
+                        {
+                            posViewModel.SelectedProduct = currentProduct;
+                            System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} in current POS page");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Product {product.ProductName} not found in current product list");
+                            // Try to refresh the product list and try again
+                            await posViewModel.LoadDataAsync();
+                            currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
+                            if (currentProduct != null)
+                            {
+                                posViewModel.SelectedProduct = currentProduct;
+                                System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} after refresh");
+                            }
+                        }
                     }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Current page is not POS page, cannot set selected product");
+                    System.Diagnostics.Debug.WriteLine("Current page is not POS page, navigating to POS page");
+                    // Navigate to POS page first
+                    await Coftea_Capstone.Services.SimpleNavigationService.NavigateToAsync("//pos");
+                    
+                    // Wait a moment for navigation to complete
+                    await Task.Delay(500);
+                    
+                    // Try again after navigation
+                    nav = Application.Current?.MainPage as NavigationPage;
+                    if (nav?.CurrentPage is PointOfSale newPosPage && newPosPage.BindingContext is POSPageViewModel newPosViewModel)
+                    {
+                        var currentProduct = newPosViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
+                        if (currentProduct != null)
+                        {
+                            newPosViewModel.SelectedProduct = currentProduct;
+                            System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} after navigation");
+                        }
+                    }
                 }
             }
             catch (Exception ex)

@@ -134,7 +134,7 @@ namespace Coftea_Capstone.ViewModel
                 if (hasDependencies)
                 {
                     await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
-                        "This product cannot be deleted because it has associated transaction records. Please contact an administrator.", "OK");
+                        "This product cannot be deleted because it has existing transaction history. Deletion is blocked to preserve records. Consider hiding or archiving the product instead.", "OK");
                     return;
                 }
             }
@@ -173,7 +173,7 @@ namespace Coftea_Capstone.ViewModel
             {
                 // Handle foreign key constraint violations with user-friendly message
                 await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
-                    "This product cannot be deleted because it has associated transaction records. Please contact an administrator.", "OK");
+                    "This product cannot be deleted because it has existing transaction history. Deletion is blocked to preserve records. Consider hiding or archiving the product instead.", "OK");
             }
             catch (Exception ex)
             {

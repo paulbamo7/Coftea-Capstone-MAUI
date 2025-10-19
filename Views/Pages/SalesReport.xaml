@@ -203,9 +203,25 @@
                             
                             <!-- Time Period Filter Buttons -->
                             <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="3">
-                                <Button Text="Yesterday" 
+                                <Button Text="Today" 
                                         Padding="0"
                                         Grid.Column="0"
+                                        FontSize="12" 
+                                        TextColor="White" 
+                                        BackgroundColor="#4CAF50" 
+                                        HeightRequest="31" 
+                                        CornerRadius="4"
+                                        Command="{Binding SelectTimePeriodCommand}" 
+                                        CommandParameter="Today">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Today">
+                                            <Setter Property="BackgroundColor" Value="#81C784" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button Text="Yesterday" 
+                                        Padding="0"
+                                        Grid.Column="1"
                                         FontSize="12" 
                                         TextColor="White" 
                                         BackgroundColor="#4CAF50" 
@@ -221,7 +237,7 @@
                                 </Button>
                                 <Button Text="Weekly" 
                                         Padding="0"
-                                        Grid.Column="1"
+                                        Grid.Column="2"
                                         FontSize="12" 
                                         TextColor="White" 
                                         BackgroundColor="#4CAF50" 
@@ -237,7 +253,7 @@
                                 </Button>
                                 <Button Text="Monthly" 
                                         Padding="0"
-                                        Grid.Column="2"
+                                        Grid.Column="3"
                                         FontSize="12" 
                                         TextColor="White" 
                                         BackgroundColor="#4CAF50" 
@@ -253,7 +269,7 @@
                                 </Button>
                                 <Button Text="All" 
                                         Padding="0"
-                                        Grid.Column="3"
+                                        Grid.Column="4"
                                         FontSize="12" 
                                         TextColor="White" 
                                         BackgroundColor="#4CAF50" 
@@ -263,22 +279,6 @@
                                         CommandParameter="All">
                                     <Button.Triggers>
                                         <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="All">
-                                            <Setter Property="BackgroundColor" Value="#81C784" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
-                                <Button Text="Today" 
-                                        Padding="0"
-                                        Grid.Column="4"
-                                        FontSize="12" 
-                                        TextColor="White" 
-                                        BackgroundColor="#4CAF50" 
-                                        HeightRequest="31" 
-                                        CornerRadius="4"
-                                        Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="Today">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Today">
                                             <Setter Property="BackgroundColor" Value="#81C784" />
                                         </DataTrigger>
                                     </Button.Triggers>
