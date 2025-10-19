@@ -53,10 +53,50 @@ namespace Coftea_Capstone
             InitializeComponent();
 
             InitializeViewModels();
-            
+
+            // Determine start route BEFORE showing Shell to avoid login flash
+            bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
+            bool rememberMe = Preferences.Get("RememberMe", false);
+            bool isAdmin = Preferences.Get("IsAdmin", false);
+
+            if (isLoggedIn && rememberMe && CurrentUser == null)
+            {
+                var user = new UserInfoModel
+                {
+                    ID = Preferences.Get("UserID", 0),
+                    IsAdmin = isAdmin,
+                    Email = Preferences.Get("Email", string.Empty)
+                };
+
+                if (isAdmin)
+                {
+                    user.CanAccessInventory = true;
+                    user.CanAccessSalesReport = true;
+                }
+                SetCurrentUser(user);
+            }
+
             // Set AppShell as main page
             MainPage = new AppShell();
-            
+
+            // Navigate immediately to prevent brief login display
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                if (isLoggedIn && rememberMe)
+                {
+                    try
+                    {
+                        await ProfilePopup.LoadUserProfile();
+                    }
+                    catch { }
+                    await SimpleNavigationService.NavigateToAsync("//dashboard");
+                }
+                else
+                {
+                    await SimpleNavigationService.NavigateToAsync("//login");
+                }
+            });
+
             // Create loading overlay and add it to the visual tree after MainPage is set
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -107,62 +147,7 @@ namespace Coftea_Capstone
                     MainPage.BackgroundColor = Color.FromArgb("#C1A892");
                 }
             });
-
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                bool isLoggedIn = Preferences.Get("IsLoggedIn", false);
-                bool rememberMe = Preferences.Get("RememberMe", false);
-                bool isAdmin = Preferences.Get("IsAdmin", false);
-                
-                System.Diagnostics.Debug.WriteLine("🚀 ===== APP STARTUP - CHECKING AUTO-LOGIN =====");
-                System.Diagnostics.Debug.WriteLine($"📋 IsLoggedIn: {isLoggedIn}");
-                System.Diagnostics.Debug.WriteLine($"📋 RememberMe: {rememberMe}");
-                System.Diagnostics.Debug.WriteLine($"📋 IsAdmin: {isAdmin}");
-                System.Diagnostics.Debug.WriteLine($"📋 Email: {Preferences.Get("Email", "NOT SET")}");
-
-                // Only auto-login if both IsLoggedIn and RememberMe are true
-                if (isLoggedIn && rememberMe)
-                {
-                    // Hydrate a minimal CurrentUser so navigation works after auto-login
-                    if (CurrentUser == null)
-                    {
-                        var user = new UserInfoModel
-                        {
-                            ID = Preferences.Get("UserID", 0),
-                            IsAdmin = isAdmin,
-                            Email = Preferences.Get("Email", string.Empty)
-                        };
-                        
-                        // Ensure admin users always have full access
-                        if (isAdmin)
-                        {
-                            user.CanAccessInventory = true;
-                            user.CanAccessSalesReport = true;
-                        }
-                        
-                        SetCurrentUser(user);
-                    }
-                    
-                    // Load profile data from database to display username and profile image
-                    await ProfilePopup.LoadUserProfile();
-                    
-                    System.Diagnostics.Debug.WriteLine("✅ Auto-login successful - Navigating to Dashboard");
-                    NavigateToDashboard(isAdmin);
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("❌ Auto-login failed - Navigating to Login");
-                    
-                    // Clear login state if Remember Me is not checked
-                    if (isLoggedIn && !rememberMe)
-                    {
-                        System.Diagnostics.Debug.WriteLine("⚠️ IsLoggedIn was true but RememberMe was false - Clearing IsLoggedIn");
-                        Preferences.Set("IsLoggedIn", false);
-                        Preferences.Set("IsAdmin", false);
-                    }
-                    await SimpleNavigationService.NavigateToAsync("//login");
-                }
-            });
+            // Removed delayed auto-login block to eliminate login flash
 
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;

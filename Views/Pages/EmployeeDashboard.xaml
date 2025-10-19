@@ -70,7 +70,7 @@
                     <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="White" CornerRadius="25" Padding="20" HasShadow="True">
                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
                             <Label Text="Trending Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                            <Label Text="{Binding TrendingToday}" FontSize="32" FontAttributes="Bold" TextColor="#6A1B9A"/>
+                            <Label Text="{Binding TrendingToday}" FontSize="32" FontAttributes="Bold" TextColor="#6A1B9A" HorizontalOptions="Center"/>
                             <Label Text="{Binding TrendingPercent}" FontSize="14" TextColor="Gray" HorizontalOptions="Center"/>
                         </VerticalStackLayout>
                     </Frame>

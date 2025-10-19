@@ -281,7 +281,7 @@
                                             Wrap="Wrap"
                                             JustifyContent="Start"
                                             AlignItems="Start"
-                                            Margin="0,0,0,8">
+                                            Margin="0,0,0,0">
                                     <BindableLayout.EmptyViewTemplate>
                                         <DataTemplate>
                                             <Label Text="No add-ons available for this product" 

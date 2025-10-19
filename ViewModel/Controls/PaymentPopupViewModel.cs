@@ -243,34 +243,63 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
             }
 
-            // Refresh recent orders in sales report if it's available
-            try
-            {
-                var salesApp = (App)Application.Current;
-                if (salesApp?.SalesReportVM != null)
-                {
-                    await salesApp.SalesReportVM.RefreshRecentOrdersAsync();
-                    System.Diagnostics.Debug.WriteLine("✅ Recent orders refreshed in sales report");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh recent orders: {ex.Message}");
-            }
+                    // Refresh today's section (recent orders + today's totals) in Sales Report
+                    try
+                    {
+                        var salesApp = (App)Application.Current;
+                        if (salesApp?.SalesReportVM != null)
+                        {
+                            await salesApp.SalesReportVM.RefreshTodayAsync();
+                            System.Diagnostics.Debug.WriteLine("✅ Sales report 'Today' refreshed (orders + totals)");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh sales report today: {ex.Message}");
+                    }
 
-            // Add to recent orders
+            // Update Employee Dashboard recent orders + totals immediately
             var app = (App)Application.Current;
             var settingsPopup = app?.SettingsPopup;
-            if (settingsPopup != null && CartItems.Any())
+            if (settingsPopup != null && savedTransactions != null)
             {
-                var firstItem = CartItems.First();
-                var orderNumber = new Random().Next(25, 100); // Generate random order number
-                settingsPopup.AddRecentOrder(
-                    orderNumber,
-                    firstItem.ProductName,
-                    firstItem.ImageSource,
-                    TotalAmount
-                );
+                try
+                {
+                    // Add each saved transaction to dashboard's recent orders on UI thread
+                    foreach (var t in savedTransactions)
+                    {
+                        var tx = t; // avoid modified closure
+                        // Try to resolve product image by name; fall back to default icon
+                        string productImage = "drink.png";
+                        try
+                        {
+                            var dbImg = new Models.Database();
+                            var prod = await dbImg.GetProductByNameAsync(tx.DrinkName);
+                            if (prod != null && !string.IsNullOrWhiteSpace(prod.ImageSet))
+                            {
+                                productImage = prod.ImageSet;
+                            }
+                        }
+                        catch { }
+
+                        Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            settingsPopup.AddRecentOrder(
+                                tx.TransactionId,
+                                tx.DrinkName,
+                                productImage,
+                                tx.Total
+                            );
+                        });
+                    }
+
+                    // Reload dashboard aggregates from DB to ensure consistency
+                    await settingsPopup.LoadTodaysMetricsAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh employee dashboard: {ex.Message}");
+                }
             }
 
             // Close payment popup
@@ -489,8 +518,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                             _ => unit
                         } ?? ingredient.unitOfMeasurement;
 
-                        var converted = ConvertUnits(perServing, perUnit, ingredient.unitOfMeasurement);
-                        var total = converted * qty;
+                        var targetUnit = UnitConversionService.Normalize(ingredient.unitOfMeasurement);
+                        var converted = ConvertUnits(perServing, perUnit, targetUnit);
+                        var total = Math.Round(converted, 6) * qty; // keep small ml/g deductions
                         deductions.Add((ingredient.itemName, total));
                     }
                 }
@@ -523,7 +553,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                         if (perServingAmount <= 0)
                             continue; // nothing to deduct for this addon
 
-                        var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, cartAddon.unitOfMeasurement);
+                        var addonTargetUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
+                        var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, addonTargetUnit);
 
                         // Deduct addon based on total quantity ordered across all sizes
                         // AddonQuantity is per drink, so multiply by total drinks ordered

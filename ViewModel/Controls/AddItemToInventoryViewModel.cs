@@ -405,7 +405,8 @@ namespace Coftea_Capstone.ViewModel
             }
 
             // Enforce business rule: current stock must be greater than the relevant minimum
-            if (minimumThreshold > 0 && finalQuantity <= minimumThreshold)
+            // Use strict < (not <=) so equal values (e.g., 500 ml vs 0.5 L → 500 ml) are allowed
+            if (minimumThreshold > 0 && finalQuantity < minimumThreshold)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Current stock must be greater than the minimum threshold.", "OK");
                 return;

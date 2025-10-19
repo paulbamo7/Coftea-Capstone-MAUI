@@ -319,6 +319,30 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        public async Task RefreshTodayAsync() // Public method to refresh today's section and totals
+        {
+            try
+            {
+                // Reload recent orders (today)
+                await LoadRecentOrdersAsync();
+
+                // Recompute payment method totals for today
+                await CalculatePaymentMethodTotalsAsync();
+
+                // Force Today totals recalculation and update bound display properties
+                SelectedTimePeriod = "Today";
+                await CalculateTimePeriodTotalsAsync();
+                OnPropertyChanged(nameof(DisplayCashTotal));
+                OnPropertyChanged(nameof(DisplayGCashTotal));
+                OnPropertyChanged(nameof(DisplayBankTotal));
+                OnPropertyChanged(nameof(DisplayTotalSales));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error refreshing today's sales: {ex.Message}");
+            }
+        }
+
         private async Task CalculatePaymentMethodTotalsAsync() // Calculate today's totals by payment method
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));

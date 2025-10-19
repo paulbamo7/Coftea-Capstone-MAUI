@@ -706,9 +706,15 @@ namespace Coftea_Capstone.ViewModel
     public Task SaveCartToStorageAsync() => _cartStorage.SaveCartAsync(CartItems); // Saves the current cart to persistent storage
     public async Task LoadCartFromStorageAsync() // Loads the cart from persistent storage
         {
-        var loaded = await _cartStorage.LoadCartAsync();
-        if (loaded != null)
-            CartItems = loaded;
+        try
+        {
+            var loaded = await _cartStorage.LoadCartAsync();
+            CartItems = loaded ?? new ObservableCollection<POSPageModel>();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"⚠️ LoadCartFromStorageAsync failed: {ex.Message}");
+        }
     }
 
     public async Task ClearCartAsync() // Clears the cart both in memory and persistent storage
