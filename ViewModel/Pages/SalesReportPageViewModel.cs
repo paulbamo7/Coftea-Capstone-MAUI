@@ -303,6 +303,22 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        public async Task RefreshRecentOrdersAsync() // Public method to refresh recent orders
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 Refreshing recent orders...");
+                await LoadRecentOrdersAsync();
+                OnPropertyChanged(nameof(RecentOrders));
+                OnPropertyChanged(nameof(RecentOrdersCount));
+                System.Diagnostics.Debug.WriteLine("✅ Recent orders refreshed successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error refreshing recent orders: {ex.Message}");
+            }
+        }
+
         private async Task CalculatePaymentMethodTotalsAsync() // Calculate today's totals by payment method
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -712,7 +728,31 @@ namespace Coftea_Capstone.ViewModel
             {
                 var today = DateTime.Today;
                 
-                if (SelectedTimePeriod == "Yesterday")
+                if (SelectedTimePeriod == "Today")
+                {
+                    var todayStart = today;
+                    var todayEnd = today.AddDays(1);
+                    
+                    var todayTransactions = await _database.GetTransactionsByDateRangeAsync(todayStart, todayEnd);
+                    
+                    // Update today's totals
+                    CashTotal = todayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    GCashTotal = todayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    BankTotal = todayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    TotalSalesToday = todayTransactions.Sum(t => t.Total);
+                    
+                    System.Diagnostics.Debug.WriteLine($"Today's totals - Cash: {CashTotal}, GCash: {GCashTotal}, Bank: {BankTotal}, Total: {TotalSalesToday}");
+                }
+                else if (SelectedTimePeriod == "Yesterday")
                 {
                     var yesterday = today.AddDays(-1);
                     var yesterdayEnd = yesterday.AddDays(1);
@@ -774,6 +814,31 @@ namespace Coftea_Capstone.ViewModel
                         .Sum(t => t.Total);
                     
                     MonthlyTotalSales = monthlyTransactions.Sum(t => t.Total);
+                }
+                else if (SelectedTimePeriod == "All")
+                {
+                    // For "All" time period, get all transactions from the beginning of time
+                    var allStart = DateTime.MinValue;
+                    var allEnd = DateTime.MaxValue;
+                    
+                    var allTransactions = await _database.GetTransactionsByDateRangeAsync(allStart, allEnd);
+                    
+                    // Update cumulative totals (used by "All" time period)
+                    CumulativeCashTotal = allTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    CumulativeGCashTotal = allTransactions
+                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    CumulativeBankTotal = allTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    CumulativeTotalSales = allTransactions.Sum(t => t.Total);
+                    
+                    System.Diagnostics.Debug.WriteLine($"All-time totals - Cash: {CumulativeCashTotal}, GCash: {CumulativeGCashTotal}, Bank: {CumulativeBankTotal}, Total: {CumulativeTotalSales}");
                 }
                 
                 System.Diagnostics.Debug.WriteLine($"Calculated {SelectedTimePeriod} totals - Cash: {DisplayCashTotal}, GCash: {DisplayGCashTotal}, Bank: {DisplayBankTotal}, Total: {DisplayTotalSales}");

@@ -243,6 +243,21 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
             }
 
+            // Refresh recent orders in sales report if it's available
+            try
+            {
+                var salesApp = (App)Application.Current;
+                if (salesApp?.SalesReportVM != null)
+                {
+                    await salesApp.SalesReportVM.RefreshRecentOrdersAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Recent orders refreshed in sales report");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh recent orders: {ex.Message}");
+            }
+
             // Add to recent orders
             var app = (App)Application.Current;
             var settingsPopup = app?.SettingsPopup;
@@ -590,21 +605,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
 
-            var u = unit.Trim().ToLowerInvariant();
-            // Strip decorations like "liters (l)" → "liters l"
-            u = u.Replace("(", " ").Replace(")", " ").Replace(".", " ");
-            // Collapse multiple spaces
-            u = System.Text.RegularExpressions.Regex.Replace(u, "\\s+", " ").Trim();
-
-            // Prefer specific tokens first - check longer units before shorter ones
-            if (u.Contains("ml")) return "ml";
-            if (u.Contains(" l" ) || u.StartsWith("l") || u.Contains("liter")) return "l";
-            if (u.Contains("kg") || u.Contains("kilogram")) return "kg";
-            // Ensure 'g' check after 'kg' and exclude 'kilogram' by checking it's not preceded by 'kilo'
-            if (u.Contains(" g") || u == "g" || (u.Contains("gram") && !u.Contains("kilogram"))) return "g";
-            if (u.Contains("pcs") || u.Contains("piece")) return "pcs";
-
-            return u;
+            // Use UnitConversionService for consistent normalization
+            return UnitConversionService.Normalize(unit);
         }
 
         private static bool IsMassUnit(string unit) // Check if unit is a mass unit
@@ -616,7 +618,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         private static bool IsVolumeUnit(string unit) // Check if unit is a volume unit
         {
             var normalized = NormalizeUnit(unit);
-            return normalized == "l" || normalized == "ml";
+            return normalized == "L" || normalized == "ml";
         }
 
         private static bool IsCountUnit(string unit) // Check if unit is a count/pieces unit

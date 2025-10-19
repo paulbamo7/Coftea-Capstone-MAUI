@@ -44,14 +44,14 @@
                             BackgroundColor="#A57C5C"
                             TextColor="White"
                             CornerRadius="25"
-                           />
+                            />
 
                     <Button Text="Edit Menu"
                             WidthRequest="220"
                             HeightRequest="55"
                             FontSize="16"
                             Command="{Binding EditItemCommand}"
-                            BackgroundColor="#897564"
+                            BackgroundColor="#A57C5C"
                             TextColor="White"
                             CornerRadius="25"
                             />
@@ -63,11 +63,11 @@
                         WidthRequest="120"
                         HeightRequest="45"
                         FontSize="16"
-                        BackgroundColor="#F28C8C"
+                        BackgroundColor="#A57C5C"
                         TextColor="White"
                         CornerRadius="22"
                         HorizontalOptions="Center"
-                       
+              
                         Command="{Binding ClosePOSManagementPopupCommand}" />
             </VerticalStackLayout>
         </Frame>

@@ -702,45 +702,10 @@ namespace Coftea_Capstone.ViewModel
         {
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
 
-            var u = unit.Trim().ToLowerInvariant();
-            System.Diagnostics.Debug.WriteLine($"📏 NormalizeUnit input: '{unit}' → lowercase: '{u}'");
-            
-            // Strip decorations like "liters (l)" → "liters l"
-            u = u.Replace("(", " ").Replace(")", " ").Replace(".", " ");
-            // Collapse multiple spaces
-            u = System.Text.RegularExpressions.Regex.Replace(u, "\\s+", " ").Trim();
-
-            // Prefer specific tokens first - check longer units before shorter ones
-            if (u.Contains("ml")) 
-            {
-                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: ml");
-                return "ml";
-            }
-            if (u.Contains(" l" ) || u.StartsWith("l") || u.Contains("liter")) 
-            {
-                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: l");
-                return "l";
-            }
-            if (u.Contains("kg") || u.Contains("kilogram")) 
-            {
-                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: kg");
-                return "kg";
-            }
-            // Ensure 'g' check after 'kg' and exclude 'kilogram' by checking it's not preceded by 'kilo'
-            if (u.Contains(" g") || u == "g" || (u.Contains("gram") && !u.Contains("kilogram"))) 
-            {
-                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: g");
-                return "g";
-            }
-            // Check for pieces/pcs variations - check "pieces" before "pcs" to catch full word
-            if (u.Contains("piece") || u.Contains("pcs") || u.Contains("pc") || u == "pcs" || u == "pc")
-            {
-                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: pcs");
-                return "pcs";
-            }
-
-            System.Diagnostics.Debug.WriteLine($"📏 No normalization match, returning: '{u}'");
-            return u;
+            // Use UnitConversionService for consistent normalization
+            var result = UnitConversionService.Normalize(unit);
+            System.Diagnostics.Debug.WriteLine($"📏 NormalizeUnit: '{unit}' → '{result}'");
+            return result;
         }
 
         private static bool IsMassUnit(string unit) // Checks if the unit is a mass unit
@@ -752,7 +717,7 @@ namespace Coftea_Capstone.ViewModel
         private static bool IsVolumeUnit(string unit) // Checks if the unit is a volume unit
         { 
             var normalized = NormalizeUnit(unit);
-            return normalized == "l" || normalized == "ml";
+            return normalized == "L" || normalized == "ml";
         }
 
         private static bool IsCountUnit(string unit) // Checks if the unit is a count/pieces unit
@@ -877,27 +842,10 @@ namespace Coftea_Capstone.ViewModel
             if (string.IsNullOrWhiteSpace(inputUnit) || string.IsNullOrWhiteSpace(inventoryUnit))
                 return true; // Allow empty units
             
-            var normalizedInput = NormalizeUnit(inputUnit);
-            var normalizedInventory = NormalizeUnit(inventoryUnit);
-            
-            // Same unit is always compatible
-            if (string.Equals(normalizedInput, normalizedInventory, StringComparison.OrdinalIgnoreCase))
-                return true;
-            
-            // Check if both are mass units
-            if (IsMassUnit(normalizedInput) && IsMassUnit(normalizedInventory))
-                return true;
-            
-            // Check if both are volume units
-            if (IsVolumeUnit(normalizedInput) && IsVolumeUnit(normalizedInventory))
-                return true;
-            
-            // Check if both are count units
-            if (IsCountUnit(normalizedInput) && IsCountUnit(normalizedInventory))
-                return true;
-            
-            // Otherwise incompatible
-            return false;
+            // Use UnitConversionService for consistent unit compatibility checking
+            var result = UnitConversionService.AreCompatibleUnits(inputUnit, inventoryUnit);
+            System.Diagnostics.Debug.WriteLine($"🔍 Unit Compatibility Check: '{inputUnit}' vs '{inventoryUnit}' = {result}");
+            return result;
         }
     }
 }

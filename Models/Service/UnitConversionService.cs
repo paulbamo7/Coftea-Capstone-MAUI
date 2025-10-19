@@ -44,18 +44,37 @@ namespace Coftea_Capstone.Models.Service
             var u1 = Normalize(unit1);
             var u2 = Normalize(unit2);
 
+            System.Diagnostics.Debug.WriteLine($"🔧 UnitConversionService.AreCompatibleUnits: '{unit1}' -> '{u1}', '{unit2}' -> '{u2}'");
+
             // Same unit
-            if (u1 == u2) return true;
+            if (u1 == u2) 
+            {
+                System.Diagnostics.Debug.WriteLine($"✅ Same units: {u1}");
+                return true;
+            }
 
             // Check if both are mass units
-            if (IsMassUnit(u1) && IsMassUnit(u2)) return true;
+            if (IsMassUnit(u1) && IsMassUnit(u2)) 
+            {
+                System.Diagnostics.Debug.WriteLine($"✅ Both mass units: {u1}, {u2}");
+                return true;
+            }
 
             // Check if both are volume units
-            if (IsVolumeUnit(u1) && IsVolumeUnit(u2)) return true;
+            if (IsVolumeUnit(u1) && IsVolumeUnit(u2)) 
+            {
+                System.Diagnostics.Debug.WriteLine($"✅ Both volume units: {u1}, {u2}");
+                return true;
+            }
 
             // Check if both are pieces
-            if (IsPiecesUnit(u1) && IsPiecesUnit(u2)) return true;
+            if (IsPiecesUnit(u1) && IsPiecesUnit(u2)) 
+            {
+                System.Diagnostics.Debug.WriteLine($"✅ Both pieces units: {u1}, {u2}");
+                return true;
+            }
 
+            System.Diagnostics.Debug.WriteLine($"❌ Incompatible units: {u1}, {u2}");
             return false;
         }
 
@@ -123,18 +142,40 @@ namespace Coftea_Capstone.Models.Service
             if (string.IsNullOrWhiteSpace(u)) return string.Empty;
             
             var lower = u.ToLowerInvariant();
+            System.Diagnostics.Debug.WriteLine($"🔧 Normalize: '{unit}' -> '{lower}'");
             
             // Mass units
-            if (lower == "kg" || lower.Contains("kilogram")) return "kg";
-            if (lower == "g" || lower.Contains("gram")) return "g";
+            if (lower == "kg" || lower.Contains("kilogram")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to kg: '{unit}'");
+                return "kg";
+            }
+            if (lower == "g" || lower.Contains("gram")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to g: '{unit}'");
+                return "g";
+            }
             
             // Volume units
-            if (lower == "l" || lower == "liter" || lower == "litre") return "L";
-            if (lower == "ml" || lower.Contains("milliliter") || lower.Contains("millilitre")) return "ml";
+            if (lower == "l" || lower.Contains("liter") || lower.Contains("litre")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to L: '{unit}'");
+                return "L";
+            }
+            if (lower == "ml" || lower.Contains("milliliter") || lower.Contains("millilitre")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to ml: '{unit}'");
+                return "ml";
+            }
             
             // Pieces
-            if (lower.Contains("pcs") || lower.Contains("piece")) return "pcs";
+            if (lower.Contains("pcs") || lower.Contains("piece")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to pcs: '{unit}'");
+                return "pcs";
+            }
             
+            System.Diagnostics.Debug.WriteLine($"📏 No normalization applied: '{unit}'");
             return u;
         }
 
@@ -150,6 +191,37 @@ namespace Coftea_Capstone.Models.Service
             };
         }
 
+        // Get a common unit for two compatible units
+        public static string GetCommonUnit(string unit1, string unit2)
+        {
+            var u1 = Normalize(unit1);
+            var u2 = Normalize(unit2);
+
+            // If units are the same, return that unit
+            if (u1 == u2) return u1;
+
+            // For mass units, prefer the smaller unit (g)
+            if (IsMassUnit(u1) && IsMassUnit(u2))
+            {
+                return "g";
+            }
+
+            // For volume units, prefer the smaller unit (ml)
+            if (IsVolumeUnit(u1) && IsVolumeUnit(u2))
+            {
+                return "ml";
+            }
+
+            // For pieces, return as is
+            if (IsPiecesUnit(u1) && IsPiecesUnit(u2))
+            {
+                return "pcs";
+            }
+
+            // Fallback to first unit
+            return u1;
+        }
+
         // Format unit for display
         public static string FormatUnit(string unit)
         {
@@ -162,6 +234,29 @@ namespace Coftea_Capstone.Models.Service
                 "pcs" => "Pieces (pcs)",
                 _ => unit
             };
+        }
+
+        // Test method to verify unit conversion is working
+        public static void TestUnitConversion()
+        {
+            System.Diagnostics.Debug.WriteLine("🧪 Testing Unit Conversion...");
+            
+            // Test ml and L compatibility
+            var mlLCompatible = AreCompatibleUnits("ml", "L");
+            System.Diagnostics.Debug.WriteLine($"ml and L compatible: {mlLCompatible}");
+            
+            // Test g and kg compatibility
+            var gKgCompatible = AreCompatibleUnits("g", "kg");
+            System.Diagnostics.Debug.WriteLine($"g and kg compatible: {gKgCompatible}");
+            
+            // Test conversion
+            var mlToL = Convert(1000, "ml", "L");
+            System.Diagnostics.Debug.WriteLine($"1000 ml = {mlToL} L");
+            
+            var gToKg = Convert(1000, "g", "kg");
+            System.Diagnostics.Debug.WriteLine($"1000 g = {gToKg} kg");
+            
+            System.Diagnostics.Debug.WriteLine("✅ Unit conversion test completed");
         }
     }
 }

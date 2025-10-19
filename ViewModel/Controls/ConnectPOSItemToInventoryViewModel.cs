@@ -189,7 +189,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(IsLargePriceVisible));
         }
 
-        private static bool IsCoffeeCategory(string category)
+        private static bool IsCoffeeCategory(string category) // Identify coffee-related categories
         {
             var c = (category ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(c)) return false;
@@ -198,7 +198,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 || string.Equals(c, "Latte", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsAddonCategory(string category)
+        private static bool IsAddonCategory(string category) // Identify addon-related categories
         {
             var c = (category ?? string.Empty).Trim();
             if (string.IsNullOrEmpty(c)) return false;
@@ -219,7 +219,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         // Only the inventory items that are selected and NOT cups/straws; used for ingredient inputs display
         public ObservableCollection<InventoryPageModel> SelectedIngredientsOnly { get; set; } = new();
         
-        private bool IsCupOrStraw(InventoryPageModel item)
+        private bool IsCupOrStraw(InventoryPageModel item) // Identify cups/straws by name and category
         {
             if (item == null) return false;
             var nameLower = (item.itemName ?? string.Empty).Trim().ToLowerInvariant();
@@ -308,7 +308,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void OpenInputIngredients()
+        private void OpenInputIngredients() // Show the ingredient input overlay..
         {
             System.Diagnostics.Debug.WriteLine($"🔧 OpenInputIngredients called");
             System.Diagnostics.Debug.WriteLine($"🔧 AllInventoryItems count: {AllInventoryItems?.Count ?? 0}");
@@ -519,16 +519,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"Error loading cup sizes: {ex.Message}");
                 // Keep default values if loading fails
             }
-        }
-
-        private string ExtractSizeFromDescription(string description, string sizeType)
-        {
-            // This is a simple extraction method - you can enhance this based on your data structure
-            // For example, if your description contains "Small: 8oz, Medium: 12oz, Large: 16oz"
-            // you could extract the specific size names
-            
-            // For now, return the size type as-is, but you can implement more sophisticated parsing
-            return sizeType;
         }
 
         private void OnInventoryItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

@@ -544,16 +544,24 @@ namespace Coftea_Capstone.ViewModel
                         }
                         else
                         {
-                            requiredInInventoryUnit = UnitConversionService.Convert(chosenAmt, recipeUnit, inventoryUnit);
-                        }
-
-                        System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: Need {requiredInInventoryUnit} {inventoryUnit}, Have {item.itemQuantity} {inventoryUnit}");
-                        
-                        if (requiredInInventoryUnit > item.itemQuantity)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Insufficient {item.itemName}");
-                            insufficientForRecipe = true;
-                            break;
+                            // Convert both the required amount and available stock to a common unit for comparison
+                            var commonUnit = UnitConversionService.GetCommonUnit(recipeUnit, inventoryUnit);
+                            var requiredInCommonUnit = UnitConversionService.Convert(chosenAmt, recipeUnit, commonUnit);
+                            var availableInCommonUnit = UnitConversionService.Convert(item.itemQuantity, inventoryUnit, commonUnit);
+                            
+                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: " +
+                                $"Need {requiredInCommonUnit} {commonUnit} (from {chosenAmt} {recipeUnit}), " +
+                                $"Have {availableInCommonUnit} {commonUnit} (from {item.itemQuantity} {inventoryUnit})");
+                            
+                            if (requiredInCommonUnit > availableInCommonUnit)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Insufficient {item.itemName}");
+                                insufficientForRecipe = true;
+                                break;
+                            }
+                            
+                            // If we get here, we have enough of this ingredient
+                            continue;
                         }
                     }
 

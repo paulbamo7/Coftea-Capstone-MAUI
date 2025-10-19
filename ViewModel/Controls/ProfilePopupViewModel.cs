@@ -120,6 +120,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 StatusMessage = "Profile saved successfully!";
                 HasError = false;
 
+                // Reload profile data from database to ensure UI shows latest saved data
+                await LoadUserProfile();
+                
                 // Refresh profile display across the app
                 RefreshProfileDisplay();
 
