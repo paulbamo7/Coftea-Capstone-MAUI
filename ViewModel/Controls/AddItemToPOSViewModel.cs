@@ -212,12 +212,9 @@ namespace Coftea_Capstone.ViewModel
 
             // Image is optional; no validation required
 
-            // Validate inventory sufficiency for selected ingredients
-            var inventoryOk = await ValidateInventorySufficiencyAsync();
-            if (!inventoryOk)
-            {
-                return;
-            }
+            // NOTE: We do NOT validate inventory sufficiency when creating/editing products
+            // Inventory validation happens during POS transactions when actually selling the product
+            // This allows creating product recipes even when ingredients are temporarily out of stock
 
             var product = new POSPageModel
             {
@@ -247,6 +244,21 @@ namespace Coftea_Capstone.ViewModel
                         var selectedAddonsOnly = ConnectPOSToInventoryVM?.SelectedAddons?.ToList() ?? new();
                         if (selectedIngredientsOnly.Count > 0 || selectedAddonsOnly.Count > 0)
                         {
+                            // Validate unit compatibility before saving
+                            foreach (var ingredient in selectedIngredientsOnly)
+                            {
+                                if (!AreUnitsCompatible(ingredient.InputUnit, ingredient.unitOfMeasurement))
+                                {
+                                    await Application.Current.MainPage.DisplayAlert("Error", 
+                                        $"Incompatible units for {ingredient.itemName}: Cannot use {ingredient.InputUnit} with inventory unit {ingredient.unitOfMeasurement}. Please use compatible units (kg/g for mass, L/ml for volume).", 
+                                        "OK");
+                                    return;
+                                }
+                            }
+                            
+                            // Check if this product has Small size (only Coffee category)
+                            bool hasSmallSize = IsSmallPriceVisible;
+                            
                             // Treat everything selected in ConnectPOS as ingredients by default,
                             // except items explicitly chosen in the Addons popup (SelectedAddons)
                             var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
@@ -256,8 +268,9 @@ namespace Coftea_Capstone.ViewModel
                                     inventoryItemId: i.itemID,
                                     amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
                                     unit: (string?)i.unitOfMeasurement,
-                                    amtS: ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement),
-                                    unitS: (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall),
+                                    // Only save Small size data if product has Small size
+                                    amtS: hasSmallSize ? ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement) : 0,
+                                    unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
                                     amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
                                     unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
                                     amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
@@ -309,6 +322,18 @@ namespace Coftea_Capstone.ViewModel
                         }
                         return;
                     }
+                    
+                    // Validate unit compatibility before saving
+                    foreach (var ingredient in selectedIngredientsOnly)
+                    {
+                        if (!AreUnitsCompatible(ingredient.InputUnit, ingredient.unitOfMeasurement))
+                        {
+                            await Application.Current.MainPage.DisplayAlert("Error", 
+                                $"Incompatible units for {ingredient.itemName}: Cannot use {ingredient.InputUnit} with inventory unit {ingredient.unitOfMeasurement}. Please use compatible units (kg/g for mass, L/ml for volume).", 
+                                "OK");
+                            return;
+                        }
+                    }
 
                     // Insert product and get new ID
                     int newProductId = await _database.SaveProductReturningIdAsync(product);
@@ -354,6 +379,9 @@ namespace Coftea_Capstone.ViewModel
 
                         try
                         {
+                            // Check if this product has Small size (only Coffee category)
+                            bool hasSmallSize = IsSmallPriceVisible;
+                            
                             // Rebuild ingredients with per-size values for the overload
                             var ingredientsPerSize = selectedIngredientsOnly
                                 .Where(i => !addonIds.Contains(i.itemID))
@@ -361,8 +389,9 @@ namespace Coftea_Capstone.ViewModel
                                     inventoryItemId: i.itemID,
                                     amount: (i.InputAmount > 0 ? i.InputAmount : 1),
                                     unit: (string?)(i.InputUnit ?? i.unitOfMeasurement),
-                                    amtS: (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1),
-                                    unitS: (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall),
+                                    // Only save Small size data if product has Small size
+                                    amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
+                                    unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
                                     amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
                                     unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
                                     amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
@@ -568,26 +597,42 @@ namespace Coftea_Capstone.ViewModel
 
             List<string> issues = new();
             
+            System.Diagnostics.Debug.WriteLine($"\n🔍 ===== VALIDATING INVENTORY SUFFICIENCY =====");
+            
             // Validate selected ingredients
             foreach (var it in selected)
             {
+                System.Diagnostics.Debug.WriteLine($"\n📦 Checking: {it.itemName}");
+                
                 // Use the current InputAmount and InputUnit from the UI
                 var inputAmount = it.InputAmount > 0 ? it.InputAmount : 1;
                 var inputUnit = it.InputUnit ?? it.DefaultUnit;
                 var toUnit = (it.unitOfMeasurement ?? string.Empty).Trim();
                 
+                System.Diagnostics.Debug.WriteLine($"   Input: {inputAmount} {inputUnit}");
+                System.Diagnostics.Debug.WriteLine($"   Inventory Unit: {toUnit}");
+                System.Diagnostics.Debug.WriteLine($"   Available: {it.itemQuantity} {toUnit}");
+                
                 // Convert requested amount to the inventory unit
                 var amountRequested = ConvertUnits(inputAmount, inputUnit, toUnit);
 
+                System.Diagnostics.Debug.WriteLine($"   Converted Request: {amountRequested} {toUnit}");
+
                 if (amountRequested <= 0)
                 {
+                    System.Diagnostics.Debug.WriteLine($"   ❌ FAILED: Incompatible unit conversion");
                     issues.Add($"{it.itemName}: incompatible unit conversion ({inputUnit} → {toUnit}).");
                     continue;
                 }
 
                 if (amountRequested > it.itemQuantity)
                 {
+                    System.Diagnostics.Debug.WriteLine($"   ❌ FAILED: Insufficient quantity ({amountRequested} > {it.itemQuantity})");
                     issues.Add($"{it.itemName}: needs {amountRequested:F2} {toUnit}, only {it.itemQuantity:F2} {toUnit} available.");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"   ✅ PASSED: Sufficient quantity");
                 }
             }
             
@@ -658,50 +703,65 @@ namespace Coftea_Capstone.ViewModel
 
         private static double ConvertUnits(double amount, string fromUnit, string toUnit) // Converts amount from one unit to another
         {
+            System.Diagnostics.Debug.WriteLine($"🔄 ConvertUnits: {amount} {fromUnit} → {toUnit}");
+            
             if (string.IsNullOrWhiteSpace(toUnit)) return amount; // no target unit, pass-through
             
             // Normalize units to short form
-            fromUnit = NormalizeUnit(fromUnit);
-            toUnit = NormalizeUnit(toUnit);
+            var normalizedFrom = NormalizeUnit(fromUnit);
+            var normalizedTo = NormalizeUnit(toUnit);
+            
+            System.Diagnostics.Debug.WriteLine($"🔄 Normalized: {normalizedFrom} → {normalizedTo}");
 
             // If units are the same, no conversion needed
-            if (string.Equals(fromUnit, toUnit, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(normalizedFrom, normalizedTo, StringComparison.OrdinalIgnoreCase))
             {
+                System.Diagnostics.Debug.WriteLine($"✅ Same units, returning {amount}");
                 return amount;
             }
 
             // Mass conversions
-            if (IsMassUnit(fromUnit) && IsMassUnit(toUnit))
+            if (IsMassUnit(normalizedFrom) && IsMassUnit(normalizedTo))
             {
-                return fromUnit.ToLowerInvariant() switch
+                var result = normalizedFrom.ToLowerInvariant() switch
                 {
-                    "kg" when toUnit.ToLowerInvariant() == "g" => amount * 1000,
-                    "g" when toUnit.ToLowerInvariant() == "kg" => amount / 1000,
+                    "kg" when normalizedTo.ToLowerInvariant() == "g" => amount * 1000,
+                    "g" when normalizedTo.ToLowerInvariant() == "kg" => amount / 1000,
                     _ => amount
                 };
+                System.Diagnostics.Debug.WriteLine($"✅ Mass conversion: {amount} {normalizedFrom} = {result} {normalizedTo}");
+                return result;
             }
 
             // Volume conversions
-            if (IsVolumeUnit(fromUnit) && IsVolumeUnit(toUnit))
+            if (IsVolumeUnit(normalizedFrom) && IsVolumeUnit(normalizedTo))
             {
-                return fromUnit.ToLowerInvariant() switch
+                var result = normalizedFrom.ToLowerInvariant() switch
                 {
-                    "l" when toUnit.ToLowerInvariant() == "ml" => amount * 1000,
-                    "ml" when toUnit.ToLowerInvariant() == "l" => amount / 1000,
+                    "l" when normalizedTo.ToLowerInvariant() == "ml" => amount * 1000,
+                    "ml" when normalizedTo.ToLowerInvariant() == "l" => amount / 1000,
                     _ => amount
                 };
+                System.Diagnostics.Debug.WriteLine($"✅ Volume conversion: {amount} {normalizedFrom} = {result} {normalizedTo}");
+                return result;
             }
 
             // Count
-            if (IsCountUnit(fromUnit) && IsCountUnit(toUnit))
+            if (IsCountUnit(normalizedFrom) && IsCountUnit(normalizedTo))
             {
+                System.Diagnostics.Debug.WriteLine($"✅ Count units, returning {amount}");
                 return amount;
             }
 
             // If from is empty, assume already in inventory unit
-            if (string.IsNullOrWhiteSpace(fromUnit)) return amount;
-
+            if (string.IsNullOrWhiteSpace(normalizedFrom))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Empty fromUnit, returning {amount}");
+                return amount;
+            }
+            
             // Unknown or mismatched units → block deduction by returning 0
+            System.Diagnostics.Debug.WriteLine($"❌ Incompatible units: {normalizedFrom} vs {normalizedTo}, returning 0");
             return 0;
         }
 
@@ -710,19 +770,43 @@ namespace Coftea_Capstone.ViewModel
             if (string.IsNullOrWhiteSpace(unit)) return string.Empty;
 
             var u = unit.Trim().ToLowerInvariant();
+            System.Diagnostics.Debug.WriteLine($"📏 NormalizeUnit input: '{unit}' → lowercase: '{u}'");
+            
             // Strip decorations like "liters (l)" → "liters l"
             u = u.Replace("(", " ").Replace(")", " ").Replace(".", " ");
             // Collapse multiple spaces
             u = System.Text.RegularExpressions.Regex.Replace(u, "\\s+", " ").Trim();
 
-            // Prefer specific tokens first
-            if (u.Contains("ml")) return "ml";
-            if (u.Contains(" l" ) || u.StartsWith("l") || u.Contains("liter")) return "l";
-            if (u.Contains("kg")) return "kg";
-            // Ensure 'g' check after 'kg'
-            if (u.Contains(" g") || u == "g" || u.Contains("gram")) return "g";
-            if (u.Contains("pcs") || u.Contains("piece")) return "pcs";
+            // Prefer specific tokens first - check longer units before shorter ones
+            if (u.Contains("ml")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: ml");
+                return "ml";
+            }
+            if (u.Contains(" l" ) || u.StartsWith("l") || u.Contains("liter")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: l");
+                return "l";
+            }
+            if (u.Contains("kg") || u.Contains("kilogram")) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: kg");
+                return "kg";
+            }
+            // Ensure 'g' check after 'kg' and exclude 'kilogram' by checking it's not preceded by 'kilo'
+            if (u.Contains(" g") || u == "g" || (u.Contains("gram") && !u.Contains("kilogram"))) 
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: g");
+                return "g";
+            }
+            // Check for pieces/pcs variations - check "pieces" before "pcs" to catch full word
+            if (u.Contains("piece") || u.Contains("pcs") || u.Contains("pc") || u == "pcs" || u == "pc")
+            {
+                System.Diagnostics.Debug.WriteLine($"📏 Normalized to: pcs");
+                return "pcs";
+            }
 
+            System.Diagnostics.Debug.WriteLine($"📏 No normalization match, returning: '{u}'");
             return u;
         }
 
@@ -741,7 +825,7 @@ namespace Coftea_Capstone.ViewModel
         private static bool IsCountUnit(string unit) // Checks if the unit is a count/pieces unit
         {
             var normalized = NormalizeUnit(unit);
-            return normalized == "pcs" || normalized == "pc";
+            return normalized == "pcs";
         }
 
         private void ResetForm() // Resets the form fields to default values
@@ -774,6 +858,33 @@ namespace Coftea_Capstone.ViewModel
                 ConnectPOSToInventoryVM.LargePrice = string.Empty;
                 ConnectPOSToInventoryVM.SelectedImageSource = null;
                 ConnectPOSToInventoryVM.ProductDescription = string.Empty;
+                
+                // Clear all ingredient and addon selections
+                ConnectPOSToInventoryVM.SelectedIngredientsOnly?.Clear();
+                ConnectPOSToInventoryVM.SelectedAddons?.Clear();
+                
+                // Uncheck all items in the inventory lists
+                if (ConnectPOSToInventoryVM.AllInventoryItems != null)
+                {
+                    foreach (var item in ConnectPOSToInventoryVM.AllInventoryItems)
+                    {
+                        item.IsSelected = false;
+                        item.InputAmount = 0;
+                        item.InputUnit = string.Empty;
+                        item.AddonQuantity = 0;
+                    }
+                }
+                
+                if (ConnectPOSToInventoryVM.InventoryItems != null)
+                {
+                    foreach (var item in ConnectPOSToInventoryVM.InventoryItems)
+                    {
+                        item.IsSelected = false;
+                        item.InputAmount = 0;
+                        item.InputUnit = string.Empty;
+                        item.AddonQuantity = 0;
+                    }
+                }
                           
                 // Reset addons popup if it exists
                 if (ConnectPOSToInventoryVM.AddonsPopup != null)
@@ -826,6 +937,34 @@ namespace Coftea_Capstone.ViewModel
             {
                 await App.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
             }
+        }
+        
+        private static bool AreUnitsCompatible(string inputUnit, string inventoryUnit) // Check if two units are compatible for conversion
+        {
+            if (string.IsNullOrWhiteSpace(inputUnit) || string.IsNullOrWhiteSpace(inventoryUnit))
+                return true; // Allow empty units
+            
+            var normalizedInput = NormalizeUnit(inputUnit);
+            var normalizedInventory = NormalizeUnit(inventoryUnit);
+            
+            // Same unit is always compatible
+            if (string.Equals(normalizedInput, normalizedInventory, StringComparison.OrdinalIgnoreCase))
+                return true;
+            
+            // Check if both are mass units
+            if (IsMassUnit(normalizedInput) && IsMassUnit(normalizedInventory))
+                return true;
+            
+            // Check if both are volume units
+            if (IsVolumeUnit(normalizedInput) && IsVolumeUnit(normalizedInventory))
+                return true;
+            
+            // Check if both are count units
+            if (IsCountUnit(normalizedInput) && IsCountUnit(normalizedInventory))
+                return true;
+            
+            // Otherwise incompatible
+            return false;
         }
     }
 }

@@ -39,6 +39,13 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task ResetPassword() // Validate and reset the password
         {
+            // Validate reset token
+            if (string.IsNullOrWhiteSpace(ResetToken))
+            {
+                ErrorMessage = "No verification code provided. Please check your email for the reset link.";
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(NewPassword))
             {
                 ErrorMessage = "Please enter a new password.";
@@ -48,6 +55,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (NewPassword.Length < 6)
             {
                 ErrorMessage = "Password must be at least 6 characters long.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ConfirmPassword))
+            {
+                ErrorMessage = "Please confirm your password.";
                 return;
             }
 
@@ -77,7 +90,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                     await Application.Current.MainPage.DisplayAlert("Success", 
                         "Password has been reset successfully! You can now login with your new password.", "OK");
                     
+                    // Close the popup
                     IsPasswordResetPopupVisible = false;
+                    
+                    // Navigate to login page
+                    await SimpleNavigationService.NavigateToAsync("//login");
                 }
                 else
                 {

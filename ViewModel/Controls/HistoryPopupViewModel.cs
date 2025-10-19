@@ -105,19 +105,15 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             System.Diagnostics.Debug.WriteLine($"FilterByTimePeriod called with: {timePeriod}");
             
-            // Update the selected filter first to trigger UI updates
-            SelectedFilter = timePeriod?.Trim();
+            // Update the selected filter to trigger UI updates
+            SelectedFilter = timePeriod?.Trim() ?? "Today";
             
-            // Force property change notification on main thread
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                OnPropertyChanged(nameof(SelectedFilter));
-            });
+            System.Diagnostics.Debug.WriteLine($"SelectedFilter set to: {SelectedFilter}");
             
             await LoadAllTransactionsAsync();
             ApplyTransactionFilter();
             
-            System.Diagnostics.Debug.WriteLine($"SelectedFilter is now: {SelectedFilter}, Filtered transactions: {FilteredTransactions.Count}");
+            System.Diagnostics.Debug.WriteLine($"Filtered transactions: {FilteredTransactions.Count}");
         }
 
         private void ApplyFilter() // Apply category filter to selected inventory items

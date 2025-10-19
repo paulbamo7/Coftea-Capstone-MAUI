@@ -16,7 +16,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private string selectedFilter = "All";
         [ObservableProperty] private string searchText = string.Empty; 
 
-        public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new(); // All addons available for selection
+        public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new(); // Filtered addons displayed in UI
+        private List<InventoryPageModel> _allAddons = new(); // Master list of all addons
         public ObservableCollection<InventoryPageModel> SelectedAddons { get; set; } = new(); // Currently selected addons
 
         public event Action<List<InventoryPageModel>> AddonsSelected; // List of selected addons
@@ -91,6 +92,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 var inventoryItems = await _database.GetInventoryItemsAsync();
+                _allAddons.Clear();
                 AvailableAddons.Clear();
                 SelectedAddons.Clear();
 
@@ -105,21 +107,18 @@ namespace Coftea_Capstone.ViewModel.Controls
                     item.IsSelected = false;
                     item.InputAmount = 1;
                     item.InputUnit = item.DefaultUnit;
-                    AvailableAddons.Add(item);
+                    _allAddons.Add(item);
                 }
 
                 // Sort by name for easy browsing
-                var sorted = AvailableAddons.OrderBy(a => a.itemName).ToList();
-                AvailableAddons.Clear();
-                foreach (var addon in sorted)
-                {
-                    AvailableAddons.Add(addon);
-                }
+                _allAddons = _allAddons.OrderBy(a => a.itemName).ToList();
 
                 // Force available list to remain filtered to Sinkers & etc.; clear any category filter
                 SelectedFilter = "All";
                 SearchText = string.Empty;
-                // No further filtering required; AvailableAddons already filtered
+                
+                // Apply initial filter to populate AvailableAddons
+                ApplyFilters();
             }
             catch (Exception ex)
             {
@@ -141,7 +140,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         private void ApplyFilters() // Apply current filters to AvailableAddons
         {
-            var query = AvailableAddons.AsEnumerable();
+            var query = _allAddons.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All")
             {

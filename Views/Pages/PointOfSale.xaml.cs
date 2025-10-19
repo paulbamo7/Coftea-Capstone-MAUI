@@ -161,6 +161,9 @@ public partial class PointOfSale : ContentPage
                 return;
             }
 
+            // Refresh stock levels when page appears to reflect any inventory changes
+            await POSViewModel.CheckStockLevelsForAllProducts();
+
             if (POSViewModel.AddItemToPOSViewModel != null)
                 POSViewModel.AddItemToPOSViewModel.IsAddItemToPOSVisible = false;
            

@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.C_; // Start
+using Coftea_Capstone.C_; // Start
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Networking;
 using Coftea_Capstone.Views.Controls;
@@ -465,7 +465,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
 
-        private async Task CheckStockLevelsForAllProducts() // Checks stock levels for all products and marks low stock
+        public async Task CheckStockLevelsForAllProducts() // Checks stock levels for all products and marks low stock
         {
             try
             {
@@ -473,6 +473,14 @@ namespace Coftea_Capstone.ViewModel
                 {
                     // Load core ingredients for the product (not addons) to validate sufficiency
                     var ingredients = await _database.GetProductIngredientsAsync(product.ProductID);
+
+                    // If product has no ingredients, it's always available (no inventory requirements)
+                    if (ingredients == null || !ingredients.Any())
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: No ingredients, marking as available");
+                        product.IsLowStock = false;
+                        continue;
+                    }
 
                     bool insufficientForRecipe = false;
                     foreach (var tuple in ingredients)
@@ -514,6 +522,7 @@ namespace Coftea_Capstone.ViewModel
                         }
                         else if (!UnitConversionService.AreCompatibleUnits(recipeUnit, inventoryUnit))
                         {
+                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Incompatible units - recipe: {recipeUnit}, inventory: {inventoryUnit}");
                             insufficientForRecipe = true;
                             break;
                         }
@@ -522,21 +531,28 @@ namespace Coftea_Capstone.ViewModel
                             requiredInInventoryUnit = UnitConversionService.Convert(chosenAmt, recipeUnit, inventoryUnit);
                         }
 
+                        System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: Need {requiredInInventoryUnit} {inventoryUnit}, Have {item.itemQuantity} {inventoryUnit}");
+                        
                         if (requiredInInventoryUnit > item.itemQuantity)
                         {
+                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Insufficient {item.itemName}");
                             insufficientForRecipe = true;
                             break;
                         }
                     }
 
                     // Check if cups and straws are available for at least one serving
+                    // Only check if ingredients are sufficient
                     if (!insufficientForRecipe)
                     {
-                        insufficientForRecipe = await CheckCupsAndStrawsAvailability();
+                        bool cupsStrawsInsufficient = await CheckCupsAndStrawsAvailability();
+                        System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Cups/Straws insufficient = {cupsStrawsInsufficient}");
+                        insufficientForRecipe = cupsStrawsInsufficient;
                     }
 
                     // Rule: If inventory for each required ingredient is enough for ONE serving, product is available.
                     // Ignore minimum thresholds for availability; they can be surfaced elsewhere as warnings.
+                    System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Final IsLowStock = {insufficientForRecipe}");
                     product.IsLowStock = insufficientForRecipe;
                 }
             }
@@ -546,7 +562,7 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private async Task<bool> CheckCupsAndStrawsAvailability() // Checks if cups and straws are available in inventory
+        private async Task<bool> CheckCupsAndStrawsAvailability() // Checks if cups and straws are available in inventory - returns TRUE if INSUFFICIENT
         {
             try
             {
@@ -556,10 +572,15 @@ namespace Coftea_Capstone.ViewModel
                 var largeCup = await _database.GetInventoryItemByNameCachedAsync("Large Cup");
                 var straw = await _database.GetInventoryItemByNameCachedAsync("Straw");
 
-                // If any cup size or straw is at zero, products should not be available
+                System.Diagnostics.Debug.WriteLine($"Cup/Straw Check - Small: {smallCup?.itemQuantity ?? 0}, Medium: {mediumCup?.itemQuantity ?? 0}, Large: {largeCup?.itemQuantity ?? 0}, Straw: {straw?.itemQuantity ?? 0}");
+
+                // Check if we have at least one cup (any size) AND at least one straw
                 bool hasCupsAndStraws = (smallCup?.itemQuantity > 0 || mediumCup?.itemQuantity > 0 || largeCup?.itemQuantity > 0) && 
                                        (straw?.itemQuantity > 0);
 
+                System.Diagnostics.Debug.WriteLine($"Has cups and straws: {hasCupsAndStraws}, Returning insufficient: {!hasCupsAndStraws}");
+
+                // Return TRUE if insufficient (i.e., if we DON'T have cups and straws)
                 return !hasCupsAndStraws;
             }
             catch (Exception ex)

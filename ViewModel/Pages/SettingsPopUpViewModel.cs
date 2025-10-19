@@ -8,9 +8,6 @@ using Coftea_Capstone.Services;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Coftea_Capstone.Models;
-using Coftea_Capstone.Services;
-using System.IO;
-using System.Text.Json;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -231,41 +228,6 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        [RelayCommand]
-        private async Task CreateBackup() // Create a JSON backup of the database
-        {
-            try
-            {
-                var database = new Models.Database();
-
-                // Fetch data
-                var products = await database.GetProductsAsync();
-                var inventoryItems = await database.GetInventoryItemsAsync();
-                var transactions = await database.GetTransactionsByDateRangeAsync(DateTime.MinValue, DateTime.MaxValue);
-
-                var backupData = new
-                {
-                    Timestamp = DateTime.Now,
-                    Products = products,
-                    InventoryItems = inventoryItems,
-                    Transactions = transactions
-                };
-
-                var json = JsonSerializer.Serialize(backupData, new JsonSerializerOptions { WriteIndented = true });
-
-                var fileName = $"database_backup_{DateTime.Now:yyyyMMdd_HHmmss}.json";
-                var filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
-                await File.WriteAllTextAsync(filePath, json);
-
-                await Application.Current.MainPage.DisplayAlert("Backup Created",
-                    $"Saved to:\n{filePath}\n\nProducts: {products.Count}\nInventory Items: {inventoryItems.Count}\nTransactions: {transactions.Count}",
-                    "OK");
-            }
-            catch (Exception ex)
-            {
-                await Application.Current.MainPage.DisplayAlert("Backup Failed", ex.Message, "OK");
-            }
-        }
         private async Task LoadTopSellingProductsAsync() // Load top selling products for dashboard
         {
             try

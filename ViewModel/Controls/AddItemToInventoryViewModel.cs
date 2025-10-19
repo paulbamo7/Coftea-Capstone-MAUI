@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.C_;
+using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Models.Service;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -313,6 +313,13 @@ namespace Coftea_Capstone.ViewModel
         private void CloseUpdateInventoryDetails() // Close the update item overlay
         {
             IsUpdateInventoryDetailsVisible = false;
+            
+            // Reset the UpdateInventoryDetails control's internal state
+            if (UpdateInventoryDetailsControl != null)
+            {
+                UpdateInventoryDetailsControl.ResetForm();
+            }
+            
             ResetForm();
             _editingItemId = null;
         }

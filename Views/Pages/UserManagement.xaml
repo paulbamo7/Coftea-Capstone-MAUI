@@ -106,7 +106,7 @@
 
                                                 <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
                                                 <Grid Grid.Column="4" HorizontalOptions="End" VerticalOptions="Center">
-                                                    <Button Text="⋮" WidthRequest="36" HeightRequest="30" CornerRadius="6"
+                                                    <Button Text="..." WidthRequest="36" HeightRequest="20" CornerRadius="6" Padding="0"
                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=OpenRowMenuCommand}"
                                                             CommandParameter="{Binding .}"/>
                                                 </Grid>

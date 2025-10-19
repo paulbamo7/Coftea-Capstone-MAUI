@@ -2,9 +2,6 @@ using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.Services
 {
-    /// <summary>
-    /// Helper class to safely manage view parent relationships and prevent IllegalStateException
-    /// </summary>
     public static class ViewParentHelper
     {
         /// <summary>
@@ -13,7 +10,7 @@ namespace Coftea_Capstone.Services
         /// <param name="view">The view to add</param>
         /// <param name="parent">The parent container to add the view to</param>
         /// <returns>True if successful, false if an error occurred</returns>
-        public static bool SafeAddToParent(View view, Layout parent)
+        public static bool SafeAddToParent(View view, Layout parent) //
         {
             if (view == null || parent == null)
                 return false;
@@ -49,7 +46,7 @@ namespace Coftea_Capstone.Services
         /// </summary>
         /// <param name="view">The view to remove</param>
         /// <returns>True if successful, false if an error occurred</returns>
-        public static bool SafeRemoveFromParent(View view)
+        public static bool SafeRemoveFromParent(View view) 
         {
             if (view?.Parent == null)
                 return true; // Already removed or no parent

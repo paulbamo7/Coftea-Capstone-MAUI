@@ -611,12 +611,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Collapse multiple spaces
             u = System.Text.RegularExpressions.Regex.Replace(u, "\\s+", " ").Trim();
 
-            // Prefer specific tokens first
+            // Prefer specific tokens first - check longer units before shorter ones
             if (u.Contains("ml")) return "ml";
             if (u.Contains(" l" ) || u.StartsWith("l") || u.Contains("liter")) return "l";
-            if (u.Contains("kg")) return "kg";
-            // Ensure 'g' check after 'kg'
-            if (u.Contains(" g") || u == "g" || u.Contains("gram")) return "g";
+            if (u.Contains("kg") || u.Contains("kilogram")) return "kg";
+            // Ensure 'g' check after 'kg' and exclude 'kilogram' by checking it's not preceded by 'kilo'
+            if (u.Contains(" g") || u == "g" || (u.Contains("gram") && !u.Contains("kilogram"))) return "g";
             if (u.Contains("pcs") || u.Contains("piece")) return "pcs";
 
             return u;
@@ -659,12 +659,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                     // Get all ingredients for this product
                     var ingredients = await database.GetProductIngredientsAsync(product.ProductID);
-                    if (!ingredients.Any())
-                    {
-                        issues.Add($"No ingredients configured for: {item.ProductName}");
-                        continue;
-                    }
-
+                    
                     // Calculate total quantity across all sizes
                     int totalQuantity = (item.SmallQuantity > 0 ? item.SmallQuantity : 0)
                         + (item.MediumQuantity > 0 ? item.MediumQuantity : 0)
@@ -675,8 +670,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                         continue;
                     }
 
-                    // Check each ingredient
-                    foreach (var (ingredient, amount, unit, role) in ingredients)
+                    // If product has no ingredients, skip ingredient validation (product is always available)
+                    if (ingredients == null || !ingredients.Any())
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Product {item.ProductName}: No ingredients, skipping ingredient validation");
+                        // Still check cups/straws below
+                    }
+                    else
+                    {
+                        // Check each ingredient
+                        foreach (var (ingredient, amount, unit, role) in ingredients)
                     {
                         // Convert units if needed
                         var convertedAmount = ConvertUnits(amount, unit, ingredient.unitOfMeasurement);
@@ -699,6 +702,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                         await ValidateAutomaticCupAndStrawForSize(database, issues, "Medium", item.MediumQuantity);
                     if (item.LargeQuantity > 0)
                         await ValidateAutomaticCupAndStrawForSize(database, issues, "Large", item.LargeQuantity);
+                }
                 }
 
                 return new InventoryValidationResult

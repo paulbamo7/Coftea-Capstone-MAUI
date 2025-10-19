@@ -25,23 +25,34 @@ public partial class UpdateInventoryDetails : ContentView
         UpdateTotalDisplay();
     }
 
-    // Method to reset the form when switching between items
+    // Method to reset the form when switching between items or closing popup
     public void ResetForm()
     {
-        // Clear the add stock entry
+        // Clear the add stock entry for UoM categories
         if (AddStockEntry != null)
         {
             AddStockEntry.Text = string.Empty;
         }
         
-        // Reset internal state
+        // Clear the add stock entry for pieces categories
+        if (AddPiecesStockEntry != null)
+        {
+            AddPiecesStockEntry.Text = string.Empty;
+        }
+        
+        // Reset internal state - this is crucial to prevent stale values
         _currentStockValue = 0.0;
         _currentStockUnit = "g";
         
-        // Clear the result label
+        // Clear the result labels
         if (ResultLabel != null)
         {
             ResultLabel.Text = string.Empty;
+        }
+        
+        if (PiecesResultLabel != null)
+        {
+            PiecesResultLabel.Text = string.Empty;
         }
         
         // Reset pickers to default
@@ -53,6 +64,27 @@ public partial class UpdateInventoryDetails : ContentView
         {
             AddUnitPicker.SelectedIndex = 0;
         }
+        if (PiecesStockUnitPicker != null)
+        {
+            PiecesStockUnitPicker.SelectedIndex = 0;
+        }
+        if (AddPiecesUnitPicker != null)
+        {
+            AddPiecesUnitPicker.SelectedIndex = 0;
+        }
+    }
+
+    // Method to initialize the current stock value when loading existing data
+    public void InitializeStockValue(double quantity, string unit)
+    {
+        _currentStockValue = quantity;
+        _currentStockUnit = UnitConversionService.Normalize(unit);
+        
+        // Update both display methods to ensure correct category is updated
+        UpdateTotalDisplay();
+        UpdatePiecesTotalDisplay();
+        
+        System.Diagnostics.Debug.WriteLine($"InitializeStockValue called: quantity={quantity}, unit={unit}, _currentStockValue={_currentStockValue}, _currentStockUnit={_currentStockUnit}");
     }
 
     private void OnStockQuantityChanged(object sender, EventArgs e)
@@ -74,6 +106,28 @@ public partial class UpdateInventoryDetails : ContentView
             _currentStockUnit = UnitConversionService.Normalize(selected);
         }
         UpdateTotalDisplay();
+    }
+
+    // Event handlers for pieces-only categories
+    private void OnPiecesStockQuantityChanged(object sender, EventArgs e)
+    {
+        _currentStockValue = ParseDoubleOrZero(PiecesStockQuantityEntry?.Text);
+        // Clear the add field when current stock changes to prevent confusion
+        if (AddPiecesStockEntry != null)
+        {
+            AddPiecesStockEntry.Text = string.Empty;
+        }
+        UpdatePiecesTotalDisplay();
+    }
+
+    private void OnPiecesStockUnitChanged(object sender, EventArgs e)
+    {
+        var selected = PiecesStockUnitPicker?.SelectedItem as string;
+        if (!string.IsNullOrWhiteSpace(selected))
+        {
+            _currentStockUnit = UnitConversionService.Normalize(selected);
+        }
+        UpdatePiecesTotalDisplay();
     }
 
     // Removed: Add unit no longer changes stock unit; it mirrors SelectedUoM from VM via binding
@@ -122,13 +176,78 @@ public partial class UpdateInventoryDetails : ContentView
 
         var convertedAdd = UnitConversionService.Convert(addValue, addUnit, _currentStockUnit);
         _currentStockValue += convertedAdd;
-        StockQuantityEntry.Text = _currentStockValue.ToString(CultureInfo.InvariantCulture);
+        
+        // Update both the Entry text and the ViewModel binding
+        if (StockQuantityEntry != null)
+        {
+            StockQuantityEntry.Text = _currentStockValue.ToString(CultureInfo.InvariantCulture);
+            
+            // Force the binding to update by triggering the Completed event manually
+            // This ensures the ViewModel's UoMQuantity property is updated
+            if (BindingContext is Coftea_Capstone.ViewModel.AddItemToInventoryViewModel vm)
+            {
+                vm.UoMQuantity = _currentStockValue;
+            }
+        }
+        
         AddStockEntry.Text = string.Empty;
+        
         // Update display and include the converted addition amount
         var (displayValue, displayUnit) = UnitConversionService.ConvertToBestUnit(_currentStockValue, _currentStockUnit);
         if (ResultLabel != null)
         {
             ResultLabel.Text = $"Total: {displayValue:0.###} {displayUnit} (added {convertedAdd:0.###} {_currentStockUnit})";
+        }
+    }
+
+    private async void OnApplyAddPiecesStockClicked(object sender, EventArgs e)
+    {
+        var (addValue, addUnit, ok) = TryParseQuantityWithUnit(AddPiecesStockEntry?.Text);
+        // If unit omitted in text, fall back to selected AddPiecesUnitPicker
+        if (ok && string.IsNullOrWhiteSpace(addUnit) && AddPiecesUnitPicker?.SelectedItem is string selUnit && !string.IsNullOrWhiteSpace(selUnit))
+        {
+            addUnit = UnitConversionService.Normalize(selUnit);
+        }
+        if (!ok)
+        {
+            if (Application.Current?.MainPage != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Invalid Input", "Please enter a value, e.g. '100' or '100 pcs'", "OK");
+            }
+            return;
+        }
+
+        // For pieces, units should be compatible (pcs)
+        if (!UnitConversionService.AreCompatibleUnits(addUnit, _currentStockUnit))
+        {
+            if (Application.Current?.MainPage != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Unit Mismatch", $"Cannot convert from {addUnit} to {_currentStockUnit}.", "OK");
+            }
+            return;
+        }
+
+        var convertedAdd = UnitConversionService.Convert(addValue, addUnit, _currentStockUnit);
+        _currentStockValue += convertedAdd;
+        
+        // Update both the Entry text and the ViewModel binding
+        if (PiecesStockQuantityEntry != null)
+        {
+            PiecesStockQuantityEntry.Text = _currentStockValue.ToString(CultureInfo.InvariantCulture);
+            
+            // Force the binding to update
+            if (BindingContext is Coftea_Capstone.ViewModel.AddItemToInventoryViewModel vm)
+            {
+                vm.UoMQuantity = _currentStockValue;
+            }
+        }
+        
+        AddPiecesStockEntry.Text = string.Empty;
+        
+        // Update display
+        if (PiecesResultLabel != null)
+        {
+            PiecesResultLabel.Text = $"Total: {_currentStockValue:0.###} {_currentStockUnit} (added {convertedAdd:0.###} {_currentStockUnit})";
         }
     }
 
@@ -159,6 +278,35 @@ public partial class UpdateInventoryDetails : ContentView
         if (ResultLabel != null)
         {
             ResultLabel.Text = $"Total: {displayValue:0.###} {displayUnit}";
+        }
+    }
+
+    private void UpdatePiecesTotalDisplay()
+    {
+        // Parse add input for pieces
+        var (addValue, addUnit, ok) = TryParseQuantityWithUnit(AddPiecesStockEntry?.Text);
+        // If unit omitted in text, fall back to selected AddPiecesUnitPicker
+        if (ok && string.IsNullOrWhiteSpace(addUnit) && AddPiecesUnitPicker?.SelectedItem is string selUnit && !string.IsNullOrWhiteSpace(selUnit))
+        {
+            addUnit = UnitConversionService.Normalize(selUnit);
+        }
+
+        double totalInStockUnit = _currentStockValue;
+
+        if (ok)
+        {
+            // convert add value to stock unit if compatible
+            if (UnitConversionService.AreCompatibleUnits(addUnit, _currentStockUnit))
+            {
+                var convertedAdd = UnitConversionService.Convert(addValue, addUnit, _currentStockUnit);
+                totalInStockUnit += convertedAdd;
+            }
+        }
+
+        // Display total for pieces
+        if (PiecesResultLabel != null)
+        {
+            PiecesResultLabel.Text = $"Total: {totalInStockUnit:0.###} {_currentStockUnit}";
         }
     }
 

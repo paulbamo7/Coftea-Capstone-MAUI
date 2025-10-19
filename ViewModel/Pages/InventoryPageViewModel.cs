@@ -1,4 +1,4 @@
-﻿using Coftea_Capstone.C_;
+using Coftea_Capstone.C_;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
@@ -136,7 +136,12 @@ namespace Coftea_Capstone.ViewModel
             var category = (SelectedCategory ?? string.Empty).Trim();
             System.Diagnostics.Debug.WriteLine($"🏷️ Selected category: '{category}'");
             
-            if (string.Equals(category, "Supplies", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(category, "All", StringComparison.OrdinalIgnoreCase))
+            {
+                // Show all items - no filtering
+                System.Diagnostics.Debug.WriteLine($"📋 Showing all items: {query.Count()} items");
+            }
+            else if (string.Equals(category, "Supplies", StringComparison.OrdinalIgnoreCase))
             {
                 // For supplies, show only Others category
                 query = query.Where(i => string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));

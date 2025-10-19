@@ -316,14 +316,31 @@ namespace Coftea_Capstone.Models
             get
             {
                 var unit = (unitOfMeasurement ?? string.Empty).Trim().ToLowerInvariant();
-                return unit switch
+                
+                // Normalize the unit to handle variations
+                var normalized = NormalizeUnit(unit);
+                
+                return normalized switch
                 {
                     "kg" or "g" => new List<string> { "kg", "g" },
                     "l" or "ml" => new List<string> { "L", "ml" },
                     "pcs" => new List<string> { "pcs" },
-                    _ => new List<string> { "pcs", "kg", "g", "L", "ml" }
+                    // Default: return only the unit type based on DefaultUnit to prevent incompatible mixing
+                    _ => GetAllowedUnitsForDefault()
                 };
             }
+        }
+        
+        private List<string> GetAllowedUnitsForDefault()
+        {
+            var defaultUnit = DefaultUnit?.ToLowerInvariant();
+            return defaultUnit switch
+            {
+                "kg" or "g" => new List<string> { "kg", "g" },
+                "l" or "ml" => new List<string> { "L", "ml" },
+                "pcs" => new List<string> { "pcs" },
+                _ => new List<string> { "pcs" } // Safe fallback to pieces
+            };
         }
 
         // Whether this inventory item should use a unit of measurement (UoM) picker
@@ -554,7 +571,8 @@ namespace Coftea_Capstone.Models
             var lower = unit.ToLowerInvariant();
             if (lower.Contains("pcs")) return "pcs";
             if (lower.Contains("kilograms") || lower == "kg") return "kg";
-            if (lower.Contains("grams") || lower == "g") return "g";
+            // Ensure 'grams' check excludes 'kilograms'
+            if ((lower.Contains("grams") && !lower.Contains("kilograms")) || lower == "g") return "g";
             if (lower.Contains("liters") || lower == "l") return "L";
             if (lower.Contains("milliliters") || lower == "ml") return "ml";
             return unit; // return as-is if already short or unknown

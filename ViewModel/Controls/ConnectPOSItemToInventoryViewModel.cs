@@ -112,12 +112,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                         _ => 1
                     };
                     
+                    var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
                     item.InputUnit = size switch
                     {
-                        "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : item.unitOfMeasurement,
-                        "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : item.unitOfMeasurement,
-                        "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : item.unitOfMeasurement,
-                        _ => item.unitOfMeasurement
+                        "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : fallbackUnit,
+                        "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : fallbackUnit,
+                        "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : fallbackUnit,
+                        _ => fallbackUnit
                     };
                     
                     System.Diagnostics.Debug.WriteLine($"🔧 Updated {item.itemName}: Amount={item.InputAmount}, Unit={item.InputUnit} for size {size}");
@@ -426,10 +427,12 @@ namespace Coftea_Capstone.ViewModel.Controls
                     // Start with all items unchecked by default
                     it.IsSelected = false;
                     // Initialize per-size units from inventory default if not set
-                    var defUnit = it.HasUnit ? it.unitOfMeasurement : "pcs";
+                    var defUnit = !string.IsNullOrWhiteSpace(it.unitOfMeasurement) ? it.unitOfMeasurement : it.DefaultUnit;
                     if (string.IsNullOrWhiteSpace(it.InputUnitSmall)) it.InputUnitSmall = defUnit;
                     if (string.IsNullOrWhiteSpace(it.InputUnitMedium)) it.InputUnitMedium = defUnit;
                     if (string.IsNullOrWhiteSpace(it.InputUnitLarge)) it.InputUnitLarge = defUnit;
+                    // Also initialize the current InputUnit
+                    if (string.IsNullOrWhiteSpace(it.InputUnit)) it.InputUnit = defUnit;
                 }
 
                 // No need to set per-size amount since it's always 1 serving
@@ -602,6 +605,27 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (string.IsNullOrWhiteSpace(size)) return;
             
+            // FIRST: Save current input values to the appropriate size properties before switching
+            foreach (var item in SelectedIngredientsOnly)
+            {
+                switch (SelectedSize)
+                {
+                    case "Small":
+                        item.InputAmountSmall = item.InputAmount;
+                        item.InputUnitSmall = item.InputUnit;
+                        break;
+                    case "Medium":
+                        item.InputAmountMedium = item.InputAmount;
+                        item.InputUnitMedium = item.InputUnit;
+                        break;
+                    case "Large":
+                        item.InputAmountLarge = item.InputAmount;
+                        item.InputUnitLarge = item.InputUnit;
+                        break;
+                }
+            }
+            
+            // THEN: Switch to the new size
             SelectedSize = size;
             
             // Update all selected ingredients to use the new size
@@ -609,7 +633,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 item.SelectedSize = size;
                 
-                // Update Amount Used based on the selected size - use saved values from database
+                // Update Amount Used based on the selected size - use saved values from database or temporary values
                 item.InputAmount = size switch
                 {
                     "Small" => item.InputAmountSmall > 0 ? item.InputAmountSmall : 1,
@@ -618,13 +642,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ => 1
                 };
                 
-                // Update input unit based on the selected size - use saved values from database
+                // Update input unit based on the selected size - use saved values from database or temporary values
+                var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
                 item.InputUnit = size switch
                 {
-                    "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : item.unitOfMeasurement,
-                    "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : item.unitOfMeasurement,
-                    "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : item.unitOfMeasurement,
-                    _ => item.unitOfMeasurement
+                    "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : fallbackUnit,
+                    "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : fallbackUnit,
+                    "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : fallbackUnit,
+                    _ => fallbackUnit
                 };
                 
                 // Explicitly notify UI that the text binding should update

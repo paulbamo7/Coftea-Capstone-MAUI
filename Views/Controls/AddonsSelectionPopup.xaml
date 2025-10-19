@@ -41,6 +41,29 @@
                            FontSize="16"
                            TextColor="#7B6F63"
                            HorizontalOptions="Center" />
+                    
+                    <!-- Search Bar -->
+                    <Frame BackgroundColor="White" 
+                           CornerRadius="10" 
+                           Padding="10,5" 
+                           Margin="20,10,20,0"
+                           HasShadow="False">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Image Grid.Column="0" 
+                                   Source="search.png" 
+                                   WidthRequest="20" 
+                                   HeightRequest="20" 
+                                   VerticalOptions="Center"
+                                   Margin="0,0,10,0"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding SearchText}" 
+                                   Placeholder="Search addons by name or category..."
+                                   PlaceholderColor="Gray"
+                                   TextColor="Black"
+                                   BackgroundColor="Transparent"
+                                   VerticalOptions="Center"/>
+                        </Grid>
+                    </Frame>
                 </VerticalStackLayout>
 
                 <!-- CONTENT (table layout copied from InputIngredientsAmountUsed, with extra Price column) -->

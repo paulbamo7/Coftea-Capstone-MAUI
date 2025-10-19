@@ -237,7 +237,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task LoadUserProfile() // Load profile data
+        public async Task LoadUserProfile() // Load profile data
         {
             try
             {
@@ -246,10 +246,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Always load fresh data from database to ensure we have the latest information
                 await LoadUserFromDatabase();
 
-                System.Diagnostics.Debug.WriteLine($"After LoadUserFromDatabase - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
+                System.Diagnostics.Debug.WriteLine($"After LoadUserFromDatabase - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, Username: {Username}, ProfileImage: {ProfileImage}");
 
-                // Trigger property change notifications to update UI
-                RefreshProfileDisplay();
+                // Trigger property change notifications to update UI on main thread
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    RefreshProfileDisplay();
+                });
 
                 StatusMessage = string.Empty;
                 HasError = false;
@@ -288,23 +291,29 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 if (user != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"User found in database: {user.Email}, {user.FirstName} {user.LastName}, Phone: {user.PhoneNumber}");
+                    System.Diagnostics.Debug.WriteLine($"User found in database: {user.Email}, {user.FirstName} {user.LastName}, Phone: {user.PhoneNumber}, Username: {user.Username}");
                     
-                    // Leave username empty as requested
-                    Username = string.Empty;
-                    
-                    // Pre-fill other information from database
-                    Email = user.Email ?? string.Empty;
-                    
-                    // Construct full name from FirstName + LastName
-                    var firstName = user.FirstName ?? string.Empty;
-                    var lastName = user.LastName ?? string.Empty;
-                    FullName = $"{firstName} {lastName}".Trim();
-                    
-                    PhoneNumber = user.PhoneNumber ?? string.Empty;
-                    IsAdmin = user.IsAdmin;
-                    ProfileImage = user.ProfileImage ?? "usericon.png";
-                    ProfileImageSource = GetProfileImageSource(ProfileImage);
+                    // Update properties on main thread to ensure UI updates
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        // Load username from database
+                        Username = user.Username ?? string.Empty;
+                        
+                        // Pre-fill other information from database
+                        Email = user.Email ?? string.Empty;
+                        
+                        // Construct full name from FirstName + LastName
+                        var firstName = user.FirstName ?? string.Empty;
+                        var lastName = user.LastName ?? string.Empty;
+                        FullName = $"{firstName} {lastName}".Trim();
+                        
+                        PhoneNumber = user.PhoneNumber ?? string.Empty;
+                        IsAdmin = user.IsAdmin;
+                        ProfileImage = user.ProfileImage ?? "usericon.png";
+                        ProfileImageSource = GetProfileImageSource(ProfileImage);
+                        
+                        System.Diagnostics.Debug.WriteLine($"Profile data set - Username: '{Username}', ProfileImage: '{ProfileImage}'");
+                    });
                     
                     // For admin users, always set access to true (admin has all permissions)
                     // For non-admin users, use the database values
@@ -325,17 +334,21 @@ namespace Coftea_Capstone.ViewModel.Controls
                     // Update App.CurrentUser with fresh data from database
                     if (App.CurrentUser != null)
                     {
+                        var firstName = user.FirstName ?? string.Empty;
+                        var lastName = user.LastName ?? string.Empty;
+                        
                         App.CurrentUser.ID = user.ID; // Make sure we have the correct ID
-                        App.CurrentUser.Email = Email;
+                        App.CurrentUser.Username = user.Username ?? string.Empty;
+                        App.CurrentUser.Email = user.Email ?? string.Empty;
                         App.CurrentUser.FirstName = firstName;
                         App.CurrentUser.LastName = lastName;
-                        App.CurrentUser.FullName = FullName;
-                        App.CurrentUser.PhoneNumber = PhoneNumber;
-                        App.CurrentUser.ProfileImage = ProfileImage;
+                        App.CurrentUser.FullName = $"{firstName} {lastName}".Trim();
+                        App.CurrentUser.PhoneNumber = user.PhoneNumber ?? string.Empty;
+                        App.CurrentUser.ProfileImage = user.ProfileImage ?? "usericon.png";
                         App.CurrentUser.CanAccessInventory = CanAccessInventory;
                         App.CurrentUser.CanAccessSalesReport = CanAccessSalesReport;
                         
-                        System.Diagnostics.Debug.WriteLine($"App.CurrentUser updated with ID: {App.CurrentUser.ID}");
+                        System.Diagnostics.Debug.WriteLine($"App.CurrentUser updated with ID: {App.CurrentUser.ID}, Username: '{App.CurrentUser.Username}'");
                     }
                     return;
                 }
@@ -451,16 +464,36 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"GetProfileImageSource called with: {imageFileName}");
+                
                 if (string.IsNullOrWhiteSpace(imageFileName) || imageFileName == "usericon.png")
                 {
+                    System.Diagnostics.Debug.WriteLine("Using default usericon.png");
                     return ImageSource.FromFile("usericon.png");
                 }
 
                 // Check if it's a custom profile image in app data
                 var appDataPath = Path.Combine(FileSystem.AppDataDirectory, imageFileName);
+                System.Diagnostics.Debug.WriteLine($"Checking for image at: {appDataPath}");
+                
                 if (File.Exists(appDataPath))
                 {
+                    System.Diagnostics.Debug.WriteLine($"Custom profile image found at: {appDataPath}");
                     return ImageSource.FromFile(appDataPath);
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Custom image not found, checking if it's a resource file");
+                
+                // Check if it's a bundled resource file (e.g., avatar1.png, avatar2.png)
+                try
+                {
+                    var resourceImage = ImageSource.FromFile(imageFileName);
+                    System.Diagnostics.Debug.WriteLine($"Using resource image: {imageFileName}");
+                    return resourceImage;
+                }
+                catch
+                {
+                    System.Diagnostics.Debug.WriteLine($"Resource image not found, using default");
                 }
 
                 // Fallback to default user icon

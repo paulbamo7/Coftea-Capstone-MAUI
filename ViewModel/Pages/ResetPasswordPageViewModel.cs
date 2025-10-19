@@ -105,10 +105,7 @@ namespace Coftea_Capstone.ViewModel
 				
 				// Navigate back to login after a short delay
 				await Task.Delay(2000);
-				if (Application.Current?.MainPage is NavigationPage nav)
-				{
-					await nav.PopToRootAsync(false);
-				}
+				await SimpleNavigationService.NavigateToAsync("//login");
 			}
 			catch (MySqlConnector.MySqlException ex)
 			{
@@ -176,15 +173,18 @@ namespace Coftea_Capstone.ViewModel
 		}
 
         [RelayCommand]
-        private async Task GoBack() // Navigate back to the previous page
+        private async Task GoBack() // Navigate back to forgot password page
         {
+            // Clear all fields
+            Code = string.Empty;
+            NewPassword = string.Empty;
+            ConfirmPassword = string.Empty;
+            ClearMessages();
+            
             // Clear the stored email when going back
             App.ResetPasswordEmail = null;
 
-            if (Application.Current?.MainPage is NavigationPage nav)
-            {
-                await nav.PopAsync(false);
-            }
+            await SimpleNavigationService.NavigateToAsync("//forgotpassword");
         }
 
     

@@ -122,6 +122,7 @@ namespace Coftea_Capstone
                     {
                         var user = new UserInfoModel
                         {
+                            ID = Preferences.Get("UserID", 0),
                             IsAdmin = isAdmin,
                             Email = Preferences.Get("Email", string.Empty)
                         };
@@ -135,6 +136,10 @@ namespace Coftea_Capstone
                         
                         SetCurrentUser(user);
                     }
+                    
+                    // Load profile data from database to display username and profile image
+                    await ProfilePopup.LoadUserProfile();
+                    
                     NavigateToDashboard(isAdmin);
                 }
                 else
@@ -289,6 +294,7 @@ namespace Coftea_Capstone
             SetCurrentUser(null);
             Preferences.Set("IsLoggedIn", false);
             Preferences.Set("IsAdmin", false);
+            Preferences.Remove("UserID");
             Preferences.Remove("Email");
             Preferences.Remove("Password");
             Preferences.Remove("RememberMe");

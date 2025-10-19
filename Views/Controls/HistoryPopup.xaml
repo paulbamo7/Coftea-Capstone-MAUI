@@ -12,6 +12,32 @@
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:FilterButtonConverter x:Key="FilterButtonConverter"/>
+            
+            <!-- Shared style for filter buttons -->
+            <Style x:Key="FilterButtonStyle" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="LightGray" />
+                <Setter Property="TextColor" Value="Black" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontFamily" Value="OpenSansSemibold" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="HeightRequest" Value="40" />
+                <Setter Property="VisualStateManager.VisualStateGroups">
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="Scale" Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Pressed">
+                                <VisualState.Setters>
+                                    <Setter Property="Scale" Value="0.95" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </ContentView.Resources>
 
@@ -62,123 +88,81 @@
                 <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,20,5" HorizontalOptions="Center">
                     <HorizontalStackLayout Spacing="10">
                         <!-- Filter Buttons Template -->
-                        <Button Text="Today" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Today" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="100" HeightRequest="40">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="LightGray" />
-                                    <Setter Property="TextColor" Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Today}"
-                                                     Value="True">
-                                            <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                        <Button Text="Today" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Today" WidthRequest="100" Style="{StaticResource FilterButtonStyle}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Today}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Button.Triggers>
                         </Button>
 
-                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="100" HeightRequest="40">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="LightGray" />
-                                    <Setter Property="TextColor" Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Yesterday}"
-                                                     Value="True">
-                                            <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" WidthRequest="100" Style="{StaticResource FilterButtonStyle}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Yesterday}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Button.Triggers>
                         </Button>
 
-                        <Button Text="3 Days Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="3 Days Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="LightGray" />
-                                    <Setter Property="TextColor" Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='3 Days Ago'}"
-                                                     Value="True">
-                                            <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                        <Button Text="3 Days Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="3 Days Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='3 Days Ago'}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Button.Triggers>
                         </Button>
 
-                        <Button Text="1 Week Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Week Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="LightGray" />
-                                    <Setter Property="TextColor" Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Week Ago'}"
-                                                     Value="True">
-                                            <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                        <Button Text="1 Week Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Week Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Week Ago'}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Button.Triggers>
                         </Button>
 
-                        <Button Text="2 Weeks Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="2 Weeks Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="LightGray" />
-                                    <Setter Property="TextColor" Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='2 Weeks Ago'}"
-                                                     Value="True">
-                                            <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                        <Button Text="2 Weeks Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="2 Weeks Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='2 Weeks Ago'}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Button.Triggers>
                         </Button>
 
-                        <Button Text="1 Month Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Month Ago" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="120" HeightRequest="40">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="LightGray" />
-                                    <Setter Property="TextColor" Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Month Ago'}"
-                                                     Value="True">
-                                            <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                        <Button Text="1 Month Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Month Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Month Ago'}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Button.Triggers>
                         </Button>
 
-                        <Button Text="All Time" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="All Time" FontAttributes="Bold" FontFamily="OpenSansSemibold" FontSize="14" WidthRequest="100" HeightRequest="40">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="LightGray" />
-                                    <Setter Property="TextColor" Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button"
-                                                     Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='All Time'}"
-                                                     Value="True">
-                                            <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
+                        <Button Text="All Time" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="All Time" WidthRequest="100" Style="{StaticResource FilterButtonStyle}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button"
+                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='All Time'}"
+                                             Value="True">
+                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                    <Setter Property="TextColor" Value="White" />
+                                </DataTrigger>
+                            </Button.Triggers>
                         </Button>
                     </HorizontalStackLayout>
                 </ScrollView>

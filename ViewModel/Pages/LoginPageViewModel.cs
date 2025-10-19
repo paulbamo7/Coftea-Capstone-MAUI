@@ -108,6 +108,7 @@ namespace Coftea_Capstone.ViewModel
                 // Save preferences
                 Preferences.Set("IsLoggedIn", true);
                 Preferences.Set("IsAdmin", user.IsAdmin);
+                Preferences.Set("UserID", user.ID);
                 if (RememberMe) 
                 {
                     Preferences.Set("RememberMe", true);

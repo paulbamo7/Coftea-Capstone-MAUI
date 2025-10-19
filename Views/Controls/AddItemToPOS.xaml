@@ -25,7 +25,7 @@
             WidthRequest="1050"
             HeightRequest="700">
 
-            <Grid ColumnDefinitions="500,2,*" RowDefinitions="*" BackgroundColor="#F8E8D7">
+            <Grid ColumnDefinitions="600,2,*" RowDefinitions="*" BackgroundColor="#F8E8D7">
 
                 <!-- LEFT PANEL -->
                 <VerticalStackLayout Padding="27" BackgroundColor="#F8E8D7">
@@ -120,12 +120,12 @@
                             HeightRequest="40"/>
 
                     <!-- SUBCATEGORY for Fruit/Soda -->
-                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="16" TextColor="Black" Margin="0,20,0,5"
+                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5"
                            IsVisible="{Binding IsFruitSodaSubcategoryVisible}" />
                     <Picker Title="Select Subcategory"
                             ItemsSource="{Binding FruitSodaSubcategories}"
                             SelectedItem="{Binding SelectedSubcategory}"
-                            FontSize="14"
+                            FontSize="18"
                             TextColor="Black"
                             HeightRequest="40"
                             IsVisible="{Binding IsFruitSodaSubcategoryVisible}"/>
@@ -175,7 +175,7 @@
                         <HorizontalStackLayout Spacing="20">
                             <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
                                 <Label Text="SMALL" FontAttributes="Bold" FontSize="20" TextColor="Black" />
-                                <Entry Placeholder="Enter small size price"
+                                <Entry Placeholder="Small Price"
                                        Text="{Binding SmallPrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
@@ -187,7 +187,7 @@
 
                             <VerticalStackLayout>
                                 <Label Text="MEDIUM" FontAttributes="Bold" FontSize="20" TextColor="Black" />
-                                <Entry Placeholder="Enter medium size price"
+                                <Entry Placeholder="Medium Price"
                                        Text="{Binding MediumPrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
@@ -199,7 +199,7 @@
 
                             <VerticalStackLayout>
                                 <Label Text="LARGE" FontAttributes="Bold" FontSize="20" TextColor="Black" />
-                                <Entry Placeholder="Enter large size price"
+                                <Entry Placeholder="Large Price"
                                        Text="{Binding LargePrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"

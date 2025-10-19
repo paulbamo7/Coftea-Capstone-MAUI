@@ -122,9 +122,13 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task GoBack() // Navigate back to the previous page
+        private async Task GoBack() // Navigate back to login page
         {
-            await Application.Current.MainPage.Navigation.PopAsync();
+            // Clear all fields and messages
+            Email = string.Empty;
+            ClearMessages();
+            
+            await SimpleNavigationService.NavigateToAsync("//login");
         }
 
         private void ShowError(string message) // Display an error message

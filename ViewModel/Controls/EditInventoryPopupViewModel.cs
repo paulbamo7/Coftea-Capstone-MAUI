@@ -81,14 +81,16 @@ namespace Coftea_Capstone.ViewModel
             
             _addItemToInventoryViewModel.ItemName = fresh.itemName;
             _addItemToInventoryViewModel.ItemDescription = fresh.itemDescription;
+            
+            // Set category FIRST to trigger the category change logic and populate UoM options
+            _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory;
+            
+            // Now set the quantities and UoM after category is set
             _addItemToInventoryViewModel.UoMQuantity = fresh.itemQuantity;
             _addItemToInventoryViewModel.SelectedUoM = fresh.unitOfMeasurement;
             _addItemToInventoryViewModel.MinimumQuantity = fresh.minimumQuantity;
             
-            // Set category last to trigger the category change logic
-            _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory;
-            
-            // For UoM-only categories, also set the minimum and maximum UoM fields after category is set
+            // For UoM-only categories, also set the minimum and maximum UoM fields
             if (fresh.itemCategory == "Syrups" || fresh.itemCategory == "Powdered" || fresh.itemCategory == "Fruit Series" || fresh.itemCategory == "Sinkers & etc.")
             {
                 _addItemToInventoryViewModel.MinimumUoMQuantity = fresh.minimumQuantity;
@@ -97,8 +99,24 @@ namespace Coftea_Capstone.ViewModel
                 _addItemToInventoryViewModel.SelectedMaximumUoM = fresh.unitOfMeasurement;
             }
             
+            // Initialize the UpdateInventoryDetails control with the current stock value AFTER all properties are set
+            if (_addItemToInventoryViewModel.UpdateInventoryDetailsControl != null)
+            {
+                _addItemToInventoryViewModel.UpdateInventoryDetailsControl.InitializeStockValue(
+                    fresh.itemQuantity, 
+                    fresh.unitOfMeasurement);
+            }
+            
             _addItemToInventoryViewModel.ImagePath = fresh.ImageSet;
-            _addItemToInventoryViewModel.SelectedImageSource = fresh.ImageSource;
+            // Only set SelectedImageSource if there's actually an image path (not placeholder)
+            if (!string.IsNullOrWhiteSpace(fresh.ImageSet))
+            {
+                _addItemToInventoryViewModel.SelectedImageSource = ImageSource.FromFile(fresh.ImageSet);
+            }
+            else
+            {
+                _addItemToInventoryViewModel.SelectedImageSource = null;
+            }
             _addItemToInventoryViewModel.BeginEdit(fresh.itemID);
         }
 

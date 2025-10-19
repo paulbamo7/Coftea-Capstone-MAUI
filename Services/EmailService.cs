@@ -4,17 +4,13 @@ using System.Text;
 
 namespace Coftea_Capstone.Services
 {
-    /// <summary>
-    /// Email service specifically designed for MailHog SMTP server.
-    /// Supports manual IP input, auto-detection, and configured MailHog hosts.
-    /// </summary>
     public class EmailService
     {
         private readonly string _mailHogHost;
         private readonly int _mailHogPort;
         private string _manualMailHogHost;
 
-        public EmailService(string mailHogHost = "192.168.1.7", int mailHogPort = 1025)
+        public EmailService(string mailHogHost = "192.168.1.6", int mailHogPort = 1025)
         {
             _mailHogHost = mailHogHost; // Will be resolved dynamically
             _mailHogPort = mailHogPort;

@@ -39,16 +39,18 @@
                     <Label Text="Add-ons Used" FontAttributes="Bold" TextColor="Black"/>
                     <!-- Show only selected addons: Name - ₱Price (no quantity controls in preview) -->
                     <CollectionView ItemsSource="{Binding SelectedAddons}">
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout Orientation="Vertical" Span="3" />
+                        </CollectionView.ItemsLayout>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnDefinitions="Auto,*" Padding="6" Margin="0,4">
-                                    <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
+                                <VerticalStackLayout Padding="4" Margin="2">
+                                    <HorizontalStackLayout Spacing="4" HorizontalOptions="Start">
                                         <Label Text="•" FontSize="12" VerticalOptions="Center" TextColor="Black"/>
-                                        <Label Text="{Binding itemName}" FontAttributes="Bold" FontSize="14" TextColor="Black"/>
-                                        <Label Text="-" FontSize="14" TextColor="Black"/>
-                                        <Label Text="{Binding AddonPrice, StringFormat='₱{0:F0}'}" FontAttributes="Bold" FontSize="14" TextColor="Black"/>
+                                        <Label Text="{Binding itemName}" FontAttributes="Bold" FontSize="12" TextColor="Black" LineBreakMode="TailTruncation"/>
                                     </HorizontalStackLayout>
-                                </Grid>
+                                    <Label Text="{Binding AddonPrice, StringFormat='₱{0:F0}'}" FontAttributes="Bold" FontSize="12" TextColor="Black" Margin="12,0,0,0"/>
+                                </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>

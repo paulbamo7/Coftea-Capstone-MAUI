@@ -62,8 +62,87 @@
                         <!-- Filter / Sort Controls -->
                         <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
                             <HorizontalStackLayout Spacing="10" Padding="5,0">
-                                <Button Text="Ingredients" TextColor="Black" FontAttributes="Bold" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients" StyleClass="FilterButton"/>
-                                <Button Text="Supplies" TextColor="Black" FontAttributes="Bold" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies" StyleClass="FilterButton"/>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="3"/>
+                                    </Grid.RowDefinitions>
+                                    <Button Grid.Row="0" Text="All" TextColor="Black" FontAttributes="Bold" BackgroundColor="#FFEAD6" WidthRequest="100" Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="All">
+                                                <Setter Property="BackgroundColor" Value="#D4A574" />
+                                                <Setter Property="TextColor" Value="White" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <BoxView Grid.Row="1" HeightRequest="3" BackgroundColor="#D4A574" CornerRadius="1.5">
+                                        <BoxView.Triggers>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="All">
+                                                <Setter Property="IsVisible" Value="True" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="Ingredients">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="Supplies">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </BoxView.Triggers>
+                                    </BoxView>
+                                </Grid>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="3"/>
+                                    </Grid.RowDefinitions>
+                                    <Button Grid.Row="0" Text="Ingredients" TextColor="Black" FontAttributes="Bold" BackgroundColor="#FFEAD6" WidthRequest="120" Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="Ingredients">
+                                                <Setter Property="BackgroundColor" Value="#D4A574" />
+                                                <Setter Property="TextColor" Value="White" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <BoxView Grid.Row="1" HeightRequest="3" BackgroundColor="#D4A574" CornerRadius="1.5">
+                                        <BoxView.Triggers>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="Ingredients">
+                                                <Setter Property="IsVisible" Value="True" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="All">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="Supplies">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </BoxView.Triggers>
+                                    </BoxView>
+                                </Grid>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="3"/>
+                                    </Grid.RowDefinitions>
+                                    <Button Grid.Row="0" Text="Supplies" TextColor="Black" FontAttributes="Bold" BackgroundColor="#FFEAD6" WidthRequest="120" Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="Supplies">
+                                                <Setter Property="BackgroundColor" Value="#D4A574" />
+                                                <Setter Property="TextColor" Value="White" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <BoxView Grid.Row="1" HeightRequest="3" BackgroundColor="#D4A574" CornerRadius="1.5">
+                                        <BoxView.Triggers>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="Supplies">
+                                                <Setter Property="IsVisible" Value="True" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="All">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="BoxView" Binding="{Binding SelectedFilter}" Value="Ingredients">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </BoxView.Triggers>
+                                    </BoxView>
+                                </Grid>
                                 <Button Text="Refresh" BackgroundColor="Green" TextColor="White" FontAttributes="Bold"  Command="{Binding RefreshInventoryCommand}"/>
 
                                 <!-- Sort -->
