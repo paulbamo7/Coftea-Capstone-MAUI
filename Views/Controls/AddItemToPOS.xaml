@@ -25,7 +25,7 @@
             WidthRequest="1050"
             HeightRequest="700">
 
-            <Grid ColumnDefinitions="600,2,*" RowDefinitions="*" BackgroundColor="#F8E8D7">
+            <Grid ColumnDefinitions="500,2,*" RowDefinitions="*" BackgroundColor="#F8E8D7">
 
                 <!-- LEFT PANEL -->
                 <VerticalStackLayout Padding="27" BackgroundColor="#F8E8D7">

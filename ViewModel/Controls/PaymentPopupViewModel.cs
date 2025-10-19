@@ -168,25 +168,52 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Clear cart on successful payment
             try
             {
-                // Clear the actual cart items in the UI
+                System.Diagnostics.Debug.WriteLine("🧹 Starting cart clear process...");
+                
+                // Clear the actual cart items in the payment popup
                 CartItems.Clear();
+                System.Diagnostics.Debug.WriteLine("✅ PaymentPopup CartItems cleared");
                 
                 // Also clear the cart in the POS page ViewModel
                 var currentApp = (App)Application.Current;
-                if (currentApp?.MainPage is NavigationPage navPage && navPage.CurrentPage is Coftea_Capstone.Views.Pages.PointOfSale posPage)
+                System.Diagnostics.Debug.WriteLine($"Current MainPage type: {currentApp?.MainPage?.GetType().Name}");
+                
+                // Try direct access to POS page
+                if (currentApp?.MainPage is NavigationPage navPage)
                 {
-                    if (posPage.BindingContext is POSPageViewModel posViewModel)
+                    System.Diagnostics.Debug.WriteLine($"NavigationPage found, CurrentPage: {navPage.CurrentPage?.GetType().Name}");
+                    if (navPage.CurrentPage is Coftea_Capstone.Views.Pages.PointOfSale posPage)
                     {
-                        await posViewModel.ClearCartAsync();
-                        System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel");
+                        if (posPage.BindingContext is POSPageViewModel posViewModel)
+                        {
+                            await posViewModel.ClearCartAsync();
+                            System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via NavigationPage");
+                        }
+                    }
+                }
+                // Try TabbedPage access
+                else if (currentApp?.MainPage is TabbedPage tabbedPage)
+                {
+                    System.Diagnostics.Debug.WriteLine("TabbedPage found, searching for POS page...");
+                    foreach (var page in tabbedPage.Children)
+                    {
+                        if (page is Coftea_Capstone.Views.Pages.PointOfSale posPage)
+                        {
+                            if (posPage.BindingContext is POSPageViewModel posViewModel)
+                            {
+                                await posViewModel.ClearCartAsync();
+                                System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via TabbedPage");
+                                break;
+                            }
+                        }
                     }
                 }
                 
-                System.Diagnostics.Debug.WriteLine("✅ Cart cleared successfully");
+                System.Diagnostics.Debug.WriteLine("✅ Cart clear process completed");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart: {ex.Message}\n{ex.StackTrace}");
             }
 
             // Show success: order-complete popup with auto-disappear
@@ -485,13 +512,14 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                         var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, cartAddon.unitOfMeasurement);
 
-                        // Deduct per size quantities separately
-                        if (cartItem.SmallQuantity > 0)
-                            deductions.Add((cartAddon.itemName, convertedAddonAmount * cartAddon.AddonQuantity * (double)cartItem.SmallQuantity));
-                        if (cartItem.MediumQuantity > 0)
-                            deductions.Add((cartAddon.itemName, convertedAddonAmount * cartAddon.AddonQuantity * (double)cartItem.MediumQuantity));
-                        if (cartItem.LargeQuantity > 0)
-                            deductions.Add((cartAddon.itemName, convertedAddonAmount * cartAddon.AddonQuantity * (double)cartItem.LargeQuantity));
+                        // Deduct addon based on total quantity ordered across all sizes
+                        // AddonQuantity is per drink, so multiply by total drinks ordered
+                        var totalDrinks = cartItem.SmallQuantity + cartItem.MediumQuantity + cartItem.LargeQuantity;
+                        if (totalDrinks > 0)
+                        {
+                            var totalAddonDeduction = convertedAddonAmount * cartAddon.AddonQuantity * (double)totalDrinks;
+                            deductions.Add((cartAddon.itemName, totalAddonDeduction));
+                        }
                     }
                 }
 

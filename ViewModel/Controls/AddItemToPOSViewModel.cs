@@ -239,60 +239,58 @@ namespace Coftea_Capstone.ViewModel
                     int rowsAffected = await _database.UpdateProductAsync(product);
                     if (rowsAffected > 0)
                     {
-                        // If user selected inventory links during edit, replace existing links
+                        // Always update inventory links during edit to handle unchecked items
                         var selectedIngredientsOnly = ConnectPOSToInventoryVM?.SelectedIngredientsOnly?.ToList() ?? new();
                         var selectedAddonsOnly = ConnectPOSToInventoryVM?.SelectedAddons?.ToList() ?? new();
-                        if (selectedIngredientsOnly.Count > 0 || selectedAddonsOnly.Count > 0)
+                        
+                        // Validate unit compatibility before saving (only if there are items)
+                        foreach (var ingredient in selectedIngredientsOnly)
                         {
-                            // Validate unit compatibility before saving
-                            foreach (var ingredient in selectedIngredientsOnly)
+                            if (!AreUnitsCompatible(ingredient.InputUnit, ingredient.unitOfMeasurement))
                             {
-                                if (!AreUnitsCompatible(ingredient.InputUnit, ingredient.unitOfMeasurement))
-                                {
-                                    await Application.Current.MainPage.DisplayAlert("Error", 
-                                        $"Incompatible units for {ingredient.itemName}: Cannot use {ingredient.InputUnit} with inventory unit {ingredient.unitOfMeasurement}. Please use compatible units (kg/g for mass, L/ml for volume).", 
-                                        "OK");
-                                    return;
-                                }
+                                await Application.Current.MainPage.DisplayAlert("Error", 
+                                    $"Incompatible units for {ingredient.itemName}: Cannot use {ingredient.InputUnit} with inventory unit {ingredient.unitOfMeasurement}. Please use compatible units (kg/g for mass, L/ml for volume).", 
+                                    "OK");
+                                return;
                             }
+                        }
+                        
+                        // Check if this product has Small size (only Coffee category)
+                        bool hasSmallSize = IsSmallPriceVisible;
                             
-                            // Check if this product has Small size (only Coffee category)
-                            bool hasSmallSize = IsSmallPriceVisible;
-                            
-                            // Treat everything selected in ConnectPOS as ingredients by default,
-                            // except items explicitly chosen in the Addons popup (SelectedAddons)
-                            var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
-                            var ingredients = selectedIngredientsOnly
-                                .Where(i => !addonIds.Contains(i.itemID))
-                                .Select(i => (
-                                    inventoryItemId: i.itemID,
-                                    amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-                                    unit: (string?)i.unitOfMeasurement,
-                                    // Only save Small size data if product has Small size
-                                    amtS: hasSmallSize ? ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement) : 0,
-                                    unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
-                                    amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
-                                    unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
-                                    amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
-                                    unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
-                                ));
+                        // Treat everything selected in ConnectPOS as ingredients by default,
+                        // except items explicitly chosen in the Addons popup (SelectedAddons)
+                        var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
+                        var ingredients = selectedIngredientsOnly
+                            .Where(i => !addonIds.Contains(i.itemID))
+                            .Select(i => (
+                                inventoryItemId: i.itemID,
+                                amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
+                                unit: (string?)i.unitOfMeasurement,
+                                // Only save Small size data if product has Small size
+                                amtS: hasSmallSize ? ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement) : 0,
+                                unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
+                                amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
+                                unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
+                                amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
+                                unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
+                            ));
 
-                            var addons = selectedAddonsOnly
-                                .Select(i => (
-                                    inventoryItemId: i.itemID,
-                                    amount: i.InputAmount > 0 ? i.InputAmount : 1,
-                                    unit: i.InputUnit ?? "g",
-                                    addonPrice: i.AddonPrice
-                                ));
+                        var addons = selectedAddonsOnly
+                            .Select(i => (
+                                inventoryItemId: i.itemID,
+                                amount: i.InputAmount > 0 ? i.InputAmount : 1,
+                                unit: i.InputUnit ?? "g",
+                                addonPrice: i.AddonPrice
+                            ));
 
-                            try
-                            {
-                                await _database.SaveProductLinksSplitAsync(product.ProductID, ingredients, addons);
-                            }
-                            catch (Exception ex)
-                            {
-                                await Application.Current.MainPage.DisplayAlert("Warning", $"Product updated but failed to link addons/ingredients: {ex.Message}", "OK");
-                            }
+                        try
+                        {
+                            await _database.SaveProductLinksSplitAsync(product.ProductID, ingredients, addons);
+                        }
+                        catch (Exception ex)
+                        {
+                            await Application.Current.MainPage.DisplayAlert("Warning", $"Product updated but failed to link addons/ingredients: {ex.Message}", "OK");
                         }
                         await Application.Current.MainPage.DisplayAlert("Success", "Product updated successfully!", "OK");
                         // Do NOT deduct inventory here; deduction happens only upon successful transaction/payment
@@ -432,17 +430,7 @@ namespace Coftea_Capstone.ViewModel
         private void CloseAddItemToPOS() // Closes the AddItemToPOS Overlay
         {
             IsAddItemToPOSVisible = false;
-            IsEditMode = false;
-            ProductName = string.Empty;
-            SmallPrice = string.Empty;
-            MediumPrice = string.Empty;
-            LargePrice = string.Empty;
-            SelectedCategory = string.Empty;
-            SelectedSubcategory = null;
-            ImagePath = string.Empty;
-            SelectedImageSource = null;
-            ProductDescription = string.Empty;
-            EditingProductId = 0;
+            ResetForm();
         }
 
         public void SetEditMode(POSPageModel product) // Prepares the ViewModel for editing an existing product
@@ -828,7 +816,7 @@ namespace Coftea_Capstone.ViewModel
             return normalized == "pcs";
         }
 
-        private void ResetForm() // Resets the form fields to default values
+        public void ResetForm() // Resets the form fields to default values
         {
             ProductName = string.Empty;
             SmallPrice = string.Empty;

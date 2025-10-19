@@ -174,6 +174,8 @@ namespace Coftea_Capstone.ViewModel
         private void CloseEditProductPopup() // Close the edit product popup
         {
             IsEditProductPopupVisible = false;
+            // Reset the AddItemToPOS form to clear any previously loaded data
+            _addItemToPOSViewModel.ResetForm();
         }
 
         public async Task ShowEditProductPopup() // Show the edit product popup

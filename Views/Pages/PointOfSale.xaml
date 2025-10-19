@@ -267,7 +267,7 @@
                         <!-- Cart Content -->
                         <Grid Grid.Row="1">
                             <ScrollView VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
-                                <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10">
+                                <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10" Padding="10">
                                 <Frame CornerRadius="20" Padding="0" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center">
                                     <!-- Bind to computed ImageSource property -->
                                     <Image Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill" />
@@ -276,14 +276,25 @@
                                 <Label Text="{Binding SelectedProduct.ProductName, StringFormat='Product Name: {0}'}"
                                    FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" TextColor="Black"/>
                                 <Label Text="Add-ons" FontAttributes="Bold" FontSize="18" HorizontalOptions="Start" TextColor="Black" Margin="0,0,0,6"/>
-                                <!-- Add-ons list: compact 2-column grid layout -->
-                                <CollectionView ItemsSource="{Binding SelectedProduct.InventoryItems}" Margin="0,0,0,8">
-                                    <CollectionView.ItemsLayout>
-                                        <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="6" VerticalItemSpacing="6" />
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
+                                <!-- Add-ons list: compact 2-column grid layout (non-scrollable, expands to fit content) -->
+                                <FlexLayout BindableLayout.ItemsSource="{Binding SelectedProduct.InventoryItems}" 
+                                            Wrap="Wrap"
+                                            JustifyContent="Start"
+                                            AlignItems="Start"
+                                            Margin="0,0,0,8">
+                                    <BindableLayout.EmptyViewTemplate>
                                         <DataTemplate>
-                                            <Frame Padding="6" Margin="0" BackgroundColor="White" CornerRadius="10" HasShadow="False" BorderColor="#E0E0E0">
+                                            <Label Text="No add-ons available for this product" 
+                                                   TextColor="Gray" 
+                                                   FontSize="14" 
+                                                   HorizontalTextAlignment="Center"
+                                                   Margin="0,5,0,15"
+                                                   WidthRequest="300"/>
+                                        </DataTemplate>
+                                    </BindableLayout.EmptyViewTemplate>
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate>
+                                            <Frame Padding="6" Margin="3" BackgroundColor="White" CornerRadius="10" HasShadow="False" BorderColor="#E0E0E0" WidthRequest="160">
                                                 <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
                                                     <Grid.GestureRecognizers>
                                                         <TapGestureRecognizer Command="{Binding ToggleSelectedCommand}" />
@@ -374,8 +385,8 @@
                                                 </Grid>
                                             </Frame>
                                         </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
+                                    </BindableLayout.ItemTemplate>
+                                </FlexLayout>
 
                                 <!-- Select Size Section -->
                                 <Label Text="Select Size:" TextColor="Black" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>

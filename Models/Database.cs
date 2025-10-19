@@ -104,7 +104,7 @@ namespace Coftea_Capstone.Models
 		// Cache helpers
 		private static bool IsFresh(DateTime ts) => (DateTime.UtcNow - ts) < CacheDuration;
 		private static void InvalidateProductsCache() => _productsCache = null;
-		private static void InvalidateInventoryCache() => _inventoryCache = null;
+		public void InvalidateInventoryCache() => _inventoryCache = null;
 		private static void InvalidateProductLinksCache(int productId)
 		{
 			_productIngredientsCache.Remove(productId);

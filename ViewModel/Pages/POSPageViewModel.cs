@@ -243,6 +243,9 @@ namespace Coftea_Capstone.ViewModel
             if (updatedProduct == null || Products == null || FilteredProducts == null)
                 return;
 
+            // Check if the updated product is currently selected
+            bool wasSelected = SelectedProduct != null && SelectedProduct.ProductID == updatedProduct.ProductID;
+
             // Find and update the existing product in the collections
             var existingProduct = Products.FirstOrDefault(p => p.ProductID == updatedProduct.ProductID);
             if (existingProduct != null)
@@ -259,6 +262,17 @@ namespace Coftea_Capstone.ViewModel
             }
 
             await LoadDataAsync();
+            
+            // If the updated product was selected, reload its addons
+            if (wasSelected)
+            {
+                var refreshedProduct = Products.FirstOrDefault(p => p.ProductID == updatedProduct.ProductID);
+                if (refreshedProduct != null)
+                {
+                    SelectedProduct = refreshedProduct;
+                    await LoadAddonsForSelectedAsync();
+                }
+            }
         }
 
         [RelayCommand]
@@ -469,6 +483,9 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
+                // Clear any cached inventory data to ensure fresh reads
+                _database.InvalidateInventoryCache();
+                
                 foreach (var product in Products)
                 {
                     // Load core ingredients for the product (not addons) to validate sufficiency
@@ -488,28 +505,14 @@ namespace Coftea_Capstone.ViewModel
                         var item = tuple.item;
                         var sharedAmount = tuple.amount;
                         var sharedUnit = tuple.unit;
+                        
+                        System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: Quantity={item.itemQuantity}, Amount needed={sharedAmount}, Unit={sharedUnit}");
 
-                        // Prefer per-size amounts/units when available; pick the smallest positive one-serving requirement
-                        double[] sizeAmts = new[] { item.InputAmountSmall, item.InputAmountMedium, item.InputAmountLarge };
-                        string[] sizeUnits = new[] { item.InputUnitSmall, item.InputUnitMedium, item.InputUnitLarge };
-                        double chosenAmt = 0;
-                        string chosenUnit = null;
-                        for (int i = 0; i < sizeAmts.Length; i++)
-                        {
-                            if (sizeAmts[i] > 0)
-                            {
-                                if (chosenAmt <= 0 || sizeAmts[i] < chosenAmt)
-                                {
-                                    chosenAmt = sizeAmts[i];
-                                    chosenUnit = sizeUnits[i];
-                                }
-                            }
-                        }
-                        if (chosenAmt <= 0)
-                        {
-                            chosenAmt = sharedAmount;
-                            chosenUnit = sharedUnit;
-                        }
+                        // Use the shared amount and unit from the database query
+                        // The per-size amounts are not available in this context since we're checking
+                        // from the database query, not from UI input
+                        double chosenAmt = sharedAmount;
+                        string chosenUnit = sharedUnit;
 
                         // Normalize units and convert to inventory unit for comparison
                         var inventoryUnit = UnitConversionService.Normalize(item.unitOfMeasurement);
