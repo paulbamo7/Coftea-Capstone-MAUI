@@ -141,8 +141,21 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine("AddToCart: product or CartItems is null");
                 return;
             }
-            // Check if there are any items to add (at least one quantity > 0)
-            if (product.SmallQuantity <= 0 && product.MediumQuantity <= 0 && product.LargeQuantity <= 0)
+            // Check if there are any items to add (at least one quantity > 0 for available sizes)
+            bool hasAnyQuantity = false;
+            
+            // Only check sizes that the product actually supports
+            if (product.HasSmall && product.SmallQuantity > 0) hasAnyQuantity = true;
+            if (product.HasMedium && product.MediumQuantity > 0) hasAnyQuantity = true;
+            if (product.HasLarge && product.LargeQuantity > 0) hasAnyQuantity = true;
+            
+            // If product doesn't support any sizes, allow adding without size selection
+            if (!product.HasSmall && !product.HasMedium && !product.HasLarge)
+            {
+                hasAnyQuantity = true; // Allow products without size support
+            }
+            
+            if (!hasAnyQuantity)
             {
                 // Show notification that no items were selected
                 if (NotificationPopup != null)
@@ -697,6 +710,15 @@ namespace Coftea_Capstone.ViewModel
             System.Diagnostics.Debug.WriteLine("🧹 Clearing cart in POSPageViewModel");
             CartItems.Clear();
             await _cartStorage.SaveCartAsync(new ObservableCollection<POSPageModel>());
+            
+            // Also clear and close the cart popup if it's open
+            if (CartPopup != null)
+            {
+                CartPopup.ClearCart(); // Clear the cart popup items
+                CartPopup.IsCartVisible = false; // Close the cart popup
+                System.Diagnostics.Debug.WriteLine("✅ Cart popup cleared and closed");
+            }
+            
             System.Diagnostics.Debug.WriteLine("✅ Cart cleared successfully in POSPageViewModel");
         }
         catch (Exception ex)

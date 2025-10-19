@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
+using Coftea_Capstone.Models.Service;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -581,49 +582,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (string.IsNullOrWhiteSpace(toUnit)) return amount;
             
-            // Normalize units to short form
-            fromUnit = NormalizeUnit(fromUnit);
-            toUnit = NormalizeUnit(toUnit);
-
-            // If units are the same, no conversion needed
-            if (string.Equals(fromUnit, toUnit, StringComparison.OrdinalIgnoreCase))
-            {
-                return amount;
-            }
-
-            // Mass conversions
-            if (IsMassUnit(fromUnit) && IsMassUnit(toUnit))
-            {
-                return fromUnit.ToLowerInvariant() switch
-                {
-                    "kg" when toUnit.ToLowerInvariant() == "g" => amount * 1000,
-                    "g" when toUnit.ToLowerInvariant() == "kg" => amount / 1000,
-                    _ => amount
-                };
-            }
-
-            // Volume conversions
-            if (IsVolumeUnit(fromUnit) && IsVolumeUnit(toUnit))
-            {
-                return fromUnit.ToLowerInvariant() switch
-                {
-                    "l" when toUnit.ToLowerInvariant() == "ml" => amount * 1000,
-                    "ml" when toUnit.ToLowerInvariant() == "l" => amount / 1000,
-                    _ => amount
-                };
-            }
-
-            // Count
-            if (IsCountUnit(fromUnit) && IsCountUnit(toUnit))
-            {
-                return amount;
-            }
-
-            // If from is empty, assume already in inventory unit
-            if (string.IsNullOrWhiteSpace(fromUnit)) return amount;
-
-            // Unknown or mismatched units → block deduction by returning 0
-            return 0;
+            // Use UnitConversionService for consistent unit conversion
+            return UnitConversionService.Convert(amount, fromUnit, toUnit);
         }
 
         private static string NormalizeUnit(string unit) // Normalize unit strings to standard short forms

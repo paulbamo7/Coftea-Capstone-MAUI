@@ -218,19 +218,12 @@ namespace Coftea_Capstone.Models
 
         partial void OnInputUnitChanged(string value)
         {
-            // Persist the edited unit into the currently selected size slot only
-            switch (SelectedSize)
-            {
-                case "Small":
-                    InputUnitSmall = value;
-                    break;
-                case "Medium":
-                    InputUnitMedium = value;
-                    break;
-                case "Large":
-                    InputUnitLarge = value;
-                    break;
-            }
+            // Propagate the unit to ALL sizes so user doesn't have to select it multiple times
+            InputUnitSmall = value;
+            InputUnitMedium = value;
+            InputUnitLarge = value;
+            
+            System.Diagnostics.Debug.WriteLine($"📏 Unit changed to '{value}' - Applied to all sizes (Small, Medium, Large)");
         }
 
         // Computed/assigned price used per size (for POS previews and cart)

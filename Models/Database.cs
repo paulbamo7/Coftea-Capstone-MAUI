@@ -1115,7 +1115,7 @@ namespace Coftea_Capstone.Models
                         ti.productName, ti.quantity, ti.price, ti.smallPrice, ti.mediumPrice, ti.largePrice, ti.addonPrice, ti.addOns, ti.size
                         FROM transactions t
                         LEFT JOIN transaction_items ti ON t.transactionID = ti.transactionID
-                        WHERE t.transactionDate >= @StartDate AND t.transactionDate <= @EndDate
+                        WHERE t.transactionDate >= @StartDate AND t.transactionDate < @EndDate
                         ORDER BY t.transactionDate DESC";
 
             await using var cmd = new MySqlCommand(sql, conn);
@@ -1205,7 +1205,7 @@ namespace Coftea_Capstone.Models
             var sql = @"SELECT ti.productName, SUM(ti.quantity) as totalQuantity
                         FROM transactions t
                         JOIN transaction_items ti ON t.transactionID = ti.transactionID
-                        WHERE t.transactionDate >= @StartDate AND t.transactionDate <= @EndDate
+                        WHERE t.transactionDate >= @StartDate AND t.transactionDate < @EndDate
                         GROUP BY ti.productName
                         ORDER BY totalQuantity DESC
                         LIMIT @Limit";

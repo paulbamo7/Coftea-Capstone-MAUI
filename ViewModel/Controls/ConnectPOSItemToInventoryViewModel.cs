@@ -28,8 +28,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             // Initialize collections
             SelectedIngredientsOnly = new ObservableCollection<InventoryPageModel>();
-            
-            System.Diagnostics.Debug.WriteLine($"🔧 ConnectPOSItemToInventoryViewModel constructor - SelectedIngredientsOnly initialized");
         }
 
         private void OnAddonsSelected(List<InventoryPageModel> selectedAddons)

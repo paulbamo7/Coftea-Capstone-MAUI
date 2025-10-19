@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Models.Service;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -691,62 +692,10 @@ namespace Coftea_Capstone.ViewModel
             
             if (string.IsNullOrWhiteSpace(toUnit)) return amount; // no target unit, pass-through
             
-            // Normalize units to short form
-            var normalizedFrom = NormalizeUnit(fromUnit);
-            var normalizedTo = NormalizeUnit(toUnit);
-            
-            System.Diagnostics.Debug.WriteLine($"🔄 Normalized: {normalizedFrom} → {normalizedTo}");
-
-            // If units are the same, no conversion needed
-            if (string.Equals(normalizedFrom, normalizedTo, StringComparison.OrdinalIgnoreCase))
-            {
-                System.Diagnostics.Debug.WriteLine($"✅ Same units, returning {amount}");
-                return amount;
-            }
-
-            // Mass conversions
-            if (IsMassUnit(normalizedFrom) && IsMassUnit(normalizedTo))
-            {
-                var result = normalizedFrom.ToLowerInvariant() switch
-                {
-                    "kg" when normalizedTo.ToLowerInvariant() == "g" => amount * 1000,
-                    "g" when normalizedTo.ToLowerInvariant() == "kg" => amount / 1000,
-                    _ => amount
-                };
-                System.Diagnostics.Debug.WriteLine($"✅ Mass conversion: {amount} {normalizedFrom} = {result} {normalizedTo}");
-                return result;
-            }
-
-            // Volume conversions
-            if (IsVolumeUnit(normalizedFrom) && IsVolumeUnit(normalizedTo))
-            {
-                var result = normalizedFrom.ToLowerInvariant() switch
-                {
-                    "l" when normalizedTo.ToLowerInvariant() == "ml" => amount * 1000,
-                    "ml" when normalizedTo.ToLowerInvariant() == "l" => amount / 1000,
-                    _ => amount
-                };
-                System.Diagnostics.Debug.WriteLine($"✅ Volume conversion: {amount} {normalizedFrom} = {result} {normalizedTo}");
-                return result;
-            }
-
-            // Count
-            if (IsCountUnit(normalizedFrom) && IsCountUnit(normalizedTo))
-            {
-                System.Diagnostics.Debug.WriteLine($"✅ Count units, returning {amount}");
-                return amount;
-            }
-
-            // If from is empty, assume already in inventory unit
-            if (string.IsNullOrWhiteSpace(normalizedFrom))
-            {
-                System.Diagnostics.Debug.WriteLine($"⚠️ Empty fromUnit, returning {amount}");
-                return amount;
-            }
-            
-            // Unknown or mismatched units → block deduction by returning 0
-            System.Diagnostics.Debug.WriteLine($"❌ Incompatible units: {normalizedFrom} vs {normalizedTo}, returning 0");
-            return 0;
+            // Use UnitConversionService for consistent unit conversion
+            var result = UnitConversionService.Convert(amount, fromUnit, toUnit);
+            System.Diagnostics.Debug.WriteLine($"✅ UnitConversionService result: {result}");
+            return result;
         }
 
         private static string NormalizeUnit(string unit) // Normalizes various unit strings to standard short forms

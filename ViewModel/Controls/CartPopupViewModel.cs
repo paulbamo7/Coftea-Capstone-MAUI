@@ -190,6 +190,23 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsCartVisible = false;
         }
 
+        public void ClearCart() // Clear all cart items
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🧹 Clearing cart popup items");
+                CartItems.Clear();
+                _originalItems?.Clear();
+                TotalAmount = 0;
+                CustomerName = string.Empty;
+                System.Diagnostics.Debug.WriteLine("✅ Cart popup cleared successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart popup: {ex.Message}");
+            }
+        }
+
         [RelayCommand]
         private void EditCartItem(CartItem item) // Reopen item in POS for editing
         {

@@ -96,6 +96,11 @@ namespace Coftea_Capstone.ViewModel
             {
                 RecentOrders.RemoveAt(RecentOrders.Count - 1);
             }
+            
+            // Notify property changes to update UI
+            OnPropertyChanged(nameof(RecentOrders));
+            OnPropertyChanged(nameof(TotalOrdersToday));
+            OnPropertyChanged(nameof(TotalSalesToday));
         }
 
         public async Task LoadTodaysMetricsAsync() // Load today's metrics for dashboard
