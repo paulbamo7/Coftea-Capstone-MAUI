@@ -204,71 +204,112 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
                 
                 AllTransactions.Clear();
-                foreach (var transaction in transactions)
+                if (transactions != null && transactions.Any())
                 {
-                    AllTransactions.Add(transaction);
+                    foreach (var transaction in transactions)
+                    {
+                        AllTransactions.Add(transaction);
+                    }
+                    System.Diagnostics.Debug.WriteLine($"Loaded {transactions.Count} transactions from database");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("No transactions found in the database for the selected period");
                 }              
             }
             catch (Exception ex)
             {
-                AllTransactions.Clear(); // Clear on error
+                System.Diagnostics.Debug.WriteLine($"Error loading transactions: {ex.Message}");
+                AllTransactions.Clear();
+                // Optionally show an error message to the user
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to load transaction history. Please try again later.", "OK");
             }
         }
 
-        private void ApplyTransactionFilter() // Apply the selected time period filter to the transactions
+        private async void ApplyTransactionFilter() // Apply the selected time period filter to the transactions
         {
-            System.Diagnostics.Debug.WriteLine($"ApplyTransactionFilter called with SelectedFilter: {SelectedFilter}");
-            
-            if (AllTransactions == null || !AllTransactions.Any())
+            try
             {
-                FilteredTransactions.Clear();
-                System.Diagnostics.Debug.WriteLine("No transactions to filter");
-                return;
-            }
-
-            // Apply time period filtering
-            var filteredItems = AllTransactions.AsEnumerable();
-            
-            if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All Time")
-            {
-                var now = DateTime.Now;
-                var filter = SelectedFilter?.Trim() ?? string.Empty;
+                System.Diagnostics.Debug.WriteLine($"ApplyTransactionFilter called with SelectedFilter: {SelectedFilter}");
                 
-                System.Diagnostics.Debug.WriteLine($"Applying filter: {filter}");
-                
-                switch (filter)
+                if (AllTransactions == null || !AllTransactions.Any())
                 {
-                    case "Today":
-                        filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date);
-                        break;
-                    case "Yesterday":
-                        filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-1));
-                        break;
-                    case "3 Days Ago":
-                        filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-3));
-                        break;
-                    case "1 Week Ago":
-                        filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-7));
-                        break;
-                    case "2 Weeks Ago":
-                        filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-14));
-                        break;
-                    case "1 Month Ago":
-                        filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-30));
-                        break;
-                    case "All Time":
-                        // Show all transactions
-                        break;
+                    FilteredTransactions.Clear();
+                    System.Diagnostics.Debug.WriteLine("No transactions to filter");
+                    
+                    // Check if we should show a message to the user
+                    if (IsHistoryVisible)
+                    {
+                        await Application.Current.MainPage.DisplayAlert("No Transactions", 
+                            "No transaction history found for the selected period.", "OK");
+                    }
+                    return;
+                }
+
+                // Apply time period filtering
+                var filteredItems = AllTransactions.AsEnumerable();
+                
+                if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All Time")
+                {
+                    var now = DateTime.Now;
+                    var filter = SelectedFilter?.Trim() ?? string.Empty;
+                    
+                    System.Diagnostics.Debug.WriteLine($"Applying filter: {filter}");
+                    
+                    switch (filter)
+                    {
+                        case "Today":
+                            filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date);
+                            break;
+                        case "Yesterday":
+                            filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-1));
+                            break;
+                        case "3 Days Ago":
+                            filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-3));
+                            break;
+                        case "1 Week Ago":
+                            filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-7));
+                            break;
+                        case "2 Weeks Ago":
+                            filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-14));
+                            break;
+                        case "1 Month Ago":
+                            filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-30));
+                            break;
+                        case "All Time":
+                            // Show all transactions
+                            break;
+                    }
+                }
+
+                var filteredList = filteredItems.ToList();
+                
+                FilteredTransactions.Clear();
+                foreach (var transaction in filteredList)
+                {
+                    FilteredTransactions.Add(transaction);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"Filtered transactions count: {FilteredTransactions.Count}");
+                
+                // Show a message if no transactions match the filter
+                if (FilteredTransactions.Count == 0 && IsHistoryVisible)
+                {
+                    await Application.Current.MainPage.DisplayAlert("No Transactions", 
+                        "No transactions found for the selected time period.", "OK");
                 }
             }
-
-            FilteredTransactions.Clear();
-            foreach (var transaction in filteredItems)
+            catch (Exception ex)
             {
-                FilteredTransactions.Add(transaction);
+                System.Diagnostics.Debug.WriteLine($"Error in ApplyTransactionFilter: {ex.Message}");
+                FilteredTransactions.Clear();
+                
+                if (IsHistoryVisible)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", 
+                        "An error occurred while filtering transactions.", "OK");
+                }
             }
-            
-            System.Diagnostics.Debug.WriteLine($"Filtered transactions count: {FilteredTransactions.Count}");
         }
 
         public void Dispose() // Cleanup
