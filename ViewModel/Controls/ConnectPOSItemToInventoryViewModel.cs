@@ -281,6 +281,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void ConfirmPreview()
         {
+            // Sync InputAmount to per-size fields for all selected ingredients
+            SyncInputAmountsToPerSizeFields();
+            
             // finalize and close any overlays
             IsConnectPOSToInventoryVisible = false;
             IsInputIngredientsVisible = false;
@@ -291,7 +294,34 @@ namespace Coftea_Capstone.ViewModel.Controls
             ConfirmPreviewRequested?.Invoke();
         }
 
-        // Addon quantity adjusters used by PreviewPOSItem
+        // Sync InputAmount to per-size fields for all selected ingredients
+        private void SyncInputAmountsToPerSizeFields()
+        {
+            System.Diagnostics.Debug.WriteLine("🔧 Syncing InputAmount to per-size fields");
+            
+            foreach (var item in SelectedIngredientsOnly)
+            {
+                if (item.InputAmount > 0)
+                {
+                    // If no per-size amounts are set, use the general InputAmount for all sizes
+                    if (item.InputAmountSmall <= 0)
+                    {
+                        item.InputAmountSmall = item.InputAmount;
+                        System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} Small amount to {item.InputAmount}");
+                    }
+                    if (item.InputAmountMedium <= 0)
+                    {
+                        item.InputAmountMedium = item.InputAmount;
+                        System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} Medium amount to {item.InputAmount}");
+                    }
+                    if (item.InputAmountLarge <= 0)
+                    {
+                        item.InputAmountLarge = item.InputAmount;
+                        System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} Large amount to {item.InputAmount}");
+                    }
+                }
+            }
+        }
         [RelayCommand]
         private void IncreaseAddonQty(InventoryPageModel addon)
         {

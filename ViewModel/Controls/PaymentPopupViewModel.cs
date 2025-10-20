@@ -488,29 +488,41 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryForItemAsync: Starting for {cartItem.ProductName}");
+                System.Diagnostics.Debug.WriteLine($"🔧 Cart item quantities - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+                
                 // Get product by name to get the product ID
                 var product = await database.GetProductByNameAsyncCached(cartItem.ProductName);
                 if (product == null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Product not found: {cartItem.ProductName}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Product not found: {cartItem.ProductName}");
                     return;
                 }
+
+                System.Diagnostics.Debug.WriteLine($"🔧 Found product: {product.ProductName} (ID: {product.ProductID})");
 
                 // Get all ingredients for this product
                 var ingredients = await database.GetProductIngredientsAsync(product.ProductID);
                 if (!ingredients.Any())
                 {
-                    System.Diagnostics.Debug.WriteLine($"No ingredients found for product: {cartItem.ProductName}");
+                    System.Diagnostics.Debug.WriteLine($"❌ No ingredients found for product: {cartItem.ProductName}");
                     return;
                 }
 
-                // Prepare deductions list (per size)
-                var deductions = new List<(string name, double amount)>();
+                System.Diagnostics.Debug.WriteLine($"🔧 Found {ingredients.Count()} ingredients for product: {cartItem.ProductName}");
+
+                // Prepare deductions dictionary to accumulate amounts for the same ingredient
+                var deductionsDict = new Dictionary<string, double>();
 
                 // Helper local function to add deductions for a specific size using per-size amounts
                 void AddSizeDeductions(string size, int qty)
                 {
-                    if (qty <= 0) return;
+                    System.Diagnostics.Debug.WriteLine($"🔧 AddSizeDeductions called: Size={size}, Quantity={qty}");
+                    if (qty <= 0) 
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Skipping {size} deductions - quantity is 0 or negative");
+                        return;
+                    }
                     foreach (var (ingredient, amount, unit, role) in ingredients)
                     {
                         // Choose per-size amount/unit when available; fall back to shared
@@ -532,7 +544,18 @@ namespace Coftea_Capstone.ViewModel.Controls
                         var targetUnit = UnitConversionService.Normalize(ingredient.unitOfMeasurement);
                         var converted = ConvertUnits(perServing, perUnit, targetUnit);
                         var total = Math.Round(converted, 6) * qty; // keep small ml/g deductions
-                        deductions.Add((ingredient.itemName, total));
+                        
+                        System.Diagnostics.Debug.WriteLine($"🔧 {ingredient.itemName} ({size}): {perServing} {perUnit} -> {converted} {targetUnit} * {qty} = {total}");
+                        
+                        // Accumulate amounts for the same ingredient across different sizes
+                        if (deductionsDict.ContainsKey(ingredient.itemName))
+                        {
+                            deductionsDict[ingredient.itemName] += total;
+                        }
+                        else
+                        {
+                            deductionsDict[ingredient.itemName] = total;
+                        }
                     }
                 }
 
@@ -573,24 +596,47 @@ namespace Coftea_Capstone.ViewModel.Controls
                         if (totalDrinks > 0)
                         {
                             var totalAddonDeduction = convertedAddonAmount * cartAddon.AddonQuantity * (double)totalDrinks;
-                            deductions.Add((cartAddon.itemName, totalAddonDeduction));
+                            
+                            // Accumulate addon amounts for the same ingredient
+                            if (deductionsDict.ContainsKey(cartAddon.itemName))
+                            {
+                                deductionsDict[cartAddon.itemName] += totalAddonDeduction;
+                            }
+                            else
+                            {
+                                deductionsDict[cartAddon.itemName] = totalAddonDeduction;
+                            }
                         }
                     }
                 }
 
                 // Add automatic cups and straws per size (1 per serving)
                 if (cartItem.SmallQuantity > 0)
-                    await AddAutomaticCupAndStrawForSize(deductions, "Small", cartItem.SmallQuantity);
+                    await AddAutomaticCupAndStrawForSize(deductionsDict, "Small", cartItem.SmallQuantity);
                 if (cartItem.MediumQuantity > 0)
-                    await AddAutomaticCupAndStrawForSize(deductions, "Medium", cartItem.MediumQuantity);
+                    await AddAutomaticCupAndStrawForSize(deductionsDict, "Medium", cartItem.MediumQuantity);
                 if (cartItem.LargeQuantity > 0)
-                    await AddAutomaticCupAndStrawForSize(deductions, "Large", cartItem.LargeQuantity);
+                    await AddAutomaticCupAndStrawForSize(deductionsDict, "Large", cartItem.LargeQuantity);
+
+                // Convert dictionary back to list for database call
+                var deductions = deductionsDict.Select(kvp => (kvp.Key, kvp.Value)).ToList();
+
+                System.Diagnostics.Debug.WriteLine($"🔧 Final deductions for {cartItem.ProductName}:");
+                foreach (var deduction in deductions)
+                {
+                    System.Diagnostics.Debug.WriteLine($"   - {deduction.Key}: {deduction.Value}");
+                }
 
                 // Deduct inventory
                 if (deductions.Any())
                 {
+                    System.Diagnostics.Debug.WriteLine($"🔧 Calling DeductInventoryAsync with {deductions.Count} deductions");
                     var affectedRows = await database.DeductInventoryAsync(deductions);
-                    System.Diagnostics.Debug.WriteLine($"Deducted inventory for {affectedRows} items for {cartItem.ProductName}");
+                    System.Diagnostics.Debug.WriteLine($"✅ Deducted inventory for {affectedRows} items for {cartItem.ProductName}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ No deductions to process for {cartItem.ProductName}");
                 }
             }
             catch (Exception ex)
@@ -600,7 +646,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task AddAutomaticCupAndStrawForSize(List<(string name, double amount)> deductions, string size, int quantity) // Add cup and straw deductions based on size
+        private async Task AddAutomaticCupAndStrawForSize(Dictionary<string, double> deductionsDict, string size, int quantity) // Add cup and straw deductions based on size
         {
             try
             {
@@ -619,14 +665,30 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var cupItem = await database.GetInventoryItemByNameCachedAsync(cupName);
                 if (cupItem != null)
                 {
-                    deductions.Add((cupName, quantity));
+                    // Accumulate cup amounts for the same item
+                    if (deductionsDict.ContainsKey(cupName))
+                    {
+                        deductionsDict[cupName] += quantity;
+                    }
+                    else
+                    {
+                        deductionsDict[cupName] = quantity;
+                    }
                 }
 
                 // Add straw (1 per item)
                 var strawItem = await database.GetInventoryItemByNameCachedAsync("Straw");
                 if (strawItem != null)
                 {
-                    deductions.Add(("Straw", quantity));
+                    // Accumulate straw amounts for the same item
+                    if (deductionsDict.ContainsKey("Straw"))
+                    {
+                        deductionsDict["Straw"] += quantity;
+                    }
+                    else
+                    {
+                        deductionsDict["Straw"] = quantity;
+                    }
                 }
             }
             catch (Exception ex)

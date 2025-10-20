@@ -26,7 +26,7 @@
         <Frame Grid.Row="1" Grid.Column="1"
                CornerRadius="25"
                Padding="0"
-               WidthRequest="950"
+               WidthRequest="1006"
                HeightRequest="720"
                BackgroundColor="#F8E8D7"
                HasShadow="True"

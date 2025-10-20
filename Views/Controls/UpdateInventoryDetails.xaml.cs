@@ -8,6 +8,7 @@ public partial class UpdateInventoryDetails : ContentView
 {
     private double _currentStockValue = 0.0;
     private string _currentStockUnit = "g";
+    private bool _isUpdatingFromCode = false;
 
     public UpdateInventoryDetails()
     {
@@ -28,6 +29,21 @@ public partial class UpdateInventoryDetails : ContentView
     // Method to reset the form when switching between items or closing popup
     public void ResetForm()
     {
+        // Clear the main stock quantity entries
+        if (StockQuantityEntry != null)
+        {
+            _isUpdatingFromCode = true;
+            StockQuantityEntry.Text = string.Empty;
+            _isUpdatingFromCode = false;
+        }
+        
+        if (PiecesStockQuantityEntry != null)
+        {
+            _isUpdatingFromCode = true;
+            PiecesStockQuantityEntry.Text = string.Empty;
+            _isUpdatingFromCode = false;
+        }
+        
         // Clear the add stock entry for UoM categories
         if (AddStockEntry != null)
         {
@@ -89,7 +105,13 @@ public partial class UpdateInventoryDetails : ContentView
 
     private void OnStockQuantityChanged(object sender, EventArgs e)
     {
-        _currentStockValue = ParseDoubleOrZero(StockQuantityEntry?.Text);
+        // Don't update if we're programmatically setting the text field
+        if (_isUpdatingFromCode) return;
+        
+        var newValue = ParseDoubleOrZero(StockQuantityEntry?.Text);
+        System.Diagnostics.Debug.WriteLine($"🔧 OnStockQuantityChanged: {_currentStockValue} -> {newValue}");
+        _currentStockValue = newValue;
+        
         // Clear the add field when current stock changes to prevent confusion
         if (AddStockEntry != null)
         {
@@ -111,7 +133,13 @@ public partial class UpdateInventoryDetails : ContentView
     // Event handlers for pieces-only categories
     private void OnPiecesStockQuantityChanged(object sender, EventArgs e)
     {
-        _currentStockValue = ParseDoubleOrZero(PiecesStockQuantityEntry?.Text);
+        // Don't update if we're programmatically setting the text field
+        if (_isUpdatingFromCode) return;
+        
+        var newValue = ParseDoubleOrZero(PiecesStockQuantityEntry?.Text);
+        System.Diagnostics.Debug.WriteLine($"🔧 OnPiecesStockQuantityChanged: {_currentStockValue} -> {newValue}");
+        _currentStockValue = newValue;
+        
         // Clear the add field when current stock changes to prevent confusion
         if (AddPiecesStockEntry != null)
         {
@@ -180,7 +208,9 @@ public partial class UpdateInventoryDetails : ContentView
         // Update both the Entry text and the ViewModel binding
         if (StockQuantityEntry != null)
         {
+            _isUpdatingFromCode = true;
             StockQuantityEntry.Text = _currentStockValue.ToString(CultureInfo.InvariantCulture);
+            _isUpdatingFromCode = false;
             
             // Force the binding to update by triggering the Completed event manually
             // This ensures the ViewModel's UoMQuantity property is updated
@@ -233,7 +263,9 @@ public partial class UpdateInventoryDetails : ContentView
         // Update both the Entry text and the ViewModel binding
         if (PiecesStockQuantityEntry != null)
         {
+            _isUpdatingFromCode = true;
             PiecesStockQuantityEntry.Text = _currentStockValue.ToString(CultureInfo.InvariantCulture);
+            _isUpdatingFromCode = false;
             
             // Force the binding to update
             if (BindingContext is Coftea_Capstone.ViewModel.AddItemToInventoryViewModel vm)

@@ -863,6 +863,8 @@ namespace Coftea_Capstone.Models
         // Deduct inventory quantities by item name and amount
         public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions) // Deducts inventory quantities
         {
+            System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Starting with {deductions?.Count() ?? 0} deductions");
+            
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
@@ -871,19 +873,25 @@ namespace Coftea_Capstone.Models
             {
                 foreach (var (name, amount) in deductions)
                 {
+                    System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Processing {name} - {amount}");
                     var updateSql = "UPDATE inventory SET itemQuantity = GREATEST(itemQuantity - @Amount, 0) WHERE itemName = @Name;";
                     await using var updateCmd = new MySqlCommand(updateSql, conn, (MySqlTransaction)tx);
                     updateCmd.Parameters.AddWithValue("@Amount", amount);
                     updateCmd.Parameters.AddWithValue("@Name", name);
-                    totalAffected += await updateCmd.ExecuteNonQueryAsync();
+                    var rowsAffected = await updateCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: {name} - {rowsAffected} rows affected");
+                    totalAffected += rowsAffected;
                 }
 
                 await tx.CommitAsync();
                 InvalidateInventoryCache();
                 
+                System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Transaction committed, total affected rows: {totalAffected}");
+                
                 // Check for minimum stock levels after deduction
                 await CheckMinimumStockLevelsAsync();
                 
+                System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Completed successfully, returning {totalAffected}");
                 return totalAffected;
             }
             catch

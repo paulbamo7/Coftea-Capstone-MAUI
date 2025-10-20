@@ -76,7 +76,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void EditProduct(POSPageModel product) // Open edit popup for selected product
+        private async Task EditProduct(POSPageModel product) // Open edit popup for selected product
         {
             if (product == null) return;
 
@@ -84,7 +84,7 @@ namespace Coftea_Capstone.ViewModel
             IsEditProductPopupVisible = false;
 
             // Set the product for editing in AddItemToPOSViewModel
-            _addItemToPOSViewModel.SetEditMode(product);
+            await _addItemToPOSViewModel.SetEditMode(product);
             _addItemToPOSViewModel.IsAddItemToPOSVisible = true;
         }
 

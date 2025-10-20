@@ -430,7 +430,7 @@ namespace Coftea_Capstone.ViewModel
             ResetForm();
         }
 
-        public void SetEditMode(POSPageModel product) // Prepares the ViewModel for editing an existing product
+        public async Task SetEditMode(POSPageModel product) // Prepares the ViewModel for editing an existing product
         {
             IsEditMode = true;
             EditingProductId = product.ProductID;
@@ -481,7 +481,7 @@ namespace Coftea_Capstone.ViewModel
                 }
             }
             // Preload existing linked ingredients and mark them selected
-            _ = PreloadLinkedIngredientsAsync(product.ProductID);
+            await PreloadLinkedIngredientsAsync(product.ProductID);
         }
 
         // Shows the AddItemToPOS overlay when returning from child popups
@@ -494,19 +494,27 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔧 PreloadLinkedIngredientsAsync: Starting for product ID {productId}");
+                
                 // Ensure inventory is loaded
                 if (ConnectPOSToInventoryVM.AllInventoryItems == null || !ConnectPOSToInventoryVM.AllInventoryItems.Any())
                 {
+                    System.Diagnostics.Debug.WriteLine($"🔧 PreloadLinkedIngredientsAsync: Loading inventory...");
                     await ConnectPOSToInventoryVM.LoadInventoryAsync();
                 }
 
                 var links = await _database.GetProductIngredientsAsync(productId);
+                System.Diagnostics.Debug.WriteLine($"🔧 PreloadLinkedIngredientsAsync: Found {links?.Count() ?? 0} linked ingredients");
+                
                 foreach (var (item, amount, unit, role) in links)
                 {
+                    System.Diagnostics.Debug.WriteLine($"🔧 PreloadLinkedIngredientsAsync: Processing {item.itemName} (ID: {item.itemID})");
+                    
                     // Find matching inventory item
                     var inv = ConnectPOSToInventoryVM.AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
                     if (inv == null)
                     {
+                        System.Diagnostics.Debug.WriteLine($"🔧 PreloadLinkedIngredientsAsync: Adding new item {item.itemName} to collections");
                         // If not found yet, add it to collections
                         inv = item;
                         ConnectPOSToInventoryVM.AllInventoryItems.Add(inv);
@@ -514,6 +522,7 @@ namespace Coftea_Capstone.ViewModel
                     }
 
                     // Mark as selected and set input fields from link
+                    System.Diagnostics.Debug.WriteLine($"🔧 PreloadLinkedIngredientsAsync: Setting {inv.itemName} as selected");
                     inv.IsSelected = true;
                     // Preserve per-size values loaded from DB if present
                     var hasS = inv.InputAmountSmall > 0;
@@ -561,6 +570,8 @@ namespace Coftea_Capstone.ViewModel
 
                 // Update derived collections and flags using public method
                 ConnectPOSToInventoryVM.RefreshSelectionAndFilter();
+                
+                System.Diagnostics.Debug.WriteLine($"🔧 PreloadLinkedIngredientsAsync: Completed. SelectedIngredientsOnly count: {ConnectPOSToInventoryVM.SelectedIngredientsOnly?.Count ?? 0}");
                 
                 // Force UI update for all selected items to reflect loaded values
                 foreach (var selectedItem in ConnectPOSToInventoryVM.SelectedIngredientsOnly)
@@ -728,6 +739,7 @@ namespace Coftea_Capstone.ViewModel
 
         public void ResetForm() // Resets the form fields to default values
         {
+            System.Diagnostics.Debug.WriteLine($"🔧 ResetForm called. IsEditMode: {IsEditMode}");
             ProductName = string.Empty;
             SmallPrice = string.Empty;
             MediumPrice = string.Empty;
@@ -757,30 +769,34 @@ namespace Coftea_Capstone.ViewModel
                 ConnectPOSToInventoryVM.SelectedImageSource = null;
                 ConnectPOSToInventoryVM.ProductDescription = string.Empty;
                 
-                // Clear all ingredient and addon selections
-                ConnectPOSToInventoryVM.SelectedIngredientsOnly?.Clear();
-                ConnectPOSToInventoryVM.SelectedAddons?.Clear();
-                
-                // Uncheck all items in the inventory lists
-                if (ConnectPOSToInventoryVM.AllInventoryItems != null)
+                // Only clear ingredient and addon selections if not in edit mode
+                if (!IsEditMode)
                 {
-                    foreach (var item in ConnectPOSToInventoryVM.AllInventoryItems)
+                    // Clear all ingredient and addon selections
+                    ConnectPOSToInventoryVM.SelectedIngredientsOnly?.Clear();
+                    ConnectPOSToInventoryVM.SelectedAddons?.Clear();
+                    
+                    // Uncheck all items in the inventory lists
+                    if (ConnectPOSToInventoryVM.AllInventoryItems != null)
                     {
-                        item.IsSelected = false;
-                        item.InputAmount = 0;
-                        item.InputUnit = string.Empty;
-                        item.AddonQuantity = 0;
+                        foreach (var item in ConnectPOSToInventoryVM.AllInventoryItems)
+                        {
+                            item.IsSelected = false;
+                            item.InputAmount = 0;
+                            item.InputUnit = string.Empty;
+                            item.AddonQuantity = 0;
+                        }
                     }
-                }
-                
-                if (ConnectPOSToInventoryVM.InventoryItems != null)
-                {
-                    foreach (var item in ConnectPOSToInventoryVM.InventoryItems)
+                    
+                    if (ConnectPOSToInventoryVM.InventoryItems != null)
                     {
-                        item.IsSelected = false;
-                        item.InputAmount = 0;
-                        item.InputUnit = string.Empty;
-                        item.AddonQuantity = 0;
+                        foreach (var item in ConnectPOSToInventoryVM.InventoryItems)
+                        {
+                            item.IsSelected = false;
+                            item.InputAmount = 0;
+                            item.InputUnit = string.Empty;
+                            item.AddonQuantity = 0;
+                        }
                     }
                 }
                           

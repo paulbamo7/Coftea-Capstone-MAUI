@@ -467,11 +467,11 @@ namespace Coftea_Capstone.ViewModel
 
         
         [RelayCommand]
-        private void EditProduct(POSPageModel product) // Opens the Edit Product panel
+        private async Task EditProduct(POSPageModel product) // Opens the Edit Product panel
         {
             if (product == null) return;
 
-            AddItemToPOSViewModel.SetEditMode(product);
+            await AddItemToPOSViewModel.SetEditMode(product);
             SettingsPopup.OpenAddItemToPOSCommand.Execute(null);
         }
 

@@ -485,7 +485,7 @@
                                 <StackLayout Orientation="Horizontal" Spacing="10" HorizontalOptions="Center" Margin="0,15,0,0">
                                     <Button Text="Cancel Order" Command="{Binding RemoveFromCartCommand}" TextColor="White" FontSize="16" 
                                         CommandParameter="{Binding SelectedProduct}" WidthRequest="130" HeightRequest="50"
-                                        HorizontalOptions="FillAndExpand">
+                                        HorizontalOptions="FillAndExpand" FontAttributes="Bold">
                                         <Button.Background>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                                 <GradientStop Color="#A57C5C" Offset="0.0" />

@@ -214,6 +214,9 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔧 EditCartItem: Starting edit for {item.ProductName}");
+                System.Diagnostics.Debug.WriteLine($"🔧 Cart item quantities - Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
+                
                 // Close the cart popup immediately
                 IsCartVisible = false;
                 
@@ -223,22 +226,24 @@ namespace Coftea_Capstone.ViewModel.Controls
                     var originalItem = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
                     if (originalItem != null)
                     {
-                        // Navigate to POS page if not already there, then set the selected product
-                        await SetSelectedProductInCurrentPOS(originalItem);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Found original item: {originalItem.ProductName}");
+                        System.Diagnostics.Debug.WriteLine($"🔧 Original item quantities - Small: {originalItem.SmallQuantity}, Medium: {originalItem.MediumQuantity}, Large: {originalItem.LargeQuantity}");
+                        // Navigate to POS page if not already there, then set the selected product with quantities
+                        await SetSelectedProductInCurrentPOS(originalItem, item);
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"Original item not found for ProductID: {item.ProductId}");
+                        System.Diagnostics.Debug.WriteLine($"❌ Original item not found for ProductID: {item.ProductId}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in EditCartItem: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error in EditCartItem: {ex.Message}");
             }
         }
 
-        private async Task SetSelectedProductInCurrentPOS(POSPageModel product) // Set selected product in current POS page
+        private async Task SetSelectedProductInCurrentPOS(POSPageModel product, CartItem cartItem = null) // Set selected product in current POS page
         {
             try
             {
@@ -258,6 +263,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                         var currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
                         if (currentProduct != null)
                         {
+                            // Restore quantities from cart item if provided
+                            if (cartItem != null)
+                            {
+                                currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                                currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                                currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                                System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+                            }
+                            
                             posViewModel.SelectedProduct = currentProduct;
                             System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} in current POS page");
                         }
@@ -269,6 +283,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                             currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
                             if (currentProduct != null)
                             {
+                                // Restore quantities from cart item if provided
+                                if (cartItem != null)
+                                {
+                                    currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                                    currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                                    currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                                    System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after refresh - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+                                }
+                                
                                 posViewModel.SelectedProduct = currentProduct;
                                 System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} after refresh");
                             }
@@ -291,6 +314,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                         var currentProduct = newPosViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
                         if (currentProduct != null)
                         {
+                            // Restore quantities from cart item if provided
+                            if (cartItem != null)
+                            {
+                                currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                                currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                                currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                                System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after navigation - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+                            }
+                            
                             newPosViewModel.SelectedProduct = currentProduct;
                             System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} after navigation");
                         }

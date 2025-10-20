@@ -376,9 +376,61 @@ namespace Coftea_Capstone.ViewModel
                 finalUnit = UnitConversionService.FormatUnit(convertedUnit);
             }
 
-            // Use the same properties that the UI is binding to
+            // Convert minimum and maximum quantities to the same unit as final quantity for proper comparison
             var minimumThreshold = MinimumQuantity;
             var maximumThreshold = MaximumQuantity;
+            var minimumUnit = SelectedMinimumUoM ?? SelectedUoM;
+            var maximumUnit = SelectedMaximumUoM ?? SelectedUoM;
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 AddItem validation - Stock: {finalQuantity} {finalUnit}");
+            System.Diagnostics.Debug.WriteLine($"🔧 AddItem validation - Min: {minimumThreshold} {minimumUnit}");
+            System.Diagnostics.Debug.WriteLine($"🔧 AddItem validation - Max: {maximumThreshold} {maximumUnit}");
+
+            // Convert minimum threshold to final unit if units are different
+            if (minimumThreshold > 0 && !string.IsNullOrWhiteSpace(minimumUnit) && !string.IsNullOrWhiteSpace(finalUnit))
+            {
+                var normalizedMinimumUnit = UnitConversionService.Normalize(minimumUnit);
+                var normalizedFinalUnit = UnitConversionService.Normalize(finalUnit);
+                
+                if (!string.IsNullOrWhiteSpace(normalizedMinimumUnit) && !string.IsNullOrWhiteSpace(normalizedFinalUnit))
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 Converting minimum: {minimumThreshold} {normalizedMinimumUnit} -> {normalizedFinalUnit}");
+                    if (UnitConversionService.AreCompatibleUnits(normalizedMinimumUnit, normalizedFinalUnit))
+                    {
+                        minimumThreshold = UnitConversionService.Convert(minimumThreshold, normalizedMinimumUnit, normalizedFinalUnit);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Converted minimum: {minimumThreshold} {normalizedFinalUnit}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Incompatible minimum units: {normalizedMinimumUnit} vs {normalizedFinalUnit}");
+                        await Application.Current.MainPage.DisplayAlert("Error", $"Minimum quantity unit ({minimumUnit}) is not compatible with stock quantity unit ({finalUnit}).", "OK");
+                        return;
+                    }
+                }
+            }
+
+            // Convert maximum threshold to final unit if units are different
+            if (maximumThreshold > 0 && !string.IsNullOrWhiteSpace(maximumUnit) && !string.IsNullOrWhiteSpace(finalUnit))
+            {
+                var normalizedMaximumUnit = UnitConversionService.Normalize(maximumUnit);
+                var normalizedFinalUnit = UnitConversionService.Normalize(finalUnit);
+                
+                if (!string.IsNullOrWhiteSpace(normalizedMaximumUnit) && !string.IsNullOrWhiteSpace(normalizedFinalUnit))
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 Converting maximum: {maximumThreshold} {normalizedMaximumUnit} -> {normalizedFinalUnit}");
+                    if (UnitConversionService.AreCompatibleUnits(normalizedMaximumUnit, normalizedFinalUnit))
+                    {
+                        maximumThreshold = UnitConversionService.Convert(maximumThreshold, normalizedMaximumUnit, normalizedFinalUnit);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Converted maximum: {maximumThreshold} {normalizedFinalUnit}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Incompatible maximum units: {normalizedMaximumUnit} vs {normalizedFinalUnit}");
+                        await Application.Current.MainPage.DisplayAlert("Error", $"Maximum quantity unit ({maximumUnit}) is not compatible with stock quantity unit ({finalUnit}).", "OK");
+                        return;
+                    }
+                }
+            }
 
             // Default rule: if maximum is not provided, set it to the current stock quantity
             if (maximumThreshold <= 0)
@@ -408,8 +460,8 @@ namespace Coftea_Capstone.ViewModel
                 itemDescription = ItemDescription,
                 itemQuantity = finalQuantity,
                 unitOfMeasurement = finalUnit,
-                minimumQuantity = minimumThreshold,
-                maximumQuantity = maximumThreshold,
+                minimumQuantity = minimumThreshold,  // Now converted to same unit as stock
+                maximumQuantity = maximumThreshold,  // Now converted to same unit as stock
                 ImageSet = ImagePath
             };
 
