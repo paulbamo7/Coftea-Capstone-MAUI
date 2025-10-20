@@ -79,7 +79,7 @@ namespace Coftea_Capstone.Models
             {
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "192.168.1.6" /*, "192.168.0.202"*/;
+                    return "10.23.227.114" /*, "192.168.0.202"*/;
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)

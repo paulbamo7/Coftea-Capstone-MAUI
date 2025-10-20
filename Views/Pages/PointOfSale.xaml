@@ -153,7 +153,7 @@
             <StackLayout Orientation="Horizontal" Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
                                    IsVisible="{Binding IsCoffeeSubcategoryVisible}" Padding="0,10,0,0">
                 <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                        BackgroundColor="#FFEAD6" WidthRequest="110" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano">
                     <Button.Triggers>
                         <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Americano">
@@ -208,8 +208,12 @@
                                     <Grid>
                                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
                                             <Frame CornerRadius="20" Padding="0" HeightRequest="120" WidthRequest="120">
-                                                <!-- Bind to ImageSource property -->
-                                                <Image Source="{Binding ImageSource}" Aspect="AspectFill" HorizontalOptions="Fill" VerticalOptions="Fill">
+                                                <!-- Bind to ImageSource property with error handling -->
+                                                <Image Source="{Binding ImageSource}" 
+                                                       Aspect="AspectFill" 
+                                                       HorizontalOptions="Fill" 
+                                                       VerticalOptions="Fill"
+                                                       BackgroundColor="LightGray">
                                                     <Image.GestureRecognizers>
                                                         <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" 
                                                                              CommandParameter="{Binding .}" />
