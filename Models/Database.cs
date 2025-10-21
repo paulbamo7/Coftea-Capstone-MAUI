@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.Maui.Devices;
 
 using Coftea_Capstone.C_;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Models
 {
@@ -77,9 +78,21 @@ namespace Coftea_Capstone.Models
         {
             try
             {
+                // Use automatic IP detection if available and enabled
+                if (NetworkConfigurationService.IsAutomaticDetectionEnabled())
+                {
+                    var autoDetectedIP = NetworkConfigurationService.GetAutoDetectedIP();
+                    if (!string.IsNullOrEmpty(autoDetectedIP) && autoDetectedIP != "localhost")
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🤖 Using auto-detected IP for platform: {autoDetectedIP}");
+                        return autoDetectedIP;
+                    }
+                }
+
+                // Fallback to platform-specific hardcoded IPs
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "192.168.1.8" /*, "192.168.0.202"*/;
+                    return "192.168.1.8";
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)

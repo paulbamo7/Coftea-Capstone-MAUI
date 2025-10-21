@@ -10,9 +10,9 @@ namespace Coftea_Capstone.Services
         private readonly int _mailHogPort;
         private string _manualMailHogHost;
 
-        public EmailService(string mailHogHost = "192.168.1.6", int mailHogPort = 1025)
+        public EmailService(string mailHogHost = null, int mailHogPort = 1025)
         {
-            _mailHogHost = mailHogHost; // Will be resolved dynamically
+            _mailHogHost = mailHogHost ?? NetworkConfigurationService.GetEmailHost(); // Use auto-detected IP
             _mailHogPort = mailHogPort;
         }
 
@@ -90,7 +90,8 @@ namespace Coftea_Capstone.Services
 
         public string GetCurrentMailHogHost()
         {
-            return _manualMailHogHost ?? _mailHogHost ?? NetworkConfigurationService.GetEmailHost();
+            // Priority: Manual override > Auto-detected IP > Default host
+            return _manualMailHogHost ?? NetworkConfigurationService.GetEmailHost() ?? _mailHogHost;
         }
 
         // Legacy method names for backward compatibility

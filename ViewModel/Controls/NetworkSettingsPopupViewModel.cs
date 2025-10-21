@@ -12,6 +12,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private string databaseHost = "";
         [ObservableProperty] private string emailHost = "";
         [ObservableProperty] private string networkDiagnostics = "Network settings configured";
+        [ObservableProperty] private bool isAutoDetectionEnabled = true;
+        [ObservableProperty] private string autoDetectedIP = "";
+        [ObservableProperty] private bool isRefreshing = false;
 
         public NetworkSettingsPopupViewModel()
         {
@@ -34,6 +37,55 @@ namespace Coftea_Capstone.ViewModel.Controls
         private async Task RefreshAsync() // Refresh current settings
         {
             await LoadCurrentSettingsAsync();
+        }
+
+        [RelayCommand]
+        private async Task RefreshAutoDetectionAsync() // Refresh auto-detected IP
+        {
+            try
+            {
+                IsRefreshing = true;
+                NetworkDiagnostics = "Refreshing auto-detected IP address...";
+                
+                await NetworkConfigurationService.RefreshAutoDetectedIPAsync();
+                await LoadCurrentSettingsAsync();
+                
+                NetworkDiagnostics = "Auto-detection refreshed successfully!";
+            }
+            catch (Exception ex)
+            {
+                NetworkDiagnostics = $"Auto-detection refresh failed: {ex.Message}";
+            }
+            finally
+            {
+                IsRefreshing = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ToggleAutoDetectionAsync() // Toggle automatic IP detection
+        {
+            try
+            {
+                if (IsAutoDetectionEnabled)
+                {
+                    NetworkConfigurationService.DisableAutomaticIPDetection();
+                    IsAutoDetectionEnabled = false;
+                    NetworkDiagnostics = "Automatic IP detection disabled";
+                }
+                else
+                {
+                    await NetworkConfigurationService.EnableAutomaticIPDetectionAsync();
+                    IsAutoDetectionEnabled = true;
+                    NetworkDiagnostics = "Automatic IP detection enabled";
+                }
+                
+                await LoadCurrentSettingsAsync();
+            }
+            catch (Exception ex)
+            {
+                NetworkDiagnostics = $"Failed to toggle auto-detection: {ex.Message}";
+            }
         }
 
         [RelayCommand]
@@ -77,10 +129,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Load current settings
                 CurrentDatabaseHost = NetworkConfigurationService.GetDatabaseHost();
                 CurrentEmailHost = NetworkConfigurationService.GetEmailHost();
+                
+                // Load auto-detection status
+                IsAutoDetectionEnabled = NetworkConfigurationService.IsAutomaticDetectionEnabled();
+                AutoDetectedIP = NetworkConfigurationService.GetAutoDetectedIP() ?? "Not detected";
 
                 // Load current settings
                 var settings = NetworkConfigurationService.GetCurrentSettings();
-                NetworkDiagnostics = $"Database Host: {CurrentDatabaseHost}\nEmail Host: {CurrentEmailHost}";
+                var autoStatus = IsAutoDetectionEnabled ? "Enabled" : "Disabled";
+                NetworkDiagnostics = $"Database Host: {CurrentDatabaseHost}\nEmail Host: {CurrentEmailHost}\nAuto-Detection: {autoStatus}\nAuto-Detected IP: {AutoDetectedIP}";
 
                 // Clear input fields
                 DatabaseHost = "";

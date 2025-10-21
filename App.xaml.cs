@@ -207,23 +207,10 @@ namespace Coftea_Capstone
             // Initialize shared transactions store
             Transactions = new ObservableCollection<TransactionHistoryModel>();
             
-            // Manual IP address configuration
-            // Set your PC's IP address here for database connection
-            NetworkConfigurationService.SetManualDatabaseHost("192.168.1.7");
-            
-            // Simple database connection test without automatic IP detection
-            _ = Task.Run(async () => {
-                try
-                {
-                    var db = new Database();
-                    await db.EnsureServerAndDatabaseAsync();
-                    System.Diagnostics.Debug.WriteLine($"✅ Database connection successful");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"❌ App Startup - Connection Error: {ex.Message}");
-                }
-            });
+            // Disable automatic IP detection temporarily to prevent startup errors
+            // Users can enable it manually through settings if needed
+            NetworkConfigurationService.DisableAutomaticIPDetection();
+            System.Diagnostics.Debug.WriteLine("🚫 Automatic IP detection disabled to prevent startup errors");
         }
 
         private async void NavigateToDashboard(bool isAdmin)

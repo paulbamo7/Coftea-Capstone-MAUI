@@ -110,6 +110,38 @@
                         </VerticalStackLayout>
                     </Frame>
 
+                    <!-- Auto-Detection Controls -->
+                    <Frame BackgroundColor="#F3E5F5" 
+                           CornerRadius="10" 
+                           Padding="15">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Automatic IP Detection:" 
+                                   FontAttributes="Bold" 
+                                   FontSize="16" 
+                                   TextColor="#7B1FA2" />
+                            
+                            <HorizontalStackLayout Spacing="10">
+                                <Button Text="Toggle Auto-Detection"
+                                        BackgroundColor="#4CAF50"
+                                        TextColor="White"
+                                        CornerRadius="10"
+                                        HeightRequest="40"
+                                        Command="{Binding ToggleAutoDetectionCommand}" />
+                                
+                                <Button Text="Refresh Auto-Detection"
+                                        BackgroundColor="#FF9800"
+                                        TextColor="White"
+                                        CornerRadius="10"
+                                        HeightRequest="40"
+                                        Command="{Binding RefreshAutoDetectionCommand}" />
+                            </HorizontalStackLayout>
+                            
+                            <Label Text="{Binding AutoDetectedIP, StringFormat='Auto-Detected IP: {0}'}" 
+                                   FontSize="14" 
+                                   TextColor="#9C27B0" />
+                        </VerticalStackLayout>
+                    </Frame>
+
                     <!-- Buttons -->
                     <Grid ColumnDefinitions="*,*,*" ColumnSpacing="15" Margin="0,20,0,0">
                         <Button Grid.Column="0"

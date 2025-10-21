@@ -5,6 +5,8 @@ namespace Coftea_Capstone.Services
     public class NetworkConfigurationService
     {
         private static readonly Dictionary<string, object> _settings = new Dictionary<string, object>();
+        private static string _autoDetectedIP = null;
+        private static bool _autoDetectionEnabled = true;
 
         public static string GetDatabaseHost()
         {
@@ -18,9 +20,71 @@ namespace Coftea_Capstone.Services
                 return manualHost;
             }
 
-            // Default to localhost if no manual host is set
+            // Try automatic IP detection if enabled
+            if (_autoDetectionEnabled && !string.IsNullOrEmpty(_autoDetectedIP))
+            {
+                System.Diagnostics.Debug.WriteLine($"🤖 Using auto-detected IP: {_autoDetectedIP}");
+                return _autoDetectedIP;
+            }
+
+            // Default to localhost if no manual host is set and auto-detection hasn't run
             System.Diagnostics.Debug.WriteLine($"🔍 No manual host set, using localhost");
             return "localhost";
+        }
+
+        /// <summary>
+        /// Enables automatic IP detection and attempts to detect the best IP address
+        /// </summary>
+        public static async Task EnableAutomaticIPDetectionAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🤖 Starting automatic IP detection...");
+                _autoDetectedIP = await AutomaticIPDetectionService.DetectDatabaseIPAsync();
+                _autoDetectionEnabled = true;
+                System.Diagnostics.Debug.WriteLine($"✅ Automatic IP detection completed: {_autoDetectedIP}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Automatic IP detection failed: {ex.Message}");
+                _autoDetectedIP = "localhost";
+                _autoDetectionEnabled = false;
+            }
+        }
+
+        /// <summary>
+        /// Disables automatic IP detection
+        /// </summary>
+        public static void DisableAutomaticIPDetection()
+        {
+            _autoDetectionEnabled = false;
+            _autoDetectedIP = null;
+            System.Diagnostics.Debug.WriteLine("🚫 Automatic IP detection disabled");
+        }
+
+        /// <summary>
+        /// Gets the currently auto-detected IP address
+        /// </summary>
+        public static string GetAutoDetectedIP()
+        {
+            return _autoDetectedIP;
+        }
+
+        /// <summary>
+        /// Checks if automatic IP detection is enabled
+        /// </summary>
+        public static bool IsAutomaticDetectionEnabled()
+        {
+            return _autoDetectionEnabled;
+        }
+
+        /// <summary>
+        /// Forces a refresh of the auto-detected IP address
+        /// </summary>
+        public static async Task RefreshAutoDetectedIPAsync()
+        {
+            AutomaticIPDetectionService.ClearCache();
+            await EnableAutomaticIPDetectionAsync();
         }
 
         public static string GetEmailHost()
@@ -76,9 +140,15 @@ namespace Coftea_Capstone.Services
             
             if (_settings.ContainsKey("DatabaseHost"))
                 result["Database Host"] = _settings["DatabaseHost"].ToString();
+            else if (_autoDetectionEnabled && !string.IsNullOrEmpty(_autoDetectedIP))
+                result["Database Host"] = $"Auto-detected: {_autoDetectedIP}";
+            else
+                result["Database Host"] = "localhost (default)";
             
             if (_settings.ContainsKey("EmailHost"))
                 result["Email Host"] = _settings["EmailHost"].ToString();
+            else
+                result["Email Host"] = "localhost (default)";
 
             return result;
         }
