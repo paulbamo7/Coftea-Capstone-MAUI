@@ -43,10 +43,7 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task BackToLogin() // Navigate back to Login page
         {
-            if (Application.Current?.MainPage is NavigationPage nav)
-            {
-                await nav.PopAsync(false);
-            }
+            await SimpleNavigationService.NavigateToAsync("//login");
         }
 
         [RelayCommand]
@@ -178,10 +175,7 @@ namespace Coftea_Capstone.ViewModel
                     await Application.Current.MainPage.DisplayAlert("Success", "Registration request submitted! An admin will review and approve your account.", "OK");
                 }
                 // Navigate back to Login page
-                if (Application.Current?.MainPage is NavigationPage nav)
-                {
-                    await nav.PopAsync(false);
-                }
+                await SimpleNavigationService.NavigateToAsync("//login");
             }
             catch (MySqlConnector.MySqlException ex)
             {
