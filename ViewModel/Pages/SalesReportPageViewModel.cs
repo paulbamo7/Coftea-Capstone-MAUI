@@ -1248,5 +1248,76 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(TopCoffeeTodayOrders));
             OnPropertyChanged(nameof(TopMilkteaTodayOrders));
         }
+
+        // PDF Download Commands
+        [RelayCommand]
+        private async Task DownloadWeeklyReport()
+        {
+            try
+            {
+                IsLoading = true;
+                
+                var today = DateTime.Today;
+                var weekStart = today.AddDays(-7);
+                var weekEnd = today.AddDays(1);
+                
+                // Get transactions for the week
+                var transactions = await _database.GetTransactionsByDateRangeAsync(weekStart, weekEnd);
+                
+                // Generate PDF report
+                var pdfService = new Services.PDFReportService();
+                var filePath = await pdfService.GenerateWeeklyReportAsync(weekStart, weekEnd, transactions, TopItemsWeekly.ToList());
+                
+                // Show success message with file location
+                await Application.Current.MainPage.DisplayAlert(
+                    "Weekly Report Generated", 
+                    $"Weekly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past week.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Weekly_Report HTML file", 
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to generate weekly report: {ex.Message}", "OK");
+                System.Diagnostics.Debug.WriteLine($"Error generating weekly report: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task DownloadMonthlyReport()
+        {
+            try
+            {
+                IsLoading = true;
+                
+                var today = DateTime.Today;
+                var monthStart = today.AddMonths(-1);
+                var monthEnd = today.AddDays(1);
+                
+                // Get transactions for the month
+                var transactions = await _database.GetTransactionsByDateRangeAsync(monthStart, monthEnd);
+                
+                // Generate PDF report
+                var pdfService = new Services.PDFReportService();
+                var filePath = await pdfService.GenerateMonthlyReportAsync(monthStart, monthEnd, transactions, TopItemsMonthly.ToList());
+                
+                // Show success message with file location
+                await Application.Current.MainPage.DisplayAlert(
+                    "Monthly Report Generated", 
+                    $"Monthly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past month.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Monthly_Report HTML file", 
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to generate monthly report: {ex.Message}", "OK");
+                System.Diagnostics.Debug.WriteLine($"Error generating monthly report: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
     }
 }

@@ -92,7 +92,7 @@ namespace Coftea_Capstone.Models
                 // Fallback to platform-specific hardcoded IPs
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "192.168.1.8";
+                    return "192.168.1.2";
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
