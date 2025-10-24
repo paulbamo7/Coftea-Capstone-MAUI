@@ -11,9 +11,6 @@ public partial class RegisterPage : ContentPage
 		
 		// Set RetryConnectionPopup binding context
 		 RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
-		 
-		// Set maximum date to today for birthday picker
-		BirthdayDatePicker.MaximumDate = DateTime.Today;
 	}
 
 	private void OnToggleRegisterPasswordVisibility(object sender, EventArgs e)
@@ -36,6 +33,7 @@ public partial class RegisterPage : ContentPage
 		}
 	}
 
+
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
@@ -53,7 +51,14 @@ public partial class RegisterPage : ContentPage
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
     {
         if (element == null) return;
-        if (element is Image img) img.Source = null;
+        if (element is Image img) 
+        {
+            // Don't clear logo images to prevent them from disappearing
+            if (img.Source is FileImageSource fileSource && fileSource.File != "coftea_logo.png")
+            {
+                img.Source = null;
+            }
+        }
         else if (element is ImageButton imgBtn) imgBtn.Source = null;
         // Don't clear CollectionView ItemsSource to prevent data loss when navigating
         // else if (element is CollectionView cv) cv.ItemsSource = null;
