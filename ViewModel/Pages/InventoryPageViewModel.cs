@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Networking;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -208,6 +209,81 @@ namespace Coftea_Capstone.ViewModel
         public void ApplyCategoryFilter() // Public method to apply category filter
         {
             ApplyCategoryFilterInternal();
+        }
+
+        [RelayCommand]
+        private async Task CreatePurchaseOrderAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🛒 Creating purchase order...");
+                
+                // Get items that are below minimum stock levels
+                var lowStockItems = allInventoryItems.Where(item => item.itemQuantity <= item.minimumQuantity).ToList();
+                
+                if (!lowStockItems.Any())
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "No Purchase Order Needed", 
+                        "All inventory items are above minimum stock levels.", 
+                        "OK");
+                    return;
+                }
+                
+                // Show confirmation dialog with SMS details
+                var result = await Application.Current.MainPage.DisplayAlert(
+                    "Create Purchase Order", 
+                    $"Found {lowStockItems.Count} items below minimum stock levels.\n\nThis will:\n• Create a purchase order\n• Send SMS to Coftea Supplier\n• Notify admin for approval\n\nProceed?", 
+                    "Yes", "Cancel");
+                
+                if (result)
+                {
+                    // Create purchase order in database
+                    var purchaseOrderId = await _database.CreatePurchaseOrderAsync(lowStockItems);
+                    
+                    if (purchaseOrderId > 0)
+                    {
+                        // Send SMS to supplier
+                        var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, lowStockItems);
+                        
+                        // Notify admin via SMS
+                        var currentUser = App.CurrentUser?.Email ?? "Unknown";
+                        var adminNotified = await PurchaseOrderSMSService.NotifyAdminOfPurchaseOrderAsync(purchaseOrderId, currentUser);
+                        
+                        if (smsSent && adminNotified)
+                        {
+                            await Application.Current.MainPage.DisplayAlert(
+                                "Purchase Order Created", 
+                                $"Purchase order #{purchaseOrderId} has been created and sent to Coftea Supplier via SMS. Admin has been notified for approval.", 
+                                "OK");
+                        }
+                        else
+                        {
+                            await Application.Current.MainPage.DisplayAlert(
+                                "Purchase Order Created (Partial)", 
+                                $"Purchase order #{purchaseOrderId} created but SMS notifications may have failed. Please check manually.", 
+                                "OK");
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created and SMS sent");
+                    }
+                    else
+                    {
+                        await Application.Current.MainPage.DisplayAlert(
+                            "Error", 
+                            "Failed to create purchase order. Please try again.", 
+                            "OK");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating purchase order: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error", 
+                    $"Failed to create purchase order: {ex.Message}", 
+                    "OK");
+            }
         }
         
     }

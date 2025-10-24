@@ -92,7 +92,7 @@ namespace Coftea_Capstone.Models
                 // Fallback to platform-specific hardcoded IPs
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "192.168.1.2";
+                    return "192.168.1.6";
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
@@ -249,6 +249,36 @@ namespace Coftea_Capstone.Models
                     address TEXT,
                     birthday DATE,
                     registrationDate DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS purchase_orders (
+                    purchaseOrderId INT AUTO_INCREMENT PRIMARY KEY,
+                    orderDate DATETIME NOT NULL,
+                    supplierName VARCHAR(255) NOT NULL,
+                    status VARCHAR(50) DEFAULT 'Pending',
+                    requestedBy VARCHAR(255) NOT NULL,
+                    approvedBy VARCHAR(255) DEFAULT NULL,
+                    approvedDate DATETIME DEFAULT NULL,
+                    notes TEXT,
+                    totalAmount DECIMAL(10,2) DEFAULT 0.00,
+                    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS purchase_order_items (
+                    purchaseOrderItemId INT AUTO_INCREMENT PRIMARY KEY,
+                    purchaseOrderId INT NOT NULL,
+                    inventoryItemId INT NOT NULL,
+                    itemName VARCHAR(255) NOT NULL,
+                    itemCategory VARCHAR(100),
+                    requestedQuantity INT NOT NULL,
+                    approvedQuantity INT DEFAULT 0,
+                    unitPrice DECIMAL(10,2) NOT NULL,
+                    totalPrice DECIMAL(10,2) NOT NULL,
+                    unitOfMeasurement VARCHAR(50),
+                    notes TEXT,
+                    FOREIGN KEY (purchaseOrderId) REFERENCES purchase_orders(purchaseOrderId) ON DELETE CASCADE,
+                    FOREIGN KEY (inventoryItemId) REFERENCES inventory(itemID) ON DELETE CASCADE
                 );
             ";
 
@@ -1882,6 +1912,204 @@ namespace Coftea_Capstone.Models
                 });
             }
             return requests;
+        }
+
+        /// <summary>
+        /// Creates a purchase order for low stock items
+        /// </summary>
+        public async Task<int> CreatePurchaseOrderAsync(List<InventoryPageModel> lowStockItems)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                
+                // Create purchase order
+                var insertOrderSql = @"
+                    INSERT INTO purchase_orders (orderDate, supplierName, status, requestedBy, totalAmount, createdAt)
+                    VALUES (@orderDate, @supplierName, @status, @requestedBy, @totalAmount, @createdAt);
+                    SELECT LAST_INSERT_ID();";
+                
+                var currentUser = App.CurrentUser?.Email ?? "Unknown";
+                var totalAmount = lowStockItems.Sum(item => (decimal)(item.minimumQuantity - item.itemQuantity) * 10.0m); // Assuming $10 per unit
+                
+                await using var orderCmd = new MySqlCommand(insertOrderSql, conn);
+                AddParameters(orderCmd, new Dictionary<string, object?>
+                {
+                    ["@orderDate"] = DateTime.Now,
+                    ["@supplierName"] = "Coftea Supplier",
+                    ["@status"] = "Pending",
+                    ["@requestedBy"] = currentUser,
+                    ["@totalAmount"] = totalAmount,
+                    ["@createdAt"] = DateTime.Now
+                });
+                
+                var orderId = Convert.ToInt32(await orderCmd.ExecuteScalarAsync());
+                
+                // Create purchase order items
+                foreach (var item in lowStockItems)
+                {
+                    var requestedQuantity = (int)(item.minimumQuantity - item.itemQuantity);
+                    var unitPrice = 10.0m; // Default unit price
+                    var totalPrice = (decimal)requestedQuantity * unitPrice;
+                    
+                    var insertItemSql = @"
+                        INSERT INTO purchase_order_items (purchaseOrderId, inventoryItemId, itemName, itemCategory, 
+                                                        requestedQuantity, unitPrice, totalPrice, unitOfMeasurement)
+                        VALUES (@purchaseOrderId, @inventoryItemId, @itemName, @itemCategory, 
+                                @requestedQuantity, @unitPrice, @totalPrice, @unitOfMeasurement);";
+                    
+                    await using var itemCmd = new MySqlCommand(insertItemSql, conn);
+                    AddParameters(itemCmd, new Dictionary<string, object?>
+                    {
+                        ["@purchaseOrderId"] = orderId,
+                        ["@inventoryItemId"] = item.itemID,
+                        ["@itemName"] = item.itemName,
+                        ["@itemCategory"] = item.itemCategory,
+                        ["@requestedQuantity"] = requestedQuantity,
+                        ["@unitPrice"] = unitPrice,
+                        ["@totalPrice"] = totalPrice,
+                        ["@unitOfMeasurement"] = item.unitOfMeasurement
+                    });
+                    
+                    await itemCmd.ExecuteNonQueryAsync();
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Purchase order {orderId} created with {lowStockItems.Count} items");
+                return orderId;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating purchase order: {ex.Message}");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets all pending purchase orders for admin approval
+        /// </summary>
+        public async Task<List<PurchaseOrderModel>> GetPendingPurchaseOrdersAsync()
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                
+                var sql = @"
+                    SELECT po.*, poi.*
+                    FROM purchase_orders po
+                    LEFT JOIN purchase_order_items poi ON po.purchaseOrderId = poi.purchaseOrderId
+                    WHERE po.status = 'Pending'
+                    ORDER BY po.createdAt DESC;";
+                
+                await using var cmd = new MySqlCommand(sql, conn);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                
+                var orders = new List<PurchaseOrderModel>();
+                var currentOrder = (PurchaseOrderModel)null;
+                
+                while (await reader.ReadAsync())
+                {
+                    if (currentOrder == null || currentOrder.PurchaseOrderId != reader.GetInt32("purchaseOrderId"))
+                    {
+                        if (currentOrder != null)
+                            orders.Add(currentOrder);
+                            
+                        currentOrder = new PurchaseOrderModel
+                        {
+                            PurchaseOrderId = reader.GetInt32("purchaseOrderId"),
+                            OrderDate = reader.GetDateTime("orderDate"),
+                            SupplierName = reader.GetString("supplierName"),
+                            Status = reader.GetString("status"),
+                            RequestedBy = reader.GetString("requestedBy"),
+                            TotalAmount = reader.GetDecimal("totalAmount"),
+                            CreatedAt = reader.GetDateTime("createdAt")
+                        };
+                    }
+                }
+                
+                if (currentOrder != null)
+                    orders.Add(currentOrder);
+                
+                return orders;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting pending purchase orders: {ex.Message}");
+                return new List<PurchaseOrderModel>();
+            }
+        }
+
+        /// <summary>
+        /// Approves or rejects a purchase order
+        /// </summary>
+        public async Task<bool> UpdatePurchaseOrderStatusAsync(int purchaseOrderId, string status, string approvedBy)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                
+                var sql = @"
+                    UPDATE purchase_orders 
+                    SET status = @status, approvedBy = @approvedBy, approvedDate = @approvedDate, updatedAt = @updatedAt
+                    WHERE purchaseOrderId = @purchaseOrderId;";
+                
+                await using var cmd = new MySqlCommand(sql, conn);
+                AddParameters(cmd, new Dictionary<string, object?>
+                {
+                    ["@status"] = status,
+                    ["@approvedBy"] = approvedBy,
+                    ["@approvedDate"] = DateTime.Now,
+                    ["@updatedAt"] = DateTime.Now,
+                    ["@purchaseOrderId"] = purchaseOrderId
+                });
+                
+                var rowsAffected = await cmd.ExecuteNonQueryAsync();
+                
+                if (status == "Approved")
+                {
+                    // Update inventory quantities
+                    await UpdateInventoryFromPurchaseOrderAsync(purchaseOrderId);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} status updated to {status}");
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error updating purchase order status: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Updates inventory quantities when purchase order is approved
+        /// </summary>
+        private async Task UpdateInventoryFromPurchaseOrderAsync(int purchaseOrderId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                
+                var sql = @"
+                    UPDATE inventory i
+                    INNER JOIN purchase_order_items poi ON i.itemID = poi.inventoryItemId
+                    SET i.itemQuantity = i.itemQuantity + poi.requestedQuantity,
+                        i.updatedAt = @updatedAt
+                    WHERE poi.purchaseOrderId = @purchaseOrderId;";
+                
+                await using var cmd = new MySqlCommand(sql, conn);
+                AddParameters(cmd, new Dictionary<string, object?>
+                {
+                    ["@updatedAt"] = DateTime.Now,
+                    ["@purchaseOrderId"] = purchaseOrderId
+                });
+                
+                await cmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"✅ Inventory updated for purchase order {purchaseOrderId}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error updating inventory from purchase order: {ex.Message}");
+            }
         }
     }
 }
