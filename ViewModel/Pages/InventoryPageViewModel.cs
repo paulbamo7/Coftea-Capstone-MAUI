@@ -231,9 +231,22 @@ namespace Coftea_Capstone.ViewModel
                 }
                 
                 // Show confirmation dialog with SMS details
+                var currentUserIsAdmin = App.CurrentUser?.IsAdmin ?? false;
+                
+                // Build item list for confirmation dialog
+                var itemList = string.Join("\n", lowStockItems.Select(item => 
+                {
+                    var neededQuantity = (int)(item.minimumQuantity - item.itemQuantity);
+                    return $"• {item.itemName} - {neededQuantity} {item.unitOfMeasurement}";
+                }));
+                
+                var confirmationMessage = currentUserIsAdmin 
+                    ? $"Found {lowStockItems.Count} items below minimum stock levels:\n\n{itemList}\n\nThis will:\n• Create a purchase order\n• Auto-approve (you're admin)\n• Send SMS to Coftea Supplier\n• Update inventory immediately\n\nProceed?"
+                    : $"Found {lowStockItems.Count} items below minimum stock levels:\n\n{itemList}\n\nThis will:\n• Create a purchase order\n• Send SMS to Coftea Supplier\n• Notify admin for approval\n\nProceed?";
+                
                 var result = await Application.Current.MainPage.DisplayAlert(
                     "Create Purchase Order", 
-                    $"Found {lowStockItems.Count} items below minimum stock levels.\n\nThis will:\n• Create a purchase order\n• Send SMS to Coftea Supplier\n• Notify admin for approval\n\nProceed?", 
+                    confirmationMessage, 
                     "Yes", "Cancel");
                 
                 if (result)
@@ -243,29 +256,64 @@ namespace Coftea_Capstone.ViewModel
                     
                     if (purchaseOrderId > 0)
                     {
-                        // Send SMS to supplier
-                        var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, lowStockItems);
-                        
-                        // Notify admin via SMS
                         var currentUser = App.CurrentUser?.Email ?? "Unknown";
-                        var adminNotified = await PurchaseOrderSMSService.NotifyAdminOfPurchaseOrderAsync(purchaseOrderId, currentUser);
                         
-                        if (smsSent && adminNotified)
+                        if (currentUserIsAdmin)
                         {
-                            await Application.Current.MainPage.DisplayAlert(
-                                "Purchase Order Created", 
-                                $"Purchase order #{purchaseOrderId} has been created and sent to Coftea Supplier via SMS. Admin has been notified for approval.", 
-                                "OK");
+                            // Admin is creating the order - auto-approve it
+                            System.Diagnostics.Debug.WriteLine("👑 Admin user detected - auto-approving purchase order");
+                            
+                            // Auto-approve the purchase order
+                            var approved = await _database.UpdatePurchaseOrderStatusAsync(purchaseOrderId, "Approved", currentUser);
+                            
+                            if (approved)
+                            {
+                                // Send SMS to supplier with approved order
+                                var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, lowStockItems);
+                                
+                                await Application.Current.MainPage.DisplayAlert(
+                                    "Purchase Order Created & Approved", 
+                                    $"Purchase order #{purchaseOrderId} has been created, auto-approved by admin, and sent to Coftea Supplier via SMS. Inventory has been updated.", 
+                                    "OK");
+                                
+                                System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} auto-approved by admin");
+                            }
+                            else
+                            {
+                                await Application.Current.MainPage.DisplayAlert(
+                                    "Purchase Order Created", 
+                                    $"Purchase order #{purchaseOrderId} created but auto-approval failed. Please check manually.", 
+                                    "OK");
+                            }
                         }
                         else
                         {
-                            await Application.Current.MainPage.DisplayAlert(
-                                "Purchase Order Created (Partial)", 
-                                $"Purchase order #{purchaseOrderId} created but SMS notifications may have failed. Please check manually.", 
-                                "OK");
+                            // Regular user - requires admin approval
+                            System.Diagnostics.Debug.WriteLine("👤 Regular user detected - purchase order requires admin approval");
+                            
+                            // Send SMS to supplier
+                            var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, lowStockItems);
+                            
+                            // Notify admin via SMS
+                            var adminNotified = await PurchaseOrderSMSService.NotifyAdminOfPurchaseOrderAsync(purchaseOrderId, currentUser);
+                            
+                            if (smsSent && adminNotified)
+                            {
+                                await Application.Current.MainPage.DisplayAlert(
+                                    "Purchase Order Created", 
+                                    $"Purchase order #{purchaseOrderId} has been created and sent to Coftea Supplier via SMS. Admin has been notified for approval.", 
+                                    "OK");
+                            }
+                            else
+                            {
+                                await Application.Current.MainPage.DisplayAlert(
+                                    "Purchase Order Created (Partial)", 
+                                    $"Purchase order #{purchaseOrderId} created but SMS notifications may have failed. Please check manually.", 
+                                    "OK");
+                            }
                         }
                         
-                        System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created and SMS sent");
+                        System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created and processed");
                     }
                     else
                     {

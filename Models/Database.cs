@@ -1921,7 +1921,12 @@ namespace Coftea_Capstone.Models
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🛒 Creating purchase order with {lowStockItems.Count} items");
+                
                 await using var conn = await GetOpenConnectionAsync();
+                
+                // First, ensure the purchase order tables exist
+                await EnsurePurchaseOrderTablesExistAsync(conn);
                 
                 // Create purchase order
                 var insertOrderSql = @"
@@ -1931,6 +1936,9 @@ namespace Coftea_Capstone.Models
                 
                 var currentUser = App.CurrentUser?.Email ?? "Unknown";
                 var totalAmount = lowStockItems.Sum(item => (decimal)(item.minimumQuantity - item.itemQuantity) * 10.0m); // Assuming $10 per unit
+                
+                System.Diagnostics.Debug.WriteLine($"💰 Total amount: {totalAmount:C}");
+                System.Diagnostics.Debug.WriteLine($"👤 Current user: {currentUser}");
                 
                 await using var orderCmd = new MySqlCommand(insertOrderSql, conn);
                 AddParameters(orderCmd, new Dictionary<string, object?>
@@ -1944,6 +1952,7 @@ namespace Coftea_Capstone.Models
                 });
                 
                 var orderId = Convert.ToInt32(await orderCmd.ExecuteScalarAsync());
+                System.Diagnostics.Debug.WriteLine($"✅ Purchase order created with ID: {orderId}");
                 
                 // Create purchase order items
                 foreach (var item in lowStockItems)
@@ -1951,6 +1960,8 @@ namespace Coftea_Capstone.Models
                     var requestedQuantity = (int)(item.minimumQuantity - item.itemQuantity);
                     var unitPrice = 10.0m; // Default unit price
                     var totalPrice = (decimal)requestedQuantity * unitPrice;
+                    
+                    System.Diagnostics.Debug.WriteLine($"📦 Adding item: {item.itemName} - Qty: {requestedQuantity}, Price: {totalPrice:C}");
                     
                     var insertItemSql = @"
                         INSERT INTO purchase_order_items (purchaseOrderId, inventoryItemId, itemName, itemCategory, 
@@ -1972,6 +1983,7 @@ namespace Coftea_Capstone.Models
                     });
                     
                     await itemCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine($"✅ Item added to purchase order: {item.itemName}");
                 }
                 
                 System.Diagnostics.Debug.WriteLine($"✅ Purchase order {orderId} created with {lowStockItems.Count} items");
@@ -1980,6 +1992,11 @@ namespace Coftea_Capstone.Models
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error creating purchase order: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
                 return 0;
             }
         }
@@ -2109,6 +2126,56 @@ namespace Coftea_Capstone.Models
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error updating inventory from purchase order: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Ensures purchase order tables exist in the database
+        /// </summary>
+        private async Task EnsurePurchaseOrderTablesExistAsync(MySqlConnection conn)
+        {
+            try
+            {
+                var createTablesSql = @"
+                    CREATE TABLE IF NOT EXISTS purchase_orders (
+                        purchaseOrderId INT AUTO_INCREMENT PRIMARY KEY,
+                        orderDate DATETIME NOT NULL,
+                        supplierName VARCHAR(255) NOT NULL,
+                        status VARCHAR(50) DEFAULT 'Pending',
+                        requestedBy VARCHAR(255) NOT NULL,
+                        approvedBy VARCHAR(255) DEFAULT NULL,
+                        approvedDate DATETIME DEFAULT NULL,
+                        notes TEXT,
+                        totalAmount DECIMAL(10,2) DEFAULT 0.00,
+                        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    );
+                    
+                    CREATE TABLE IF NOT EXISTS purchase_order_items (
+                        purchaseOrderItemId INT AUTO_INCREMENT PRIMARY KEY,
+                        purchaseOrderId INT NOT NULL,
+                        inventoryItemId INT NOT NULL,
+                        itemName VARCHAR(255) NOT NULL,
+                        itemCategory VARCHAR(100),
+                        requestedQuantity INT NOT NULL,
+                        approvedQuantity INT DEFAULT 0,
+                        unitPrice DECIMAL(10,2) NOT NULL,
+                        totalPrice DECIMAL(10,2) NOT NULL,
+                        unitOfMeasurement VARCHAR(50),
+                        notes TEXT,
+                        FOREIGN KEY (purchaseOrderId) REFERENCES purchase_orders(purchaseOrderId) ON DELETE CASCADE,
+                        FOREIGN KEY (inventoryItemId) REFERENCES inventory(itemID) ON DELETE CASCADE
+                    );";
+                
+                await using var cmd = new MySqlCommand(createTablesSql, conn);
+                await cmd.ExecuteNonQueryAsync();
+                
+                System.Diagnostics.Debug.WriteLine("✅ Purchase order tables ensured to exist");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error ensuring purchase order tables exist: {ex.Message}");
+                throw;
             }
         }
     }
