@@ -21,6 +21,15 @@ namespace Coftea_Capstone.ViewModel
         public RegisterPageViewModel()
         {
             _database = new Database();
+            
+            // Initialize properties
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            Email = string.Empty;
+            Password = string.Empty;
+            ConfirmPassword = string.Empty;
+            PhoneNumber = string.Empty;
+            IsTermsAccepted = false;
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
@@ -36,14 +45,52 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private string firstName;
         [ObservableProperty] private string lastName;
         [ObservableProperty] private string phoneNumber;
-        [ObservableProperty] private string address;
-        [ObservableProperty] private DateTime birthday = DateTime.Today;
+        
+        // Password validation properties
+        [ObservableProperty] private bool hasUppercase;
+        [ObservableProperty] private bool hasLowercase;
+        [ObservableProperty] private bool hasNumber;
+        [ObservableProperty] private bool hasSpecialChar;
+        [ObservableProperty] private bool hasMinLength;
+        [ObservableProperty] private bool passwordsMatch;
+
+        // Password validation methods
+        partial void OnPasswordChanged(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                HasUppercase = false;
+                HasLowercase = false;
+                HasNumber = false;
+                HasSpecialChar = false;
+                HasMinLength = false;
+            }
+            else
+            {
+                HasUppercase = Regex.IsMatch(value, @"[A-Z]");
+                HasLowercase = Regex.IsMatch(value, @"[a-z]");
+                HasNumber = Regex.IsMatch(value, @"[0-9]");
+                HasSpecialChar = Regex.IsMatch(value, @"[!@#$%^&*()_+\-=\[\]{};':""\\|,.<>\/?]");
+                HasMinLength = value.Length >= 8;
+            }
+            
+            // Update password match when password changes
+            if (!string.IsNullOrEmpty(ConfirmPassword))
+            {
+                PasswordsMatch = Password == ConfirmPassword;
+            }
+        }
+
+        partial void OnConfirmPasswordChanged(string value)
+        {
+            PasswordsMatch = !string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(value) && Password == value;
+        }
 
         // ===================== Commands =====================
         [RelayCommand]
         private async Task BackToLogin() // Navigate back to Login page
         {
-            await SimpleNavigationService.NavigateToAsync("//login");
+            await Shell.Current.GoToAsync("//login");
         }
 
         [RelayCommand]
@@ -78,9 +125,15 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Error", "Password is required.", "OK");
                 return;
             }
-            if (Password.Length < 6)
+            if (Password.Length < 8)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Password must be at least 6 characters long.", "OK");
+                await Application.Current.MainPage.DisplayAlert("Error", "Password must be at least 8 characters long.", "OK");
+                return;
+            }
+
+            if (!HasUppercase || !HasLowercase || !HasNumber || !HasSpecialChar || !HasMinLength)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long.", "OK");
                 return;
             }
 
@@ -102,31 +155,14 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(Address))
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Address is required.", "OK");
-                return;
-            }
-
-            if (Birthday > DateTime.Today)
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Birthday cannot be past the current date.", "OK");
-                return;
-            }
             if (!IsTermsAccepted)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "You must accept the Terms and Conditions to register.", "OK");
                 return;
             }
+
             try
             {
-                // Check internet connection
-                if (!NetworkService.HasInternetConnection())
-                {
-                    GetRetryConnectionPopup().ShowRetryPopup(Register, "No internet connection detected. Please check your network settings and try again.");
-                    return;
-                }
-
                 // Check if email already exists
                 var existingUser = await _database.GetUserByEmailAsync(Email);
                 if (existingUser != null)
@@ -148,8 +184,6 @@ namespace Coftea_Capstone.ViewModel
                         FirstName = FirstName.Trim(),
                         LastName = LastName.Trim(),
                         PhoneNumber = PhoneNumber.Trim(),
-                        Address = Address.Trim(),
-                        Birthday = Birthday,
                         IsAdmin = true
                     };
 
@@ -166,20 +200,15 @@ namespace Coftea_Capstone.ViewModel
                         FirstName = FirstName.Trim(),
                         LastName = LastName.Trim(),
                         PhoneNumber = PhoneNumber.Trim(),
-                        Address = Address.Trim(),
-                        Birthday = Birthday,
                         RequestDate = DateTime.Now
                     };
 
                     await _database.AddPendingUserRequestAsync(pendingRequest);
                     await Application.Current.MainPage.DisplayAlert("Success", "Registration request submitted! An admin will review and approve your account.", "OK");
                 }
+                
                 // Navigate back to Login page
-                await SimpleNavigationService.NavigateToAsync("//login");
-            }
-            catch (MySqlConnector.MySqlException ex)
-            {
-                GetRetryConnectionPopup().ShowRetryPopup(Register, $"Database connection failed: {ex.Message}");
+                await Shell.Current.GoToAsync("//login");
             }
             catch (Exception ex)
             {
