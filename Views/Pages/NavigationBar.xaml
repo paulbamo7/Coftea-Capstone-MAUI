@@ -35,7 +35,7 @@
                     </DataTrigger>
                 </Button.Triggers>
             </Button>
-            <Label Text="Point-Sale" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
+            <Label Text="Point-Of-Sale" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
             <Button ImageSource="inventory.png" BackgroundColor="#FFEAD6" HeightRequest="80"
                     x:Name="InventoryButton"

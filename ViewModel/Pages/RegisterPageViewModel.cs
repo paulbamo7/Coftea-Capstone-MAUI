@@ -90,6 +90,7 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task BackToLogin() // Navigate back to Login page
         {
+            // Don't clear fields - just navigate back
             await Shell.Current.GoToAsync("//login");
         }
 

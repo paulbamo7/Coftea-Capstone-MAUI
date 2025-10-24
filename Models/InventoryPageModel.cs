@@ -169,7 +169,7 @@ namespace Coftea_Capstone.Models
         private double inputAmountLarge = 1;
 
         [ObservableProperty]
-        private string inputUnit;
+        private string inputUnit = string.Empty;
 
         // Size selection
         [ObservableProperty]

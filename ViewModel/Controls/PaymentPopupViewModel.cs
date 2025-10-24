@@ -501,6 +501,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 System.Diagnostics.Debug.WriteLine($"🔧 Found product: {product.ProductName} (ID: {product.ProductID})");
 
+                // Validate and fix product-ingredient connections to ensure consistent deduction
+                await database.ValidateAndFixProductIngredientsAsync(product.ProductID);
+
                 // Get all ingredients for this product
                 var ingredients = await database.GetProductIngredientsAsync(product.ProductID);
                 if (!ingredients.Any())
@@ -526,26 +529,38 @@ namespace Coftea_Capstone.ViewModel.Controls
                     foreach (var (ingredient, amount, unit, role) in ingredients)
                     {
                         // Choose per-size amount/unit when available; fall back to shared
+                        // Use per-size amounts if they exist and are greater than 0, otherwise use shared amount
                         double perServing = size switch
                         {
-                            "Small" => ingredient.InputAmountSmall > 0 ? ingredient.InputAmountSmall : amount,
-                            "Medium" => ingredient.InputAmountMedium > 0 ? ingredient.InputAmountMedium : amount,
-                            "Large" => ingredient.InputAmountLarge > 0 ? ingredient.InputAmountLarge : amount,
+                            "Small" => (ingredient.InputAmountSmall > 0) ? ingredient.InputAmountSmall : amount,
+                            "Medium" => (ingredient.InputAmountMedium > 0) ? ingredient.InputAmountMedium : amount,
+                            "Large" => (ingredient.InputAmountLarge > 0) ? ingredient.InputAmountLarge : amount,
                             _ => amount
                         };
+                        
+                        // Use per-size units if they exist and are not empty, otherwise use shared unit
                         string perUnit = size switch
                         {
-                            "Small" => !string.IsNullOrWhiteSpace(ingredient.InputUnitSmall) ? ingredient.InputUnitSmall : unit,
-                            "Medium" => !string.IsNullOrWhiteSpace(ingredient.InputUnitMedium) ? ingredient.InputUnitMedium : unit,
-                            "Large" => !string.IsNullOrWhiteSpace(ingredient.InputUnitLarge) ? ingredient.InputUnitLarge : unit,
+                            "Small" => (!string.IsNullOrWhiteSpace(ingredient.InputUnitSmall)) ? ingredient.InputUnitSmall : unit,
+                            "Medium" => (!string.IsNullOrWhiteSpace(ingredient.InputUnitMedium)) ? ingredient.InputUnitMedium : unit,
+                            "Large" => (!string.IsNullOrWhiteSpace(ingredient.InputUnitLarge)) ? ingredient.InputUnitLarge : unit,
                             _ => unit
-                        } ?? ingredient.unitOfMeasurement;
+                        };
+                        
+                        // Final fallback to inventory unit if perUnit is still empty
+                        if (string.IsNullOrWhiteSpace(perUnit))
+                        {
+                            perUnit = ingredient.unitOfMeasurement;
+                        }
 
                         var targetUnit = UnitConversionService.Normalize(ingredient.unitOfMeasurement);
                         var converted = ConvertUnits(perServing, perUnit, targetUnit);
                         var total = Math.Round(converted, 6) * qty; // keep small ml/g deductions
                         
                         System.Diagnostics.Debug.WriteLine($"🔧 {ingredient.itemName} ({size}): {perServing} {perUnit} -> {converted} {targetUnit} * {qty} = {total}");
+                        System.Diagnostics.Debug.WriteLine($"🔧   Per-size amounts: Small={ingredient.InputAmountSmall}, Medium={ingredient.InputAmountMedium}, Large={ingredient.InputAmountLarge}");
+                        System.Diagnostics.Debug.WriteLine($"🔧   Per-size units: Small='{ingredient.InputUnitSmall}', Medium='{ingredient.InputUnitMedium}', Large='{ingredient.InputUnitLarge}'");
+                        System.Diagnostics.Debug.WriteLine($"🔧   Shared amount={amount}, Shared unit='{unit}', Inventory unit='{ingredient.unitOfMeasurement}'");
                         
                         // Accumulate amounts for the same ingredient across different sizes
                         if (deductionsDict.ContainsKey(ingredient.itemName))

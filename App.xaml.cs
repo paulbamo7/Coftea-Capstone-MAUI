@@ -211,6 +211,22 @@ namespace Coftea_Capstone
             // Users can enable it manually through settings if needed
             NetworkConfigurationService.DisableAutomaticIPDetection();
             System.Diagnostics.Debug.WriteLine("🚫 Automatic IP detection disabled to prevent startup errors");
+            
+            // Validate product-ingredient connections in background to fix any inconsistencies
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("🔧 Starting background validation of product-ingredient connections...");
+                    var database = new Models.Database();
+                    await database.ValidateAllProductIngredientsAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Background product-ingredient validation completed");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Error during background product validation: {ex.Message}");
+                }
+            });
         }
 
         private async void NavigateToDashboard(bool isAdmin)
