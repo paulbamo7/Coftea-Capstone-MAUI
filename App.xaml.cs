@@ -128,6 +128,9 @@ namespace Coftea_Capstone
             {
                 try
                 {
+                    // Initialize image persistence service
+                    await Services.ImagePersistenceService.MigrateOldImagesAsync();
+                    
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
                     var db = new Database();
                     await db.EnsureServerAndDatabaseAsync(cts.Token);

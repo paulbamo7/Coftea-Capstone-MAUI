@@ -36,24 +36,21 @@ namespace Coftea_Capstone.C_
                     if (string.IsNullOrWhiteSpace(ImageSet))
                         return ImageSource.FromFile("coftea_logo.png"); 
                     
+                    // Handle HTTP URLs
                     if (ImageSet.StartsWith("http"))
                         return ImageSource.FromUri(new Uri(ImageSet));
 
-                    // Normalize to just the filename
-                    var fileName = Path.GetFileName(ImageSet);
-
-                    // 1) Absolute/local path
+                    // Handle local file paths (legacy support)
                     if (Path.IsPathRooted(ImageSet) && File.Exists(ImageSet))
                         return ImageSource.FromFile(ImageSet);
 
-                    // 2) App data location (e.g., previously downloaded images)
-                    var appDataFolder = Path.Combine(FileSystem.AppDataDirectory, "ProductImages");
-                    var appDataPath = Path.Combine(appDataFolder, fileName);
+                    // Handle app data directory images (new system)
+                    var appDataPath = Services.ImagePersistenceService.GetImagePath(ImageSet);
                     if (File.Exists(appDataPath))
                         return ImageSource.FromFile(appDataPath);
 
-                    // 3) Bundled resource in Resources/Images by filename
-                    return ImageSource.FromFile(fileName);
+                    // Fallback to bundled resource
+                    return ImageSource.FromFile(ImageSet);
                 }
                 catch
                 {

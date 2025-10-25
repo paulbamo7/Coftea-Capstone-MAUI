@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.UpdateInputIngredientsAmountUsed"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             xmlns:controls="clr-namespace:Coftea_Capstone.Views.Controls"
+             BackgroundColor="#80000000"
+             IsVisible="True">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+            <converters:SelectedCountToHeightConverter x:Key="SelectedCountToHeightConverter"
+                                                       CompactHeight="240"
+                                                       ExpandedHeight="480" />
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <Grid HorizontalOptions="FillAndExpand"
+          VerticalOptions="FillAndExpand"
+          Padding="20">
+
+        <Frame Style="{StaticResource CenteredPopupFrame}"
+               IsVisible="{Binding IsPreviewVisible, Converter={StaticResource InvertBoolConverter}}" BackgroundColor="#F8E8D7">
+
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="20">
+
+                <!-- Header -->
+                <VerticalStackLayout Grid.Row="0" Spacing="10">
+                    <Label Text="Update Input Ingredients Used"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="#4A3F35"
+                           HorizontalOptions="Center" />
+                    <Label Text="Specify the amount and unit for each ingredient."
+                           FontSize="16"
+                           TextColor="#7B6F63"
+                           HorizontalOptions="Center" />
+
+                    <!-- Size Selection Buttons -->
+                    <HorizontalStackLayout HorizontalOptions="Center"
+                                           Spacing="15"
+                                           Margin="0,15,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="2"/>
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0" Text="{Binding SmallSizeText}"
+                                BackgroundColor="#EAD2B9"
+                                TextColor="#2b2b2b"
+                                CornerRadius="14"
+                                WidthRequest="100"
+                                IsVisible="{Binding IsSmallSizeVisible}"
+                                Command="{Binding SetSizeCommand}"
+                                CommandParameter="Small">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="BackgroundColor" Value="#EAD2B9" />
+                                        <Setter Property="TextColor" Value="#2b2b2b" />
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedSize}" Value="Small">
+                                                <Setter Property="BackgroundColor" Value="#C79A6A" />
+                                                <Setter Property="TextColor" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
+                                <BoxView.Triggers>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Small">
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Medium">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Large">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </BoxView.Triggers>
+                            </BoxView>
+                        </Grid>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="2"/>
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0" Text="{Binding MediumSizeText}"
+                                BackgroundColor="#EAD2B9"
+                                TextColor="#2b2b2b"
+                                CornerRadius="14"
+                                WidthRequest="100"
+                                IsVisible="{Binding IsMediumSizeVisible}"
+                                Command="{Binding SetSizeCommand}"
+                                CommandParameter="Medium">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="BackgroundColor" Value="#EAD2B9" />
+                                        <Setter Property="TextColor" Value="#2b2b2b" />
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedSize}" Value="Medium">
+                                                <Setter Property="BackgroundColor" Value="#C79A6A" />
+                                                <Setter Property="TextColor" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
+                                <BoxView.Triggers>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Medium">
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Small">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Large">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </BoxView.Triggers>
+                            </BoxView>
+                        </Grid>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="2"/>
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0" Text="{Binding LargeSizeText}"
+                                BackgroundColor="#EAD2B9"
+                                TextColor="#2b2b2b"
+                                CornerRadius="14"
+                                WidthRequest="100"
+                                IsVisible="{Binding IsLargeSizeVisible}"
+                                Command="{Binding SetSizeCommand}"
+                                CommandParameter="Large">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="BackgroundColor" Value="#EAD2B9" />
+                                        <Setter Property="TextColor" Value="#2b2b2b" />
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SelectedSize}" Value="Large">
+                                                <Setter Property="BackgroundColor" Value="#C79A6A" />
+                                                <Setter Property="TextColor" Value="White" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
+                                <BoxView.Triggers>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Large">
+                                        <Setter Property="IsVisible" Value="True" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Small">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="BoxView" Binding="{Binding SelectedSize}" Value="Medium">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </BoxView.Triggers>
+                            </BoxView>
+                        </Grid>
+                    </HorizontalStackLayout>
+                    <!-- Selected size indicator -->
+                    <Label Text="{Binding SelectedSize, StringFormat='Current size: {0}'}"
+                           FontSize="13"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"
+                           Margin="0,6,0,0"/>
+                </VerticalStackLayout>
+
+                <!-- Selected Inventory Items Table -->
+                <Grid Grid.Row="1" Padding="20,5,20,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Fixed Table Header -->
+                    <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,8" Margin="0,0,0,0">
+                        <Grid ColumnDefinitions="40, *, 100, 80, 80, 80, 80, 100, 80, 100">
+                            <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="1" Text="Item Name" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Start"/>
+                            <Label Grid.Column="2" Text="Category" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="3" Text="Stock" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="4" Text="Unit" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="5" Text="Min Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="6" Text="Status" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="7" Text="Amount Used" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="8" Text="UoM" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="9" Text="Total Deduction" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                        </Grid>
+                    </Grid>
+
+                    <!-- Scrollable Inventory Items Data -->
+                    <ScrollView Grid.Row="1">
+                        <CollectionView ItemsSource="{Binding SelectedIngredientsOnly}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid BackgroundColor="White" 
+                                          Padding="15,8"
+                                          Margin="0,0,0,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- ID -->
+                                        <Label Grid.Column="0" 
+                                               Text="{Binding itemID}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Item Name -->
+                                        <Label Grid.Column="1" 
+                                               Text="{Binding itemName}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Start" />
+
+                                        <!-- Category -->
+                                        <Label Grid.Column="2" 
+                                               Text="{Binding itemCategory}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center" />
+
+                                        <!-- Stock -->
+                                        <Label Grid.Column="3" 
+                                               Text="{Binding itemQuantity}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Unit -->
+                                        <Label Grid.Column="4" 
+                                               Text="{Binding unitOfMeasurement}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Min Quantity -->
+                                        <Label Grid.Column="5" 
+                                               Text="{Binding minimumQuantity}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Status -->
+                                        <Label Grid.Column="6" 
+                                               Text="{Binding StockText}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center" />
+
+                                        <!-- Amount Used Input -->
+                                        <Entry Grid.Column="7" 
+                                               Text="{Binding InputAmountText, Mode=TwoWay, UpdateSourceEventName=TextChanged}" 
+                                               FontSize="12" 
+                                               Keyboard="Numeric" 
+                                               TextColor="Black"
+                                               HorizontalTextAlignment="Center"
+                                               Margin="0"
+                                               BackgroundColor="#F8F8F8"
+                                               VerticalOptions="Center" />
+
+                                        <!-- UoM Picker -->
+                                        <Picker Grid.Column="8" 
+                                                SelectedItem="{Binding InputUnit, Mode=TwoWay}" 
+                                                ItemsSource="{Binding AllowedUnits}"
+                                                FontSize="12" 
+                                                HorizontalOptions="Center"
+                                                TextColor="Black"
+                                                VerticalOptions="Center"
+                                                WidthRequest="70" />
+
+                                        <!-- Total Deduction Display -->
+                                        <Label Grid.Column="9" 
+                                               Text="{Binding TotalDeduction, StringFormat='{0:F1}'}" 
+                                               FontSize="12" 
+                                               TextColor="Black" 
+                                               VerticalOptions="Center" 
+                                               HorizontalOptions="Center"
+                                               FontAttributes="Bold" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </ScrollView>
+                </Grid>
+
+                <!-- Footer Buttons -->
+                <HorizontalStackLayout Grid.Row="2"
+                                       HorizontalOptions="End"
+                                       Spacing="15"
+                                       Margin="0,10,0,0">
+                    <Button Text="Back"
+                            BackgroundColor="#EFEFEF"
+                            TextColor="Black"
+                            CornerRadius="14"
+                            WidthRequest="120"
+                            HeightRequest="45"
+                            Command="{Binding BackToInventorySelectionCommand}"/>
+                    <Button Text="Preview"
+                            BackgroundColor="#E6DE9D"
+                            TextColor="Black"
+                            CornerRadius="14"
+                            WidthRequest="120"
+                            HeightRequest="45"
+                            Command="{Binding ShowPreviewCommand}"/>
+                </HorizontalStackLayout>
+
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>
+

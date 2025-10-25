@@ -77,6 +77,9 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\Controls\UpdateInputIngredientsAmountUsed.xaml.cs">
+      <DependentUpon>UpdateInputIngredientsAmountUsed.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\Pages\EmployeeDashboard.xaml.cs">
 	    <DependentUpon>EmployeeDashboard.xaml</DependentUpon>
 	  </Compile>
@@ -100,6 +103,14 @@
 	  </MauiXaml>
 	  
 	  <MauiXaml Update="Views\Controls\ConnectPOSItemToInventory.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  
+	  <MauiXaml Update="Views\Controls\UpdateInputIngredientsAmountUsed.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  
+	  <MauiXaml Update="Views\Controls\UpdateInputIngredientsAmountUsed.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  

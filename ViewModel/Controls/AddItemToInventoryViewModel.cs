@@ -534,8 +534,18 @@ namespace Coftea_Capstone.ViewModel
 
                 if (result != null)
                 {
-                    ImagePath = result.FullPath;
-                    SelectedImageSource = ImageSource.FromFile(result.FullPath);
+                    // Save the image to app data directory and get the filename
+                    var fileName = await Services.ImagePersistenceService.SaveImageAsync(result.FullPath);
+                    
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        ImagePath = fileName; // Store only the filename
+                        SelectedImageSource = ImageSource.FromFile(Services.ImagePersistenceService.GetImagePath(fileName));
+                    }
+                    else
+                    {
+                        await App.Current.MainPage.DisplayAlert("Error", "Failed to save image. Please try again.", "OK");
+                    }
                 }
             }
             catch (Exception ex)

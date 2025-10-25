@@ -95,6 +95,20 @@ namespace Coftea_Capstone.ViewModel
                 SelectedSubcategory = null;
         }
 
+        partial void OnIsEditModeChanged(bool value)
+        {
+            // Notify price visibility changes when edit mode changes
+            OnPropertyChanged(nameof(IsSmallPriceVisible));
+            OnPropertyChanged(nameof(IsMediumPriceVisible));
+            OnPropertyChanged(nameof(IsLargePriceVisible));
+            
+            // Update the ConnectPOSToInventoryVM edit mode
+            if (ConnectPOSToInventoryVM != null)
+            {
+                ConnectPOSToInventoryVM.IsEditMode = value;
+            }
+        }
+
         [ObservableProperty]
         private bool isAddItemToPOSVisible;
 
@@ -283,6 +297,7 @@ namespace Coftea_Capstone.ViewModel
 
                         try
                         {
+                            // Use the per-size overload for editing
                             await _database.SaveProductLinksSplitAsync(product.ProductID, ingredients, addons);
                         }
                         catch (Exception ex)
@@ -480,14 +495,124 @@ namespace Coftea_Capstone.ViewModel
                     SelectedSubcategory = null;
                 }
             }
-            // Preload existing linked ingredients and mark them selected
-            await PreloadLinkedIngredientsAsync(product.ProductID);
+            // Load and set ingredient data directly (like how other properties are set)
+            await LoadIngredientDataForEdit(product.ProductID);
         }
 
         // Shows the AddItemToPOS overlay when returning from child popups
         public void SetIsAddItemToPOSVisibleTrue()
         {
             IsAddItemToPOSVisible = true;
+        }
+
+        private async Task LoadIngredientDataForEdit(int productId) // Loads ingredient data for editing (simplified approach)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Starting for product ID {productId}");
+                
+                // Ensure inventory is loaded
+                if (ConnectPOSToInventoryVM.AllInventoryItems == null || !ConnectPOSToInventoryVM.AllInventoryItems.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Loading inventory...");
+                    await ConnectPOSToInventoryVM.LoadInventoryAsync();
+                }
+
+                var links = await _database.GetProductIngredientsAsync(productId);
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Found {links?.Count() ?? 0} linked ingredients");
+                
+                // Clear existing selections first
+                foreach (var item in ConnectPOSToInventoryVM.AllInventoryItems)
+                {
+                    item.IsSelected = false;
+                }
+                
+                foreach (var (item, amount, unit, role) in links)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Processing {item.itemName} (ID: {item.itemID})");
+                    
+                    // Find matching inventory item
+                    var inv = ConnectPOSToInventoryVM.AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
+                    if (inv == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Adding new item {item.itemName} to collections");
+                        // If not found yet, add it to collections
+                        inv = item;
+                        ConnectPOSToInventoryVM.AllInventoryItems.Add(inv);
+                        ConnectPOSToInventoryVM.InventoryItems.Add(inv);
+                    }
+
+                    // Mark as selected
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Setting {inv.itemName} as selected");
+                    inv.IsSelected = true;
+                    
+                    // Debug: Verify the selection state was set
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: {inv.itemName} IsSelected = {inv.IsSelected}");
+                    
+                    // Use the original amount and unit from database link as primary values
+                    var sharedAmt = amount > 0 ? amount : 1;
+                    var sharedUnit = string.IsNullOrWhiteSpace(unit) ? inv.DefaultUnit : unit;
+                    
+                    // Only use per-size values if they exist and are reasonable (not tiny converted values)
+                    inv.InputAmountSmall = (item.InputAmountSmall > 0 && item.InputAmountSmall >= 0.1) ? item.InputAmountSmall : sharedAmt;
+                    inv.InputAmountMedium = (item.InputAmountMedium > 0 && item.InputAmountMedium >= 0.1) ? item.InputAmountMedium : sharedAmt;
+                    inv.InputAmountLarge = (item.InputAmountLarge > 0 && item.InputAmountLarge >= 0.1) ? item.InputAmountLarge : sharedAmt;
+                    inv.InputUnitSmall = !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : sharedUnit;
+                    inv.InputUnitMedium = !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : sharedUnit;
+                    inv.InputUnitLarge = !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : sharedUnit;
+                    
+                    // Debug: Log the size-specific values being loaded
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: {inv.itemName} size-specific values:");
+                    System.Diagnostics.Debug.WriteLine($"🔧   Small: {inv.InputAmountSmall} {inv.InputUnitSmall}");
+                    System.Diagnostics.Debug.WriteLine($"🔧   Medium: {inv.InputAmountMedium} {inv.InputUnitMedium}");
+                    System.Diagnostics.Debug.WriteLine($"🔧   Large: {inv.InputAmountLarge} {inv.InputUnitLarge}");
+                    
+                    // Set current working values based on selected size
+                    var currentSize = ConnectPOSToInventoryVM.SelectedSize;
+                    inv.InputAmount = currentSize switch
+                    {
+                        "Small" => inv.InputAmountSmall,
+                        "Medium" => inv.InputAmountMedium,
+                        "Large" => inv.InputAmountLarge,
+                        _ => sharedAmt
+                    };
+                    inv.InputUnit = currentSize switch
+                    {
+                        "Small" => inv.InputUnitSmall,
+                        "Medium" => inv.InputUnitMedium,
+                        "Large" => inv.InputUnitLarge,
+                        _ => sharedUnit
+                    };
+                    
+                    // Debug: Log the current working values
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: {inv.itemName} current working values for {currentSize}:");
+                    System.Diagnostics.Debug.WriteLine($"🔧   InputAmount: {inv.InputAmount}");
+                    System.Diagnostics.Debug.WriteLine($"🔧   InputUnit: {inv.InputUnit}");
+                }
+
+                // Update derived collections
+                ConnectPOSToInventoryVM.RefreshSelectionAndFilter();
+                
+                // Force refresh the SelectedIngredientsOnly collection to ensure it's populated
+                ConnectPOSToInventoryVM.ForceRefreshSelectedIngredients();
+                
+                // Force UI refresh - the UpdateSelectedIngredientsOnly method will handle property notifications
+                
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Completed. SelectedIngredientsOnly count: {ConnectPOSToInventoryVM.SelectedIngredientsOnly?.Count ?? 0}");
+                
+                // Debug: Log all selected items
+                if (ConnectPOSToInventoryVM.SelectedIngredientsOnly != null)
+                {
+                    foreach (var item in ConnectPOSToInventoryVM.SelectedIngredientsOnly)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 Final selected ingredient: {item.itemName} (ID: {item.itemID}) - IsSelected: {item.IsSelected}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Error - {ex.Message}");
+            }
         }
 
         private async Task PreloadLinkedIngredientsAsync(int productId) // Preloads linked ingredients for editing
@@ -552,6 +677,10 @@ namespace Coftea_Capstone.ViewModel
                     // Set current working amount/unit to the current selected size in the popup
                     var size = ConnectPOSToInventoryVM.SelectedSize;
                     inv.SelectedSize = size; // Trigger the size change handler to update InputAmount and InputUnit
+                    
+                    // Set loading flag to prevent unit propagation during data loading
+                    inv._isLoadingFromDatabase = true;
+                    
                     inv.InputAmount = size switch
                     {
                         "Small" => inv.InputAmountSmall > 0 ? inv.InputAmountSmall : sharedAmt,
@@ -566,6 +695,12 @@ namespace Coftea_Capstone.ViewModel
                         "Large" => !string.IsNullOrWhiteSpace(inv.InputUnitLarge) ? inv.InputUnitLarge : sharedUnit,
                         _ => sharedUnit
                     };
+                    
+                    // Reset loading flag after setting the unit
+                    inv._isLoadingFromDatabase = false;
+                    
+                    // Initialize the InputUnit to ensure proper data binding
+                    inv.InitializeInputUnit();
                 }
 
                 // Update derived collections and flags using public method
@@ -841,10 +976,18 @@ namespace Coftea_Capstone.ViewModel
 
                 if (result != null)
                 {
-                    ImagePath = result.FullPath;
-
-
-                    SelectedImageSource = ImageSource.FromFile(result.FullPath);
+                    // Save the image to app data directory and get the filename
+                    var fileName = await Services.ImagePersistenceService.SaveImageAsync(result.FullPath);
+                    
+                    if (!string.IsNullOrWhiteSpace(fileName))
+                    {
+                        ImagePath = fileName; // Store only the filename
+                        SelectedImageSource = ImageSource.FromFile(Services.ImagePersistenceService.GetImagePath(fileName));
+                    }
+                    else
+                    {
+                        await App.Current.MainPage.DisplayAlert("Error", "Failed to save image. Please try again.", "OK");
+                    }
                 }
             }
             catch (Exception ex)

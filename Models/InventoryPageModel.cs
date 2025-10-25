@@ -182,15 +182,15 @@ namespace Coftea_Capstone.Models
             {
                 case "Small":
                     InputAmount = InputAmountSmall;
-                    InputUnit = string.IsNullOrWhiteSpace(InputUnitSmall) ? unitOfMeasurement : InputUnitSmall;
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitSmall) ? DefaultUnit : InputUnitSmall;
                     break;
                 case "Medium":
                     InputAmount = InputAmountMedium;
-                    InputUnit = string.IsNullOrWhiteSpace(InputUnitMedium) ? unitOfMeasurement : InputUnitMedium;
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitMedium) ? DefaultUnit : InputUnitMedium;
                     break;
                 case "Large":
                     InputAmount = InputAmountLarge;
-                    InputUnit = string.IsNullOrWhiteSpace(InputUnitLarge) ? unitOfMeasurement : InputUnitLarge;
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitLarge) ? DefaultUnit : InputUnitLarge;
                     break;
             }
             // Ensure text proxy refreshes to reflect the newly selected size's amount
@@ -216,14 +216,75 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private string inputUnitLarge;
 
+        // Flag to prevent unit propagation during database loading
+        public bool _isLoadingFromDatabase = false;
+
         partial void OnInputUnitChanged(string value)
         {
-            // Propagate the unit to ALL sizes so user doesn't have to select it multiple times
-            InputUnitSmall = value;
-            InputUnitMedium = value;
-            InputUnitLarge = value;
+            // Only save the unit to the currently selected size if this is a user-initiated change
+            // Don't override when loading from database
+            if (!string.IsNullOrWhiteSpace(value) && !_isLoadingFromDatabase)
+            {
+                // Persist the edited unit into the currently selected size slot
+                switch (SelectedSize)
+                {
+                    case "Small":
+                        InputUnitSmall = value;
+                        break;
+                    case "Medium":
+                        InputUnitMedium = value;
+                        break;
+                    case "Large":
+                        InputUnitLarge = value;
+                        break;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"📏 Unit changed to '{value}' - Applied to {SelectedSize} size only");
+            }
+        }
+
+        // Method to initialize InputUnit when item is first loaded
+        public void InitializeInputUnit()
+        {
+            // Set flag to prevent unit propagation during loading
+            _isLoadingFromDatabase = true;
             
-            System.Diagnostics.Debug.WriteLine($"📏 Unit changed to '{value}' - Applied to all sizes (Small, Medium, Large)");
+            // Set the InputUnit based on the current selected size
+            switch (SelectedSize)
+            {
+                case "Small":
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitSmall) ? DefaultUnit : InputUnitSmall;
+                    break;
+                case "Medium":
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitMedium) ? DefaultUnit : InputUnitMedium;
+                    break;
+                case "Large":
+                    InputUnit = string.IsNullOrWhiteSpace(InputUnitLarge) ? DefaultUnit : InputUnitLarge;
+                    break;
+                default:
+                    InputUnit = DefaultUnit;
+                    break;
+            }
+            
+            // Also initialize the InputAmount to match the current size
+            switch (SelectedSize)
+            {
+                case "Small":
+                    InputAmount = InputAmountSmall > 0 ? InputAmountSmall : 1;
+                    break;
+                case "Medium":
+                    InputAmount = InputAmountMedium > 0 ? InputAmountMedium : 1;
+                    break;
+                case "Large":
+                    InputAmount = InputAmountLarge > 0 ? InputAmountLarge : 1;
+                    break;
+                default:
+                    InputAmount = 1;
+                    break;
+            }
+            
+            // Reset flag after initialization
+            _isLoadingFromDatabase = false;
         }
 
         // Computed/assigned price used per size (for POS previews and cart)
@@ -381,8 +442,37 @@ namespace Coftea_Capstone.Models
             };
         }
         
-        public ImageSource ImageSource =>
-            string.IsNullOrWhiteSpace(ImageSet) ? "placeholder.png" : ImageSource.FromFile(ImageSet);
+        public ImageSource ImageSource
+        {
+            get
+            {
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(ImageSet))
+                        return ImageSource.FromFile("placeholder.png");
+                    
+                    // Handle HTTP URLs
+                    if (ImageSet.StartsWith("http"))
+                        return ImageSource.FromUri(new Uri(ImageSet));
+
+                    // Handle local file paths (legacy support)
+                    if (Path.IsPathRooted(ImageSet) && File.Exists(ImageSet))
+                        return ImageSource.FromFile(ImageSet);
+
+                    // Handle app data directory images (new system)
+                    var appDataPath = Services.ImagePersistenceService.GetImagePath(ImageSet);
+                    if (File.Exists(appDataPath))
+                        return ImageSource.FromFile(appDataPath);
+
+                    // Fallback to bundled resource
+                    return ImageSource.FromFile(ImageSet);
+                }
+                catch
+                {
+                    return ImageSource.FromFile("placeholder.png");
+                }
+            }
+        }
 
         // Computed properties for UI display
         public double StockProgress

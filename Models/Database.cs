@@ -412,20 +412,23 @@ namespace Coftea_Capstone.Models
                 double sharedAmt = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
                 string sharedUnit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
 
-                // Per-size amounts/units: DO NOT fall back here; leave 0/empty when NULL so callers can decide
+                // Per-size amounts/units: fall back to shared values when NULL
                 item.InputAmountSmall = (HasColumn(reader, "amount_small") && !reader.IsDBNull(reader.GetOrdinal("amount_small")))
-                    ? reader.GetDouble("amount_small") : 0d;
+                    ? reader.GetDouble("amount_small") : sharedAmt;
                 item.InputAmountMedium = (HasColumn(reader, "amount_medium") && !reader.IsDBNull(reader.GetOrdinal("amount_medium")))
-                    ? reader.GetDouble("amount_medium") : 0d;
+                    ? reader.GetDouble("amount_medium") : sharedAmt;
                 item.InputAmountLarge = (HasColumn(reader, "amount_large") && !reader.IsDBNull(reader.GetOrdinal("amount_large")))
-                    ? reader.GetDouble("amount_large") : 0d;
+                    ? reader.GetDouble("amount_large") : sharedAmt;
 
                 item.InputUnitSmall = (HasColumn(reader, "unit_small") && !reader.IsDBNull(reader.GetOrdinal("unit_small")))
-                    ? reader.GetString("unit_small") : string.Empty;
+                    ? reader.GetString("unit_small") : sharedUnit;
                 item.InputUnitMedium = (HasColumn(reader, "unit_medium") && !reader.IsDBNull(reader.GetOrdinal("unit_medium")))
-                    ? reader.GetString("unit_medium") : string.Empty;
+                    ? reader.GetString("unit_medium") : sharedUnit;
                 item.InputUnitLarge = (HasColumn(reader, "unit_large") && !reader.IsDBNull(reader.GetOrdinal("unit_large")))
-                    ? reader.GetString("unit_large") : string.Empty;
+                    ? reader.GetString("unit_large") : sharedUnit;
+
+                // Initialize the InputUnit based on the current selected size
+                item.InitializeInputUnit();
 
                 // If you later add cost computation, populate PriceUsed* here
                 item.PriceUsedSmall = 0;
@@ -648,8 +651,8 @@ namespace Coftea_Capstone.Models
             const string sqlClearIngredients = "DELETE FROM product_ingredients WHERE productID = @ProductID";
             const string sqlClearAddons = "DELETE FROM product_addons WHERE productID = @ProductID";
             const string sqlIngredients = @"INSERT INTO product_ingredients 
-                (productID, itemID, amount, unit, role, amount_small, unit_small, amount_medium, unit_medium, amount_large, unit_large) 
-                VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient', @AmtS, @UnitS, @AmtM, @UnitM, @AmtL, @UnitL);";
+                (productID, itemID, role, amount_small, unit_small, amount_medium, unit_medium, amount_large, unit_large) 
+                VALUES (@ProductID, @ItemID, 'ingredient', @AmtS, @UnitS, @AmtM, @UnitM, @AmtL, @UnitL);";
             const string sqlAddons = "INSERT INTO product_addons (productID, itemID, amount, unit, role, addon_price) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'addon', @AddonPrice) ON DUPLICATE KEY UPDATE amount = VALUES(amount), unit = VALUES(unit), addon_price = VALUES(addon_price);";
             int total = 0;
             try
@@ -722,8 +725,8 @@ namespace Coftea_Capstone.Models
             const string sqlClearIngredients = "DELETE FROM product_ingredients WHERE productID = @ProductID";
             const string sqlClearAddons = "DELETE FROM product_addons WHERE productID = @ProductID";
             const string sqlIngredients = @"INSERT INTO product_ingredients 
-                (productID, itemID, amount, unit, role, amount_small, unit_small, amount_medium, unit_medium, amount_large, unit_large) 
-                VALUES (@ProductID, @ItemID, @Amount, @Unit, 'ingredient', @AmtS, @UnitS, @AmtM, @UnitM, @AmtL, @UnitL);";
+                (productID, itemID, role, amount_small, unit_small, amount_medium, unit_medium, amount_large, unit_large) 
+                VALUES (@ProductID, @ItemID, 'ingredient', @AmtS, @UnitS, @AmtM, @UnitM, @AmtL, @UnitL);";
             const string sqlAddons = "INSERT INTO product_addons (productID, itemID, amount, unit, role, addon_price) VALUES (@ProductID, @ItemID, @Amount, @Unit, 'addon', @AddonPrice) ON DUPLICATE KEY UPDATE amount = VALUES(amount), unit = VALUES(unit), addon_price = VALUES(addon_price);";
             int total = 0;
             try
@@ -744,8 +747,6 @@ namespace Coftea_Capstone.Models
                     await using var cmd = new MySqlCommand(sqlIngredients, conn, (MySqlTransaction)tx);
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
-                    cmd.Parameters.AddWithValue("@Amount", link.amount);
-                    cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@AmtS", link.amtS);
                     cmd.Parameters.AddWithValue("@UnitS", (object?)link.unitS ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@AmtM", link.amtM);

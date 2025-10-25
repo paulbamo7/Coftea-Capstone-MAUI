@@ -66,9 +66,25 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private bool isConnectPOSToInventoryVisible;
         [ObservableProperty] private bool isPreviewVisible;
         [ObservableProperty] private bool isInputIngredientsVisible;
+        [ObservableProperty] private bool isEditMode = false;
+        
+        // Computed properties for control visibility
+        public bool IsInputIngredientsAmountUsedVisible => IsInputIngredientsVisible && !IsEditMode;
+        public bool IsUpdateInputIngredientsAmountUsedVisible => IsInputIngredientsVisible && IsEditMode;
+        
+        partial void OnIsEditModeChanged(bool value)
+        {
+            // Notify visibility changes when edit mode changes
+            OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
+            OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
+        }
         
         partial void OnIsInputIngredientsVisibleChanged(bool value)
         {
+            // Notify visibility changes when input ingredients visibility changes
+            OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
+            OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
+            
             if (value)
             {
                 System.Diagnostics.Debug.WriteLine($"🔧 InputIngredients popup became visible - refreshing collection");
@@ -95,6 +111,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                         SelectedIngredientsOnly.Add(item);
                         System.Diagnostics.Debug.WriteLine($"🔧 Added to SelectedIngredientsOnly: {item.itemName}");
                     }
+                }
+                
+                // Ensure all selected items are properly initialized for edit mode
+                foreach (var item in SelectedIngredientsOnly)
+                {
+                    // Make sure the item is marked as selected
+                    if (!item.IsSelected)
+                    {
+                        item.IsSelected = true;
+                        System.Diagnostics.Debug.WriteLine($"🔧 Fixed selection state for {item.itemName}");
+                    }
+                    
+                    // Initialize the InputUnit properly to ensure it's remembered
+                    item.InitializeInputUnit();
                 }
                 
                 // Update InputAmount and InputUnit for all selected items based on current size
@@ -623,22 +653,28 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (string.IsNullOrWhiteSpace(size)) return;
             
+            System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Switching from {SelectedSize} to {size}");
+            
             // FIRST: Save current input values to the appropriate size properties before switching
             foreach (var item in SelectedIngredientsOnly)
             {
+                // Save current values to the old size slot
                 switch (SelectedSize)
                 {
                     case "Small":
                         item.InputAmountSmall = item.InputAmount;
                         item.InputUnitSmall = item.InputUnit;
+                        System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Saved {item.itemName} Small values: {item.InputAmountSmall} {item.InputUnitSmall}");
                         break;
                     case "Medium":
                         item.InputAmountMedium = item.InputAmount;
                         item.InputUnitMedium = item.InputUnit;
+                        System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Saved {item.itemName} Medium values: {item.InputAmountMedium} {item.InputUnitMedium}");
                         break;
                     case "Large":
                         item.InputAmountLarge = item.InputAmount;
                         item.InputUnitLarge = item.InputUnit;
+                        System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Saved {item.itemName} Large values: {item.InputAmountLarge} {item.InputUnitLarge}");
                         break;
                 }
             }
@@ -651,8 +687,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 item.SelectedSize = size;
                 
-                // Update Amount Used based on the selected size - use saved values from database or temporary values
-                item.InputAmount = size switch
+                // Load values for the new size
+                var newAmount = size switch
                 {
                     "Small" => item.InputAmountSmall > 0 ? item.InputAmountSmall : 1,
                     "Medium" => item.InputAmountMedium > 0 ? item.InputAmountMedium : 1,
@@ -660,9 +696,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ => 1
                 };
                 
-                // Update input unit based on the selected size - use saved values from database or temporary values
                 var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
-                item.InputUnit = size switch
+                var newUnit = size switch
                 {
                     "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : fallbackUnit,
                     "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : fallbackUnit,
@@ -670,9 +705,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ => fallbackUnit
                 };
                 
-                // Explicitly notify UI that the text binding should update
-                OnPropertyChanged(nameof(item.InputAmountText));
-                OnPropertyChanged(nameof(item.InputUnit));
+                // Set the new values
+                item.InputAmount = newAmount;
+                item.InputUnit = newUnit;
+                
+                // Debug: Log the size switching and per-size values
+                System.Diagnostics.Debug.WriteLine($"🔧 SetSize: {item.itemName} loaded {size} values: {item.InputAmount} {item.InputUnit}");
+                System.Diagnostics.Debug.WriteLine($"🔧   All per-size values - Small: {item.InputAmountSmall} {item.InputUnitSmall}, Medium: {item.InputAmountMedium} {item.InputUnitMedium}, Large: {item.InputAmountLarge} {item.InputUnitLarge}");
             }
             
             // Preserve addon selections when switching sizes
@@ -765,11 +804,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                 return;
             }
             
+            // Debug: Log all items and their selection state before clearing
+            System.Diagnostics.Debug.WriteLine($"🔧 All items selection state:");
+            foreach (var item in AllInventoryItems)
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧   {item.itemName} (ID: {item.itemID}) - IsSelected: {item.IsSelected}");
+            }
+            
+            // Clear the collection first
             SelectedIngredientsOnly.Clear();
+            
+            // Get all selected items
             var selected = AllInventoryItems?.Where(i => i != null && i.IsSelected).ToList() ?? new List<InventoryPageModel>();
             
             System.Diagnostics.Debug.WriteLine($"🔧 Found {selected.Count} selected items");
             
+            // Add all selected items to the collection
             foreach (var item in selected)
             {
                 bool isCupOrStraw = IsCupOrStraw(item);
@@ -781,6 +831,11 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             
             System.Diagnostics.Debug.WriteLine($"🔧 SelectedIngredientsOnly final count: {SelectedIngredientsOnly.Count}");
+            
+            // Force property change notifications to ensure UI updates
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
         // Public helper to refresh filters and selection-related bindings after external updates

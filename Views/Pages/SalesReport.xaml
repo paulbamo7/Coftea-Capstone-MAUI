@@ -436,7 +436,8 @@
         <otherViews:UpdateInventoryDetails BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup.AddItemToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:AddItemToPOS BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup}" Grid.ColumnSpan="2"/>
         <otherViews:ConnectPOSItemToInventory BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1100"/>
-        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200"/>
+        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM.IsInputIngredientsAmountUsedVisible}"/>
+        <otherViews:UpdateInputIngredientsAmountUsed BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM.IsUpdateInputIngredientsAmountUsedVisible}"/>
         <otherViews:PreviewPOSItem BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1300"/>
         <otherViews:AddonsSelectionPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=AddItemPopup.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:CartPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=POSVM.CartPopup}" Grid.ColumnSpan="2"/>
