@@ -292,6 +292,16 @@
                                     Padding="15,8"
                                     Command="{Binding ManageInventoryCommand}"
                                     IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
+                            
+                            <!-- Activity Log Button -->
+                            <Button Text="Activity Log" 
+                                    BackgroundColor="#FF9800" 
+                                    TextColor="White" 
+                                    FontSize="14" 
+                                    FontAttributes="Bold"
+                                    CornerRadius="8"
+                                    Padding="15,8"
+                                    Command="{Binding ShowActivityLogCommand}"/>
                         </StackLayout>
                     </Grid>
                 </Frame>
@@ -320,5 +330,6 @@
         <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
         <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
         <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="1700"/>
+        <otherViews:ActivityLogPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ActivityLogPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
     </Grid>
 </ContentPage>

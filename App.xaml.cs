@@ -36,6 +36,7 @@ namespace Coftea_Capstone
         public SuccessCardPopupViewModel SuccessCardPopup { get; private set; }
         public HistoryPopupViewModel HistoryPopup { get; private set; }
         public ProfilePopupViewModel ProfilePopup { get; private set; }
+        public ActivityLogPopupViewModel ActivityLogPopup { get; private set; }
         
         // Shared Page ViewModels to prevent memory leaks
         public InventoryPageViewModel InventoryVM { get; private set; }
@@ -199,6 +200,7 @@ namespace Coftea_Capstone
             SuccessCardPopup = new SuccessCardPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
             ProfilePopup = new ProfilePopupViewModel();
+            ActivityLogPopup = new ActivityLogPopupViewModel();
             
             // Initialize shared page ViewModels
             InventoryVM = new InventoryPageViewModel(SettingsPopup);

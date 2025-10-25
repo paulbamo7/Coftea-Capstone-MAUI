@@ -92,7 +92,7 @@ namespace Coftea_Capstone.Models
                 // Fallback to platform-specific hardcoded IPs
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "192.168.1.6";
+                    return "192.168.1.8";
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
@@ -177,6 +177,24 @@ namespace Coftea_Capstone.Models
                     minimumQuantity DECIMAL(10,2) DEFAULT 0,
                     maximumQuantity DECIMAL(10,2) DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                CREATE TABLE IF NOT EXISTS inventory_activity_log (
+                    logId INT AUTO_INCREMENT PRIMARY KEY,
+                    itemId INT NOT NULL,
+                    itemName VARCHAR(255) NOT NULL,
+                    itemCategory VARCHAR(100),
+                    action VARCHAR(50) NOT NULL,
+                    quantityChanged DECIMAL(10,2) NOT NULL,
+                    previousQuantity DECIMAL(10,2) NOT NULL,
+                    newQuantity DECIMAL(10,2) NOT NULL,
+                    unitOfMeasurement VARCHAR(50),
+                    reason VARCHAR(100),
+                    userEmail VARCHAR(255),
+                    orderId VARCHAR(100),
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    notes TEXT,
+                    FOREIGN KEY (itemId) REFERENCES inventory(itemID) ON DELETE CASCADE
                 );
                 
                 CREATE TABLE IF NOT EXISTS product_ingredients (
@@ -917,11 +935,65 @@ namespace Coftea_Capstone.Models
                 foreach (var (name, amount) in deductions)
                 {
                     System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Processing {name} - {amount}");
+                    
+                    // Get current quantity before deduction
+                    var getCurrentSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemName = @Name;";
+                    await using var getCurrentCmd = new MySqlCommand(getCurrentSql, conn, (MySqlTransaction)tx);
+                    getCurrentCmd.Parameters.AddWithValue("@Name", name);
+                    
+                    int itemId = 0;
+                    string itemName = name;
+                    string itemCategory = "";
+                    double previousQuantity = 0;
+                    string unitOfMeasurement = "";
+                    
+                    await using var reader = await getCurrentCmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        itemId = reader.GetInt32("itemID");
+                        itemName = reader.GetString("itemName");
+                        itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory");
+                        previousQuantity = reader.GetDouble("itemQuantity");
+                        unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
+                    }
+                    await reader.CloseAsync();
+                    
+                    // Perform the deduction
                     var updateSql = "UPDATE inventory SET itemQuantity = GREATEST(itemQuantity - @Amount, 0) WHERE itemName = @Name;";
                     await using var updateCmd = new MySqlCommand(updateSql, conn, (MySqlTransaction)tx);
                     updateCmd.Parameters.AddWithValue("@Amount", amount);
                     updateCmd.Parameters.AddWithValue("@Name", name);
                     var rowsAffected = await updateCmd.ExecuteNonQueryAsync();
+                    
+                    if (rowsAffected > 0)
+                    {
+                        // Get new quantity after deduction
+                        var getNewSql = "SELECT itemQuantity FROM inventory WHERE itemName = @Name;";
+                        await using var getNewCmd = new MySqlCommand(getNewSql, conn, (MySqlTransaction)tx);
+                        getNewCmd.Parameters.AddWithValue("@Name", name);
+                        var newQuantity = Convert.ToDouble(await getNewCmd.ExecuteScalarAsync());
+                        
+                        // Log the activity
+                        var logEntry = new InventoryActivityLog
+                        {
+                            ItemId = itemId,
+                            ItemName = itemName,
+                            ItemCategory = itemCategory,
+                            Action = "DEDUCTED",
+                            QuantityChanged = -amount, // Negative for deduction
+                            PreviousQuantity = previousQuantity,
+                            NewQuantity = newQuantity,
+                            UnitOfMeasurement = unitOfMeasurement,
+                            Reason = "POS_ORDER",
+                            UserEmail = App.CurrentUser?.Email ?? "System",
+                            OrderId = null, // Will be set by calling code if available
+                            Notes = $"Deducted {amount} {unitOfMeasurement} for POS order"
+                        };
+                        
+                        await LogInventoryActivityAsync(logEntry, conn, tx);
+                        System.Diagnostics.Debug.WriteLine($"📝 Logged deduction activity for {name}: {previousQuantity} → {newQuantity}");
+                    }
+                    
                     System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: {name} - {rowsAffected} rows affected");
                     totalAffected += rowsAffected;
                 }
@@ -1108,6 +1180,118 @@ namespace Coftea_Capstone.Models
                 await tx.RollbackAsync();
                 throw;
             }
+        }
+
+        // ===================== INVENTORY ACTIVITY LOG METHODS =====================
+        
+        public async Task<int> LogInventoryActivityAsync(InventoryActivityLog logEntry) // Logs an inventory activity
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            
+            var sql = @"INSERT INTO inventory_activity_log 
+                        (itemId, itemName, itemCategory, action, quantityChanged, previousQuantity, 
+                         newQuantity, unitOfMeasurement, reason, userEmail, orderId, notes) 
+                        VALUES (@ItemId, @ItemName, @ItemCategory, @Action, @QuantityChanged, 
+                                @PreviousQuantity, @NewQuantity, @UnitOfMeasurement, @Reason, 
+                                @UserEmail, @OrderId, @Notes);";
+            
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ItemId", logEntry.ItemId);
+            cmd.Parameters.AddWithValue("@ItemName", logEntry.ItemName);
+            cmd.Parameters.AddWithValue("@ItemCategory", (object?)logEntry.ItemCategory ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Action", logEntry.Action);
+            cmd.Parameters.AddWithValue("@QuantityChanged", logEntry.QuantityChanged);
+            cmd.Parameters.AddWithValue("@PreviousQuantity", logEntry.PreviousQuantity);
+            cmd.Parameters.AddWithValue("@NewQuantity", logEntry.NewQuantity);
+            cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)logEntry.UnitOfMeasurement ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Reason", (object?)logEntry.Reason ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UserEmail", (object?)logEntry.UserEmail ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@OrderId", (object?)logEntry.OrderId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Notes", (object?)logEntry.Notes ?? DBNull.Value);
+            
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        private async Task<int> LogInventoryActivityAsync(InventoryActivityLog logEntry, MySqlConnection conn, MySqlTransaction tx) // Logs an inventory activity within a transaction
+        {
+            var sql = @"INSERT INTO inventory_activity_log 
+                        (itemId, itemName, itemCategory, action, quantityChanged, previousQuantity, 
+                         newQuantity, unitOfMeasurement, reason, userEmail, orderId, notes) 
+                        VALUES (@ItemId, @ItemName, @ItemCategory, @Action, @QuantityChanged, 
+                                @PreviousQuantity, @NewQuantity, @UnitOfMeasurement, @Reason, 
+                                @UserEmail, @OrderId, @Notes);";
+            
+            await using var cmd = new MySqlCommand(sql, conn, tx);
+            cmd.Parameters.AddWithValue("@ItemId", logEntry.ItemId);
+            cmd.Parameters.AddWithValue("@ItemName", logEntry.ItemName);
+            cmd.Parameters.AddWithValue("@ItemCategory", (object?)logEntry.ItemCategory ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Action", logEntry.Action);
+            cmd.Parameters.AddWithValue("@QuantityChanged", logEntry.QuantityChanged);
+            cmd.Parameters.AddWithValue("@PreviousQuantity", logEntry.PreviousQuantity);
+            cmd.Parameters.AddWithValue("@NewQuantity", logEntry.NewQuantity);
+            cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)logEntry.UnitOfMeasurement ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Reason", (object?)logEntry.Reason ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UserEmail", (object?)logEntry.UserEmail ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@OrderId", (object?)logEntry.OrderId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Notes", (object?)logEntry.Notes ?? DBNull.Value);
+            
+            return await cmd.ExecuteNonQueryAsync();
+        }
+        
+        public async Task<List<InventoryActivityLog>> GetInventoryActivityLogAsync(int? itemId = null, int limit = 100) // Gets inventory activity log
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            
+            var sql = @"SELECT * FROM inventory_activity_log";
+            var parameters = new List<MySqlParameter>();
+            
+            if (itemId.HasValue)
+            {
+                sql += " WHERE itemId = @ItemId";
+                parameters.Add(new MySqlParameter("@ItemId", MySqlDbType.Int32) { Value = itemId.Value });
+            }
+            
+            sql += " ORDER BY timestamp DESC LIMIT @Limit";
+            parameters.Add(new MySqlParameter("@Limit", MySqlDbType.Int32) { Value = limit });
+            
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddRange(parameters.ToArray());
+            
+            var logs = new List<InventoryActivityLog>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            
+            while (await reader.ReadAsync())
+            {
+                logs.Add(new InventoryActivityLog
+                {
+                    LogId = reader.GetInt32("logId"),
+                    ItemId = reader.GetInt32("itemId"),
+                    ItemName = reader.GetString("itemName"),
+                    ItemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? null : reader.GetString("itemCategory"),
+                    Action = reader.GetString("action"),
+                    QuantityChanged = reader.GetDouble("quantityChanged"),
+                    PreviousQuantity = reader.GetDouble("previousQuantity"),
+                    NewQuantity = reader.GetDouble("newQuantity"),
+                    UnitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? null : reader.GetString("unitOfMeasurement"),
+                    Reason = reader.IsDBNull(reader.GetOrdinal("reason")) ? null : reader.GetString("reason"),
+                    UserEmail = reader.IsDBNull(reader.GetOrdinal("userEmail")) ? null : reader.GetString("userEmail"),
+                    OrderId = reader.IsDBNull(reader.GetOrdinal("orderId")) ? null : reader.GetString("orderId"),
+                    Timestamp = reader.GetDateTime("timestamp"),
+                    Notes = reader.IsDBNull(reader.GetOrdinal("notes")) ? null : reader.GetString("notes")
+                });
+            }
+            
+            return logs;
+        }
+        
+        public async Task<List<InventoryActivityLog>> GetInventoryActivityLogByItemAsync(int itemId, int limit = 50) // Gets activity log for a specific item
+        {
+            return await GetInventoryActivityLogAsync(itemId, limit);
+        }
+        
+        public async Task<List<InventoryActivityLog>> GetRecentInventoryActivityAsync(int limit = 50) // Gets recent inventory activity
+        {
+            return await GetInventoryActivityLogAsync(null, limit);
         }
 
         private string GetDefaultUnitForCategory(string category) // Determines default unit of measurement based on category
@@ -2105,27 +2289,80 @@ namespace Coftea_Capstone.Models
             try
             {
                 await using var conn = await GetOpenConnectionAsync();
+                await using var tx = await conn.BeginTransactionAsync();
                 
-                var sql = @"
+                // First, get the items and their current quantities before update
+                var getItemsSql = @"
+                    SELECT i.itemID, i.itemName, i.itemCategory, i.itemQuantity, i.unitOfMeasurement, poi.requestedQuantity
+                    FROM inventory i
+                    INNER JOIN purchase_order_items poi ON i.itemID = poi.inventoryItemId
+                    WHERE poi.purchaseOrderId = @purchaseOrderId;";
+                
+                await using var getItemsCmd = new MySqlCommand(getItemsSql, conn, (MySqlTransaction)tx);
+                getItemsCmd.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
+                
+                var itemsToUpdate = new List<(int itemId, string itemName, string itemCategory, double currentQuantity, string unitOfMeasurement, double requestedQuantity)>();
+                
+                await using var reader = await getItemsCmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    itemsToUpdate.Add((
+                        reader.GetInt32("itemID"),
+                        reader.GetString("itemName"),
+                        reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
+                        reader.GetDouble("itemQuantity"),
+                        reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
+                        reader.GetDouble("requestedQuantity")
+                    ));
+                }
+                await reader.CloseAsync();
+                
+                // Update inventory quantities
+                var updateSql = @"
                     UPDATE inventory i
                     INNER JOIN purchase_order_items poi ON i.itemID = poi.inventoryItemId
                     SET i.itemQuantity = i.itemQuantity + poi.requestedQuantity,
                         i.updatedAt = @updatedAt
                     WHERE poi.purchaseOrderId = @purchaseOrderId;";
                 
-                await using var cmd = new MySqlCommand(sql, conn);
-                AddParameters(cmd, new Dictionary<string, object?>
-                {
-                    ["@updatedAt"] = DateTime.Now,
-                    ["@purchaseOrderId"] = purchaseOrderId
-                });
+                await using var updateCmd = new MySqlCommand(updateSql, conn, (MySqlTransaction)tx);
+                updateCmd.Parameters.AddWithValue("@updatedAt", DateTime.Now);
+                updateCmd.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
                 
-                await cmd.ExecuteNonQueryAsync();
+                await updateCmd.ExecuteNonQueryAsync();
+                
+                // Log each inventory addition
+                foreach (var item in itemsToUpdate)
+                {
+                    var newQuantity = item.currentQuantity + item.requestedQuantity;
+                    
+                    var logEntry = new InventoryActivityLog
+                    {
+                        ItemId = item.itemId,
+                        ItemName = item.itemName,
+                        ItemCategory = item.itemCategory,
+                        Action = "ADDED",
+                        QuantityChanged = item.requestedQuantity,
+                        PreviousQuantity = item.currentQuantity,
+                        NewQuantity = newQuantity,
+                        UnitOfMeasurement = item.unitOfMeasurement,
+                        Reason = "PURCHASE_ORDER",
+                        UserEmail = App.CurrentUser?.Email ?? "System",
+                        OrderId = purchaseOrderId.ToString(),
+                        Notes = $"Added {item.requestedQuantity} {item.unitOfMeasurement} from purchase order #{purchaseOrderId}"
+                    };
+                    
+                    await LogInventoryActivityAsync(logEntry, conn, tx);
+                    System.Diagnostics.Debug.WriteLine($"📝 Logged addition activity for {item.itemName}: {item.currentQuantity} → {newQuantity}");
+                }
+                
+                await tx.CommitAsync();
                 System.Diagnostics.Debug.WriteLine($"✅ Inventory updated for purchase order {purchaseOrderId}");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error updating inventory from purchase order: {ex.Message}");
+                throw;
             }
         }
 
