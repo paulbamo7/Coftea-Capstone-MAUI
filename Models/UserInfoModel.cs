@@ -32,5 +32,6 @@ namespace Coftea_Capstone.Models
         // Access flags managed by admin
         public bool CanAccessInventory { get; set; }
         public bool CanAccessSalesReport { get; set; }
+        public bool CanAccessPOS { get; set; }
     }
 }

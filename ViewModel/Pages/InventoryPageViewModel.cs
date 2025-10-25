@@ -333,6 +333,36 @@ namespace Coftea_Capstone.ViewModel
                     "OK");
             }
         }
+
+        [RelayCommand]
+        private void ManageInventory()
+        {
+            System.Diagnostics.Debug.WriteLine("ManageInventory called");
+            
+            // Check if user is admin OR has been granted inventory access
+            var currentUser = App.CurrentUser;
+            bool hasAccess = (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessInventory ?? false);
+            
+            if (!hasAccess)
+            {
+                Application.Current?.MainPage?.DisplayAlert("Access Denied", 
+                    "You don't have permission to manage inventory. Please contact an administrator.", "OK");
+                return;
+            }
+            
+            // Get the ManageInventoryOptionsViewModel from the app
+            var manageInventoryPopup = ((App)Application.Current).ManageInventoryPopup;
+            if (manageInventoryPopup != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Setting ManageInventoryPopup visibility to true. Current value: {manageInventoryPopup.IsInventoryManagementPopupVisible}");
+                manageInventoryPopup.IsInventoryManagementPopupVisible = true;
+                System.Diagnostics.Debug.WriteLine($"ManageInventoryPopup visibility set to: {manageInventoryPopup.IsInventoryManagementPopupVisible}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ManageInventoryPopup is null");
+            }
+        }
         
     }
 }

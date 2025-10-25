@@ -806,6 +806,37 @@ namespace Coftea_Capstone.ViewModel
                 }
             }
         }
+
+        [RelayCommand]
+        private void ManagePOS() // Open the Manage POS Options panel
+        {
+            System.Diagnostics.Debug.WriteLine("ManagePOS called");
+            
+            // Check if user is admin OR has been granted POS access
+            var currentUser = App.CurrentUser;
+            bool hasAccess = (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessPOS ?? false);
+            
+            if (!hasAccess)
+            {
+                Application.Current?.MainPage?.DisplayAlert("Access Denied", 
+                    "You don't have permission to manage POS menu. Please contact an administrator.", "OK");
+                return;
+            }
+            
+            // Get the ManagePOSOptionsViewModel from the app
+            var managePOSPopup = ((App)Application.Current).ManagePOSPopup;
+            if (managePOSPopup != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Setting ManagePOSPopup visibility to true. Current value: {managePOSPopup.IsPOSManagementPopupVisible}");
+                managePOSPopup.IsPOSManagementPopupVisible = true;
+                System.Diagnostics.Debug.WriteLine($"ManagePOSPopup visibility set to: {managePOSPopup.IsPOSManagementPopupVisible}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ManagePOSPopup is null");
+            }
+        }
+        
         public async Task InitializeAsync() // Initializes the ViewModel, loading user info and persisted cart
         {
             if (App.CurrentUser != null)
