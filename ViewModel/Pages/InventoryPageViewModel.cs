@@ -363,6 +363,37 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine("ManageInventoryPopup is null");
             }
         }
+
+        [RelayCommand]
+        private async Task ShowActivityLogAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("📋 Showing inventory activity log...");
+                
+                // Get the ActivityLogPopup from the app
+                var app = (App)Application.Current;
+                var activityLogPopup = app.ActivityLogPopup;
+                
+                if (activityLogPopup != null)
+                {
+                    // Load activity log data
+                    await activityLogPopup.LoadActivityLogAsync();
+                    activityLogPopup.IsVisible = true;
+                    System.Diagnostics.Debug.WriteLine("✅ Activity log popup shown");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ ActivityLogPopup is null");
+                    await Application.Current.MainPage.DisplayAlert("Error", "Activity log feature is not available.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error showing activity log: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load activity log: {ex.Message}", "OK");
+            }
+        }
         
     }
 }
