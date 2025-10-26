@@ -235,6 +235,17 @@
                                     Padding="0"
                                     FontAttributes="Bold"/>
 
+                            <Button Text="Save"
+                                    WidthRequest="120"
+                                    BackgroundColor="#4CAF50"
+                                    TextColor="White"
+                                    Command="{Binding SaveProductCommand}"
+                                    CornerRadius="25"
+                                    FontSize="18"
+                                    Padding="0"
+                                    FontAttributes="Bold"
+                                    IsVisible="{Binding IsEditMode}"/>
+
                             <Button Text="Next"
                                     WidthRequest="120"
                                     BackgroundColor="#FFCC00"

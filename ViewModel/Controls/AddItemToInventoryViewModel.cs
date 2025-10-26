@@ -325,6 +325,13 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
+        private async Task SaveItem() // Save item immediately in edit mode
+        {
+            System.Diagnostics.Debug.WriteLine("🔧 SaveItem called - saving current item details immediately");
+            await AddItem();
+        }
+
+        [RelayCommand]
         public async Task AddItem() // Add or update inventory item
         {
             if (string.IsNullOrWhiteSpace(ItemName))

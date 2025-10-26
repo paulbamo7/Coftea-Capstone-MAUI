@@ -62,8 +62,13 @@ namespace Coftea_Capstone.ViewModel
 
         public bool IsCartVisible => CartItems?.Any() ?? false;
 
+        public int CartCount => CartItems?.Where(item => item != null && (item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0)).Count() ?? 0;
+
         partial void OnCartItemsChanged(ObservableCollection<POSPageModel> value)
-            => OnPropertyChanged(nameof(IsCartVisible));
+        {
+            OnPropertyChanged(nameof(IsCartVisible));
+            OnPropertyChanged(nameof(CartCount));
+        }
 
         [ObservableProperty]
         private bool isAdmin;
@@ -804,6 +809,20 @@ namespace Coftea_Capstone.ViewModel
                 {
                     NotificationPopup.ShowNotification($"Profile error: {ex.Message}", "Error");
                 }
+            }
+        }
+
+        [RelayCommand]
+        private void ForceCloseUpdateInputPopup()
+        {
+            System.Diagnostics.Debug.WriteLine("🔧 ForceCloseUpdateInputPopup called from POSPageViewModel");
+            if (AddItemToPOSViewModel?.ConnectPOSToInventoryVM != null)
+            {
+                AddItemToPOSViewModel.ConnectPOSToInventoryVM.IsInputIngredientsVisible = false;
+                AddItemToPOSViewModel.ConnectPOSToInventoryVM.IsEditMode = false;
+                AddItemToPOSViewModel.ConnectPOSToInventoryVM.IsUpdateAmountsMode = false;
+                AddItemToPOSViewModel.ConnectPOSToInventoryVM.IsPreviewVisible = false;
+                AddItemToPOSViewModel.ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = false;
             }
         }
 

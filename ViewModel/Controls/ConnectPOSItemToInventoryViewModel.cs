@@ -28,6 +28,16 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             // Initialize collections
             SelectedIngredientsOnly = new ObservableCollection<InventoryPageModel>();
+            
+            // Explicitly initialize all visibility flags to false
+            IsConnectPOSToInventoryVisible = false;
+            IsPreviewVisible = false;
+            IsInputIngredientsVisible = false;
+            IsEditMode = false;
+            IsUpdateAmountsMode = false;
+            IsAddonPopupVisible = false;
+            
+            System.Diagnostics.Debug.WriteLine("🔧 ConnectPOSItemToInventoryViewModel initialized - all flags set to false");
         }
 
         private void OnAddonsSelected(List<InventoryPageModel> selectedAddons)
@@ -67,20 +77,65 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private bool isPreviewVisible;
         [ObservableProperty] private bool isInputIngredientsVisible;
         [ObservableProperty] private bool isEditMode = false;
+        [ObservableProperty] private bool isUpdateAmountsMode = false; // New flag for update amounts mode
         
         // Computed properties for control visibility
-        public bool IsInputIngredientsAmountUsedVisible => IsInputIngredientsVisible && !IsEditMode;
-        public bool IsUpdateInputIngredientsAmountUsedVisible => IsInputIngredientsVisible && IsEditMode;
+        public bool IsInputIngredientsAmountUsedVisible 
+        { 
+            get 
+            {
+                var result = IsInputIngredientsVisible && !IsUpdateAmountsMode;
+                System.Diagnostics.Debug.WriteLine($"🔍 IsInputIngredientsAmountUsedVisible: {result} (IsInputIngredientsVisible: {IsInputIngredientsVisible}, IsUpdateAmountsMode: {IsUpdateAmountsMode})");
+                return result;
+            }
+        }
+        
+        public bool IsUpdateInputIngredientsAmountUsedVisible 
+        { 
+            get 
+            {
+                var result = IsInputIngredientsVisible && IsUpdateAmountsMode;
+                System.Diagnostics.Debug.WriteLine($"🔍 IsUpdateInputIngredientsAmountUsedVisible: {result} (IsInputIngredientsVisible: {IsInputIngredientsVisible}, IsUpdateAmountsMode: {IsUpdateAmountsMode})");
+                return result;
+            }
+        }
+        
+        partial void OnIsUpdateAmountsModeChanged(bool value)
+        {
+            System.Diagnostics.Debug.WriteLine($"🔍 IsUpdateAmountsMode changed to: {value}");
+            // Notify visibility changes when update amounts mode changes
+            OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
+            OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
+            
+            // Debug: Log the visibility states
+            System.Diagnostics.Debug.WriteLine($"🔍 After IsUpdateAmountsMode change:");
+            System.Diagnostics.Debug.WriteLine($"🔍   IsInputIngredientsVisible: {IsInputIngredientsVisible}");
+            System.Diagnostics.Debug.WriteLine($"🔍   IsUpdateAmountsMode: {IsUpdateAmountsMode}");
+            System.Diagnostics.Debug.WriteLine($"🔍   IsInputIngredientsAmountUsedVisible: {IsInputIngredientsAmountUsedVisible}");
+            System.Diagnostics.Debug.WriteLine($"🔍   IsUpdateInputIngredientsAmountUsedVisible: {IsUpdateInputIngredientsAmountUsedVisible}");
+        }
         
         partial void OnIsEditModeChanged(bool value)
         {
+            System.Diagnostics.Debug.WriteLine($"🔍 IsEditMode changed to: {value}");
             // Notify visibility changes when edit mode changes
             OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
             OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
+            
+            // When entering edit mode, ensure selected ingredients are properly refreshed
+            if (value)
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 Entering edit mode - refreshing selected ingredients");
+                UpdateSelectedIngredientsOnly();
+                OnPropertyChanged(nameof(SelectedIngredientsOnly));
+                OnPropertyChanged(nameof(HasSelectedIngredients));
+                OnPropertyChanged(nameof(SelectedInventoryItems));
+            }
         }
         
         partial void OnIsInputIngredientsVisibleChanged(bool value)
         {
+            System.Diagnostics.Debug.WriteLine($"🔍 IsInputIngredientsVisible changed to: {value}");
             // Notify visibility changes when input ingredients visibility changes
             OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
             OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
@@ -150,6 +205,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                     };
                     
                     System.Diagnostics.Debug.WriteLine($"🔧 Updated {item.itemName}: Amount={item.InputAmount}, Unit={item.InputUnit} for size {size}");
+                    
+                    // Force UI refresh to ensure InputAmountText is updated
+                    // Note: InventoryPageModel handles its own property change notifications
                 }
                 
                 OnPropertyChanged(nameof(SelectedIngredientsOnly));
@@ -266,6 +324,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void ReturnToAddItemToPOS()
         {
             IsConnectPOSToInventoryVisible = false;
+            // Reset all states when returning to AddItemToPOS
+            IsInputIngredientsVisible = false;
+            // Don't reset edit mode - preserve it for proper state management
+            // IsEditMode = false; // REMOVED - this was causing the issue with ingredient selection persistence
+            IsUpdateAmountsMode = false;
+            IsPreviewVisible = false;
             // Ensure any addon popup is closed when returning
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
@@ -276,22 +340,56 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void CloseConnectPOSToInventory()
+        private void ForceCloseAllPopups()
         {
+            System.Diagnostics.Debug.WriteLine("🔧 ForceCloseAllPopups called");
             IsConnectPOSToInventoryVisible = false;
-            // Ensure any addon popup is closed
+            IsInputIngredientsVisible = false;
+            IsEditMode = false;
+            IsUpdateAmountsMode = false;
+            IsPreviewVisible = false;
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
+            
+            // Clear all selections
+            ClearAllSelections();
+            
+            // Reset the parent AddItemToPOS form
+            var app = (App)Application.Current;
+            var addItemVM = app?.POSVM?.AddItemToPOSViewModel ?? app?.AddItemPopup;
+            if (addItemVM != null)
+            {
+                System.Diagnostics.Debug.WriteLine("🔧 Calling ResetForm on AddItemToPOSViewModel");
+                addItemVM.ResetForm();
+            }
+            
+            // Force property change notifications
+            OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
+            OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
         }
 
         [RelayCommand]
         private void BackToInventorySelection()
         {
+            System.Diagnostics.Debug.WriteLine("🔧 BackToInventorySelection called");
             IsInputIngredientsVisible = false;
             IsConnectPOSToInventoryVisible = true;
+            // Don't reset edit mode - preserve it for proper state management
+            // IsEditMode = false; // REMOVED - this was causing the issue
+            IsUpdateAmountsMode = false;
             // Ensure any addon popup is closed
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
+            
+            // Debug: Log current state
+            System.Diagnostics.Debug.WriteLine($"🔧 BackToInventorySelection - Current state:");
+            System.Diagnostics.Debug.WriteLine($"🔧   IsEditMode: {IsEditMode}");
+            System.Diagnostics.Debug.WriteLine($"🔧   IsUpdateAmountsMode: {IsUpdateAmountsMode}");
+            System.Diagnostics.Debug.WriteLine($"🔧   AllInventoryItems count: {AllInventoryItems?.Count ?? 0}");
+            System.Diagnostics.Debug.WriteLine($"🔧   Selected items count: {AllInventoryItems?.Count(i => i.IsSelected) ?? 0}");
+            
+            // Force refresh the SelectedIngredientsOnly collection to ensure it's up to date
+            UpdateSelectedIngredientsOnly();
         }
         [RelayCommand]
         private void ShowPreview()
@@ -368,11 +466,25 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
-        private void OpenInputIngredients() // Show the ingredient input overlay..
+        private void OpenInputIngredients() // Show the ingredient input overlay for new ingredients
         {
             System.Diagnostics.Debug.WriteLine($"🔧 OpenInputIngredients called");
             System.Diagnostics.Debug.WriteLine($"🔧 AllInventoryItems count: {AllInventoryItems?.Count ?? 0}");
             System.Diagnostics.Debug.WriteLine($"🔧 Selected items count: {AllInventoryItems?.Count(i => i.IsSelected) ?? 0}");
+            System.Diagnostics.Debug.WriteLine($"🔧 IsEditMode: {IsEditMode}");
+            
+            // Debug: Log each selected ingredient before processing
+            if (AllInventoryItems != null)
+            {
+                foreach (var item in AllInventoryItems.Where(i => i.IsSelected))
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 Selected ingredient: {item.itemName} (ID: {item.itemID}) - IsSelected: {item.IsSelected}");
+                    System.Diagnostics.Debug.WriteLine($"🔧   InputAmount: {item.InputAmount}, InputUnit: {item.InputUnit}");
+                    System.Diagnostics.Debug.WriteLine($"🔧   Small: {item.InputAmountSmall} {item.InputUnitSmall}");
+                    System.Diagnostics.Debug.WriteLine($"🔧   Medium: {item.InputAmountMedium} {item.InputUnitMedium}");
+                    System.Diagnostics.Debug.WriteLine($"🔧   Large: {item.InputAmountLarge} {item.InputUnitLarge}");
+                }
+            }
             
             // Force refresh the SelectedIngredientsOnly collection
             UpdateSelectedIngredientsOnly();
@@ -392,10 +504,47 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsPreviewVisible = false;
             IsInputIngredientsVisible = true;
             
+            // Set the appropriate mode based on edit mode
+            if (IsEditMode)
+            {
+                IsUpdateAmountsMode = true; // Show UpdateInputIngredientsAmountUsed popup for edit mode
+                System.Diagnostics.Debug.WriteLine($"🔧 Edit mode detected - setting IsUpdateAmountsMode = true");
+                System.Diagnostics.Debug.WriteLine($"🔧 After setting IsUpdateAmountsMode = true:");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsInputIngredientsVisible: {IsInputIngredientsVisible}");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsUpdateAmountsMode: {IsUpdateAmountsMode}");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsInputIngredientsAmountUsedVisible: {IsInputIngredientsAmountUsedVisible}");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsUpdateInputIngredientsAmountUsedVisible: {IsUpdateInputIngredientsAmountUsedVisible}");
+                
+                // Force UI refresh for all selected ingredients to ensure InputAmountText is updated
+                // Note: InventoryPageModel handles its own property change notifications
+            }
+            else
+            {
+                IsUpdateAmountsMode = false; // Show InputIngredientsAmountUsed popup for add mode
+                System.Diagnostics.Debug.WriteLine($"🔧 Add mode detected - setting IsUpdateAmountsMode = false");
+                System.Diagnostics.Debug.WriteLine($"🔧 After setting IsUpdateAmountsMode = false:");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsInputIngredientsVisible: {IsInputIngredientsVisible}");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsUpdateAmountsMode: {IsUpdateAmountsMode}");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsInputIngredientsAmountUsedVisible: {IsInputIngredientsAmountUsedVisible}");
+                System.Diagnostics.Debug.WriteLine($"🔧   IsUpdateInputIngredientsAmountUsedVisible: {IsUpdateInputIngredientsAmountUsedVisible}");
+            }
+            
             // Force property change notifications
             OnPropertyChanged(nameof(SelectedIngredientsOnly));
             OnPropertyChanged(nameof(HasSelectedIngredients));
             OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
+            OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
+        }
+
+        [RelayCommand]
+        private void OpenUpdateAmountsMode()
+        {
+            System.Diagnostics.Debug.WriteLine("🔧 OpenUpdateAmountsMode called");
+            IsUpdateAmountsMode = true;
+            IsInputIngredientsVisible = true;
+            IsConnectPOSToInventoryVisible = false;
+            IsPreviewVisible = false;
         }
 
         [RelayCommand]

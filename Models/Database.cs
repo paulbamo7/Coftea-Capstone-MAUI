@@ -25,7 +25,9 @@ namespace Coftea_Capstone.Models
                         string user = "root",
                         string password = "")
         {
+            // Allow manual override for testing (useful for emulator debugging)
             var server = host ?? GetDefaultHostForPlatform();
+            System.Diagnostics.Debug.WriteLine($"🔗 Database connecting to server: {server}");
             
             _db = new MySqlConnectionStringBuilder // Configuration for connecting to MySQL XAMPP server database
             {
@@ -78,40 +80,135 @@ namespace Coftea_Capstone.Models
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔍 GetDefaultHostForPlatform called for platform: {DeviceInfo.Platform}");
+                
                 // Use automatic IP detection if available and enabled
                 if (NetworkConfigurationService.IsAutomaticDetectionEnabled())
                 {
                     var autoDetectedIP = NetworkConfigurationService.GetAutoDetectedIP();
                     if (!string.IsNullOrEmpty(autoDetectedIP) && autoDetectedIP != "localhost")
                     {
-                        System.Diagnostics.Debug.WriteLine($"🤖 Using auto-detected IP for platform: {autoDetectedIP}");
+                        System.Diagnostics.Debug.WriteLine($"🤖 Using cached auto-detected IP: {autoDetectedIP}");
                         return autoDetectedIP;
                     }
                 }
 
-                // Fallback to platform-specific hardcoded IPs
+                // Check if we're likely in an emulator environment
+                bool isLikelyEmulator = IsLikelyEmulatorEnvironment();
+                System.Diagnostics.Debug.WriteLine($"🔍 Is likely emulator: {isLikelyEmulator}");
+
+                // Try automatic IP detection with timeout
+                string detectedIP = null;
+                if (!isLikelyEmulator)
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine("🔍 Attempting automatic IP detection...");
+                        var task = AutomaticIPDetectionService.DetectDatabaseIPAsync();
+                        if (task.Wait(TimeSpan.FromSeconds(5))) // 5 second timeout for real devices
+                        {
+                            detectedIP = task.Result;
+                            System.Diagnostics.Debug.WriteLine($"✅ Auto-detected IP: {detectedIP}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("⏰ IP detection timed out");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ IP detection failed: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("🔍 Skipping automatic IP detection for emulator environment");
+                }
+
+                // Use detected IP if available and not localhost
+                if (!string.IsNullOrEmpty(detectedIP) && detectedIP != "localhost")
+                {
+                    return detectedIP;
+                }
+
+                // Platform-specific fallbacks
                 if (DeviceInfo.Platform == DevicePlatform.Android)
                 {
-                    return "192.168.1.8";
+                    // Android emulator typically uses 10.0.2.2 to access host machine
+                    var androidIPs = isLikelyEmulator ? 
+                        new[] { "10.0.2.2", "192.168.1.6", "localhost" } : 
+                        new[] { "192.168.1.6", "10.0.2.2", "localhost" };
+                    
+                    foreach (var ip in androidIPs)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🤖 Android trying IP: {ip}");
+                        return ip;
+                    }
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.iOS)
                 {
-                    return "192.168.1.6";
+                    // iOS simulator typically uses localhost or host machine IP
+                    var iosIPs = isLikelyEmulator ? 
+                        new[] { "localhost", "192.168.1.6" } : 
+                        new[] { "192.168.1.6", "localhost" };
+                    
+                    foreach (var ip in iosIPs)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🤖 iOS trying IP: {ip}");
+                        return ip;
+                    }
                 }
 
                 if (DeviceInfo.Platform == DevicePlatform.WinUI || DeviceInfo.Platform == DevicePlatform.macOS || DeviceInfo.Platform == DevicePlatform.MacCatalyst)
                 {
-                    return "192.168.1.6";
+                    System.Diagnostics.Debug.WriteLine($"🤖 Desktop platform using localhost");
+                    return "localhost";
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in GetDefaultHostForPlatform: {ex.Message}");
+            }
+
+            // Final fallback
+            System.Diagnostics.Debug.WriteLine($"🤖 Final fallback: localhost");
+            return "localhost";
+        }
+
+        private static bool IsLikelyEmulatorEnvironment()
+        {
+            try
+            {
+                // Check for common emulator indicators
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    // Android emulator indicators
+                    var model = DeviceInfo.Model?.ToLower() ?? "";
+                    var manufacturer = DeviceInfo.Manufacturer?.ToLower() ?? "";
+                    
+                    return model.Contains("emulator") || 
+                           model.Contains("google_sdk") || 
+                           model.Contains("sdk") ||
+                           manufacturer.Contains("genymotion") ||
+                           model.Contains("android sdk");
+                }
+                
+                if (DeviceInfo.Platform == DevicePlatform.iOS)
+                {
+                    // iOS simulator indicators
+                    var model = DeviceInfo.Model?.ToLower() ?? "";
+                    return model.Contains("simulator") || 
+                           model.Contains("iphone simulator") ||
+                           model.Contains("ipad simulator");
+                }
+                
+                return false;
             }
             catch
             {
-                // If DeviceInfo is unavailable (e.g., during tests), fall back to localhost
+                return false;
             }
-
-            // Fallback for other/unknown platforms
-            return "localhost";
         }
 
 		// Cache helpers
@@ -396,8 +493,7 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            const string sql = @"SELECT pi.amount, pi.unit, pi.role,
-                                        pi.amount_small, pi.unit_small,
+            const string sql = @"SELECT pi.amount_small, pi.unit_small, pi.role,
                                         pi.amount_medium, pi.unit_medium,
                                         pi.amount_large, pi.unit_large,
                                         i.itemID, i.itemName, i.itemQuantity, i.itemCategory, i.imageSet,
@@ -426,24 +522,14 @@ namespace Coftea_Capstone.Models
                     maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
                 };
 
-                // Shared amount/unit
-                double sharedAmt = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
-                string sharedUnit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
+                // Per-size amounts/units
+                item.InputAmountSmall = reader.IsDBNull(reader.GetOrdinal("amount_small")) ? 0d : reader.GetDouble("amount_small");
+                item.InputAmountMedium = reader.IsDBNull(reader.GetOrdinal("amount_medium")) ? 0d : reader.GetDouble("amount_medium");
+                item.InputAmountLarge = reader.IsDBNull(reader.GetOrdinal("amount_large")) ? 0d : reader.GetDouble("amount_large");
 
-                // Per-size amounts/units: fall back to shared values when NULL
-                item.InputAmountSmall = (HasColumn(reader, "amount_small") && !reader.IsDBNull(reader.GetOrdinal("amount_small")))
-                    ? reader.GetDouble("amount_small") : sharedAmt;
-                item.InputAmountMedium = (HasColumn(reader, "amount_medium") && !reader.IsDBNull(reader.GetOrdinal("amount_medium")))
-                    ? reader.GetDouble("amount_medium") : sharedAmt;
-                item.InputAmountLarge = (HasColumn(reader, "amount_large") && !reader.IsDBNull(reader.GetOrdinal("amount_large")))
-                    ? reader.GetDouble("amount_large") : sharedAmt;
-
-                item.InputUnitSmall = (HasColumn(reader, "unit_small") && !reader.IsDBNull(reader.GetOrdinal("unit_small")))
-                    ? reader.GetString("unit_small") : sharedUnit;
-                item.InputUnitMedium = (HasColumn(reader, "unit_medium") && !reader.IsDBNull(reader.GetOrdinal("unit_medium")))
-                    ? reader.GetString("unit_medium") : sharedUnit;
-                item.InputUnitLarge = (HasColumn(reader, "unit_large") && !reader.IsDBNull(reader.GetOrdinal("unit_large")))
-                    ? reader.GetString("unit_large") : sharedUnit;
+                item.InputUnitSmall = reader.IsDBNull(reader.GetOrdinal("unit_small")) ? item.unitOfMeasurement : reader.GetString("unit_small");
+                item.InputUnitMedium = reader.IsDBNull(reader.GetOrdinal("unit_medium")) ? item.unitOfMeasurement : reader.GetString("unit_medium");
+                item.InputUnitLarge = reader.IsDBNull(reader.GetOrdinal("unit_large")) ? item.unitOfMeasurement : reader.GetString("unit_large");
 
                 // Initialize the InputUnit based on the current selected size
                 item.InitializeInputUnit();
@@ -453,8 +539,9 @@ namespace Coftea_Capstone.Models
                 item.PriceUsedMedium = 0;
                 item.PriceUsedLarge = 0;
 
-                var amount = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
-                var unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
+                // Use small size as the default amount/unit for the return tuple
+                var amount = item.InputAmountSmall;
+                var unit = item.InputUnitSmall;
                 var role = reader.IsDBNull(reader.GetOrdinal("role")) ? "ingredient" : reader.GetString("role");
 
                 results.Add((item, amount, unit, role));

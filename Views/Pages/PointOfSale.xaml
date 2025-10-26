@@ -115,12 +115,19 @@
                             <TapGestureRecognizer Command="{Binding ShowHistoryCommand}" />
                         </Image.GestureRecognizers>
                     </Image>
-                    <!-- Cart icon (badge removed to prevent crashes) -->
-                    <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding CartCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
+                    <!-- Cart icon with badge -->
+                    <Grid>
+                        <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
+                            <Image.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CartCommand}" />
+                            </Image.GestureRecognizers>
+                        </Image>
+                        <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
+                               HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
+                               IsVisible="{Binding CartCount, Converter={StaticResource IsPositiveConverter}}">
+                            <Label Text="{Binding CartCount}" FontSize="10" TextColor="White" Margin="4,0"/>
+                        </Frame>
+                    </Grid>
                 </StackLayout>
             </Grid>
 
@@ -541,8 +548,8 @@
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <!-- Page-level overlays so Next hides previous and shows next cleanly -->
         <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1100"/>
-        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.IsInputIngredientsAmountUsedVisible}"/>
-        <otherViews:UpdateInputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.IsUpdateInputIngredientsAmountUsedVisible}"/>
+        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding IsInputIngredientsAmountUsedVisible}"/>
+        <otherViews:UpdateInputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding IsUpdateInputIngredientsAmountUsedVisible}"/>
         <otherViews:PreviewPOSItem BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1300"/>
         <otherViews:AddonsSelectionPopup BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:CartPopup BindingContext="{Binding CartPopup}" Grid.ColumnSpan="2"/>

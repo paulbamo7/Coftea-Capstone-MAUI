@@ -11,7 +11,7 @@
     <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
         <Frame Style="{StaticResource CenteredPopupFrame}" 
                WidthRequest="600" 
-               HeightRequest="500" 
+               HeightRequest="530" 
                MaximumWidthRequest="700" 
                BackgroundColor="#F8E8D7"
                MaximumHeightRequest="600">

@@ -161,6 +161,13 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
+        private async Task SaveProduct() // Save product immediately in edit mode
+        {
+            System.Diagnostics.Debug.WriteLine("🔧 SaveProduct called - saving current product details immediately");
+            await AddProduct();
+        }
+
+        [RelayCommand]
         public async Task AddProduct() // Validates and adds/updates the product
         {
             if (string.IsNullOrWhiteSpace(ProductName))
@@ -520,11 +527,15 @@ namespace Coftea_Capstone.ViewModel
 
                 var links = await _database.GetProductIngredientsAsync(productId);
                 System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Found {links?.Count() ?? 0} linked ingredients");
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: AllInventoryItems count: {ConnectPOSToInventoryVM.AllInventoryItems?.Count ?? 0}");
                 
                 // Clear existing selections first
-                foreach (var item in ConnectPOSToInventoryVM.AllInventoryItems)
+                if (ConnectPOSToInventoryVM.AllInventoryItems != null)
                 {
-                    item.IsSelected = false;
+                    foreach (var item in ConnectPOSToInventoryVM.AllInventoryItems)
+                    {
+                        item.IsSelected = false;
+                    }
                 }
                 
                 foreach (var (item, amount, unit, role) in links)
@@ -532,14 +543,19 @@ namespace Coftea_Capstone.ViewModel
                     System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Processing {item.itemName} (ID: {item.itemID})");
                     
                     // Find matching inventory item
-                    var inv = ConnectPOSToInventoryVM.AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
+                    var inv = ConnectPOSToInventoryVM.AllInventoryItems?.FirstOrDefault(i => i.itemID == item.itemID);
                     if (inv == null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Adding new item {item.itemName} to collections");
+                        System.Diagnostics.Debug.WriteLine($"⚠️ LoadIngredientDataForEdit: Item {item.itemName} (ID: {item.itemID}) NOT FOUND in AllInventoryItems!");
+                        System.Diagnostics.Debug.WriteLine($"⚠️ LoadIngredientDataForEdit: Adding new item {item.itemName} to collections");
                         // If not found yet, add it to collections
                         inv = item;
                         ConnectPOSToInventoryVM.AllInventoryItems.Add(inv);
                         ConnectPOSToInventoryVM.InventoryItems.Add(inv);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"✅ LoadIngredientDataForEdit: Found {inv.itemName} (ID: {inv.itemID}) in AllInventoryItems");
                     }
 
                     // Mark as selected
@@ -596,9 +612,13 @@ namespace Coftea_Capstone.ViewModel
                 // Force refresh the SelectedIngredientsOnly collection to ensure it's populated
                 ConnectPOSToInventoryVM.ForceRefreshSelectedIngredients();
                 
+                // Force UI refresh for all selected ingredients to ensure InputAmountText is updated
+                // Note: InventoryPageModel handles its own property change notifications
+                
                 // Force UI refresh - the UpdateSelectedIngredientsOnly method will handle property notifications
                 
                 System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Completed. SelectedIngredientsOnly count: {ConnectPOSToInventoryVM.SelectedIngredientsOnly?.Count ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Total selected items in AllInventoryItems: {ConnectPOSToInventoryVM.AllInventoryItems.Count(i => i.IsSelected)}");
                 
                 // Debug: Log all selected items
                 if (ConnectPOSToInventoryVM.SelectedIngredientsOnly != null)
@@ -894,6 +914,8 @@ namespace Coftea_Capstone.ViewModel
             {
                 ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = false;
                 ConnectPOSToInventoryVM.IsInputIngredientsVisible = false;
+                ConnectPOSToInventoryVM.IsEditMode = false;
+                ConnectPOSToInventoryVM.IsUpdateAmountsMode = false;
                 ConnectPOSToInventoryVM.IsPreviewVisible = false;
                 ConnectPOSToInventoryVM.IsAddonPopupVisible = false;
                 ConnectPOSToInventoryVM.ProductName = string.Empty;
@@ -958,8 +980,29 @@ namespace Coftea_Capstone.ViewModel
             // Propagate description to child VM
             ConnectPOSToInventoryVM.ProductDescription = ProductDescription;
 
-            // Load inventory list then show
-            _ = ConnectPOSToInventoryVM.LoadInventoryAsync();
+            // Load inventory list only if not already loaded (to preserve selections in edit mode)
+            System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: Checking if inventory needs loading...");
+            System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: AllInventoryItems null? {ConnectPOSToInventoryVM.AllInventoryItems == null}");
+            System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: AllInventoryItems count: {ConnectPOSToInventoryVM.AllInventoryItems?.Count ?? 0}");
+            System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: IsEditMode: {IsEditMode}");
+            
+            if (ConnectPOSToInventoryVM.AllInventoryItems == null || !ConnectPOSToInventoryVM.AllInventoryItems.Any())
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: Loading inventory (not loaded yet)");
+                _ = ConnectPOSToInventoryVM.LoadInventoryAsync();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: Inventory already loaded, just refreshing filters");
+                System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: Selected items before ApplyFilters: {ConnectPOSToInventoryVM.AllInventoryItems.Count(i => i.IsSelected)}");
+                
+                // Refresh filters to update the display without reloading
+                ConnectPOSToInventoryVM.ApplyFilters();
+                
+                System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: Selected items after ApplyFilters: {ConnectPOSToInventoryVM.AllInventoryItems.Count(i => i.IsSelected)}");
+                System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: Items in InventoryItems collection: {ConnectPOSToInventoryVM.InventoryItems.Count}");
+                System.Diagnostics.Debug.WriteLine($"🔧 OpenConnectPOSToInventory: Selected items in InventoryItems: {ConnectPOSToInventoryVM.InventoryItems.Count(i => i.IsSelected)}");
+            }
             ConnectPOSToInventoryVM.IsConnectPOSToInventoryVisible = true;
         }
 
