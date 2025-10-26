@@ -184,27 +184,47 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 // Update InputAmount and InputUnit for all selected items based on current size
                 // This ensures the UI shows the correct saved values when editing
+                // BUT only if the values haven't been set yet (to preserve database-loaded values in edit mode)
                 foreach (var item in SelectedIngredientsOnly)
                 {
                     var size = SelectedSize;
-                    item.InputAmount = size switch
-                    {
-                        "Small" => item.InputAmountSmall > 0 ? item.InputAmountSmall : 1,
-                        "Medium" => item.InputAmountMedium > 0 ? item.InputAmountMedium : 1,
-                        "Large" => item.InputAmountLarge > 0 ? item.InputAmountLarge : 1,
-                        _ => 1
-                    };
                     
-                    var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
-                    item.InputUnit = size switch
+                    // Only update if InputAmount is 0 or not set (to preserve values loaded from database)
+                    if (item.InputAmount <= 0)
                     {
-                        "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : fallbackUnit,
-                        "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : fallbackUnit,
-                        "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : fallbackUnit,
-                        _ => fallbackUnit
-                    };
+                        item.InputAmount = size switch
+                        {
+                            "Small" => item.InputAmountSmall > 0 ? item.InputAmountSmall : 1,
+                            "Medium" => item.InputAmountMedium > 0 ? item.InputAmountMedium : 1,
+                            "Large" => item.InputAmountLarge > 0 ? item.InputAmountLarge : 1,
+                            _ => 1
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} InputAmount to {item.InputAmount} (was 0 or not set)");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 Preserved {item.itemName} InputAmount: {item.InputAmount} (already set from database)");
+                    }
                     
-                    System.Diagnostics.Debug.WriteLine($"🔧 Updated {item.itemName}: Amount={item.InputAmount}, Unit={item.InputUnit} for size {size}");
+                    // Only update if InputUnit is empty (to preserve values loaded from database)
+                    if (string.IsNullOrWhiteSpace(item.InputUnit))
+                    {
+                        var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
+                        item.InputUnit = size switch
+                        {
+                            "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : fallbackUnit,
+                            "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : fallbackUnit,
+                            "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : fallbackUnit,
+                            _ => fallbackUnit
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} InputUnit to {item.InputUnit} (was empty)");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 Preserved {item.itemName} InputUnit: {item.InputUnit} (already set from database)");
+                    }
                     
                     // Force UI refresh to ensure InputAmountText is updated
                     // Note: InventoryPageModel handles its own property change notifications
