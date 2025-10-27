@@ -17,9 +17,9 @@
         <Frame
             VerticalOptions="Center"
             HorizontalOptions="Center"
-            Padding="25"
-            BackgroundColor="#FFF9F4"
-            CornerRadius="25"
+            Padding="30"
+            BackgroundColor="#F8E8D7"
+            CornerRadius="20"
             HasShadow="True"
             WidthRequest="580"
             MaximumWidthRequest="580"
@@ -33,87 +33,93 @@
             </Frame.GestureRecognizers>
 
             <ScrollView>
-                <VerticalStackLayout Spacing="20">
+                <VerticalStackLayout Spacing="25">
                 <!-- Header -->
                 <Label Text="Settings"
-                       FontSize="26"
+                       FontSize="30"
                        FontAttributes="Bold"
-                       TextColor="#4B3832"
-                       HorizontalOptions="Center" />
+                       FontFamily="Montserrat-Black"
+                       TextColor="#5B4F45"
+                       HorizontalOptions="Center"
+                       Margin="0,5,0,20" />
 
                 <!-- Feature buttons (wrap on small screens) -->
                 <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="Center" AlignContent="Start" Margin="0,0,0,0">
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
-                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="White" Padding="20">
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding OpenUserManagementCommand}" />
                             </Frame.GestureRecognizers>
                             <Image Source="usermanagementicon.png"
-                                   HeightRequest="90"
-                                   WidthRequest="90"
+                                   HeightRequest="80"
+                                   WidthRequest="80"
                                    Aspect="AspectFit"
                                    InputTransparent="True" />
                         </Frame>
                         <Label Text="User Management"
                                HorizontalOptions="Center"
-                               FontSize="15"
+                               FontSize="14"
                                FontAttributes="Bold"
-                               TextColor="#4B3832"/>
+                               FontFamily="OpenSansSemibold"
+                               TextColor="#5B4F45"/>
                     </VerticalStackLayout>
                     
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
-                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="White" Padding="20">
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding OpenManagePOSOptionsCommand}" />
                             </Frame.GestureRecognizers>
                             <Image Source="manageposicon.png"
-                                   HeightRequest="90"
-                                   WidthRequest="90"
+                                   HeightRequest="80"
+                                   WidthRequest="80"
                                    Aspect="AspectFit"
                                    InputTransparent="True" />
                         </Frame>
                         <Label Text="Manage POS Menu"
                                HorizontalOptions="Center"
-                               FontSize="15"
+                               FontSize="14"
                                FontAttributes="Bold"
-                               TextColor="#4B3832"/>
+                               FontFamily="OpenSansSemibold"
+                               TextColor="#5B4F45"/>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10" IsVisible="{Binding CanManageInventory}">
-                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#DCC3A6">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15" IsVisible="{Binding CanManageInventory}">
+                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="White" Padding="20">
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding OpenManageInventoryOptionsCommand}" />
                             </Frame.GestureRecognizers>
                             <Image Source="manageinventoryicon.png"
-                                   HeightRequest="90"
-                                   WidthRequest="90"
+                                   HeightRequest="80"
+                                   WidthRequest="80"
                                    Aspect="AspectFit"
                                    InputTransparent="True" />
                         </Frame>
                         <Label Text="Manage Inventory"
                                HorizontalOptions="Center"
-                               FontSize="15"
+                               FontSize="14"
                                FontAttributes="Bold"
-                               TextColor="#4B3832"/>
+                               FontFamily="OpenSansSemibold"
+                               TextColor="#5B4F45"/>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="10" Margin="10">
-                        <Frame CornerRadius="15" HasShadow="True" BackgroundColor="#F28C8C">
+                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#BDAEA2" Padding="20">
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnLogoutClicked" />
                             </Frame.GestureRecognizers>
                             <Image Source="logouticon.png"
-                                   HeightRequest="90"
-                                   WidthRequest="90"
+                                   HeightRequest="80"
+                                   WidthRequest="80"
                                    Aspect="AspectFit"
                                    InputTransparent="True" />
                         </Frame>
                         <Label Text="Logout"
                                HorizontalOptions="Center"
-                               FontSize="15"
+                               FontSize="14"
                                FontAttributes="Bold"
-                               TextColor="#4B3832"/>
+                               FontFamily="OpenSansSemibold"
+                               TextColor="#5B4F45"/>
                     </VerticalStackLayout>
 
                 </FlexLayout>
@@ -151,11 +157,14 @@
                 <!-- Close button at bottom -->
                 <Button Text="Close"
                         Margin="0,15,0,0"
-                        WidthRequest="100"
-                        HeightRequest="45"
-                        BackgroundColor="#F28C8C"
-                        TextColor="White"
+                        WidthRequest="140"
+                        HeightRequest="50"
+                        BackgroundColor="#BDAEA2"
+                        TextColor="#5B4F45"
+                        BorderColor="#8B7355"
+                        BorderWidth="2"
                         FontAttributes="Bold"
+                        FontSize="15"
                         CornerRadius="20"
                         HorizontalOptions="Center"
                         Command="{Binding CloseSettingsPopupCommand}"/>

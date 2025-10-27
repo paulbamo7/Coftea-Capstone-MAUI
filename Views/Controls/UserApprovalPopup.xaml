@@ -27,15 +27,16 @@
 
                 <Label Grid.Column="0" 
                        Text="Pending User Requests" 
-                       FontSize="20" 
+                       FontSize="22" 
                        FontAttributes="Bold" 
-                       TextColor="Black"
+                       FontFamily="Montserrat-Black"
+                       TextColor="#5B4F45"
                        VerticalOptions="Center"/>
 
                 <ImageButton Grid.Column="1" 
                              Source="close.png" 
-                             WidthRequest="25" 
-                             HeightRequest="25"
+                             WidthRequest="28" 
+                             HeightRequest="28"
                              BackgroundColor="Transparent"
                              Command="{Binding CloseUserApprovalPopupCommand}"/>
             </Grid>
@@ -45,16 +46,17 @@
                 <CollectionView ItemsSource="{Binding PendingRequests}">
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Frame BackgroundColor="#F5F5F5" 
-                                   CornerRadius="10" 
-                                   Padding="15" 
-                                   Margin="0,5">
+                            <Frame BackgroundColor="#F8E8D7" 
+                                   CornerRadius="12" 
+                                   Padding="20" 
+                                   Margin="0,8">
                                 <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" RowSpacing="5">
                                     <!-- User Basic Info -->
                                     <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
-                                        <Label FontSize="16" 
+                                        <Label FontSize="17" 
                                                FontAttributes="Bold" 
-                                               TextColor="Black">
+                                               FontFamily="Montserrat-Black"
+                                               TextColor="#5B4F45">
                                             <Label.Text>
                                                 <MultiBinding StringFormat="Name: {0} {1}">
                                                     <Binding Path="FirstName"/>
@@ -64,41 +66,56 @@
                                         </Label>
                                         <Label Text="{Binding Email, StringFormat='Email: {0}'}" 
                                                FontSize="14" 
-                                               TextColor="Gray"/>
+                                               FontFamily="OpenSans-Regular"
+                                               TextColor="#8B7355"/>
                                     </VerticalStackLayout>
 
                                     <!-- Registration Details -->
-                                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,5,0,0">
+                                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,8,0,0">
                                         <Label Text="{Binding PhoneNumber, StringFormat='Phone: {0}'}" 
-                                               FontSize="12" 
-                                               TextColor="DarkGray"/>
+                                               FontSize="13" 
+                                               FontFamily="OpenSans-Regular"
+                                               TextColor="#8B7355"/>
                                         <Label Text="{Binding Address, StringFormat='Address: {0}'}" 
-                                               FontSize="12" 
-                                               TextColor="DarkGray"/>
+                                               FontSize="13" 
+                                               FontFamily="OpenSans-Regular"
+                                               TextColor="#8B7355"/>
                                         <Label Text="{Binding Birthday, StringFormat='Birthday: {0:MMM dd, yyyy}'}" 
-                                               FontSize="12" 
-                                               TextColor="DarkGray"/>
+                                               FontSize="13" 
+                                               FontFamily="OpenSans-Regular"
+                                               TextColor="#8B7355"/>
                                         <Label Text="{Binding RegistrationDate, StringFormat='Registered: {0:MMM dd, yyyy HH:mm}'}" 
-                                               FontSize="12" 
-                                               TextColor="DarkGray"/>
+                                               FontSize="13" 
+                                               FontFamily="OpenSans-Regular"
+                                               TextColor="#8B7355"/>
                                     </VerticalStackLayout>
 
                                     <!-- Action Buttons -->
                                     <Button Grid.Row="2" Grid.Column="1" 
                                             Text="Accept" 
-                                            BackgroundColor="#4CAF50" 
+                                            BackgroundColor="#5B4F45" 
                                             TextColor="White"
-                                            CornerRadius="8"
-                                            Padding="20,8"
+                                            BorderWidth="0"
+                                            CornerRadius="20"
+                                            FontSize="14"
+                                            FontAttributes="Bold"
+                                            Padding="25,10"
+                                            WidthRequest="120"
+                                            HeightRequest="45"
                                             Command="{Binding Source={x:Reference PendingUsersPopupView}, Path=BindingContext.ApproveRequestCommand}"
                                             CommandParameter="{Binding .}"/>
 
                                     <Button Grid.Row="2" Grid.Column="2" 
                                             Text="Reject" 
-                                            BackgroundColor="#F44336" 
+                                            BackgroundColor="#D4A574" 
                                             TextColor="White"
-                                            CornerRadius="8"
-                                            Padding="20,8"
+                                            BorderWidth="0"
+                                            CornerRadius="20"
+                                            FontSize="14"
+                                            FontAttributes="Bold"
+                                            Padding="25,10"
+                                            WidthRequest="120"
+                                            HeightRequest="45"
                                             Command="{Binding Source={x:Reference PendingUsersPopupView}, Path=BindingContext.DenyRequestCommand}"
                                             CommandParameter="{Binding .}"/>
                                 </Grid>
@@ -108,14 +125,17 @@
 
                     <CollectionView.EmptyView>
                         <Grid Padding="40" HorizontalOptions="Center">
-                            <VerticalStackLayout Spacing="10">
+                            <VerticalStackLayout Spacing="15">
                                 <Label Text="No pending requests" 
-                                       FontSize="16" 
-                                       TextColor="Gray" 
+                                       FontSize="18" 
+                                       FontAttributes="Bold"
+                                       FontFamily="Montserrat-Black"
+                                       TextColor="#5B4F45" 
                                        HorizontalOptions="Center"/>
                                 <Label Text="All user requests have been processed" 
                                        FontSize="14" 
-                                       TextColor="LightGray" 
+                                       FontFamily="OpenSans-Regular"
+                                       TextColor="#8B7355" 
                                        HorizontalOptions="Center"/>
                             </VerticalStackLayout>
                         </Grid>
@@ -124,13 +144,19 @@
             </ScrollView>
 
             <!-- Footer -->
-            <Grid Grid.Row="2" BackgroundColor="#F0F0F0" Padding="20,15">
+            <Grid Grid.Row="2" BackgroundColor="#F8E8D7" Padding="20,15">
                 <Button Text="Close" 
                         BackgroundColor="#BDAEA2" 
-                        TextColor="Black"
-                        CornerRadius="8"
+                        TextColor="#5B4F45"
+                        BorderColor="#8B7355"
+                        BorderWidth="2"
+                        CornerRadius="20"
+                        FontSize="15"
+                        FontAttributes="Bold"
                         Padding="30,10"
                         HorizontalOptions="End"
+                        WidthRequest="120"
+                        HeightRequest="45"
                         Command="{Binding CloseUserApprovalPopupCommand}"/>
             </Grid>
         </Grid>

@@ -15,8 +15,8 @@
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
                Padding="30"
-               BackgroundColor="#FFF9F4"
-               CornerRadius="28"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
                WidthRequest="450"
                HeightRequest="350"
                HasShadow="True">
@@ -25,44 +25,54 @@
 
                 <!-- Title -->
                 <Label Text="Manage Inventory Items"
-                       FontSize="24"
+                       FontSize="28"
                        FontAttributes="Bold"
-                       TextColor="#4A3F35"
+                       FontFamily="Montserrat-Black"
+                       TextColor="#5B4F45"
                        HorizontalOptions="Center" />
 
                 <!-- Action Buttons -->
-                <VerticalStackLayout Spacing="20" HorizontalOptions="Center">
+                <VerticalStackLayout Spacing="15" HorizontalOptions="Center">
 
                     <Button Text="Add Item"
-                            WidthRequest="220"
+                            WidthRequest="240"
                             HeightRequest="55"
                             FontSize="16"
+                            FontAttributes="Bold"
+                            FontFamily="OpenSansSemibold"
                             Command="{Binding AddItemCommand}"
-                            BackgroundColor="#A57C5C"
+                            BackgroundColor="#5B4F45"
                             TextColor="White"
-                            CornerRadius="25"
+                            CornerRadius="20"
+                            BorderWidth="0"
                             />
 
                     <Button Text="Edit Item"
-                            WidthRequest="220"
+                            WidthRequest="240"
                             HeightRequest="55"
                             FontSize="16"
+                            FontAttributes="Bold"
+                            FontFamily="OpenSansSemibold"
                             Command="{Binding EditItemCommand}"
-                            BackgroundColor="#A57C5C"
+                            BackgroundColor="#D4A574"
                             TextColor="White"
-                            CornerRadius="25"
+                            CornerRadius="20"
+                            BorderWidth="0"
                             />
 
                 </VerticalStackLayout>
 
                 <!-- Close Button -->
                 <Button Text="Close"
-                        WidthRequest="120"
-                        HeightRequest="45"
-                        FontSize="16"
-                        BackgroundColor="#A57C5C"
-                        TextColor="White"
-                        CornerRadius="22"
+                        WidthRequest="140"
+                        HeightRequest="50"
+                        FontSize="15"
+                        FontAttributes="Bold"
+                        BackgroundColor="#BDAEA2"
+                        TextColor="#5B4F45"
+                        BorderColor="#8B7355"
+                        BorderWidth="2"
+                        CornerRadius="20"
                         HorizontalOptions="Center"            
                         Command="{Binding CloseInventoryManagementPopupCommand}" />
             </VerticalStackLayout>

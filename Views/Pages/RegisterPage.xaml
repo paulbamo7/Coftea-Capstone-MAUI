@@ -53,8 +53,8 @@
                    CornerRadius="20"
                    BorderColor="#8B7355"
                    HasShadow="True"
-                   WidthRequest="600"
-                   MinimumHeightRequest="600">
+                   WidthRequest="500"
+                   MinimumHeightRequest="500">
 
                 <VerticalStackLayout Spacing="20">
                     <!-- Title -->

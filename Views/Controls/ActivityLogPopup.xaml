@@ -51,13 +51,14 @@
                                TextColor="White" 
                                VerticalOptions="Center"/>
                         <Button Grid.Column="1" 
-                                Text="✕" 
+                                Text="×" 
                                 BackgroundColor="Transparent" 
                                 TextColor="White" 
-                                FontSize="20" 
+                                FontSize="32" 
                                 FontAttributes="Bold"
                                 WidthRequest="40" 
                                 HeightRequest="40"
+                                Padding="0"
                                 Command="{Binding CloseCommand}"/>
                     </Grid>
                 </Grid>
@@ -88,68 +89,80 @@
                             <Button Text="All" 
                                     Command="{Binding FilterByActionCommand}" 
                                     CommandParameter="All"
-                                    BackgroundColor="LightGray"
-                                    TextColor="Black"
+                                    BackgroundColor="#BDAEA2"
+                                    TextColor="#5B4F45"
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
                                     FontAttributes="Bold"
                                     FontSize="14"
-                                    HeightRequest="40"
-                                    WidthRequest="80"
-                                    CornerRadius="5">
+                                    HeightRequest="45"
+                                    WidthRequest="90"
+                                    CornerRadius="20">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="All">
-                                        <Setter Property="BackgroundColor" Value="#7E6D5F" />
+                                        <Setter Property="BackgroundColor" Value="#D4A574" />
                                         <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderWidth" Value="0" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
                             <Button Text="Deductions" 
                                     Command="{Binding FilterByActionCommand}" 
                                     CommandParameter="DEDUCTED"
-                                    BackgroundColor="LightGray"
-                                    TextColor="Black"
+                                    BackgroundColor="#BDAEA2"
+                                    TextColor="#5B4F45"
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
                                     FontAttributes="Bold"
                                     FontSize="14"
-                                    HeightRequest="40"
-                                    WidthRequest="100"
-                                    CornerRadius="5">
+                                    HeightRequest="45"
+                                    WidthRequest="120"
+                                    CornerRadius="20">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="DEDUCTED">
-                                        <Setter Property="BackgroundColor" Value="#7E6D5F" />
+                                        <Setter Property="BackgroundColor" Value="#D4A574" />
                                         <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderWidth" Value="0" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
                             <Button Text="Additions" 
                                     Command="{Binding FilterByActionCommand}" 
                                     CommandParameter="ADDED"
-                                    BackgroundColor="LightGray"
-                                    TextColor="Black"
+                                    BackgroundColor="#BDAEA2"
+                                    TextColor="#5B4F45"
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
                                     FontAttributes="Bold"
                                     FontSize="14"
-                                    HeightRequest="40"
-                                    WidthRequest="100"
-                                    CornerRadius="5">
+                                    HeightRequest="45"
+                                    WidthRequest="120"
+                                    CornerRadius="20">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="ADDED">
-                                        <Setter Property="BackgroundColor" Value="#7E6D5F" />
+                                        <Setter Property="BackgroundColor" Value="#D4A574" />
                                         <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderWidth" Value="0" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
                             <Button Text="Purchase Orders" 
                                     Command="{Binding FilterByActionCommand}" 
                                     CommandParameter="PURCHASE_ORDER"
-                                    BackgroundColor="LightGray"
-                                    TextColor="Black"
+                                    BackgroundColor="#BDAEA2"
+                                    TextColor="#5B4F45"
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
                                     FontAttributes="Bold"
                                     FontSize="14"
-                                    HeightRequest="40"
-                                    WidthRequest="140"
-                                    CornerRadius="5">
+                                    HeightRequest="45"
+                                    WidthRequest="160"
+                                    CornerRadius="20">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="PURCHASE_ORDER">
-                                        <Setter Property="BackgroundColor" Value="#7E6D5F" />
+                                        <Setter Property="BackgroundColor" Value="#D4A574" />
                                         <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderWidth" Value="0" />
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
@@ -157,25 +170,38 @@
 
                         <!-- Search and Refresh -->
                         <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
-                            <Entry Grid.Column="0" 
-                                   Placeholder="Search by item name..." 
-                                   Text="{Binding SearchText}"
-                                   BackgroundColor="White"
-                                   TextColor="Black"
-                                   PlaceholderColor="Gray"/>
+                            <Border Grid.Column="0" 
+                                    Stroke="#8B7355" 
+                                    StrokeShape="RoundRectangle 15" 
+                                    StrokeThickness="2" 
+                                    HeightRequest="45" 
+                                    BackgroundColor="White">
+                                <Entry Placeholder="Search by item name..." 
+                                       Text="{Binding SearchText}"
+                                       BackgroundColor="Transparent"
+                                       TextColor="Black"
+                                       PlaceholderColor="#8B7355"
+                                       Margin="15,0"/>
+                            </Border>
                             <Button Grid.Column="1" 
                                     Text="🔍" 
-                                    BackgroundColor="#7E6D5F" 
-                                    TextColor="White" 
-                                    WidthRequest="50" 
-                                    HeightRequest="40"
+                                    BackgroundColor="#BDAEA2" 
+                                    TextColor="#5B4F45" 
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
+                                    WidthRequest="55" 
+                                    HeightRequest="45"
+                                    CornerRadius="20"
                                     Command="{Binding SearchCommand}"/>
                             <Button Grid.Column="2" 
                                     Text="🔄" 
-                                    BackgroundColor="#4CAF50" 
-                                    TextColor="White" 
-                                    WidthRequest="50" 
-                                    HeightRequest="40"
+                                    BackgroundColor="#BDAEA2" 
+                                    TextColor="#5B4F45" 
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
+                                    WidthRequest="55" 
+                                    HeightRequest="45"
+                                    CornerRadius="20"
                                     Command="{Binding RefreshCommand}"/>
                         </Grid>
 

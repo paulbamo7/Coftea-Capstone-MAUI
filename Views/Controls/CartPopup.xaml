@@ -69,15 +69,15 @@
                     </Grid.RowDefinitions>
                     
                     <!-- Fixed Table Header -->
-                    <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="10" Margin="0,0,0,10">
+                    <Grid Grid.Row="0" BackgroundColor="#BDAEA2" Padding="10" Margin="0,0,0,10">
                         <Grid ColumnDefinitions="40, 80, *, 150, 60, 80, 80">
-                            <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="40" HorizontalTextAlignment="Center"/>
-                            <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalTextAlignment="Center"/>
-                            <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="14" TextColor="Black" />
-                            <Label Grid.Column="3" Text="Add-ons" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="150" />
-                            <Label Grid.Column="4" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" />
-                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
-                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="40" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="80" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" />
+                            <Label Grid.Column="3" Text="Add-ons" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="150" />
+                            <Label Grid.Column="4" Text="Size" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="60" />
+                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="80" />
+                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="80" />
                         </Grid>
                     </Grid>
 
@@ -153,27 +153,33 @@
                                                HorizontalOptions="Center" />
 
                                         <!-- Action Buttons -->
-                                        <VerticalStackLayout Grid.Column="6" Spacing="15">
+                                        <VerticalStackLayout Grid.Column="6" Spacing="10">
                                             <Button
                                                 Text="Edit" 
                                                 FontSize="12" 
-                                                BackgroundColor="#4CAF50" 
-                                                TextColor="White" 
-                                                CornerRadius="15"
+                                                BackgroundColor="#BDAEA2" 
+                                                TextColor="#5B4F45" 
+                                                BorderColor="#8B7355"
+                                                BorderWidth="1"
+                                                CornerRadius="12"
                                                 Padding="0"
-                                                WidthRequest="60" 
-                                                HeightRequest="30"
+                                                WidthRequest="65" 
+                                                HeightRequest="35"
+                                                FontAttributes="Bold"
                                                 Command="{Binding BindingContext.EditCartItemCommand, Source={x:Reference CartPopupView}}" 
                                                 CommandParameter="{Binding .}" />
                                             <Button 
                                                 Text="Delete" 
                                                 FontSize="12" 
-                                                BackgroundColor="Red" 
-                                                TextColor="White" 
-                                                CornerRadius="15"
+                                                BackgroundColor="#BDAEA2" 
+                                                TextColor="#5B4F45" 
+                                                BorderColor="#8B7355"
+                                                BorderWidth="1"
+                                                CornerRadius="12"
                                                 Padding="0"
-                                                WidthRequest="60" 
-                                                HeightRequest="30"
+                                                WidthRequest="65" 
+                                                HeightRequest="35"
+                                                FontAttributes="Bold"
                                                 Command="{Binding BindingContext.DeleteCartItemCommand, Source={x:Reference CartPopupView}}" 
                                                 CommandParameter="{Binding .}" />
                                         </VerticalStackLayout>
@@ -200,14 +206,15 @@
 
                         <!-- Checkout Button -->
                         <Button Grid.Column="1" 
-                                Text="Check Out" 
-                                FontSize="16" 
+                                Text="✓ Check Out" 
+                                FontSize="15" 
                                 FontAttributes="Bold"
                                 BackgroundColor="#5B4F45" 
                                 TextColor="White" 
                                 CornerRadius="20"
-                                WidthRequest="120" 
-                                HeightRequest="40"
+                                WidthRequest="140" 
+                                HeightRequest="50"
+                                Padding="20,0"
                                 Command="{Binding CheckoutCommand}" />
                     </Grid>
                 </Grid>
