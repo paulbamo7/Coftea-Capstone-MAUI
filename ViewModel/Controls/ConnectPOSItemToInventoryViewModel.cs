@@ -346,7 +346,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Close all popups and return to PointOfSale
             IsConnectPOSToInventoryVisible = false;
             IsInputIngredientsVisible = false;
-            IsUpdateAmountsMode = false;
             IsPreviewVisible = false;
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
@@ -380,35 +379,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             var app = (App)Application.Current;
             (app?.POSVM?.AddItemToPOSViewModel)?.SetIsAddItemToPOSVisibleTrue();
             ReturnRequested?.Invoke();
-        }
-
-        [RelayCommand]
-        private void ForceCloseAllPopups()
-        {
-            System.Diagnostics.Debug.WriteLine("🔧 ForceCloseAllPopups called");
-            IsConnectPOSToInventoryVisible = false;
-            IsInputIngredientsVisible = false;
-            IsEditMode = false;
-            IsUpdateAmountsMode = false;
-            IsPreviewVisible = false;
-            IsAddonPopupVisible = false;
-            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
-            
-            // Clear all selections
-            ClearAllSelections();
-            
-            // Reset the parent AddItemToPOS form
-            var app = (App)Application.Current;
-            var addItemVM = app?.POSVM?.AddItemToPOSViewModel ?? app?.AddItemPopup;
-            if (addItemVM != null)
-            {
-                System.Diagnostics.Debug.WriteLine("🔧 Calling ResetForm on AddItemToPOSViewModel");
-                addItemVM.ResetForm();
-            }
-            
-            // Force property change notifications
-            OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
-            OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
         }
 
         [RelayCommand]

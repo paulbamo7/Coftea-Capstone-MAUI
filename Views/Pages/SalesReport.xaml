@@ -251,40 +251,43 @@
                                    HorizontalOptions="Center"/>
                             
                             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,5,0,0">
-                                <Frame Grid.Column="0" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True">
-                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
-                                        <Label Text="💰" FontSize="16" HorizontalOptions="Center"/>
-                                        <Label Text="Cash" FontSize="12" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                <Frame Grid.Column="0" BackgroundColor="White" CornerRadius="12" Padding="8" HasShadow="True" HorizontalOptions="FillAndExpand">
+                                    <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                        <Label Text="💰" FontSize="14" HorizontalOptions="Center"/>
+                                        <Label Text="Cash" FontSize="11" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
                                         <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" 
-                                               FontSize="16" 
+                                               FontSize="13" 
                                                FontAttributes="Bold" 
                                                FontFamily="Montserrat-Black"
                                                TextColor="#2E7D32" 
-                                               HorizontalOptions="Center"/>
+                                               HorizontalOptions="Center"
+                                               LineBreakMode="NoWrap"/>
                                     </VerticalStackLayout>
                                 </Frame>
-                                <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True">
-                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
-                                        <Label Text="📱" FontSize="16" HorizontalOptions="Center"/>
-                                        <Label Text="GCash" FontSize="12" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="8" HasShadow="True" HorizontalOptions="FillAndExpand">
+                                    <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                        <Label Text="📱" FontSize="14" HorizontalOptions="Center"/>
+                                        <Label Text="GCash" FontSize="11" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
                                         <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" 
-                                               FontSize="16" 
+                                               FontSize="13" 
                                                FontAttributes="Bold" 
                                                FontFamily="Montserrat-Black"
                                                TextColor="#2E7D32" 
-                                               HorizontalOptions="Center"/>
+                                               HorizontalOptions="Center"
+                                               LineBreakMode="NoWrap"/>
                                     </VerticalStackLayout>
                                 </Frame>
-                                <Frame Grid.Column="2" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True">
-                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
-                                        <Label Text="🏦" FontSize="16" HorizontalOptions="Center"/>
-                                        <Label Text="Bank" FontSize="12" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                <Frame Grid.Column="2" BackgroundColor="White" CornerRadius="12" Padding="8" HasShadow="True" HorizontalOptions="FillAndExpand">
+                                    <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+                                        <Label Text="🏦" FontSize="14" HorizontalOptions="Center"/>
+                                        <Label Text="Bank" FontSize="11" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
                                         <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" 
-                                               FontSize="16" 
+                                               FontSize="13" 
                                                FontAttributes="Bold" 
                                                FontFamily="Montserrat-Black"
                                                TextColor="#2E7D32" 
-                                               HorizontalOptions="Center"/>
+                                               HorizontalOptions="Center"
+                                               LineBreakMode="NoWrap"/>
                                     </VerticalStackLayout>
                                 </Frame>
                             </Grid>

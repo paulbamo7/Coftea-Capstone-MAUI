@@ -139,7 +139,7 @@
                                         <!-- Size -->
                                         <Label Grid.Column="4" 
                                                Text="{Binding SizeDisplay}" 
-                                               FontSize="12" FontFamily="MontserratBlack" 
+                                               FontSize="10" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center"

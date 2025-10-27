@@ -44,12 +44,6 @@
                            FontSize="26" FontFamily="MontserratBlack"
                            TextColor="#3C3C3C"
                            VerticalOptions="Center" />
-                    <Button Text="✕"
-                            BackgroundColor="Transparent"
-                            TextColor="#444"
-                            FontSize="20" FontFamily="MontserratBlack"
-                            Command="{Binding CloseConnectPOSToInventoryCommand}"
-                            HorizontalOptions="EndAndExpand" />
                 </HorizontalStackLayout>
 
                 <!-- CONTENT SECTION -->
@@ -292,25 +286,15 @@
                                        HorizontalOptions="End"
                                        Spacing="15"
                                        Padding="0,10,0,10">
-                    <Button Text="Close" 
+                    <Button Text="← Return" 
                             BackgroundColor="#BDAEA2" 
                             TextColor="#5B4F45"
                             BorderColor="#8B7355"
                             BorderWidth="2"
                             FontSize="15"
                             FontAttributes="Bold"
-                            WidthRequest="120"
-                            HeightRequest="50"
-                            CornerRadius="20"
-                            Command="{Binding CloseConnectPOSToInventoryCommand}"/>
-                    <Button Text="← Return" 
-                            BackgroundColor="#D4A574" 
-                            TextColor="White"
-                            BorderWidth="0"
-                            FontSize="15"
-                            FontAttributes="Bold"
                             Command="{Binding ReturnToAddItemToPOSCommand}" 
-                            WidthRequest="120"
+                            WidthRequest="140"
                             HeightRequest="50"
                             CornerRadius="20"/>
                     <Button Text="Next →" 
@@ -320,7 +304,7 @@
                             FontSize="15"
                             FontAttributes="Bold"
                             Command="{Binding OpenInputIngredientsCommand}" 
-                            WidthRequest="120"
+                            WidthRequest="140"
                             HeightRequest="50"
                             CornerRadius="20"/>
                 </HorizontalStackLayout>

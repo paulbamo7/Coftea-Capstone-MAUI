@@ -221,7 +221,16 @@
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="#D9C3B0" CornerRadius="20" Margin="10" Padding="5" VerticalOptions="Fill" HorizontalOptions="Fill">
+                                <Frame CornerRadius="20" Margin="10" Padding="5" VerticalOptions="Fill" HorizontalOptions="Fill"
+                                       BackgroundColor="#D9C3B0"
+                                    
+                                       BorderColor="Transparent">
+                                    <Frame.Triggers>
+                                        <DataTrigger TargetType="Frame" Binding="{Binding Source={x:Reference ProductsCollectionView}, Path=BindingContext.SelectedProduct.ProductId, Converter={StaticResource NullToBoolConverter}}" Value="{Binding ProductId}">
+                                            <Setter Property="BackgroundColor" Value="#F5E6D8" />
+                                            <Setter Property="BorderColor" Value="#D4A574" />
+                                        </DataTrigger>
+                                    </Frame.Triggers>
                                     <Frame.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" 
                                                              CommandParameter="{Binding .}" />
