@@ -16,11 +16,7 @@ namespace Coftea_Capstone.Models
 
         public bool IsAdmin { get; set; }
 
-        public DateTime Birthday { get; set; }
-
         public string PhoneNumber { get; set; } = string.Empty;
-
-        public string Address { get; set; } = string.Empty;
 
         // Profile fields with property change notifications
         [ObservableProperty]
