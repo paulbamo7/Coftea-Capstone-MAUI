@@ -48,7 +48,7 @@ namespace Coftea_Capstone
 
         // Global loading overlay instance
         public static Views.Controls.LoadingOverlay LoadingOverlay { get; private set; }
-        
+             
         public App()
         {
             InitializeComponent();
@@ -136,6 +136,16 @@ namespace Coftea_Capstone
                     var db = new Database();
                     await db.EnsureServerAndDatabaseAsync(cts.Token);
                     await db.InitializeDatabaseAsync(cts.Token);
+                    
+                    // TODO: Re-enable backup service once MySqlBackup.NET package reference issue is resolved
+                    // Initialize backup service with automatic backups every 4 hours
+                    //BackupService = new Services.DatabaseBackupService(
+                    //    db.ConnectionString, 
+                    //    backupDirectory: null, // Use default location
+                    //    hostIpAddress: db.Host  // Pass host IP for network backup storage
+                    //);
+                    //BackupService.StartAutomaticBackup(intervalHours: 4); // Backup every 4 hours
+                    //System.Diagnostics.Debug.WriteLine("✅ Database backup service initialized");
                     
                     // Check for minimum stock levels after database initialization
                     await db.CheckAllMinimumStockLevelsAsync();

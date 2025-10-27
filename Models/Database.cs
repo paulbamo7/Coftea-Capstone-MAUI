@@ -20,6 +20,11 @@ namespace Coftea_Capstone.Models
         private static readonly Dictionary<int, (DateTime ts, List<(InventoryPageModel item, double amount, string unit, string role)> items)> _productIngredientsCache = new();
         private static readonly Dictionary<int, (DateTime ts, List<InventoryPageModel> items)> _productAddonsCache = new();
 
+        // Public properties to expose connection details
+        public string Host { get; private set; }
+        public int Port { get; private set; }
+        public string ConnectionString => _db;
+
         public Database(string host = null,
                         string database = "coftea_db",
                         string user = "root",
@@ -27,6 +32,8 @@ namespace Coftea_Capstone.Models
         {
             // Allow manual override for testing (useful for emulator debugging)
             var server = host ?? GetDefaultHostForPlatform();
+            Host = server;
+            Port = 3306;
             System.Diagnostics.Debug.WriteLine($"🔗 Database connecting to server: {server}");
             
             _db = new MySqlConnectionStringBuilder // Configuration for connecting to MySQL XAMPP server database

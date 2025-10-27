@@ -29,34 +29,30 @@
 
     <!-- Main Grid containing all content -->
     <Grid>
-        <ScrollView VerticalOptions="Center" HorizontalOptions="Center" 
-                   Orientation="Both" 
-                   VerticalScrollBarVisibility="Default"
-                   HorizontalScrollBarVisibility="Default">
+        <ScrollView VerticalOptions="Center" HorizontalOptions="Center"
+                   Orientation="Vertical" 
+                   VerticalScrollBarVisibility="Default">
             <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="25">
                 
-                <!-- Logo and Welcome Section -->
-                <StackLayout HorizontalOptions="Center" Spacing="20">
-                    <Image Source="coftea_logo.png"
-                           HeightRequest="180"
-                           HorizontalOptions="Center"/>
-                    <Label Text="Welcome to Coftea" 
-                           FontSize="32" 
-                           FontFamily="Montserrat-Black" 
-                           TextColor="#5B4F45" 
-                           HorizontalOptions="Center"/>
-                </StackLayout>
-
             <!-- Registration Form -->
             <Frame BackgroundColor="#BDAEA2"
                    Padding="35,35,35,35"
                    CornerRadius="20"
                    BorderColor="#8B7355"
                    HasShadow="True"
-                   WidthRequest="600"
-                   MinimumHeightRequest="600">
+                   WidthRequest="{OnPlatform Default=420, Android=400, iOS=400, WinUI=520}"
+                   MinimumWidthRequest="380"
+                   MaximumWidthRequest="650"
+                   MaximumHeightRequest="600">
 
-                <VerticalStackLayout Spacing="20">
+                <ScrollView Orientation="Vertical" VerticalScrollBarVisibility="Default">
+                    <VerticalStackLayout Spacing="20">
+                    <!-- Logo -->
+                    <Image Source="coftea_logo.png"
+                           HeightRequest="200"
+                           MaximumWidthRequest="300"
+                           HorizontalOptions="Center" />
+                    
                     <!-- Title -->
                     <Label Text="Create Account" 
                            FontSize="28" 
@@ -235,7 +231,8 @@
                                 Padding="30,15"
                                 HeightRequest="55"/>
                     </Grid>
-                </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </ScrollView>
             </Frame>
             </VerticalStackLayout>
         </ScrollView>
