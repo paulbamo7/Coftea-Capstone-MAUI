@@ -8,7 +8,7 @@ namespace Coftea_Capstone.Converters
         {
             if (value is string alertText)
             {
-                if (alertText.Contains("CRITICAL"))
+                if (alertText.Contains("AT MINIMUM") || alertText.Contains("CRITICAL"))
                 {
                     return Colors.Red;
                 }

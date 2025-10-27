@@ -35,17 +35,16 @@
             </Grid>
 
             <!-- Dashboard Grid -->
-            <Grid ColumnDefinitions="*,0.6*" RowDefinitions="Auto" ColumnSpacing="15" RowSpacing="15">
+            <Grid ColumnDefinitions="*,0.6*" RowDefinitions="Auto,Auto" ColumnSpacing="15" RowSpacing="15">
 
                 <!-- Left Side: Top Cards -->
-                <Grid Grid.Column="0" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="15" RowSpacing="15">
+                <Grid Grid.Column="0" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="15" RowSpacing="15" Grid.RowSpan="2">
 
                     <!-- Total Orders Today -->
                     <Frame Grid.Row="0" Grid.Column="0" BackgroundColor="White" CornerRadius="25" Padding="20" HasShadow="True">
                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
                             <Label Text="Total Orders Today" FontAttributes="Bold" HorizontalOptions="Center" FontSize="18" TextColor="#5B4F45"/>
                             <Label Text="{Binding TotalOrdersToday}" FontSize="36"  HorizontalOptions="Center" FontAttributes="Bold" TextColor="#3E2723"/>
-                            <Label Text="{Binding OrdersTrend}" FontSize="14" TextColor="Gray" HorizontalOptions="Center"/>
                         </VerticalStackLayout>
                     </Frame>
 
@@ -61,7 +60,7 @@
                     <Frame Grid.Row="1" Grid.Column="0" BackgroundColor="White" CornerRadius="25" Padding="20" HasShadow="True">
                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
                             <Label Text="Most Bought Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                            <Label Text="{Binding MostBoughtToday}" FontSize="32" HorizontalOptions="Center" FontAttributes="Bold" TextColor="#3E2723"/>
+                            <Label Text="{Binding MostBoughtToday}" FontSize="30" HorizontalOptions="Center" FontAttributes="Bold" TextColor="#3E2723"/>
                             <Label Text="{Binding MostBoughtTrend}" FontSize="14" HorizontalOptions="Center" TextColor="Gray"/>
                         </VerticalStackLayout>
                     </Frame>
@@ -70,19 +69,19 @@
                     <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="White" CornerRadius="25" Padding="20" HasShadow="True">
                         <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
                             <Label Text="Trending Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                            <Label Text="{Binding TrendingToday}" FontSize="32" FontAttributes="Bold" TextColor="#6A1B9A" HorizontalOptions="Center"/>
+                            <Label Text="{Binding TrendingToday}" FontSize="30" FontAttributes="Bold" TextColor="#6A1B9A" HorizontalOptions="Center"/>
                             <Label Text="{Binding TrendingPercent}" FontSize="14" TextColor="Gray" HorizontalOptions="Center"/>
                         </VerticalStackLayout>
                     </Frame>
 
                 </Grid>
 
-                <!-- Right Side: Inventory Alert -->
-                <Frame Grid.Column="1" CornerRadius="25" Padding="20" BackgroundColor="White" HasShadow="True" Grid.RowSpan="2" VerticalOptions="Start">
+                <!-- Right Side: Inventory Alert (aligned with first row - same height as Total Sales Today) -->
+                <Frame Grid.Column="1" Grid.Row="0" CornerRadius="25" Padding="20" BackgroundColor="White" HasShadow="True" VerticalOptions="Fill" HeightRequest="310">
                     <VerticalStackLayout>
                         <Label Text="Inventory Alert" FontAttributes="Bold" FontSize="20" TextColor="#5B4F45"/>
-                        <Frame CornerRadius="20" Padding="10" BackgroundColor="#F9F9F9" Margin="5">
-                            <CollectionView ItemsSource="{Binding InventoryAlerts}" Margin="0,10,0,0" HeightRequest="120">
+                        <Frame CornerRadius="20" Padding="10" BackgroundColor="#F9F9F9" Margin="5" VerticalOptions="FillAndExpand">
+                            <CollectionView ItemsSource="{Binding InventoryAlerts}" Margin="0,10,0,0">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Frame BackgroundColor="White" CornerRadius="10" Padding="8" Margin="0,2" HasShadow="True">

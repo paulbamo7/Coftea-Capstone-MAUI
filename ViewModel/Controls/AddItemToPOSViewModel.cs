@@ -281,16 +281,16 @@ namespace Coftea_Capstone.ViewModel
                             .Where(i => !addonIds.Contains(i.itemID))
                             .Select(i => (
                                 inventoryItemId: i.itemID,
-                                amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-                                unit: (string?)i.unitOfMeasurement,
+                                amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                unit: (string?)(i.InputUnit ?? i.unitOfMeasurement),
                                 // Only save Small size data if product has Small size
-                                amtS: hasSmallSize ? ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement) : 0,
+                                amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
                                 unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
 
-                                amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
+                                amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
                                 unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
 
-                                amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
+                                amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
                                 unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
                             ));
 
@@ -628,10 +628,79 @@ namespace Coftea_Capstone.ViewModel
                         System.Diagnostics.Debug.WriteLine($"🔧 Final selected ingredient: {item.itemName} (ID: {item.itemID}) - IsSelected: {item.IsSelected}");
                     }
                 }
+                
+                // Load addons for edit mode
+                await LoadAddonDataForEdit(productId);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Error - {ex.Message}");
+            }
+        }
+
+        private async Task LoadAddonDataForEdit(int productId) // Loads addon data for editing
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Starting for product ID {productId}");
+                
+                // Get addons from database
+                var addonLinks = await _database.GetProductAddonsAsync(productId);
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Found {addonLinks?.Count ?? 0} linked addons");
+                
+                if (addonLinks == null || !addonLinks.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: No addons found for this product");
+                    return;
+                }
+                
+                // Clear existing addon selections
+                ConnectPOSToInventoryVM.SelectedAddons.Clear();
+                
+                foreach (var addon in addonLinks)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Processing addon {addon.itemName} (ID: {addon.itemID})");
+                    
+                    // Set addon properties from database
+                    // DO NOT set IsSelected = true here - addons should NOT appear in ingredient list
+                    addon.InputAmount = addon.InputAmountSmall > 0 ? addon.InputAmountSmall : 1; // Use saved amount
+                    addon.InputUnit = !string.IsNullOrWhiteSpace(addon.InputUnitSmall) ? addon.InputUnitSmall : addon.unitOfMeasurement;
+                    addon.AddonPrice = addon.AddonPrice; // This is already loaded from GetProductAddonsAsync
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: {addon.itemName} - Amount: {addon.InputAmount}, Unit: {addon.InputUnit}, Price: {addon.AddonPrice}");
+                    
+                    // Add to SelectedAddons collection ONLY (not to ingredient lists)
+                    ConnectPOSToInventoryVM.SelectedAddons.Add(addon);
+                    
+                    // Update AllInventoryItems with addon configuration but DO NOT mark as selected
+                    // This keeps addons separate from ingredients
+                    var existingInAll = ConnectPOSToInventoryVM.AllInventoryItems?.FirstOrDefault(i => i.itemID == addon.itemID);
+                    if (existingInAll == null)
+                    {
+                        // If not in AllInventoryItems, add it but keep IsSelected = false
+                        addon.IsSelected = false;
+                        ConnectPOSToInventoryVM.AllInventoryItems.Add(addon);
+                        System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Added {addon.itemName} to AllInventoryItems (IsSelected=false)");
+                    }
+                    else
+                    {
+                        // Update existing item with addon data but DO NOT set IsSelected
+                        // Keep IsSelected as false so it doesn't appear in ingredient UI
+                        existingInAll.InputAmount = addon.InputAmount;
+                        existingInAll.InputUnit = addon.InputUnit;
+                        existingInAll.AddonPrice = addon.AddonPrice;
+                        // Explicitly ensure IsSelected remains false for addons
+                        existingInAll.IsSelected = false;
+                        System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Updated {existingInAll.itemName} in AllInventoryItems (IsSelected=false)");
+                    }
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Completed. SelectedAddons count: {ConnectPOSToInventoryVM.SelectedAddons.Count}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ LoadAddonDataForEdit: Error - {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ LoadAddonDataForEdit: StackTrace - {ex.StackTrace}");
             }
         }
 

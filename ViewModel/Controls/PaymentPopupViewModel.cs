@@ -646,13 +646,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                             continue;
                         }
 
-                        // Use shared per-serving amount/unit for addons (same across sizes), fallback to inventory unit
+                        // Use the user-entered amount/unit for addons (prioritize InputUnit over inventory unit)
                         var perServingAmount = linkedAddon.InputAmount > 0
                             ? linkedAddon.InputAmount
                             : (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : 0);
-                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.unitOfMeasurement)
-                            ? linkedAddon.unitOfMeasurement
-                            : (cartAddon.unitOfMeasurement ?? string.Empty);
+                        
+                        // Use the saved InputUnit from the addon configuration
+                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.InputUnit)
+                            ? linkedAddon.InputUnit
+                            : (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitSmall)
+                                ? linkedAddon.InputUnitSmall
+                                : cartAddon.unitOfMeasurement);
 
                         System.Diagnostics.Debug.WriteLine($"   📊 Per-serving: {perServingAmount} {perServingUnit}");
 
@@ -662,10 +666,12 @@ namespace Coftea_Capstone.ViewModel.Controls
                             continue; // nothing to deduct for this addon
                         }
 
-                        var addonTargetUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
-                        var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, addonTargetUnit);
+                        // Convert to inventory base unit for deduction
+                        // (Database stores inventory in base units like L, kg, etc.)
+                        var inventoryBaseUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
+                        var convertedAmount = ConvertUnits(perServingAmount, perServingUnit, inventoryBaseUnit);
 
-                        System.Diagnostics.Debug.WriteLine($"   🔄 Converted amount: {convertedAddonAmount} {addonTargetUnit}");
+                        System.Diagnostics.Debug.WriteLine($"   🔄 Converting: {perServingAmount} {perServingUnit} → {convertedAmount} {inventoryBaseUnit}");
 
                         // Deduct addon based on total quantity ordered across all sizes
                         // AddonQuantity is per drink, so multiply by total drinks ordered
@@ -674,8 +680,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                         
                         if (totalDrinks > 0)
                         {
-                            var totalAddonDeduction = convertedAddonAmount * cartAddon.AddonQuantity * (double)totalDrinks;
-                            System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING: {totalAddonDeduction} {cartAddon.unitOfMeasurement} ({convertedAddonAmount} x {cartAddon.AddonQuantity} x {totalDrinks})");
+                            var totalAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)totalDrinks;
+                            System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING: {totalAddonDeduction} {inventoryBaseUnit} ({convertedAmount} x {cartAddon.AddonQuantity} x {totalDrinks})");
                             
                             // Accumulate addon amounts for the same ingredient
                             if (deductionsDict.ContainsKey(cartAddon.itemName))

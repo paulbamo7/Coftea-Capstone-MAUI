@@ -41,7 +41,7 @@
                 <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="FillAndExpand">
                     <Label Text="Connect POS to Inventory"
                            FontAttributes="Bold"
-                           FontSize="26" FontFamily="MontserratBlack"
+                           FontSize="26"
                            TextColor="#3C3C3C"
                            VerticalOptions="Center" />
                 </HorizontalStackLayout>
@@ -154,7 +154,7 @@
                                 <Frame CornerRadius="12" Padding="8,0" BackgroundColor="White" HasShadow="False" VerticalOptions="Center">
                                     <Picker Title="Sort By" 
                                             SelectedItem="{Binding SelectedSort}" 
-                                            FontSize="14" FontFamily="MontserratBlack"
+                                            FontSize="14"
                                             TextColor="Black">
                                         <Picker.Items>
                                             <x:String>Name (A-Z)</x:String>
@@ -172,7 +172,7 @@
                                                Text="{Binding SearchText}"
                                                TextColor="Black"
                                                BackgroundColor="Transparent"
-                                               FontSize="16" FontFamily="MontserratBlack"/>
+                                               FontSize="16"/>
                                 </Frame>
 
                                 <Button Text="✕ Unselect All" 
@@ -201,7 +201,7 @@
                                 <VerticalStackLayout Spacing="8">
                                     <Label Text="SELECT FROM INVENTORY"
                                            FontAttributes="Bold"
-                                           FontSize="18" FontFamily="MontserratBlack"
+                                           FontSize="18"
                                            TextColor="#3C3C3C" />
                                     <Frame BackgroundColor="#E8F5E8"
                                            CornerRadius="8"
@@ -209,11 +209,11 @@
                                            HasShadow="False">
                                         <HorizontalStackLayout Spacing="8">
                                             <Label Text="ℹ"
-                                                   FontSize="16" FontFamily="MontserratBlack"
+                                                   FontSize="16"
                                                    TextColor="#2E7D32"
                                                    VerticalOptions="Center"/>
                                             <Label Text="Cups are size-specific (Small Cup for Small, Medium Cup for Medium, Large Cup for Large). Straws are included for all sizes."
-                                                   FontSize="13" FontFamily="MontserratBlack"
+                                                   FontSize="13"
                                                    TextColor="#2E7D32"
                                                    VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
@@ -252,17 +252,17 @@
                                                         <Frame WidthRequest="36" HeightRequest="36" CornerRadius="8" Padding="0" HasShadow="False" BackgroundColor="#EFEFEF">
                                                             <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
                                                         </Frame>
-                                                        <Label Text="{Binding itemName}" VerticalOptions="Center" FontSize="14" FontFamily="MontserratBlack" TextColor="Black"/>
+                                                        <Label Text="{Binding itemName}" VerticalOptions="Center" FontSize="14" TextColor="Black"/>
                                                     </HorizontalStackLayout>
 
                                                     <!-- Category -->
-                                                    <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13" FontFamily="MontserratBlack" TextColor="Black"/>
+                                                    <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13" TextColor="Black"/>
 
                                                     <!-- Stock Information -->
                                                     <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
                                                         <Frame BackgroundColor="White" CornerRadius="10" Padding="8" HasShadow="True">
                                                             <Label FormattedText="{Binding NewStockDisplayFormatted}" 
-                                                                   FontSize="13" FontFamily="MontserratBlack" 
+                                                                   FontSize="13" 
                                                                    HorizontalOptions="Start" 
                                                                    VerticalOptions="Center"
                                                                    LineBreakMode="WordWrap"

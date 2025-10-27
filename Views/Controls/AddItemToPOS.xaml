@@ -178,7 +178,8 @@
                         <Label Text="SET PRODUCT PRICES" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,10,0,5"/>
 
                         <HorizontalStackLayout Spacing="15">
-                            <VerticalStackLayout>
+                            <!-- Small price - only visible for Coffee category -->
+                            <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
                                 <Label Text="SMALL" FontAttributes="Bold" FontSize="14" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,0,0,5"/>
                                 <Entry Placeholder="Small Price"
                                        Text="{Binding SmallPrice}"

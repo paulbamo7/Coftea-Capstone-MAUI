@@ -409,18 +409,24 @@ namespace Coftea_Capstone.ViewModel
                     System.Diagnostics.Debug.WriteLine($"⚠️ Found duplicate item names: {string.Join(", ", duplicateNames)}");
                 }
                 
-                // Compute percent of minimum threshold remaining
-                // percentOfMin = (current / minimum) * 100; if minimum is 0, skip (treated as healthy)
+                // Compute percent of buffer remaining before hitting minimum
+                // Formula: (current - minimum) / (maximum - minimum) × 100
+                // This shows how much "safety buffer" remains before reaching minimum threshold
                 var lowStockItems = inventoryItems
-                    .Where(item => item.minimumQuantity > 0)
-                    .Select(item => new {
-                        Item = item,
-                        PercentOfMin = (item.itemQuantity / item.minimumQuantity) * 100.0
+                    .Where(item => item.minimumQuantity > 0 && item.maximumQuantity > item.minimumQuantity)
+                    .Select(item => {
+                        var buffer = item.itemQuantity - item.minimumQuantity;
+                        var maxBuffer = item.maximumQuantity - item.minimumQuantity;
+                        var percentRemaining = (buffer / maxBuffer) * 100.0;
+                        return new {
+                            Item = item,
+                            PercentRemaining = percentRemaining
+                        };
                     })
-                    .Where(x => x.PercentOfMin <= 100.0) // at or below minimum threshold
+                    .Where(x => x.PercentRemaining <= 100.0) // Show items at or below max
                     .GroupBy(x => x.Item.itemName)
-                    .Select(group => group.OrderBy(x => x.PercentOfMin).First())
-                    .OrderBy(x => x.PercentOfMin)
+                    .Select(group => group.OrderBy(x => x.PercentRemaining).First())
+                    .OrderBy(x => x.PercentRemaining)
                     .Take(5)
                     .ToList();
 
@@ -435,12 +441,43 @@ namespace Coftea_Capstone.ViewModel
                     foreach (var entry in lowStockItems)
                     {
                         var item = entry.Item;
-                        var percent = entry.PercentOfMin;
-                        // Severity by percent of minimum
-                        // <= 30% => CRITICAL, 31-70% => MEDIUM, 71-100% => LOW
-                        string stockLevel = percent <= 30.0 ? "CRITICAL" : (percent <= 70.0 ? "MEDIUM" : "LOW");
+                        var percent = entry.PercentRemaining;
+                        
+                        // Debug: Show exact calculation
+                        var buffer = item.itemQuantity - item.minimumQuantity;
+                        var maxBuffer = item.maximumQuantity - item.minimumQuantity;
+                        System.Diagnostics.Debug.WriteLine($"🔍 {item.itemName}: Current={item.itemQuantity}, Min={item.minimumQuantity}, Max={item.maximumQuantity}");
+                        System.Diagnostics.Debug.WriteLine($"🔍   Buffer: ({item.itemQuantity} - {item.minimumQuantity}) ÷ ({item.maximumQuantity} - {item.minimumQuantity}) × 100 = {percent:F1}%");
+                        
+                        // Severity by percent of buffer remaining
+                        // <= 0% => AT/BELOW MINIMUM (CRITICAL)
+                        // 1-30% => CRITICAL (very close to minimum)
+                        // 31-50% => MEDIUM
+                        // 51-100% => LOW (still have good buffer)
+                        string stockLevel;
+                        if (percent <= 0)
+                            stockLevel = "AT MINIMUM";
+                        else if (percent <= 30.0)
+                            stockLevel = "CRITICAL";
+                        else if (percent <= 50.0)
+                            stockLevel = "MEDIUM";
+                        else
+                            stockLevel = "LOW";
 
-                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {item.unitOfMeasurement}) - {percent:F0}% of min";
+                        // Normalize unit display (e.g., "Liters (L)" -> "L", "Kilograms (kg)" -> "kg")
+                        var normalizedUnit = item.unitOfMeasurement;
+                        if (!string.IsNullOrWhiteSpace(normalizedUnit))
+                        {
+                            // Extract unit abbreviation from formats like "Liters (L)" or "Kilograms (kg)"
+                            var parenStart = normalizedUnit.IndexOf('(');
+                            if (parenStart >= 0 && normalizedUnit.EndsWith(")"))
+                            {
+                                normalizedUnit = normalizedUnit.Substring(parenStart + 1, normalizedUnit.Length - parenStart - 2);
+                            }
+                        }
+
+                        // Format: "CRITICAL: Tapiocca (6 kg) - 50%"
+                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {normalizedUnit}) - {percent:F0}%";
                         System.Diagnostics.Debug.WriteLine($"🔍 Adding alert: {alertText}");
                         InventoryAlerts.Add(alertText);
                     }
