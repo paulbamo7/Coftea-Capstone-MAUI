@@ -432,6 +432,10 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 System.Diagnostics.Debug.WriteLine("RefreshProfileDisplay called");
                 
+                // Force UI update by setting the ProfileImageSource again
+                var tempImage = ProfileImage;
+                ProfileImageSource = GetProfileImageSource(tempImage);
+                
                 // Trigger property change notifications for this popup
                 OnPropertyChanged(nameof(Username));
                 OnPropertyChanged(nameof(Email));
@@ -443,19 +447,38 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(CanAccessInventory));
                 OnPropertyChanged(nameof(CanAccessSalesReport));
                 
-                System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: {Username}, Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, IsAdmin: {IsAdmin}");
+                System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: '{Username}', ProfileImage: '{ProfileImage}'");
+                System.Diagnostics.Debug.WriteLine($"Full details - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, IsAdmin: {IsAdmin}");
                 
                 // Notify App.CurrentUser changes to trigger UI updates across all pages
                 if (App.CurrentUser != null)
                 {
-                    // Since App.CurrentUser is a UserInfoModel which implements ObservableObject,
-                    // we need to trigger property change notifications for the properties that might be displayed
-                    // We'll use reflection to access the protected method, or create a public method in UserInfoModel
-                    // For now, we'll rely on the ProfilePopup properties being updated which should trigger UI updates
-                    System.Diagnostics.Debug.WriteLine("Profile updated - UI should refresh automatically");
+                    // Trigger property change on App.CurrentUser if it has OnPropertyChanged method
+                    try
+                    {
+                        var userType = App.CurrentUser.GetType();
+                        var method = userType.GetMethod("OnPropertyChanged", 
+                            System.Reflection.BindingFlags.Instance | 
+                            System.Reflection.BindingFlags.NonPublic | 
+                            System.Reflection.BindingFlags.Public,
+                            null, 
+                            new[] { typeof(string) }, 
+                            null);
+                        
+                        if (method != null)
+                        {
+                            method.Invoke(App.CurrentUser, new object[] { nameof(App.CurrentUser.Username) });
+                            method.Invoke(App.CurrentUser, new object[] { nameof(App.CurrentUser.ProfileImage) });
+                            System.Diagnostics.Debug.WriteLine("Triggered property change notifications on App.CurrentUser");
+                        }
+                    }
+                    catch (Exception reflectionEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Could not trigger property change via reflection: {reflectionEx.Message}");
+                    }
                 }
                 
-                System.Diagnostics.Debug.WriteLine("Profile display refreshed");
+                System.Diagnostics.Debug.WriteLine("Profile display refreshed successfully");
             }
             catch (Exception ex)
             {

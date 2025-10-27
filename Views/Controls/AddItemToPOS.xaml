@@ -31,21 +31,21 @@
                 <VerticalStackLayout Padding="27" BackgroundColor="#F8E8D7">
                     <Label Text="Add Item to POS"
                            FontAttributes="Bold"
-                           FontSize="30"
+                           FontSize="30" FontFamily="MontserratBlack"
                            Margin="0,0,0,20"
                            TextColor="Black" />
 
                     <!-- PRODUCT NAME -->
-                    <Label Text="PRODUCT NAME" FontAttributes="Bold" FontSize="20" TextColor="Black" Padding="0,20,0,0"/>
+                    <Label Text="PRODUCT NAME" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" Padding="0,20,0,0"/>
                     <Entry Placeholder="Enter product name"
                            Text="{Binding ProductName}"
                            Margin="0,0,0,10"
-                           FontSize="18"
+                           FontSize="18" FontFamily="MontserratBlack"
                            TextColor="Black"
                            PlaceholderColor="Black"/>
 
                     <!-- PRODUCT IMAGE -->
-                    <Label Text="PRODUCT IMAGE" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5" />
+                    <Label Text="PRODUCT IMAGE" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" Margin="0,20,0,5" />
                     <Frame CornerRadius="12"
                            BackgroundColor="White"
                            HasShadow="False"
@@ -86,12 +86,12 @@
                                        HeightRequest="40"
                                        Opacity="0.85" />
                                 <Label Text="Choose a file or drag and drop it here"
-                                       FontSize="14"
+                                       FontSize="14" FontFamily="MontserratBlack"
                                        FontAttributes="Bold"
                                        TextColor="#6B5B3E"
                                        HorizontalTextAlignment="Center" />
                                 <Label Text="JPEG, PNG (max 3MB)"
-                                       FontSize="12"
+                                       FontSize="12" FontFamily="MontserratBlack"
                                        TextColor="#9A8A6A"
                                        HorizontalTextAlignment="Center" />
                                 <Button Text="Browse File"
@@ -99,7 +99,7 @@
                                         WidthRequest="120"
                                         HeightRequest="36"
                                         CornerRadius="18"
-                                        FontSize="14"
+                                        FontSize="14" FontFamily="MontserratBlack"
                                         Padding="0"
                                         BackgroundColor="#E0E0E0"
                                         TextColor="#333333"
@@ -115,32 +115,32 @@
                     </Frame>
 
                     <!-- CATEGORY -->
-                    <Label Text="CATEGORY" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5" />
+                    <Label Text="CATEGORY" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" Margin="0,20,0,5" />
                     <Picker Title="Select Category"
                             ItemsSource="{Binding Categories}"
                             SelectedItem="{Binding SelectedCategory}"
-                            FontSize="18"
+                            FontSize="18" FontFamily="MontserratBlack"
                             TextColor="Black"
                             HeightRequest="40"/>
 
                     <!-- SUBCATEGORY for Fruit/Soda -->
-                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5"
+                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" Margin="0,20,0,5"
                            IsVisible="{Binding IsFruitSodaSubcategoryVisible}" />
                     <Picker Title="Select Subcategory"
                             ItemsSource="{Binding FruitSodaSubcategories}"
                             SelectedItem="{Binding SelectedSubcategory}"
-                            FontSize="18"
+                            FontSize="18" FontFamily="MontserratBlack"
                             TextColor="Black"
                             HeightRequest="40"
                             IsVisible="{Binding IsFruitSodaSubcategoryVisible}"/>
 
                     <!-- SUBCATEGORY for Coffee -->
-                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5"
+                    <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" Margin="0,20,0,5"
                            IsVisible="{Binding IsCoffeeSubcategoryVisible}" />
                     <Picker Title="Select Subcategory"
                             ItemsSource="{Binding CoffeeSubcategories}"
                             SelectedItem="{Binding SelectedSubcategory}"
-                            FontSize="18"
+                            FontSize="18" FontFamily="MontserratBlack"
                             TextColor="Black"
                             HeightRequest="40"
                             IsVisible="{Binding IsCoffeeSubcategoryVisible}"/>
@@ -164,7 +164,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Label Text="Product Pricing" FontSize="30" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
+                            <Label Text="Product Pricing" FontSize="30" FontFamily="MontserratBlack" FontAttributes="Bold" Grid.Column="0" TextColor="Black" />
                             <ImageButton Source="close.png"
                                          WidthRequest="25"
                                          HeightRequest="25"
@@ -174,52 +174,52 @@
                         </Grid>
 
                         <!-- PRICE INPUTS -->
-                        <Label Text="SET PRODUCT PRICES" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,10,0,5"/>
+                        <Label Text="SET PRODUCT PRICES" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" Margin="0,10,0,5"/>
 
                         <HorizontalStackLayout Spacing="20">
                             <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
-                                <Label Text="SMALL" FontAttributes="Bold" FontSize="20" TextColor="Black" />
+                                <Label Text="SMALL" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" />
                                 <Entry Placeholder="Small Price"
                                        Text="{Binding SmallPrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
                                        PlaceholderColor="Black"
-                                       FontSize="18"
+                                       FontSize="18" FontFamily="MontserratBlack"
                                        WidthRequest="150"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
-                                <Label Text="MEDIUM" FontAttributes="Bold" FontSize="20" TextColor="Black" />
+                                <Label Text="MEDIUM" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" />
                                 <Entry Placeholder="Medium Price"
                                        Text="{Binding MediumPrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
                                        PlaceholderColor="Black"
-                                       FontSize="18"
+                                       FontSize="18" FontFamily="MontserratBlack"
                                        WidthRequest="150"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
-                                <Label Text="LARGE" FontAttributes="Bold" FontSize="20" TextColor="Black" />
+                                <Label Text="LARGE" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" />
                                 <Entry Placeholder="Large Price"
                                        Text="{Binding LargePrice}"
                                        Keyboard="Numeric"
                                        TextColor="Black"
                                        PlaceholderColor="Black"
-                                       FontSize="18"
+                                       FontSize="18" FontFamily="MontserratBlack"
                                        WidthRequest="150"
                                        HeightRequest="40"/>
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
 
                         <!-- DESCRIPTION -->
-                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="20" TextColor="Black" Margin="0,20,0,5"/>
+                        <Label Text="DESCRIPTION (OPTIONAL)" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" TextColor="Black" Margin="0,20,0,5"/>
                         <Editor Placeholder="Enter product description..."
                                 Text="{Binding ProductDescription}"
                                 HeightRequest="120"
-                                FontSize="18"
+                                FontSize="18" FontFamily="MontserratBlack"
                                 BackgroundColor="#FFFFFF"
                                 TextColor="Black"/>
 
@@ -231,7 +231,7 @@
                                     TextColor="White"
                                     Command="{Binding CloseAddItemToPOSCommand}"
                                     CornerRadius="25"
-                                    FontSize="18"
+                                    FontSize="18" FontFamily="MontserratBlack"
                                     Padding="0"
                                     FontAttributes="Bold"/>
 
@@ -241,7 +241,7 @@
                                     TextColor="White"
                                     Command="{Binding SaveProductCommand}"
                                     CornerRadius="25"
-                                    FontSize="18"
+                                    FontSize="18" FontFamily="MontserratBlack"
                                     Padding="0"
                                     FontAttributes="Bold"
                                     IsVisible="{Binding IsEditMode}"/>
@@ -252,7 +252,7 @@
                                     TextColor="Black"
                                     Command="{Binding OpenConnectPOSToInventoryCommand}"
                                     CornerRadius="25"
-                                    FontSize="18"
+                                    FontSize="18" FontFamily="MontserratBlack"
                                     Padding="0"
                                     FontAttributes="Bold"/>
                         </HorizontalStackLayout>

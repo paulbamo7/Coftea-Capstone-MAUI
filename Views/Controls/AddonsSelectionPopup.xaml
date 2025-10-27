@@ -33,12 +33,12 @@
                 <!-- Header (match InputIngredientsAmountUsed styling) -->
                 <VerticalStackLayout Grid.Row="0" Spacing="10">
                     <Label Text="Select Addons"
-                           FontSize="28"
+                           FontSize="28" FontFamily="MontserratBlack"
                            FontAttributes="Bold"
                            TextColor="#4A3F35"
                            HorizontalOptions="Center" />
                     <Label Text="Choose addons, set amount, unit, and price."
-                           FontSize="16"
+                           FontSize="16" FontFamily="MontserratBlack"
                            TextColor="#7B6F63"
                            HorizontalOptions="Center" />
                     
@@ -77,16 +77,16 @@
                     <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,8" Margin="0,0,0,0">
                         <Grid ColumnDefinitions="40, 50, *, 100, 80, 80, 80, 80, 100, 80, 100">
                             <Label Grid.Column="0" Text="" />
-                            <Label Grid.Column="1" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="2" Text="Item Name" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Start"/>
-                            <Label Grid.Column="3" Text="Category" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="4" Text="Stock" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="5" Text="Unit" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="6" Text="Min Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="7" Text="Status" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="8" Text="Amount" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="9" Text="UoM" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="10" Text="Price" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="1" Text="ID" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="2" Text="Item Name" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Start"/>
+                            <Label Grid.Column="3" Text="Category" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="4" Text="Stock" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="5" Text="Unit" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="6" Text="Min Qty" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="7" Text="Status" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="8" Text="Amount" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="9" Text="UoM" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="10" Text="Price" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
                         </Grid>
                     </Grid>
 
@@ -118,34 +118,34 @@
                                         <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Color="#2B2B2B" HorizontalOptions="Center" VerticalOptions="Center" BackgroundColor="Transparent" Scale="1.2"/>
 
                                         <!-- ID -->
-                                        <Label Grid.Column="1" Text="{Binding itemID}" FontSize="12" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        <Label Grid.Column="1" Text="{Binding itemID}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center" VerticalOptions="Center" />
 
                                         <!-- Item Name -->
-                                        <Label Grid.Column="2" Text="{Binding itemName}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Start" />
+                                        <Label Grid.Column="2" Text="{Binding itemName}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Start" />
 
                                         <!-- Category -->
-                                        <Label Grid.Column="3" Text="{Binding itemCategory}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                                        <Label Grid.Column="3" Text="{Binding itemCategory}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
 
                                         <!-- Stock -->
-                                        <Label Grid.Column="4" Text="{Binding itemQuantity}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
+                                        <Label Grid.Column="4" Text="{Binding itemQuantity}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
 
                                         <!-- Unit -->
-                                        <Label Grid.Column="5" Text="{Binding unitOfMeasurement}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
+                                        <Label Grid.Column="5" Text="{Binding unitOfMeasurement}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
 
                                         <!-- Min Quantity -->
-                                        <Label Grid.Column="6" Text="{Binding minimumQuantity}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
+                                        <Label Grid.Column="6" Text="{Binding minimumQuantity}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
 
                                         <!-- Status -->
-                                        <Label Grid.Column="7" Text="{Binding StockText}" FontSize="12" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
+                                        <Label Grid.Column="7" Text="{Binding StockText}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" />
 
                                         <!-- Amount Input -->
-                                        <Entry Grid.Column="8" Text="{Binding InputAmount}" TextColor="Black" FontSize="12" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
+                                        <Entry Grid.Column="8" Text="{Binding InputAmount}" TextColor="Black" FontSize="12" FontFamily="MontserratBlack" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
 
                                         <!-- UoM Picker -->
-                                        <Picker Grid.Column="9" SelectedItem="{Binding InputUnit}" TextColor="Black" ItemsSource="{Binding AllowedUnits}" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="70" />
+                                        <Picker Grid.Column="9" SelectedItem="{Binding InputUnit}" TextColor="Black" ItemsSource="{Binding AllowedUnits}" FontSize="12" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="70" />
 
                                         <!-- Addon Price (extra vs ingredients UI) -->
-                                        <Entry Grid.Column="10" Text="{Binding AddonPrice}" FontSize="12" TextColor="Black" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
+                                        <Entry Grid.Column="10" Text="{Binding AddonPrice}" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" Keyboard="Numeric" HorizontalTextAlignment="Center" BackgroundColor="#F8F8F8" VerticalOptions="Center" />
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>

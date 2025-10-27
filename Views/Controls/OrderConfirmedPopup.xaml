@@ -27,7 +27,7 @@
                 <!-- Success Icon -->
                 <Grid Grid.Row="0" HorizontalOptions="Center" Margin="0,0,0,10">
                     <Label Text="✓"
-                           FontSize="32"
+                           FontSize="32" FontFamily="MontserratBlack"
                            FontAttributes="Bold"
                            TextColor="White"
                            HorizontalOptions="Center" />
@@ -36,7 +36,7 @@
                 <!-- Order Confirmed Text -->
                 <Label Grid.Row="1" 
                        Text="Order Confirmed!"
-                       FontSize="18"
+                       FontSize="18" FontFamily="MontserratBlack"
                        FontAttributes="Bold"
                        TextColor="White"
                        HorizontalOptions="Center"
@@ -46,17 +46,17 @@
                 <Grid Grid.Row="2">
                     <VerticalStackLayout Spacing="3">
                         <Label Text="{Binding OrderDetails, StringFormat='Order #{0}'}"
-                               FontSize="14"
+                               FontSize="14" FontFamily="MontserratBlack"
                                TextColor="White"
                                HorizontalOptions="Center"
                                Opacity="0.9" />
                         <Label Text="{Binding TotalAmount, StringFormat='Total: ₱{0:F2}'}"
-                               FontSize="14"
+                               FontSize="14" FontFamily="MontserratBlack"
                                FontAttributes="Bold"
                                TextColor="White"
                                HorizontalOptions="Center" />
                         <Label Text="{Binding PaymentMethod, StringFormat='Payment: {0}'}"
-                               FontSize="12"
+                               FontSize="12" FontFamily="MontserratBlack"
                                TextColor="White"
                                HorizontalOptions="Center"
                                Opacity="0.8" />

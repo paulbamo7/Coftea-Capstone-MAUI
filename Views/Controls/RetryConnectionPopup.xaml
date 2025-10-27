@@ -37,14 +37,14 @@
                 
                 <!-- Title -->
                 <Label Text="Connection Error" 
-                       FontSize="20" 
+                       FontSize="20" FontFamily="MontserratBlack" 
                        FontAttributes="Bold" 
                        HorizontalOptions="Center" 
                        TextColor="#8B4513" />
                 
                 <!-- Error Message -->
                 <Label Text="{Binding ErrorMessage}" 
-                       FontSize="14" 
+                       FontSize="14" FontFamily="MontserratBlack" 
                        HorizontalOptions="Center" 
                        HorizontalTextAlignment="Center"
                        TextColor="#654321"

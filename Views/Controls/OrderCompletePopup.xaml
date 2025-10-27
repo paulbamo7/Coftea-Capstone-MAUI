@@ -21,16 +21,16 @@
            HorizontalOptions="End">
         <VerticalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
             <Label Text="✓ Order Complete!"
-                   FontSize="18"
+                   FontSize="18" FontFamily="MontserratBlack"
                    FontAttributes="Bold"
                    TextColor="White"
                    HorizontalOptions="Center" />
             <Label Text="Thanks For The Purchase"
-                   FontSize="14"
+                   FontSize="14" FontFamily="MontserratBlack"
                    TextColor="White"
                    HorizontalOptions="Center" />
             <Label Text="{Binding OrderDetails, StringFormat='Order ID: {0}'}"
-                   FontSize="12"
+                   FontSize="12" FontFamily="MontserratBlack"
                    TextColor="White"
                    HorizontalOptions="Center" />
         </VerticalStackLayout>

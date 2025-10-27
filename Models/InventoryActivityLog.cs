@@ -16,6 +16,10 @@ namespace Coftea_Capstone.Models
         public string UnitOfMeasurement { get; set; }
         public string Reason { get; set; } // "POS_ORDER", "MANUAL_ADJUSTMENT", "PURCHASE_ORDER", "WASTAGE", etc.
         public string UserEmail { get; set; }
+        public string UserFullName { get; set; }
+        public int? UserId { get; set; }
+        public string ChangedBy { get; set; } // "USER", "SYSTEM", "POS", "IMPORT"
+        public double? Cost { get; set; }
         public string OrderId { get; set; } // Reference to POS order or purchase order
         public DateTime Timestamp { get; set; }
         public string Notes { get; set; }
@@ -99,6 +103,42 @@ namespace Coftea_Capstone.Models
                     "UPDATED" => "✏️",
                     "PURCHASE_ORDER" => "📦",
                     _ => "📋"
+                };
+            }
+        }
+
+        public string UserDisplay
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(UserFullName))
+                    return UserFullName;
+                if (!string.IsNullOrWhiteSpace(UserEmail))
+                    return UserEmail.Split('@')[0];
+                return "Unknown";
+            }
+        }
+
+        public string CostDisplay
+        {
+            get
+            {
+                if (Cost.HasValue && Cost.Value > 0)
+                    return $"₱{Cost.Value:F2}";
+                return "N/A";
+            }
+        }
+
+        public string ChangedByDisplay
+        {
+            get
+            {
+                return ChangedBy switch
+                {
+                    "SYSTEM" => "🤖 System",
+                    "POS" => "💰 POS",
+                    "IMPORT" => "📥 Import",
+                    _ => "👤 User"
                 };
             }
         }

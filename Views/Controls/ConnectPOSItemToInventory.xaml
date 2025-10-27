@@ -41,13 +41,13 @@
                 <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="FillAndExpand" Spacing="10">
                     <Label Text="Connect POS to Inventory"
                            FontAttributes="Bold"
-                           FontSize="26"
+                           FontSize="26" FontFamily="MontserratBlack"
                            TextColor="#3C3C3C"
                            VerticalOptions="Center" />
                     <Button Text="✕"
                             BackgroundColor="Transparent"
                             TextColor="#444"
-                            FontSize="20"
+                            FontSize="20" FontFamily="MontserratBlack"
                             Command="{Binding CloseConnectPOSToInventoryCommand}"
                             HorizontalOptions="EndAndExpand" />
                 </HorizontalStackLayout>
@@ -149,7 +149,7 @@
                                 <Frame CornerRadius="12" Padding="8,0" BackgroundColor="White" HasShadow="False" VerticalOptions="Center">
                                     <Picker Title="Sort By" 
                                             SelectedItem="{Binding SelectedSort}" 
-                                            FontSize="14"
+                                            FontSize="14" FontFamily="MontserratBlack"
                                             TextColor="Black">
                                         <Picker.Items>
                                             <x:String>Name (A-Z)</x:String>
@@ -167,10 +167,10 @@
                                                Text="{Binding SearchText}"
                                                TextColor="Black"
                                                BackgroundColor="Transparent"
-                                               FontSize="16"/>
+                                               FontSize="16" FontFamily="MontserratBlack"/>
                                 </Frame>
 
-                                <Button Text="Unselect All" Command="{Binding UnselectAllVisibleCommand}" BackgroundColor="#F0C0C0" TextColor="#333" FontSize="16" FontAttributes="Bold"/>
+                                <Button Text="Unselect All" Command="{Binding UnselectAllVisibleCommand}" BackgroundColor="#F0C0C0" TextColor="#333" FontSize="16" FontFamily="MontserratBlack" FontAttributes="Bold"/>
                             </HorizontalStackLayout>
                         </ScrollView>
 
@@ -184,7 +184,7 @@
                                 <VerticalStackLayout Spacing="8">
                                     <Label Text="SELECT FROM INVENTORY"
                                            FontAttributes="Bold"
-                                           FontSize="18"
+                                           FontSize="18" FontFamily="MontserratBlack"
                                            TextColor="#3C3C3C" />
                                     <Frame BackgroundColor="#E8F5E8"
                                            CornerRadius="8"
@@ -192,11 +192,11 @@
                                            HasShadow="False">
                                         <HorizontalStackLayout Spacing="8">
                                             <Label Text="ℹ"
-                                                   FontSize="16"
+                                                   FontSize="16" FontFamily="MontserratBlack"
                                                    TextColor="#2E7D32"
                                                    VerticalOptions="Center"/>
                                             <Label Text="Cups are size-specific (Small Cup for Small, Medium Cup for Medium, Large Cup for Large). Straws are included for all sizes."
-                                                   FontSize="13"
+                                                   FontSize="13" FontFamily="MontserratBlack"
                                                    TextColor="#2E7D32"
                                                    VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
@@ -235,17 +235,17 @@
                                                         <Frame WidthRequest="36" HeightRequest="36" CornerRadius="8" Padding="0" HasShadow="False" BackgroundColor="#EFEFEF">
                                                             <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
                                                         </Frame>
-                                                        <Label Text="{Binding itemName}" VerticalOptions="Center" FontSize="14" TextColor="Black"/>
+                                                        <Label Text="{Binding itemName}" VerticalOptions="Center" FontSize="14" FontFamily="MontserratBlack" TextColor="Black"/>
                                                     </HorizontalStackLayout>
 
                                                     <!-- Category -->
-                                                    <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13" TextColor="Black"/>
+                                                    <Label Grid.Column="1" Text="{Binding itemCategory}" VerticalOptions="Center" FontSize="13" FontFamily="MontserratBlack" TextColor="Black"/>
 
                                                     <!-- Stock Information -->
                                                     <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
                                                         <Frame BackgroundColor="White" CornerRadius="10" Padding="8" HasShadow="True">
                                                             <Label FormattedText="{Binding NewStockDisplayFormatted}" 
-                                                                   FontSize="13" 
+                                                                   FontSize="13" FontFamily="MontserratBlack" 
                                                                    HorizontalOptions="Start" 
                                                                    VerticalOptions="Center"
                                                                    LineBreakMode="WordWrap"

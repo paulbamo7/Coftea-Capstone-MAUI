@@ -43,13 +43,13 @@
                     <Grid ColumnDefinitions="*, Auto">
                         <Label Grid.Column="0" 
                                Text="Cart" 
-                               FontSize="24" 
+                               FontSize="24" FontFamily="MontserratBlack" 
                                FontAttributes="Bold"
                                VerticalOptions="Center"
                                TextColor="White" />
                         <Button Grid.Column="1"
                                 Text="×"
-                                FontSize="24"
+                                FontSize="24" FontFamily="MontserratBlack"
                                 FontAttributes="Bold"
                                 BackgroundColor="Transparent"
                                 TextColor="White"
@@ -71,13 +71,13 @@
                     <!-- Fixed Table Header -->
                     <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="10" Margin="0,0,0,10">
                         <Grid ColumnDefinitions="40, 80, *, 150, 60, 80, 80">
-                            <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="40" HorizontalTextAlignment="Center"/>
-                            <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" HorizontalTextAlignment="Center"/>
-                            <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="14" TextColor="Black" />
-                            <Label Grid.Column="3" Text="Add-ons" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="150" />
-                            <Label Grid.Column="4" Text="Size" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="60" />
-                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
-                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="14" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" WidthRequest="40" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" WidthRequest="80" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" />
+                            <Label Grid.Column="3" Text="Add-ons" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" WidthRequest="150" />
+                            <Label Grid.Column="4" Text="Size" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" WidthRequest="60" />
+                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" WidthRequest="80" />
+                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" WidthRequest="80" />
                         </Grid>
                     </Grid>
 
@@ -123,7 +123,7 @@
                                         <!-- Drink Details -->
                                         <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="10,0" VerticalOptions="Center">
                                             <Label Text="{Binding ProductName, StringFormat='Drink: {0}'}" 
-                                                   FontSize="12" 
+                                                   FontSize="12" FontFamily="MontserratBlack" 
                                                    TextColor="Black"
                                                    VerticalOptions="Center" />
                                         </VerticalStackLayout>
@@ -131,7 +131,7 @@
                                         <!-- Add-ons -->
                                         <VerticalStackLayout Grid.Column="3" Spacing="2" Padding="5,0" VerticalOptions="Center">
                                             <Label Text="{Binding AddOnsDisplay}" 
-                                                   FontSize="11" 
+                                                   FontSize="11" FontFamily="MontserratBlack" 
                                                    TextColor="Black"
                                                    VerticalOptions="Center" />
                                         </VerticalStackLayout>
@@ -139,7 +139,7 @@
                                         <!-- Size -->
                                         <Label Grid.Column="4" 
                                                Text="{Binding SizeDisplay}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
@@ -147,7 +147,7 @@
                                         <!-- Cost -->
                                         <Label Grid.Column="5" 
                                                Text="{Binding TotalPrice, StringFormat='P{0:F0}'}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
@@ -156,7 +156,7 @@
                                         <VerticalStackLayout Grid.Column="6" Spacing="15">
                                             <Button
                                                 Text="Edit" 
-                                                FontSize="12" 
+                                                FontSize="12" FontFamily="MontserratBlack" 
                                                 BackgroundColor="#4CAF50" 
                                                 TextColor="White" 
                                                 CornerRadius="15"
@@ -167,7 +167,7 @@
                                                 CommandParameter="{Binding .}" />
                                             <Button 
                                                 Text="Delete" 
-                                                FontSize="12" 
+                                                FontSize="12" FontFamily="MontserratBlack" 
                                                 BackgroundColor="Red" 
                                                 TextColor="White" 
                                                 CornerRadius="15"
@@ -190,10 +190,10 @@
                         <!-- Total Amount -->
                         <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
                             <Label Text="Total Amount:" 
-                                   FontSize="16" 
+                                   FontSize="16" FontFamily="MontserratBlack" 
                                    TextColor="Black" />
                             <Label Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
-                                   FontSize="24" 
+                                   FontSize="24" FontFamily="MontserratBlack" 
                                    FontAttributes="Bold"
                                    TextColor="#5B4F45" />
                         </VerticalStackLayout>
@@ -201,7 +201,7 @@
                         <!-- Checkout Button -->
                         <Button Grid.Column="1" 
                                 Text="Check Out" 
-                                FontSize="16" 
+                                FontSize="16" FontFamily="MontserratBlack" 
                                 FontAttributes="Bold"
                                 BackgroundColor="#5B4F45" 
                                 TextColor="White" 

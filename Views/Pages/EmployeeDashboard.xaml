@@ -97,7 +97,7 @@
                             </CollectionView>
                         </Frame>
                         <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="12" Margin="0,5,0,0">
-                            <Button Text="Request Restock" CornerRadius="20" BackgroundColor="#897564" TextColor="White" WidthRequest="150" HeightRequest="35"/>
+                            <Button Text="Request Restock" CornerRadius="20" BackgroundColor="#897564" Padding="0" TextColor="White" WidthRequest="150" HeightRequest="35"/>
                             <Label Text="See More" TextColor="#5B4F45" VerticalOptions="Center"/>
                         </StackLayout>
                     </VerticalStackLayout>

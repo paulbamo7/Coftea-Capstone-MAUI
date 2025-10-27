@@ -30,13 +30,13 @@
                     <Grid ColumnDefinitions="*, Auto">
                         <Label Grid.Column="0" 
                                Text="Cash Payment" 
-                               FontSize="24" 
+                               FontSize="24" FontFamily="MontserratBlack" 
                                FontAttributes="Bold"
                                VerticalOptions="Center"
                                TextColor="White" />
                         <Button Grid.Column="1"
                                 Text="×"
-                                FontSize="24"
+                                FontSize="24" FontFamily="MontserratBlack"
                                 FontAttributes="Bold"
                                 BackgroundColor="Transparent"
                                 TextColor="White"
@@ -57,7 +57,7 @@
                             <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto" Margin="0,0,0,20">
                             <VerticalStackLayout Spacing="8">
                                 <Label Text="Payment Method:" 
-                                       FontSize="16"
+                                       FontSize="16" FontFamily="MontserratBlack"
                                        FontAttributes="Bold"
                                        TextColor="Black" />
                                 <HorizontalStackLayout Spacing="20">
@@ -90,11 +90,11 @@
                                 <!-- Total Amount -->
                                 <Grid Grid.Row="0" Margin="0,0,0,20">
                                     <Label Text="Total Amount:" 
-                                           FontSize="18" 
+                                           FontSize="18" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="Black" />
                                     <Label Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
-                                           FontSize="24" 
+                                           FontSize="24" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="#5B4F45"
                                            HorizontalOptions="End" />
@@ -103,11 +103,11 @@
                                 <!-- Amount Paid Input -->
                                 <Grid Grid.Row="1" Margin="0,0,0,15">
                                     <Label Text="Amount Paid:" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Entry x:Name="AmountPaidEntry"
                                            Text="{Binding AmountPaid, StringFormat='{0:F2}'}"
-                                           FontSize="18"
+                                           FontSize="18" FontFamily="MontserratBlack"
                                            FontAttributes="Bold"
                                            TextColor="#5B4F45"
                                            HorizontalOptions="End"
@@ -120,10 +120,10 @@
                                 <!-- Change Display -->
                                 <Grid Grid.Row="2" Margin="0,0,0,20">
                                     <Label Text="Change:" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Label Text="{Binding Change, StringFormat='₱{0:F2}'}" 
-                                           FontSize="18" 
+                                           FontSize="18" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="{Binding Change, Converter={StaticResource ChangeColorConverter}}"
                                            HorizontalOptions="End" />
@@ -132,10 +132,10 @@
                                 <!-- Payment Status -->
                                 <Grid Grid.Row="3" Margin="0,0,0,20">
                                     <Label Text="Status:" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
                                            HorizontalOptions="End" />
@@ -144,11 +144,11 @@
                                 <!-- Quick Amount Buttons -->
                                 <Grid Grid.Row="4" Margin="0,0,0,20">
                                     <Label Text="Quick Amounts:" 
-                                           FontSize="14" 
+                                           FontSize="14" FontFamily="MontserratBlack" 
                                            TextColor="Gray" />
                                     <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
                                         <Button Text="₱50" 
-                                                FontSize="12"
+                                                FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
@@ -157,7 +157,7 @@
                                                 HeightRequest="30"
                                                 Clicked="OnQuickAmountClicked" />
                                         <Button Text="₱100" 
-                                                FontSize="12"
+                                                FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
@@ -166,7 +166,7 @@
                                                 HeightRequest="30"
                                                 Clicked="OnQuickAmountClicked" />
                                         <Button Text="₱200" 
-                                                FontSize="12"
+                                                FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
@@ -175,7 +175,7 @@
                                                 HeightRequest="30"
                                                 Clicked="OnQuickAmountClicked" />
                                         <Button Text="₱500" 
-                                                FontSize="12"
+                                                FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
@@ -189,7 +189,7 @@
                                 <!-- Confirm Button -->
                                 <Button Grid.Row="5"
                                         Text="Confirm Payment" 
-                                        FontSize="16" 
+                                        FontSize="16" FontFamily="MontserratBlack" 
                                         FontAttributes="Bold"
                                         BackgroundColor="#4CAF50" 
                                         TextColor="White" 
@@ -206,11 +206,11 @@
                                 <!-- Total Amount -->
                                 <Grid Grid.Row="0" Margin="0,0,0,20">
                                     <Label Text="Total Amount:" 
-                                           FontSize="18" 
+                                           FontSize="18" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="Black" />
                                     <Label Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
-                                           FontSize="24" 
+                                           FontSize="24" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="#5B4F45"
                                            HorizontalOptions="End" />
@@ -219,7 +219,7 @@
                                 <!-- GCash QR Code Simulation -->
                                 <Frame Grid.Row="1" Padding="20" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True" Margin="0,0,0,15">
                                     <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
-                                        <Label Text="GCash QR Payment" FontSize="16" FontAttributes="Bold" TextColor="#0EA5E9" HorizontalOptions="Center" />
+                                        <Label Text="GCash QR Payment" FontSize="16" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#0EA5E9" HorizontalOptions="Center" />
                                         
                                         <!-- QR Code Placeholder -->
                                         <Frame BackgroundColor="#F8F9FA" CornerRadius="8" Padding="15" HasShadow="False">
@@ -280,18 +280,18 @@
                                             </Grid>
                                         </Frame>
                                         
-                                        <Label Text="Scan QR code with GCash app" FontSize="12" TextColor="#666666" HorizontalOptions="Center" />
-                                        <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" FontSize="14" FontAttributes="Bold" TextColor="#0EA5E9" HorizontalOptions="Center" />
+                                        <Label Text="Scan QR code with GCash app" FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" HorizontalOptions="Center" />
+                                        <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#0EA5E9" HorizontalOptions="Center" />
                                     </VerticalStackLayout>
                                 </Frame>
 
                                 <!-- Payment Status -->
                                 <Grid Grid.Row="2" Margin="0,0,0,15">
                                     <Label Text="Payment Status:" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
                                            HorizontalOptions="End" />
@@ -300,18 +300,18 @@
                                 <!-- GCash Payment Steps -->
                                 <Frame Grid.Row="3" Padding="15" BackgroundColor="#F0F9FF" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">
                                     <VerticalStackLayout Spacing="8">
-                                        <Label Text="Payment Steps:" FontSize="14" FontAttributes="Bold" TextColor="#0EA5E9" />
-                                        <Label Text="1. Open GCash app on your phone" FontSize="12" TextColor="#374151" />
-                                        <Label Text="2. Tap 'Scan QR' and scan the code above" FontSize="12" TextColor="#374151" />
-                                        <Label Text="3. Enter amount and confirm payment" FontSize="12" TextColor="#374151" />
-                                        <Label Text="4. Wait for payment confirmation" FontSize="12" TextColor="#374151" />
+                                        <Label Text="Payment Steps:" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#0EA5E9" />
+                                        <Label Text="1. Open GCash app on your phone" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="2. Tap 'Scan QR' and scan the code above" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="3. Enter amount and confirm payment" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="4. Wait for payment confirmation" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
                                     </VerticalStackLayout>
                                 </Frame>
 
                                 <!-- Simulate Payment Button -->
                                 <Button Grid.Row="4"
                                         Text="Simulate GCash Payment"
-                                        FontSize="16"
+                                        FontSize="16" FontFamily="MontserratBlack"
                                         FontAttributes="Bold"
                                         BackgroundColor="#0EA5E9" 
                                         TextColor="White"
@@ -327,11 +327,11 @@
                                 <!-- Total Amount -->
                                 <Grid Grid.Row="0" Margin="0,0,0,20">
                                     <Label Text="Total Amount:" 
-                                           FontSize="18" 
+                                           FontSize="18" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="Black" />
                                     <Label Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
-                                           FontSize="24" 
+                                           FontSize="24" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="#5B4F45"
                                            HorizontalOptions="End" />
@@ -340,30 +340,30 @@
                                 <!-- Bank Transfer Details -->
                                 <Frame Grid.Row="1" Padding="20" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True" Margin="0,0,0,15">
                                     <VerticalStackLayout Spacing="12">
-                                        <Label Text="Bank Transfer Payment" FontSize="16" FontAttributes="Bold" TextColor="#8B5CF6" HorizontalOptions="Center" />
+                                        <Label Text="Bank Transfer Payment" FontSize="16" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#8B5CF6" HorizontalOptions="Center" />
                                         
                                         <!-- Bank Account Details -->
                                         <Frame BackgroundColor="#F8F9FA" CornerRadius="8" Padding="15" HasShadow="False">
                                             <VerticalStackLayout Spacing="8">
-                                                <Label Text="Transfer to:" FontSize="14" FontAttributes="Bold" TextColor="#374151" />
-                                                <Label Text="Account Name: Coftea Coffee Shop" FontSize="12" TextColor="#6B7280" />
-                                                <Label Text="Account Number: 1234-5678-9012-3456" FontSize="12" TextColor="#6B7280" />
-                                                <Label Text="Bank: BDO (Banco de Oro)" FontSize="12" TextColor="#6B7280" />
-                                                <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" FontSize="14" FontAttributes="Bold" TextColor="#8B5CF6" />
+                                                <Label Text="Transfer to:" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#374151" />
+                                                <Label Text="Account Name: Coftea Coffee Shop" FontSize="12" FontFamily="MontserratBlack" TextColor="#6B7280" />
+                                                <Label Text="Account Number: 1234-5678-9012-3456" FontSize="12" FontFamily="MontserratBlack" TextColor="#6B7280" />
+                                                <Label Text="Bank: BDO (Banco de Oro)" FontSize="12" FontFamily="MontserratBlack" TextColor="#6B7280" />
+                                                <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#8B5CF6" />
                                             </VerticalStackLayout>
                                         </Frame>
                                         
-                                        <Label Text="Use your bank's mobile app or online banking" FontSize="12" TextColor="#666666" HorizontalOptions="Center" />
+                                        <Label Text="Use your bank's mobile app or online banking" FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" HorizontalOptions="Center" />
                                     </VerticalStackLayout>
                                 </Frame>
 
                                 <!-- Payment Status -->
                                 <Grid Grid.Row="2" Margin="0,0,0,15">
                                     <Label Text="Payment Status:" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
-                                           FontSize="16" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
                                            HorizontalOptions="End" />
@@ -372,19 +372,19 @@
                                 <!-- Bank Transfer Steps -->
                                 <Frame Grid.Row="3" Padding="15" BackgroundColor="#F3F4F6" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">
                                     <VerticalStackLayout Spacing="8">
-                                        <Label Text="Transfer Steps:" FontSize="14" FontAttributes="Bold" TextColor="#8B5CF6" />
-                                        <Label Text="1. Open your bank's mobile app" FontSize="12" TextColor="#374151" />
-                                        <Label Text="2. Go to 'Transfer' or 'Send Money'" FontSize="12" TextColor="#374151" />
-                                        <Label Text="3. Enter account details and amount" FontSize="12" TextColor="#374151" />
-                                        <Label Text="4. Add reference: 'Coftea Order'" FontSize="12" TextColor="#374151" />
-                                        <Label Text="5. Confirm and complete transfer" FontSize="12" TextColor="#374151" />
+                                        <Label Text="Transfer Steps:" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#8B5CF6" />
+                                        <Label Text="1. Open your bank's mobile app" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="2. Go to 'Transfer' or 'Send Money'" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="3. Enter account details and amount" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="4. Add reference: 'Coftea Order'" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="5. Confirm and complete transfer" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
                                     </VerticalStackLayout>
                                 </Frame>
 
                                 <!-- Simulate Payment Button -->
                                 <Button Grid.Row="4"
                                         Text="Simulate Bank Transfer"
-                                        FontSize="16"
+                                        FontSize="16" FontFamily="MontserratBlack"
                                         FontAttributes="Bold"
                                         BackgroundColor="#8B5CF6" 
                                         TextColor="White"
@@ -400,7 +400,7 @@
                     <ScrollView Grid.Column="1">
                         <Frame Padding="15" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True">
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="Order Summary" FontSize="18" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center" />
+                                <Label Text="Order Summary" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center" />
                                 
                                 <!-- Cart Items List -->
                                 <CollectionView ItemsSource="{Binding CartItems}" HeightRequest="300">
@@ -414,28 +414,28 @@
                                                 
                                                 <!-- Product Name and Sizes -->
                                                 <StackLayout Grid.Column="0" Spacing="2">
-                                                    <Label Text="{Binding ProductName}" FontSize="14" FontAttributes="Bold" TextColor="Black" />
+                                                    <Label Text="{Binding ProductName}" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="Black" />
                                                     <StackLayout Orientation="Horizontal" Spacing="8">
                                                         <Label Text="{Binding SmallQuantity, StringFormat='S:{0}'}" 
-                                                               FontSize="12" TextColor="#666666" 
+                                                               FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" 
                                                                IsVisible="{Binding SmallQuantity, Converter={StaticResource IsPositiveConverter}}" />
                                                         <Label Text="{Binding MediumQuantity, StringFormat='M:{0}'}" 
-                                                               FontSize="12" TextColor="#666666" 
+                                                               FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" 
                                                                IsVisible="{Binding MediumQuantity, Converter={StaticResource IsPositiveConverter}}" />
                                                         <Label Text="{Binding LargeQuantity, StringFormat='L:{0}'}" 
-                                                               FontSize="12" TextColor="#666666" 
+                                                               FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" 
                                                                IsVisible="{Binding LargeQuantity, Converter={StaticResource IsPositiveConverter}}" />
                                                     </StackLayout>
                                                     
                                                     <!-- Add-ons -->
                                                     <Label Text="{Binding AddOnsDisplay}" 
-                                                           FontSize="12" TextColor="#8B5CF6" 
+                                                           FontSize="12" FontFamily="MontserratBlack" TextColor="#8B5CF6" 
                                                            IsVisible="{Binding AddOnsDisplay, Converter={StaticResource NullToBoolConverter}}" />
                                                 </StackLayout>
                                                 
                                                 <!-- Price -->
                                                 <Label Grid.Column="1" Text="{Binding TotalPrice, StringFormat='₱{0:F2}'}" 
-                                                       FontSize="14" FontAttributes="Bold" TextColor="#5B4F45" VerticalOptions="Center" />
+                                                       FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45" VerticalOptions="Center" />
                                             </Grid>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
@@ -444,9 +444,9 @@
                                 <!-- Total Amount -->
                                 <Frame BackgroundColor="#F8E8D7" CornerRadius="8" Padding="10" HasShadow="False" Margin="0,8,0,0">
                                     <Grid ColumnDefinitions="*, Auto">
-                                        <Label Grid.Column="0" Text="Total:" FontSize="16" FontAttributes="Bold" TextColor="#5B4F45" />
+                                        <Label Grid.Column="0" Text="Total:" FontSize="16" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45" />
                                         <Label Grid.Column="1" Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" 
-                                               FontSize="18" FontAttributes="Bold" TextColor="#5B4F45" />
+                                               FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45" />
                                     </Grid>
                                 </Frame>
                             </VerticalStackLayout>

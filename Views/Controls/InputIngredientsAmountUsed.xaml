@@ -30,12 +30,12 @@
                 <!-- Header -->
                 <VerticalStackLayout Grid.Row="0" Spacing="10">
                     <Label Text="Input Ingredients Used"
-                           FontSize="28"
+                           FontSize="28" FontFamily="MontserratBlack"
                            FontAttributes="Bold"
                            TextColor="#4A3F35"
                            HorizontalOptions="Center" />
                     <Label Text="Specify the amount and unit for each ingredient."
-                           FontSize="16"
+                           FontSize="16" FontFamily="MontserratBlack"
                            TextColor="#7B6F63"
                            HorizontalOptions="Center" />
                     
@@ -166,7 +166,7 @@
                     </HorizontalStackLayout>
                     <!-- Selected size indicator -->
                     <Label Text="{Binding SelectedSize, StringFormat='Current size: {0}'}"
-                           FontSize="13"
+                           FontSize="13" FontFamily="MontserratBlack"
                            TextColor="#5B4F45"
                            HorizontalOptions="Center"
                            Margin="0,6,0,0"/>
@@ -182,16 +182,16 @@
                     <!-- Fixed Table Header -->
                     <Grid Grid.Row="0" BackgroundColor="#D6BCA8" Padding="15,8" Margin="0,0,0,0">
                         <Grid ColumnDefinitions="40, *, 100, 80, 80, 80, 80, 100, 80, 100">
-                            <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="1" Text="Item Name" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Start"/>
-                            <Label Grid.Column="2" Text="Category" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="3" Text="Stock" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="4" Text="Unit" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="5" Text="Min Qty" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="6" Text="Status" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="7" Text="Amount Used" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="8" Text="UoM" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
-                            <Label Grid.Column="9" Text="Total Deduction" FontAttributes="Bold" FontSize="14" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="0" Text="ID" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="1" Text="Item Name" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Start"/>
+                            <Label Grid.Column="2" Text="Category" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="3" Text="Stock" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="4" Text="Unit" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="5" Text="Min Qty" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="6" Text="Status" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="7" Text="Amount Used" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="8" Text="UoM" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                            <Label Grid.Column="9" Text="Total Deduction" FontAttributes="Bold" FontSize="14" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
                         </Grid>
                     </Grid>
 
@@ -219,7 +219,7 @@
                                         <!-- ID -->
                                         <Label Grid.Column="0" 
                                                Text="{Binding itemID}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
@@ -227,7 +227,7 @@
                                         <!-- Item Name -->
                                         <Label Grid.Column="1" 
                                                Text="{Binding itemName}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Start" />
@@ -235,7 +235,7 @@
                                         <!-- Category -->
                                         <Label Grid.Column="2" 
                                                Text="{Binding itemCategory}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center"
@@ -244,7 +244,7 @@
                                         <!-- Stock -->
                                         <Label Grid.Column="3" 
                                                Text="{Binding itemQuantity}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
@@ -252,7 +252,7 @@
                                         <!-- Unit -->
                                         <Label Grid.Column="4" 
                                                Text="{Binding unitOfMeasurement}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
@@ -260,7 +260,7 @@
                                         <!-- Min Quantity -->
                                         <Label Grid.Column="5" 
                                                Text="{Binding minimumQuantity}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
@@ -268,7 +268,7 @@
                                         <!-- Status -->
                                         <Label Grid.Column="6" 
                                                Text="{Binding StockText}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center" />
@@ -276,7 +276,7 @@
                                         <!-- Amount Used Input -->
                                         <Entry Grid.Column="7" 
                                                Text="{Binding InputAmountText, Mode=TwoWay, UpdateSourceEventName=TextChanged}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                Keyboard="Numeric" 
                                                TextColor="Black"
                                                HorizontalTextAlignment="Center"
@@ -288,7 +288,7 @@
                                         <Picker Grid.Column="8" 
                                                 SelectedItem="{Binding InputUnit}" 
                                                 ItemsSource="{Binding AllowedUnits}"
-                                                FontSize="12" 
+                                                FontSize="12" FontFamily="MontserratBlack" 
                                                 HorizontalOptions="Center"
                                                 TextColor="Black"
                                                 VerticalOptions="Center"
@@ -297,7 +297,7 @@
                                         <!-- Total Deduction Display -->
                                         <Label Grid.Column="9" 
                                                Text="{Binding TotalDeduction, StringFormat='{0:F1}'}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
                                                HorizontalOptions="Center"

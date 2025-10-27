@@ -33,10 +33,10 @@
             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
                 <Ellipse Fill="#90EE90" WidthRequest="12" HeightRequest="12"/>
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="{Binding Item1Name}" FontSize="12" FontAttributes="Bold" TextColor="#5B4F45"/>
+                    <Label Text="{Binding Item1Name}" FontSize="12" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45"/>
                     <HorizontalStackLayout Spacing="4">
-                        <Label Text="{Binding Item1Count, StringFormat='{0} orders'}" FontSize="10" TextColor="Gray"/>
-                        <Label Text="↗" FontSize="10" TextColor="Green" IsVisible="{Binding Item1HasTrend}"/>
+                        <Label Text="{Binding Item1Count, StringFormat='{0} orders'}" FontSize="10" FontFamily="MontserratBlack" TextColor="Gray"/>
+                        <Label Text="↗" FontSize="10" FontFamily="MontserratBlack" TextColor="Green" IsVisible="{Binding Item1HasTrend}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </HorizontalStackLayout>
@@ -45,10 +45,10 @@
             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
                 <Ellipse Fill="#F5DEB3" WidthRequest="12" HeightRequest="12"/>
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="{Binding Item2Name}" FontSize="12" FontAttributes="Bold" TextColor="#5B4F45"/>
+                    <Label Text="{Binding Item2Name}" FontSize="12" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45"/>
                     <HorizontalStackLayout Spacing="4">
-                        <Label Text="{Binding Item2Count, StringFormat='{0} orders'}" FontSize="10" TextColor="Gray"/>
-                        <Label Text="↗" FontSize="10" TextColor="Green" IsVisible="{Binding Item2HasTrend}"/>
+                        <Label Text="{Binding Item2Count, StringFormat='{0} orders'}" FontSize="10" FontFamily="MontserratBlack" TextColor="Gray"/>
+                        <Label Text="↗" FontSize="10" FontFamily="MontserratBlack" TextColor="Green" IsVisible="{Binding Item2HasTrend}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </HorizontalStackLayout>
@@ -57,10 +57,10 @@
             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
                 <Ellipse Fill="#8B4513" WidthRequest="12" HeightRequest="12"/>
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="{Binding Item3Name}" FontSize="12" FontAttributes="Bold" TextColor="#5B4F45"/>
+                    <Label Text="{Binding Item3Name}" FontSize="12" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45"/>
                     <HorizontalStackLayout Spacing="4">
-                        <Label Text="{Binding Item3Count, StringFormat='{0} orders'}" FontSize="10" TextColor="Gray"/>
-                        <Label Text="↗" FontSize="10" TextColor="Green" IsVisible="{Binding Item3HasTrend}"/>
+                        <Label Text="{Binding Item3Count, StringFormat='{0} orders'}" FontSize="10" FontFamily="MontserratBlack" TextColor="Gray"/>
+                        <Label Text="↗" FontSize="10" FontFamily="MontserratBlack" TextColor="Green" IsVisible="{Binding Item3HasTrend}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </HorizontalStackLayout>

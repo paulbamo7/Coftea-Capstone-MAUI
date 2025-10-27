@@ -41,7 +41,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="2"/>
                         </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="All" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#2b2b2b" FontSize="14"
+                        <Button Grid.Row="0" Text="All" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
                                 BackgroundColor="#EAD2B9" WidthRequest="100" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
                             <Button.Style>
@@ -71,7 +71,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="2"/>
                         </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Frappe" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#2b2b2b" FontSize="14"
+                        <Button Grid.Row="0" Text="Frappe" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
                                 BackgroundColor="#EAD2B9" WidthRequest="100" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
                             <Button.Style>
@@ -101,7 +101,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="2"/>
                         </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Fruit/Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#2b2b2b" FontSize="14"
+                        <Button Grid.Row="0" Text="Fruit/Soda" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
                                 BackgroundColor="#EAD2B9" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda">
                             <Button.Style>
@@ -131,7 +131,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="2"/>
                         </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Milktea" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#2b2b2b" FontSize="14"
+                        <Button Grid.Row="0" Text="Milktea" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
                                 BackgroundColor="#EAD2B9" WidthRequest="100" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea">
                             <Button.Style>
@@ -161,7 +161,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="2"/>
                         </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Coffee" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#2b2b2b" FontSize="14"
+                        <Button Grid.Row="0" Text="Coffee" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
                                 BackgroundColor="#EAD2B9" WidthRequest="100" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee">
                             <Button.Style>

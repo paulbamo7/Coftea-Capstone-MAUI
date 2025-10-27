@@ -23,7 +23,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Label Text="Preview Product" FontAttributes="Bold" FontSize="20" Grid.Column="0" TextColor="Black"/>
+                        <Label Text="Preview Product" FontAttributes="Bold" FontSize="20" FontFamily="MontserratBlack" Grid.Column="0" TextColor="Black"/>
                         <ImageButton Source="close.png"
                                  WidthRequest="25" HeightRequest="25"
                                  Grid.Column="1"
@@ -35,7 +35,7 @@
 
 
                     <!-- Product Info -->
-                    <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="18" TextColor="Black" />
+                    <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="18" FontFamily="MontserratBlack" TextColor="Black" />
                     <Label Text="Add-ons Used" FontAttributes="Bold" TextColor="Black"/>
                     <!-- Show only selected addons: Name - ₱Price (no quantity controls in preview) -->
                     <CollectionView ItemsSource="{Binding SelectedAddons}">
@@ -46,39 +46,39 @@
                             <DataTemplate>
                                 <VerticalStackLayout Padding="4" Margin="2">
                                     <HorizontalStackLayout Spacing="4" HorizontalOptions="Start">
-                                        <Label Text="•" FontSize="12" VerticalOptions="Center" TextColor="Black"/>
-                                        <Label Text="{Binding itemName}" FontAttributes="Bold" FontSize="12" TextColor="Black" LineBreakMode="TailTruncation"/>
+                                        <Label Text="•" FontSize="12" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
+                                        <Label Text="{Binding itemName}" FontAttributes="Bold" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" LineBreakMode="TailTruncation"/>
                                     </HorizontalStackLayout>
-                                    <Label Text="{Binding AddonPrice, StringFormat='₱{0:F0}'}" FontAttributes="Bold" FontSize="12" TextColor="Black" Margin="12,0,0,0"/>
+                                    <Label Text="{Binding AddonPrice, StringFormat='₱{0:F0}'}" FontAttributes="Bold" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" Margin="12,0,0,0"/>
                                 </VerticalStackLayout>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
                     <HorizontalStackLayout Spacing="12">
 
-                        <Label Text="Category:" FontSize="18" FontAttributes="Bold" TextColor="Black"/>
-                        <Label Text="{Binding SelectedCategory}" FontSize="18" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="Category:" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="{Binding SelectedCategory}" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="Black"/>
                     </HorizontalStackLayout>
 
                     <HorizontalStackLayout Spacing="20">
                         <Label Text="Prices:" FontAttributes="Bold"/>
                         <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
                             <Label Text="Small Price" FontAttributes="Bold" TextColor="Black"/>
-                            <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="Black"/>
+                            <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="18" FontFamily="MontserratBlack" TextColor="Black"/>
                         </VerticalStackLayout>
                         <VerticalStackLayout IsVisible="{Binding IsMediumPriceVisible}">
                             <Label Text="Medium Price" FontAttributes="Bold" TextColor="Black"/>
-                            <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="Black"/>
+                            <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="18" FontFamily="MontserratBlack" TextColor="Black"/>
                         </VerticalStackLayout>
                         <VerticalStackLayout IsVisible="{Binding IsLargePriceVisible}">
                             <Label Text="Large Price" FontAttributes="Bold" TextColor="Black"/>
-                            <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18" TextColor="Black"/>
+                            <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="18" FontFamily="MontserratBlack" TextColor="Black"/>
                         </VerticalStackLayout>
                     </HorizontalStackLayout>
 
                     <Label Text="Description" FontAttributes="Bold" TextColor="Black"/>
                     <ScrollView HeightRequest="60">
-                        <Label Text="{Binding ProductDescription}" FontSize="14" TextColor="Black"/>
+                        <Label Text="{Binding ProductDescription}" FontSize="14" FontFamily="MontserratBlack" TextColor="Black"/>
                     </ScrollView>
                     <!-- Inline Addons section removed; selection will be via popup -->
 

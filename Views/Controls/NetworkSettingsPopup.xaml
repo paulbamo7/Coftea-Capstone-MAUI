@@ -28,7 +28,7 @@
                 <VerticalStackLayout Spacing="20">
                     <!-- Title -->
                     <Label Text="Network Settings" 
-                           FontSize="24" 
+                           FontSize="24" FontFamily="MontserratBlack" 
                            FontAttributes="Bold" 
                            HorizontalOptions="Center" 
                            TextColor="#8B4513" />
@@ -40,15 +40,15 @@
                         <VerticalStackLayout Spacing="10">
                             <Label Text="Current Settings:" 
                                    FontAttributes="Bold" 
-                                   FontSize="16" 
+                                   FontSize="16" FontFamily="MontserratBlack" 
                                    TextColor="#654321" />
                             
                             <Label Text="{Binding CurrentDatabaseHost, StringFormat='Database Host: {0}'}" 
-                                   FontSize="14" 
+                                   FontSize="14" FontFamily="MontserratBlack" 
                                    TextColor="#8B4513" />
                             
                             <Label Text="{Binding CurrentEmailHost, StringFormat='Email Host: {0}'}" 
-                                   FontSize="14" 
+                                   FontSize="14" FontFamily="MontserratBlack" 
                                    TextColor="#8B4513" />
                         </VerticalStackLayout>
                     </Frame>
@@ -60,15 +60,15 @@
                         <VerticalStackLayout Spacing="10">
                             <Label Text="Auto-Detected Settings:" 
                                    FontAttributes="Bold" 
-                                   FontSize="16" 
+                                   FontSize="16" FontFamily="MontserratBlack" 
                                    TextColor="#2E7D32" />
                             
                             <Label Text="{Binding DetectedDatabaseHost, StringFormat='Database Host: {0}'}" 
-                                   FontSize="14" 
+                                   FontSize="14" FontFamily="MontserratBlack" 
                                    TextColor="#4CAF50" />
                             
                             <Label Text="{Binding DetectedEmailHost, StringFormat='Email Host: {0}'}" 
-                                   FontSize="14" 
+                                   FontSize="14" FontFamily="MontserratBlack" 
                                    TextColor="#4CAF50" />
                         </VerticalStackLayout>
                     </Frame>
@@ -77,7 +77,7 @@
                     <VerticalStackLayout Spacing="10">
                         <Label Text="Manual Configuration:" 
                                FontAttributes="Bold" 
-                               FontSize="16" 
+                               FontSize="16" FontFamily="MontserratBlack" 
                                TextColor="#8B4513" />
                         
                         <Entry x:Name="DatabaseHostEntry"
@@ -100,11 +100,11 @@
                         <VerticalStackLayout Spacing="10">
                             <Label Text="Network Diagnostics:" 
                                    FontAttributes="Bold" 
-                                   FontSize="16" 
+                                   FontSize="16" FontFamily="MontserratBlack" 
                                    TextColor="#E65100" />
                             
                             <Label Text="{Binding NetworkDiagnostics}" 
-                                   FontSize="12" 
+                                   FontSize="12" FontFamily="MontserratBlack" 
                                    TextColor="#F57C00"
                                    LineBreakMode="WordWrap" />
                         </VerticalStackLayout>
@@ -117,7 +117,7 @@
                         <VerticalStackLayout Spacing="10">
                             <Label Text="Automatic IP Detection:" 
                                    FontAttributes="Bold" 
-                                   FontSize="16" 
+                                   FontSize="16" FontFamily="MontserratBlack" 
                                    TextColor="#7B1FA2" />
                             
                             <HorizontalStackLayout Spacing="10">
@@ -137,7 +137,7 @@
                             </HorizontalStackLayout>
                             
                             <Label Text="{Binding AutoDetectedIP, StringFormat='Auto-Detected IP: {0}'}" 
-                                   FontSize="14" 
+                                   FontSize="14" FontFamily="MontserratBlack" 
                                    TextColor="#9C27B0" />
                         </VerticalStackLayout>
                     </Frame>

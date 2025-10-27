@@ -15,7 +15,7 @@
 
         <VerticalStackLayout Spacing="15">
             <Label Text="No Internet Connection"
-                   FontSize="18"
+                   FontSize="18" FontFamily="MontserratBlack"
                    HorizontalOptions="Center" />
 
             <Button Text="Retry"

@@ -34,7 +34,7 @@
 
                 <Label Grid.Column="0" 
                        Text="Delete Users" 
-                       FontSize="20" 
+                       FontSize="20" FontFamily="MontserratBlack" 
                        FontAttributes="Bold" 
                        TextColor="White"
                        VerticalOptions="Center"/>
@@ -59,25 +59,25 @@
                                 <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="10" RowSpacing="5">
                                     <!-- User Basic Info -->
                                     <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-                                        <Label FontSize="16" 
+                                        <Label FontSize="16" FontFamily="MontserratBlack" 
                                                FontAttributes="Bold" 
                                                TextColor="Black"
                                                Text="{Binding Username}"/>
                                         <Label Text="{Binding LastActive, StringFormat='Last Active: {0}'}" 
-                                               FontSize="14" 
+                                               FontSize="14" FontFamily="MontserratBlack" 
                                                TextColor="Gray"/>
                                     </VerticalStackLayout>
 
                                     <!-- User Details -->
                                     <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,5,0,0">
                                         <Label Text="{Binding DateAdded, StringFormat='Date Added: {0}'}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="DarkGray"/>
                                         <Label Text="{Binding CanAccessInventory, StringFormat='Inventory Access: {0}'}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="DarkGray"/>
                                         <Label Text="{Binding CanAccessSalesReport, StringFormat='Sales Report Access: {0}'}" 
-                                               FontSize="12" 
+                                               FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="DarkGray"/>
                                     </VerticalStackLayout>
 
@@ -100,11 +100,11 @@
                         <Grid Padding="40" HorizontalOptions="Center">
                             <VerticalStackLayout Spacing="10">
                                 <Label Text="No users to delete" 
-                                       FontSize="16" 
+                                       FontSize="16" FontFamily="MontserratBlack" 
                                        TextColor="Gray" 
                                        HorizontalOptions="Center"/>
                                 <Label Text="All users have been processed" 
-                                       FontSize="14" 
+                                       FontSize="14" FontFamily="MontserratBlack" 
                                        TextColor="LightGray" 
                                        HorizontalOptions="Center"/>
                             </VerticalStackLayout>

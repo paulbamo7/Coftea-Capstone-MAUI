@@ -56,7 +56,7 @@
                     <!-- Title -->
                     <Label Text="Create Account" 
                            FontSize="28" 
-                           FontFamily="Montserrat-Black" 
+                           FontFamily="MontserratBlack" 
                            TextColor="#5B4F45" 
                            HorizontalOptions="Center" 
                            Margin="0,0,0,20"/>
@@ -67,7 +67,7 @@
                             <Entry Placeholder="First Name" 
                                    PlaceholderColor="#8B7355" 
                                    TextColor="#5B4F45"
-                                   FontFamily="OpenSans-Regular"
+                                   FontFamily="MontserratBlack"
                                    FontSize="16"
                                    Margin="20,0"
                                    Text="{Binding FirstName}"/>
@@ -76,7 +76,7 @@
                             <Entry Placeholder="Last Name" 
                                    PlaceholderColor="#8B7355" 
                                    TextColor="#5B4F45"
-                                   FontFamily="OpenSans-Regular"
+                                   FontFamily="MontserratBlack"
                                    FontSize="16"
                                    Margin="20,0"
                                    Text="{Binding LastName}" />
@@ -89,7 +89,7 @@
                                Keyboard="Email" 
                                PlaceholderColor="#8B7355" 
                                TextColor="#5B4F45"
-                               FontFamily="OpenSans-Regular"
+                               FontFamily="MontserratBlack"
                                FontSize="16"
                                Margin="20,0"
                                Text="{Binding Email}"/>
@@ -103,7 +103,7 @@
                                    IsPassword="True" 
                                    PlaceholderColor="#8B7355" 
                                    TextColor="#5B4F45"
-                                   FontFamily="OpenSans-Regular"
+                                   FontFamily="MontserratBlack"
                                    FontSize="16"
                                    Margin="20,0,60,0"
                                    Text="{Binding Password}"/>
@@ -121,31 +121,31 @@
 
                     <!-- Password Requirements - Descriptive Words -->
                     <StackLayout Spacing="6" Margin="0,5,0,0" BackgroundColor="#F5F1ED" Padding="20,12" >
-                        <Label Text="Password Requirements:" FontSize="14" TextColor="#5B4F45" FontFamily="OpenSans-Semibold"/>
+                        <Label Text="Password Requirements:" FontSize="14" TextColor="#5B4F45" FontFamily="MontserratBlack"/>
                         <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="20" RowSpacing="8">
                             <StackLayout Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="6">
-                                <Label Text="✓" TextColor="{Binding HasUppercase, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="OpenSans-Semibold"/>
-                                <Label Text="Uppercase" FontSize="13" TextColor="#8B7355" FontFamily="OpenSans-Regular"/>
+                                <Label Text="✓" TextColor="{Binding HasUppercase, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="MontserratBlack"/>
+                                <Label Text="Uppercase" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
                             
                             <StackLayout Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                                <Label Text="✓" TextColor="{Binding HasLowercase, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="OpenSans-Semibold"/>
-                                <Label Text="Lowercase" FontSize="13" TextColor="#8B7355" FontFamily="OpenSans-Regular"/>
+                                <Label Text="✓" TextColor="{Binding HasLowercase, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="MontserratBlack"/>
+                                <Label Text="Lowercase" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
                             
                             <StackLayout Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="6">
-                                <Label Text="✓" TextColor="{Binding HasNumber, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="OpenSans-Semibold"/>
-                                <Label Text="0-9" FontSize="13" TextColor="#8B7355" FontFamily="OpenSans-Regular"/>
+                                <Label Text="✓" TextColor="{Binding HasNumber, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="MontserratBlack"/>
+                                <Label Text="0-9" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
                             
                             <StackLayout Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                                <Label Text="✓" TextColor="{Binding HasSpecialChar, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="OpenSans-Semibold"/>
-                                <Label Text="Special character" FontSize="13" TextColor="#8B7355" FontFamily="OpenSans-Regular"/>
+                                <Label Text="✓" TextColor="{Binding HasSpecialChar, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="MontserratBlack"/>
+                                <Label Text="Special character" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
                             
                             <StackLayout Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="6">
-                                <Label Text="✓" TextColor="{Binding HasMinLength, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="OpenSans-Semibold"/>
-                                <Label Text="At least 8 characters long" FontSize="13" TextColor="#8B7355" FontFamily="OpenSans-Regular"/>
+                                <Label Text="✓" TextColor="{Binding HasMinLength, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="MontserratBlack"/>
+                                <Label Text="At least 8 characters long" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
                         </Grid>
                     </StackLayout>
@@ -158,7 +158,7 @@
                                    IsPassword="True" 
                                    PlaceholderColor="#8B7355" 
                                    TextColor="#5B4F45"
-                                   FontFamily="OpenSans-Regular"
+                                   FontFamily="MontserratBlack"
                                    FontSize="16"
                                    Margin="20,0,60,0"
                                    Text="{Binding ConfirmPassword}"/>
@@ -176,8 +176,8 @@
 
                     <!-- Password Match Indicator -->
                     <StackLayout Orientation="Horizontal" Spacing="8" Margin="0,5,0,0" BackgroundColor="#F5F1ED" Padding="20,10" >
-                        <Label Text="✓" TextColor="{Binding PasswordsMatch, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="OpenSans-Semibold"/>
-                        <Label Text="Passwords match" FontSize="13" TextColor="#8B7355" FontFamily="OpenSans-Regular"/>
+                        <Label Text="✓" TextColor="{Binding PasswordsMatch, Converter={StaticResource BoolToColorConverter}}" FontSize="14" FontFamily="MontserratBlack"/>
+                        <Label Text="Passwords match" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                     </StackLayout>
 
                     <!-- Fifth Row: Phone Number -->
@@ -186,7 +186,7 @@
                                Keyboard="Telephone" 
                                PlaceholderColor="#8B7355" 
                                TextColor="#5B4F45"
-                               FontFamily="OpenSans-Regular"
+                               FontFamily="MontserratBlack"
                                FontSize="16"
                                Margin="20,0"
                                Text="{Binding PhoneNumber}" />
@@ -197,12 +197,12 @@
                         <Label Text="I agree to the " 
                                VerticalOptions="Center" 
                                TextColor="#5B4F45"
-                               FontFamily="OpenSans-Regular"
+                               FontFamily="MontserratBlack"
                                FontSize="15"/>
                         <Label Text="Terms and Conditions" 
                                TextColor="#8B7355" 
                                VerticalOptions="Center"
-                               FontFamily="OpenSans-Semibold"
+                               FontFamily="MontserratBlack"
                                FontSize="15"/>
                     </HorizontalStackLayout>
                     
@@ -213,7 +213,7 @@
                                 BackgroundColor="#C1A892" 
                                 TextColor="#5B4F45" 
                                 FontSize="16"
-                                FontFamily="OpenSans-Semibold"
+                                FontFamily="MontserratBlack"
                                 Command="{Binding BackToLoginCommand}"
                                 CornerRadius="15"
                                 Padding="30,15"
@@ -225,7 +225,7 @@
                                 BackgroundColor="#5B4F45"
                                 TextColor="White"
                                 FontSize="16"
-                                FontFamily="OpenSans-Semibold"
+                                FontFamily="MontserratBlack"
                                 Command="{Binding RegisterCommand}"
                                 CornerRadius="15"
                                 Padding="30,15"

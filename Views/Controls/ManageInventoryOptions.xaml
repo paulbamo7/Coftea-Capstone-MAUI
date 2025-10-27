@@ -25,7 +25,7 @@
 
                 <!-- Title -->
                 <Label Text="Manage Inventory Items"
-                       FontSize="24"
+                       FontSize="24" FontFamily="MontserratBlack"
                        FontAttributes="Bold"
                        TextColor="#4A3F35"
                        HorizontalOptions="Center" />
@@ -36,7 +36,7 @@
                     <Button Text="Add Item"
                             WidthRequest="220"
                             HeightRequest="55"
-                            FontSize="16"
+                            FontSize="16" FontFamily="MontserratBlack"
                             Command="{Binding AddItemCommand}"
                             BackgroundColor="#A57C5C"
                             TextColor="White"
@@ -46,7 +46,7 @@
                     <Button Text="Edit Item"
                             WidthRequest="220"
                             HeightRequest="55"
-                            FontSize="16"
+                            FontSize="16" FontFamily="MontserratBlack"
                             Command="{Binding EditItemCommand}"
                             BackgroundColor="#A57C5C"
                             TextColor="White"
@@ -59,7 +59,7 @@
                 <Button Text="Close"
                         WidthRequest="120"
                         HeightRequest="45"
-                        FontSize="16"
+                        FontSize="16" FontFamily="MontserratBlack"
                         BackgroundColor="#A57C5C"
                         TextColor="White"
                         CornerRadius="22"

@@ -293,10 +293,20 @@ namespace Coftea_Capstone.Models
                     unitOfMeasurement VARCHAR(50),
                     reason VARCHAR(100),
                     userEmail VARCHAR(255),
+                    userFullName VARCHAR(255),
+                    userId INT,
+                    changedBy VARCHAR(50) DEFAULT 'USER',
+                    cost DECIMAL(10,2) DEFAULT NULL,
                     orderId VARCHAR(100),
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     notes TEXT,
-                    FOREIGN KEY (itemId) REFERENCES inventory(itemID) ON DELETE CASCADE
+                    FOREIGN KEY (itemId) REFERENCES inventory(itemID) ON DELETE CASCADE,
+                    FOREIGN KEY (userId) REFERENCES users(userID) ON DELETE SET NULL,
+                    INDEX idx_itemId (itemId),
+                    INDEX idx_timestamp (timestamp),
+                    INDEX idx_action (action),
+                    INDEX idx_userEmail (userEmail),
+                    INDEX idx_orderId (orderId)
                 );
                 
                 CREATE TABLE IF NOT EXISTS product_ingredients (
@@ -1373,10 +1383,11 @@ namespace Coftea_Capstone.Models
             
             var sql = @"INSERT INTO inventory_activity_log 
                         (itemId, itemName, itemCategory, action, quantityChanged, previousQuantity, 
-                         newQuantity, unitOfMeasurement, reason, userEmail, orderId, notes) 
+                         newQuantity, unitOfMeasurement, reason, userEmail, userFullName, userId, 
+                         changedBy, cost, orderId, notes) 
                         VALUES (@ItemId, @ItemName, @ItemCategory, @Action, @QuantityChanged, 
                                 @PreviousQuantity, @NewQuantity, @UnitOfMeasurement, @Reason, 
-                                @UserEmail, @OrderId, @Notes);";
+                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @Notes);";
             
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemId", logEntry.ItemId);
@@ -1389,6 +1400,10 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)logEntry.UnitOfMeasurement ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Reason", (object?)logEntry.Reason ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@UserEmail", (object?)logEntry.UserEmail ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UserFullName", (object?)logEntry.UserFullName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UserId", (object?)logEntry.UserId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ChangedBy", (object?)logEntry.ChangedBy ?? "USER");
+            cmd.Parameters.AddWithValue("@Cost", (object?)logEntry.Cost ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@OrderId", (object?)logEntry.OrderId ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Notes", (object?)logEntry.Notes ?? DBNull.Value);
             
@@ -1399,10 +1414,11 @@ namespace Coftea_Capstone.Models
         {
             var sql = @"INSERT INTO inventory_activity_log 
                         (itemId, itemName, itemCategory, action, quantityChanged, previousQuantity, 
-                         newQuantity, unitOfMeasurement, reason, userEmail, orderId, notes) 
+                         newQuantity, unitOfMeasurement, reason, userEmail, userFullName, userId, 
+                         changedBy, cost, orderId, notes) 
                         VALUES (@ItemId, @ItemName, @ItemCategory, @Action, @QuantityChanged, 
                                 @PreviousQuantity, @NewQuantity, @UnitOfMeasurement, @Reason, 
-                                @UserEmail, @OrderId, @Notes);";
+                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @Notes);";
             
             await using var cmd = new MySqlCommand(sql, conn, tx);
             cmd.Parameters.AddWithValue("@ItemId", logEntry.ItemId);
@@ -1415,6 +1431,10 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)logEntry.UnitOfMeasurement ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Reason", (object?)logEntry.Reason ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@UserEmail", (object?)logEntry.UserEmail ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UserFullName", (object?)logEntry.UserFullName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@UserId", (object?)logEntry.UserId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ChangedBy", (object?)logEntry.ChangedBy ?? "USER");
+            cmd.Parameters.AddWithValue("@Cost", (object?)logEntry.Cost ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@OrderId", (object?)logEntry.OrderId ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Notes", (object?)logEntry.Notes ?? DBNull.Value);
             
@@ -1458,6 +1478,10 @@ namespace Coftea_Capstone.Models
                     UnitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? null : reader.GetString("unitOfMeasurement"),
                     Reason = reader.IsDBNull(reader.GetOrdinal("reason")) ? null : reader.GetString("reason"),
                     UserEmail = reader.IsDBNull(reader.GetOrdinal("userEmail")) ? null : reader.GetString("userEmail"),
+                    UserFullName = reader.IsDBNull(reader.GetOrdinal("userFullName")) ? null : reader.GetString("userFullName"),
+                    UserId = reader.IsDBNull(reader.GetOrdinal("userId")) ? (int?)null : reader.GetInt32("userId"),
+                    ChangedBy = reader.IsDBNull(reader.GetOrdinal("changedBy")) ? "USER" : reader.GetString("changedBy"),
+                    Cost = reader.IsDBNull(reader.GetOrdinal("cost")) ? (double?)null : reader.GetDouble("cost"),
                     OrderId = reader.IsDBNull(reader.GetOrdinal("orderId")) ? null : reader.GetString("orderId"),
                     Timestamp = reader.GetDateTime("timestamp"),
                     Notes = reader.IsDBNull(reader.GetOrdinal("notes")) ? null : reader.GetString("notes")
@@ -1792,7 +1816,7 @@ namespace Coftea_Capstone.Models
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             if (await reader.ReadAsync(cancellationToken))
             {
-                return new UserInfoModel
+                var user = new UserInfoModel
                 {
                     ID = reader.GetInt32("id"),
                     Email = reader.GetString("email"),
@@ -1807,6 +1831,13 @@ namespace Coftea_Capstone.Models
                     CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
                     CanAccessSalesReport = reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) ? false : reader.GetBoolean("can_access_sales_report")
                 };
+                
+                // Handle potentially NULL fields for username, fullName, and profileImage
+                user.Username = reader.IsDBNull(reader.GetOrdinal("username")) ? string.Empty : reader.GetString("username");
+                user.FullName = reader.IsDBNull(reader.GetOrdinal("fullName")) ? string.Empty : reader.GetString("fullName");
+                user.ProfileImage = reader.IsDBNull(reader.GetOrdinal("profileImage")) ? "usericon.png" : reader.GetString("profileImage");
+                
+                return user;
             }
             return null;
         } 
@@ -1882,7 +1913,7 @@ namespace Coftea_Capstone.Models
                 await using var reader = await cmd.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    return new UserInfoModel
+                    var user = new UserInfoModel
                     {
                         ID = reader.GetInt32("id"),
                         Email = reader.GetString("email"),
@@ -1893,11 +1924,17 @@ namespace Coftea_Capstone.Models
                         PhoneNumber = reader.GetString("phoneNumber"),
                         Status = reader.GetString("status"),
                         CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
-                        CanAccessSalesReport = reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) ? false : reader.GetBoolean("can_access_sales_report"),
-                        Username = reader.GetString("username") ?? string.Empty,
-                        FullName = reader.GetString("fullName") ?? string.Empty,
-                        ProfileImage = reader.GetString("profileImage") ?? "usericon.png"
+                        CanAccessSalesReport = reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) ? false : reader.GetBoolean("can_access_sales_report")
                     };
+                    
+                    // Handle potentially NULL fields with proper null checking
+                    user.Username = reader.IsDBNull(reader.GetOrdinal("username")) ? string.Empty : reader.GetString("username");
+                    user.FullName = reader.IsDBNull(reader.GetOrdinal("fullName")) ? string.Empty : reader.GetString("fullName");
+                    user.ProfileImage = reader.IsDBNull(reader.GetOrdinal("profileImage")) ? "usericon.png" : reader.GetString("profileImage");
+                    
+                    System.Diagnostics.Debug.WriteLine($"Loaded user from DB - ID: {user.ID}, Username: '{user.Username}', ProfileImage: '{user.ProfileImage}', FullName: '{user.FullName}'");
+                    
+                    return user;
                 }
                 return null;
             }
@@ -1924,6 +1961,7 @@ namespace Coftea_Capstone.Models
                            email = @Email, 
                            firstName = @FirstName,
                            lastName = @LastName,
+                           fullName = @FullName,
                            phoneNumber = @PhoneNumber, 
                            profileImage = @ProfileImage,
                            can_access_inventory = @CanAccessInventory,
@@ -1932,16 +1970,20 @@ namespace Coftea_Capstone.Models
                 
                 await using var cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@Username", username);
-                cmd.Parameters.AddWithValue("@Email", email);
-                cmd.Parameters.AddWithValue("@FirstName", firstName);
-                cmd.Parameters.AddWithValue("@LastName", lastName);
-                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber);
-                cmd.Parameters.AddWithValue("@ProfileImage", profileImage);
+                cmd.Parameters.AddWithValue("@Username", username ?? string.Empty);
+                cmd.Parameters.AddWithValue("@Email", email ?? string.Empty);
+                cmd.Parameters.AddWithValue("@FirstName", firstName ?? string.Empty);
+                cmd.Parameters.AddWithValue("@LastName", lastName ?? string.Empty);
+                cmd.Parameters.AddWithValue("@FullName", fullName ?? string.Empty);
+                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber ?? string.Empty);
+                cmd.Parameters.AddWithValue("@ProfileImage", profileImage ?? "usericon.png");
                 cmd.Parameters.AddWithValue("@CanAccessInventory", canAccessInventory);
                 cmd.Parameters.AddWithValue("@CanAccessSalesReport", canAccessSalesReport);
 
-                return await cmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"Executing UPDATE for userId={userId}, username='{username}', profileImage='{profileImage}', fullName='{fullName}'");
+                var rowsAffected = await cmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"UPDATE completed. Rows affected: {rowsAffected}");
+                return rowsAffected;
             }
             catch (Exception ex)
             {

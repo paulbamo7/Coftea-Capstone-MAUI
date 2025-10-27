@@ -19,12 +19,12 @@
                HasShadow="True">
             <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10">
                 <Frame Grid.Row="0" WidthRequest="56" HeightRequest="56" CornerRadius="28" BackgroundColor="#C1CE93" HasShadow="False" HorizontalOptions="Center">
-                    <Label Text="✓" FontSize="32" HorizontalOptions="Center" VerticalOptions="Center" />
+                    <Label Text="✓" FontSize="32" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" />
                 </Frame>
 
-                <Label Grid.Row="1" Text="{Binding Title}" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#000000" />
-                <Label Grid.Row="2" Text="{Binding Message}" FontSize="13" HorizontalTextAlignment="Center" TextColor="#666666" />
-                <Label Grid.Row="3" Text="{Binding Subtext}" FontSize="11" HorizontalTextAlignment="Center" TextColor="#999999" />
+                <Label Grid.Row="1" Text="{Binding Title}" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="#000000" />
+                <Label Grid.Row="2" Text="{Binding Message}" FontSize="13" FontFamily="MontserratBlack" HorizontalTextAlignment="Center" TextColor="#666666" />
+                <Label Grid.Row="3" Text="{Binding Subtext}" FontSize="11" FontFamily="MontserratBlack" HorizontalTextAlignment="Center" TextColor="#999999" />
             </Grid>
         </Frame>
     </Grid>

@@ -38,7 +38,7 @@
                 <Button Text="✕"
                         BackgroundColor="Transparent"
                         TextColor="#666666"
-                        FontSize="24"
+                        FontSize="24" FontFamily="MontserratBlack"
                         FontAttributes="Bold"
                         Padding="0"
                         Grid.Row="0"
@@ -62,7 +62,7 @@
                                HeightRequest="120"
                                HasShadow="True"
                                HorizontalOptions="Center">
-                            <Image Source="profile_placeholder.png"
+                            <Image Source="{Binding ProfileImageSource}"
                                    WidthRequest="100"
                                    HeightRequest="100"
                                    Aspect="AspectFill"/>
@@ -70,7 +70,7 @@
                         
                         <!-- User Name -->
                         <Label Text="{Binding UserName}"
-                               FontSize="24"
+                               FontSize="24" FontFamily="MontserratBlack"
                                FontAttributes="Bold"
                                HorizontalOptions="Center"
                                TextColor="Black"/>
@@ -83,7 +83,7 @@
                         
                         <!-- Details Header -->
                         <Label Text="Details"
-                               FontSize="24"
+                               FontSize="24" FontFamily="MontserratBlack"
                                FontAttributes="Bold"
                                TextColor="Black"
                                Margin="0,0,0,10"/>
@@ -91,30 +91,30 @@
                         <!-- User Information -->
                         <VerticalStackLayout Spacing="8">
                             <Label Text="{Binding FullName, StringFormat='Full Name: {0}'}"
-                                   FontSize="16"
+                                   FontSize="16" FontFamily="MontserratBlack"
                                    TextColor="Black"/>
                             
                             <Label Text="{Binding Email, StringFormat='Email: {0}'}"
-                                   FontSize="16"
+                                   FontSize="16" FontFamily="MontserratBlack"
                                    TextColor="Black"/>
                             
                             <Label Text="{Binding PhoneNumber, StringFormat='Phone Number: {0}'}"
-                                   FontSize="16"
+                                   FontSize="16" FontFamily="MontserratBlack"
                                    TextColor="Black"/>
                             
                             <Label Text="{Binding Address, StringFormat='Address: {0}'}"
-                                   FontSize="16"
+                                   FontSize="16" FontFamily="MontserratBlack"
                                    TextColor="Black"/>
                             
                             <Label Text="{Binding Birthday, StringFormat='Birthday: {0:MMMM dd, yyyy}'}"
-                                   FontSize="16"
+                                   FontSize="16" FontFamily="MontserratBlack"
                                    TextColor="Black"/>
                         </VerticalStackLayout>
                         
                         <!-- Permissions Section -->
                         <VerticalStackLayout Spacing="8" Margin="0,20,0,0">
                             <Label Text="Permissions:"
-                                   FontSize="16"
+                                   FontSize="16" FontFamily="MontserratBlack"
                                    FontAttributes="Bold"
                                    TextColor="Black"/>
                             
@@ -124,7 +124,7 @@
                                         TextColor="White"
                                         CornerRadius="15"
                                         Padding="15,8"
-                                        FontSize="14"
+                                        FontSize="14" FontFamily="MontserratBlack"
                                         IsEnabled="{Binding CanEditInventory}"
                                         Command="{Binding ToggleInventoryPermissionCommand}"/>
                                 
@@ -133,7 +133,7 @@
                                         TextColor="White"
                                         CornerRadius="15"
                                         Padding="15,8"
-                                        FontSize="14"
+                                        FontSize="14" FontFamily="MontserratBlack"
                                         IsEnabled="{Binding CanEditPOSMenu}"
                                         Command="{Binding TogglePOSMenuPermissionCommand}"/>
                             </HorizontalStackLayout>
@@ -147,7 +147,7 @@
                         TextColor="White"
                         CornerRadius="20"
                         Padding="25,12"
-                        FontSize="16"
+                        FontSize="16" FontFamily="MontserratBlack"
                         FontAttributes="Bold"
                         Grid.Row="1"
                         Grid.ColumnSpan="2"

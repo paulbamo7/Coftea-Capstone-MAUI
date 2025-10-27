@@ -33,12 +33,12 @@
                     <!-- Header -->
                     <Grid BackgroundColor="#7E6D5F" Padding="12,8">
                         <Label Text="Notifications" 
-                               FontSize="14" 
+                               FontSize="14" FontFamily="MontserratBlack" 
                                FontAttributes="Bold" 
                                TextColor="White" 
                                HorizontalOptions="Center"/>
                         <Button Text="✕" 
-                                FontSize="12" 
+                                FontSize="12" FontFamily="MontserratBlack" 
                                 TextColor="White" 
                                 BackgroundColor="Transparent" 
                                 HorizontalOptions="End"
@@ -64,17 +64,17 @@
                             
                             <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
                                 <Label Text="User Registration Request" 
-                                       FontSize="12" 
+                                       FontSize="12" FontFamily="MontserratBlack" 
                                        FontAttributes="Bold" 
                                        TextColor="#3E2723"/>
                                 <Label Text="New user registration pending approval" 
-                                       FontSize="10" 
+                                       FontSize="10" FontFamily="MontserratBlack" 
                                        TextColor="#5B4F45"/>
                             </VerticalStackLayout>
                             
                             <Label Text="2m ago" 
                                    Grid.Column="2" 
-                                   FontSize="9" 
+                                   FontSize="9" FontFamily="MontserratBlack" 
                                    TextColor="#5B4F45" 
                                    VerticalOptions="Start"/>
                         </Grid>
@@ -95,17 +95,17 @@
                             
                             <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
                                 <Label Text="Item Added to POS" 
-                                       FontSize="12" 
+                                       FontSize="12" FontFamily="MontserratBlack" 
                                        FontAttributes="Bold" 
                                        TextColor="#3E2723"/>
                                 <Label Text="New product added to Point of Sale" 
-                                       FontSize="10" 
+                                       FontSize="10" FontFamily="MontserratBlack" 
                                        TextColor="#5B4F45"/>
                             </VerticalStackLayout>
                             
                             <Label Text="5m ago" 
                                    Grid.Column="2" 
-                                   FontSize="9" 
+                                   FontSize="9" FontFamily="MontserratBlack" 
                                    TextColor="#5B4F45" 
                                    VerticalOptions="Start"/>
                         </Grid>
@@ -126,17 +126,17 @@
                             
                             <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
                                 <Label Text="Item Added to Inventory" 
-                                       FontSize="12" 
+                                       FontSize="12" FontFamily="MontserratBlack" 
                                        FontAttributes="Bold" 
                                        TextColor="#3E2723"/>
                                 <Label Text="New item added to inventory management" 
-                                       FontSize="10" 
+                                       FontSize="10" FontFamily="MontserratBlack" 
                                        TextColor="#5B4F45"/>
                             </VerticalStackLayout>
                             
                             <Label Text="10m ago" 
                                    Grid.Column="2" 
-                                   FontSize="9" 
+                                   FontSize="9" FontFamily="MontserratBlack" 
                                    TextColor="#5B4F45" 
                                    VerticalOptions="Start"/>
                         </Grid>
@@ -157,17 +157,17 @@
                             
                             <VerticalStackLayout Grid.Column="1" Margin="8,0,0,0">
                                 <Label Text="Transaction Success" 
-                                       FontSize="12" 
+                                       FontSize="12" FontFamily="MontserratBlack" 
                                        FontAttributes="Bold" 
                                        TextColor="#3E2723"/>
                                 <Label Text="POS transaction completed successfully" 
-                                       FontSize="10" 
+                                       FontSize="10" FontFamily="MontserratBlack" 
                                        TextColor="#5B4F45"/>
                             </VerticalStackLayout>
                             
                             <Label Text="15m ago" 
                                    Grid.Column="2" 
-                                   FontSize="9" 
+                                   FontSize="9" FontFamily="MontserratBlack" 
                                    TextColor="#5B4F45" 
                                    VerticalOptions="Start"/>
                         </Grid>

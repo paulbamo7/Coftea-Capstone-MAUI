@@ -25,7 +25,7 @@
             
             <!-- Loading Text -->
             <Label Text="Loading..." 
-                   FontSize="18" 
+                   FontSize="18" FontFamily="MontserratBlack" 
                    FontAttributes="Bold" 
                    TextColor="#5B4F45" 
                    HorizontalOptions="Center"

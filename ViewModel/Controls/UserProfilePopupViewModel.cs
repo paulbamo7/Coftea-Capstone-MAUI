@@ -39,12 +39,20 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private int userId = 0;
 
+        [ObservableProperty]
+        private string profileImage = "usericon.png";
+
+        [ObservableProperty]
+        private ImageSource profileImageSource = "usericon.png";
+
         public void ShowUserProfile(UserInfoModel user) // Show profile from UserInfoModel
         {
             if (user == null) return;
 
             UserId = user.ID;
-            UserName = $"{user.FirstName} {user.LastName}".Trim();
+            
+            // Use Username if available, otherwise use FirstName + LastName
+            UserName = !string.IsNullOrWhiteSpace(user.Username) ? user.Username : $"{user.FirstName} {user.LastName}".Trim();
             FullName = $"{user.FirstName} {user.LastName}".Trim();
             Email = MaskEmail(user.Email);
             PhoneNumber = user.PhoneNumber;
@@ -52,8 +60,20 @@ namespace Coftea_Capstone.ViewModel.Controls
             Birthday = user.Birthday;
             CanEditInventory = user.CanAccessInventory;
             CanEditPOSMenu = user.CanAccessSalesReport;
+            
+            // Load profile image from database
+            ProfileImage = !string.IsNullOrWhiteSpace(user.ProfileImage) ? user.ProfileImage : "usericon.png";
+            ProfileImageSource = GetProfileImageSource(ProfileImage);
 
             IsVisible = true;
+        }
+
+        private ImageSource GetProfileImageSource(string imageName)
+        {
+            if (string.IsNullOrWhiteSpace(imageName))
+                return "usericon.png";
+
+            return ImageSource.FromFile(imageName);
         }
 
         public void ShowUserProfile(UserEntry user) 

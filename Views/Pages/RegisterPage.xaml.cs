@@ -45,7 +45,8 @@ public partial class RegisterPage : ContentPage
             }
         }
         catch { }
-        BindingContext = null;
+        // Don't clear BindingContext - it will break button commands
+        // BindingContext = null;
     }
 
     private static void ReleaseVisualTree(Microsoft.Maui.IView element)
