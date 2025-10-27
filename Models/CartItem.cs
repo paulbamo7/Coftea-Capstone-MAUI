@@ -69,7 +69,7 @@ namespace Coftea_Capstone.Models
             if (MediumQuantity > 0) sizes.Add($"Medium: {MediumQuantity}");
             if (LargeQuantity > 0) sizes.Add($"Large: {LargeQuantity}");
             
-            return sizes.Count > 0 ? string.Join(", ", sizes) : "No sizes";
+            return sizes.Count > 0 ? string.Join("\n", sizes) : "No sizes";
         }
     }
 }

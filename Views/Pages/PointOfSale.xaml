@@ -22,7 +22,7 @@
     </ContentPage.Resources>
     <Grid RowDefinitions="*">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="SidebarColumn" Width="200" />
+            <ColumnDefinition Width="200" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -199,7 +199,7 @@
             <Grid RowDefinitions="*" ColumnSpacing="15" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*" />
-                    <ColumnDefinition x:Name="CartColumn" Width="2*" />
+                    <ColumnDefinition Width="2*" />
                 </Grid.ColumnDefinitions>
                 <!-- Products -->
                 <Border Grid.Column="0" StrokeShape="RoundRectangle 20" BackgroundColor="White" Margin="0,15,0,0"
@@ -216,7 +216,7 @@
                         <!-- Products Collection -->
                         <CollectionView x:Name="ProductsCollectionView" ItemsSource="{Binding FilteredProducts}" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
                         <CollectionView.ItemsLayout>
-                            <GridItemsLayout x:Name="ProductsGridLayout" Orientation="Vertical" Span="3" />
+                            <GridItemsLayout Orientation="Vertical" Span="3" />
                         </CollectionView.ItemsLayout>
 
                         <CollectionView.ItemTemplate>

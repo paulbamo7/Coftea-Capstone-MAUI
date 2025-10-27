@@ -83,14 +83,29 @@
                     <!-- Inline Addons section removed; selection will be via popup -->
 
                     <!-- Buttons -->
-                    <HorizontalStackLayout HorizontalOptions="End" Spacing="20">
-                        <Button Text="Close" BackgroundColor="#D3D3D3" TextColor="Black"
-                            Command="{Binding ClosePreviewCommand}"/>
+                    <HorizontalStackLayout HorizontalOptions="End" Spacing="15">
+                        <Button Text="Close" 
+                                BackgroundColor="#BDAEA2" 
+                                TextColor="#5B4F45"
+                                BorderColor="#8B7355"
+                                BorderWidth="2"
+                                CornerRadius="20"
+                                WidthRequest="120"
+                                HeightRequest="50"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                Command="{Binding ClosePreviewCommand}"/>
                         <!-- Single working Add Addons button -->
-                        <Button Text="Add Addons" BackgroundColor="#D3D3D3" TextColor="Black"
+                        <Button Text="➕ Add Addons" 
+                                BackgroundColor="#5B4F45" 
+                                TextColor="White"
+                                BorderWidth="0"
+                                CornerRadius="20"
+                                WidthRequest="150"
+                                HeightRequest="50"
+                                FontSize="15"
+                                FontAttributes="Bold"
                                 Command="{Binding OpenAddonPopupCommand}"/>
-                        <Button Text="Confirm" BackgroundColor="#E6DE9D" TextColor="Black"
-                            Command="{Binding ConfirmPreviewCommand}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>

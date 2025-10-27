@@ -341,6 +341,29 @@ namespace Coftea_Capstone.ViewModel.Controls
         public event Action ReturnRequested;
 
         [RelayCommand]
+        private void CloseConnectPOSToInventory()
+        {
+            // Close all popups and return to PointOfSale
+            IsConnectPOSToInventoryVisible = false;
+            IsInputIngredientsVisible = false;
+            IsUpdateAmountsMode = false;
+            IsPreviewVisible = false;
+            IsAddonPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
+            
+            // Close the AddItemToPOS form as well to return to PointOfSale
+            var app = (App)Application.Current;
+            var addItemVM = app?.POSVM?.AddItemToPOSViewModel ?? app?.AddItemPopup;
+            if (addItemVM != null)
+            {
+                addItemVM.IsAddItemToPOSVisible = false;
+            }
+            
+            // Call ReturnRequested to notify parent
+            ReturnRequested?.Invoke();
+        }
+
+        [RelayCommand]
         private void ReturnToAddItemToPOS()
         {
             IsConnectPOSToInventoryVisible = false;
