@@ -620,14 +620,31 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Include selected addons based on configured per-serving amounts
                 // Fetch addon link definitions (amount/unit per serving)
                 var addonLinks = await database.GetProductAddonsAsync(product.ProductID);
+                System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Found {addonLinks?.Count ?? 0} addon links for product {product.ProductName}");
+                
                 if (addonLinks != null && addonLinks.Count > 0 && cartItem.InventoryItems != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Cart has {cartItem.InventoryItems.Count} inventory items");
+                    
                     foreach (var linkedAddon in addonLinks)
                     {
+                        System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Processing linked addon: {linkedAddon.itemName} (ID: {linkedAddon.itemID})");
+                        
                         // Find this addon in the cart with user-selected quantity
                         var cartAddon = cartItem.InventoryItems.FirstOrDefault(ai => ai.itemID == linkedAddon.itemID);
-                        if (cartAddon == null) continue;
-                        if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0) continue;
+                        if (cartAddon == null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon not found in cart inventory items");
+                            continue;
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"   ✅ Found in cart: IsSelected={cartAddon.IsSelected}, AddonQuantity={cartAddon.AddonQuantity}");
+                        
+                        if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon skipped: not selected or quantity <= 0");
+                            continue;
+                        }
 
                         // Use shared per-serving amount/unit for addons (same across sizes), fallback to inventory unit
                         var perServingAmount = linkedAddon.InputAmount > 0
@@ -637,30 +654,46 @@ namespace Coftea_Capstone.ViewModel.Controls
                             ? linkedAddon.unitOfMeasurement
                             : (cartAddon.unitOfMeasurement ?? string.Empty);
 
+                        System.Diagnostics.Debug.WriteLine($"   📊 Per-serving: {perServingAmount} {perServingUnit}");
+
                         if (perServingAmount <= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Per-serving amount is 0, skipping addon");
                             continue; // nothing to deduct for this addon
+                        }
 
                         var addonTargetUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
                         var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, addonTargetUnit);
 
+                        System.Diagnostics.Debug.WriteLine($"   🔄 Converted amount: {convertedAddonAmount} {addonTargetUnit}");
+
                         // Deduct addon based on total quantity ordered across all sizes
                         // AddonQuantity is per drink, so multiply by total drinks ordered
                         var totalDrinks = cartItem.SmallQuantity + cartItem.MediumQuantity + cartItem.LargeQuantity;
+                        System.Diagnostics.Debug.WriteLine($"   📦 Total drinks: {totalDrinks}, Addon quantity per drink: {cartAddon.AddonQuantity}");
+                        
                         if (totalDrinks > 0)
                         {
                             var totalAddonDeduction = convertedAddonAmount * cartAddon.AddonQuantity * (double)totalDrinks;
+                            System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING: {totalAddonDeduction} {cartAddon.unitOfMeasurement} ({convertedAddonAmount} x {cartAddon.AddonQuantity} x {totalDrinks})");
                             
                             // Accumulate addon amounts for the same ingredient
                             if (deductionsDict.ContainsKey(cartAddon.itemName))
                             {
                                 deductionsDict[cartAddon.itemName] += totalAddonDeduction;
+                                System.Diagnostics.Debug.WriteLine($"   📝 Accumulated total for {cartAddon.itemName}: {deductionsDict[cartAddon.itemName]}");
                             }
                             else
                             {
                                 deductionsDict[cartAddon.itemName] = totalAddonDeduction;
+                                System.Diagnostics.Debug.WriteLine($"   📝 First deduction for {cartAddon.itemName}: {totalAddonDeduction}");
                             }
                         }
                     }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: No addons to deduct (addonLinks={addonLinks?.Count ?? 0}, cartItems={cartItem.InventoryItems?.Count ?? 0})");
                 }
 
                 // Add automatic cups and straws per size (1 per serving)
