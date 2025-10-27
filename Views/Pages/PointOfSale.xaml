@@ -251,14 +251,14 @@
                                                    FontSize="14" 
                                                    HorizontalOptions="Center" 
                                                    VerticalOptions="Center" 
-                                                   TextColor="#5B4F45"
+                                                   TextColor="#2B2B2B"
                                                    FontFamily="OpenSansSemibold"
                                                    Margin="0,8,0,0"/>
                                             <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="6" Margin="0,4,0,0">
                                                 <!-- Small price only visible for Coffee category -->
                                                 <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="#8B7355" 
+                                                       TextColor="#3C3C3C" 
                                                        FontFamily="OpenSansSemibold"
                                                        IsVisible="False">
                                                     <Label.Triggers>
@@ -269,7 +269,7 @@
                                                 </Label>
                                                 <Label Text="•" 
                                                        FontSize="12" 
-                                                       TextColor="#8B7355" 
+                                                       TextColor="#3C3C3C" 
                                                        IsVisible="False">
                                                     <Label.Triggers>
                                                         <DataTrigger TargetType="Label" Binding="{Binding Category}" Value="Coffee">
@@ -279,14 +279,14 @@
                                                 </Label>
                                                 <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="#8B7355"
+                                                       TextColor="#3C3C3C"
                                                        FontFamily="OpenSansSemibold"/>
                                                 <Label Text="•" 
                                                        FontSize="12" 
-                                                       TextColor="#8B7355"/>
+                                                       TextColor="#3C3C3C"/>
                                                 <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="#8B7355"
+                                                       TextColor="#3C3C3C"
                                                        FontFamily="OpenSansSemibold"/>
                                             </StackLayout>
                                         </VerticalStackLayout>

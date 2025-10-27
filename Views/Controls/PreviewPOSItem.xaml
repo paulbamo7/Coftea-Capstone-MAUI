@@ -95,9 +95,9 @@
                                 FontSize="15"
                                 FontAttributes="Bold"
                                 Command="{Binding ClosePreviewCommand}"/>
-                        <!-- Single working Add Addons button -->
+                        <!-- Add Addons button -->
                         <Button Text="➕ Add Addons" 
-                                BackgroundColor="#5B4F45" 
+                                BackgroundColor="#D4A574" 
                                 TextColor="White"
                                 BorderWidth="0"
                                 CornerRadius="20"
@@ -106,6 +106,17 @@
                                 FontSize="15"
                                 FontAttributes="Bold"
                                 Command="{Binding OpenAddonPopupCommand}"/>
+                        <!-- Save Product button -->
+                        <Button Text="✓ Save Product" 
+                                BackgroundColor="#5B4F45" 
+                                TextColor="White"
+                                BorderWidth="0"
+                                CornerRadius="20"
+                                WidthRequest="150"
+                                HeightRequest="50"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                Command="{Binding SaveProductCommand}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>
