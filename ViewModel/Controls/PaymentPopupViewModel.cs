@@ -121,8 +121,14 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task ConfirmPayment() // Confirm and process payment
         {
+            System.Diagnostics.Debug.WriteLine("🔵 ========== ConfirmPayment CALLED ==========");
+            System.Diagnostics.Debug.WriteLine($"🔵 TotalAmount: {TotalAmount}, AmountPaid: {AmountPaid}");
+            System.Diagnostics.Debug.WriteLine($"🔵 CartItems count: {CartItems?.Count ?? 0}");
+            System.Diagnostics.Debug.WriteLine($"🔵 SelectedPaymentMethod: {SelectedPaymentMethod}");
+            
             // For non-cash methods (GCash/Bank), auto-approve regardless of AmountPaid
             var isNonCash = IsGCashSelected || IsBankSelected;
+            System.Diagnostics.Debug.WriteLine($"🔵 Is non-cash payment: {isNonCash}");
             if (!isNonCash)
             {
                 if (AmountPaid < TotalAmount)
@@ -160,11 +166,15 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (!confirm)
                 return;
 
+            System.Diagnostics.Debug.WriteLine("🔵 About to call ProcessPaymentWithSteps");
             // Process payment with realistic steps
             await ProcessPaymentWithSteps();
+            System.Diagnostics.Debug.WriteLine("🔵 ProcessPaymentWithSteps completed");
 
+            System.Diagnostics.Debug.WriteLine("🔵 About to call SaveTransaction");
             // Save transaction to database and shared store
             var savedTransactions = await SaveTransaction();
+            System.Diagnostics.Debug.WriteLine($"🔵 SaveTransaction completed. Saved {savedTransactions?.Count ?? 0} transactions");
 
             // Clear cart on successful payment
             try
@@ -415,12 +425,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                     System.Diagnostics.Debug.WriteLine($"✅ Database save successful for order: {transactionId}");
                     
                     // Deduct inventory for each item
+                    System.Diagnostics.Debug.WriteLine($"🔧 Starting inventory deduction for {CartItems.Count} cart items");
                     foreach (var item in CartItems)
                     {
-                        System.Diagnostics.Debug.WriteLine($"💾 Deducting inventory for: {item.ProductName}");
-                        await DeductInventoryForItemAsync(database, item);
-                        System.Diagnostics.Debug.WriteLine($"✅ Inventory deduction successful for: {item.ProductName}");
+                        System.Diagnostics.Debug.WriteLine($"💾 ========== Deducting inventory for: {item.ProductName} ==========");
+                        System.Diagnostics.Debug.WriteLine($"💾 Item details - Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
+                        try
+                        {
+                            await DeductInventoryForItemAsync(database, item);
+                            System.Diagnostics.Debug.WriteLine($"✅ Inventory deduction successful for: {item.ProductName}");
+                        }
+                        catch (Exception itemEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"❌ Failed to deduct inventory for {item.ProductName}: {itemEx.Message}");
+                        }
                     }
+                    System.Diagnostics.Debug.WriteLine($"🔧 Completed inventory deduction for all cart items");
                     
                     // Add to in-memory collection for history popup
                     transactions.Add(orderTransaction);
@@ -441,6 +461,24 @@ namespace Coftea_Capstone.ViewModel.Controls
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Error refreshing sales report: {ex.Message}");
+                    }
+                    
+                    // Refresh inventory data
+                    try 
+                    {
+                        var currentApp = (App)Application.Current;
+                        if (currentApp?.InventoryVM != null)
+                        {
+                            await MainThread.InvokeOnMainThreadAsync(async () =>
+                            {
+                                await currentApp.InventoryVM.LoadDataAsync();
+                                System.Diagnostics.Debug.WriteLine("✅ Inventory data refreshed after transaction");
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Error refreshing inventory: {ex.Message}");
                     }
                     
                     return saved;
@@ -643,11 +681,23 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
 
                 // Deduct inventory
+                System.Diagnostics.Debug.WriteLine($"🔧 Checking deductions.Any(): {deductions.Any()}");
+                System.Diagnostics.Debug.WriteLine($"🔧 Deductions count: {deductions.Count}");
+                
                 if (deductions.Any())
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔧 Calling DeductInventoryAsync with {deductions.Count} deductions");
-                    var affectedRows = await database.DeductInventoryAsync(deductions);
-                    System.Diagnostics.Debug.WriteLine($"✅ Deducted inventory for {affectedRows} items for {cartItem.ProductName}");
+                    System.Diagnostics.Debug.WriteLine($"🔧 About to call DeductInventoryAsync with {deductions.Count} deductions");
+                    try
+                    {
+                        var affectedRows = await database.DeductInventoryAsync(deductions);
+                        System.Diagnostics.Debug.WriteLine($"✅ DeductInventoryAsync completed. Affected rows: {affectedRows} for {cartItem.ProductName}");
+                    }
+                    catch (Exception deductEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ DeductInventoryAsync threw exception: {deductEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"❌ Deduct exception stack: {deductEx.StackTrace}");
+                        throw;
+                    }
                 }
                 else
                 {
@@ -656,8 +706,14 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error deducting inventory for {cartItem.ProductName}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ ERROR deducting inventory for {cartItem.ProductName}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
                 // Don't throw - we don't want to fail the transaction if inventory deduction fails
+                // But we should log this prominently
             }
         }
 

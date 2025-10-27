@@ -364,10 +364,73 @@ namespace Coftea_Capstone.Models
                     largePrice DECIMAL(10,2) DEFAULT 0.00,
                     addonPrice DECIMAL(10,2) DEFAULT 0.00,
                     addOns TEXT,
-                    size VARCHAR(20),
+                    size VARCHAR(100),
                     CONSTRAINT fk_tx_items_tx FOREIGN KEY (transactionID) REFERENCES transactions(transactionID) ON DELETE CASCADE,
                     CONSTRAINT fk_tx_items_product FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
                 );
+                
+                -- Alter existing transaction_items table to increase size column length if needed
+                -- This will fail silently if column doesn't exist or is already the right size
+                ALTER TABLE transaction_items MODIFY COLUMN size VARCHAR(100);
+                
+                -- Alter existing inventory_activity_log table to add new columns if they don't exist
+                -- Add userFullName column if it doesn't exist
+                SET @dbname = DATABASE();
+                SET @tablename = 'inventory_activity_log';
+                SET @columnname = 'userFullName';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = @dbname)
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  'SELECT 1',
+                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' VARCHAR(255);')
+                ));
+                PREPARE alterIfNotExists FROM @preparedStatement;
+                EXECUTE alterIfNotExists;
+                DEALLOCATE PREPARE alterIfNotExists;
+                
+                -- Add userId column if it doesn't exist  
+                SET @columnname = 'userId';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = @dbname)
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  'SELECT 1',
+                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' INT;')
+                ));
+                PREPARE alterIfNotExists FROM @preparedStatement;
+                EXECUTE alterIfNotExists;
+                DEALLOCATE PREPARE alterIfNotExists;
+                
+                -- Add changedBy column if it doesn't exist
+                SET @columnname = 'changedBy';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = @dbname)
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  'SELECT 1',
+                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' VARCHAR(50) DEFAULT ''USER'';')
+                ));
+                PREPARE alterIfNotExists FROM @preparedStatement;
+                EXECUTE alterIfNotExists;
+                DEALLOCATE PREPARE alterIfNotExists;
+                
+                -- Add cost column if it doesn't exist
+                SET @columnname = 'cost';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = @dbname)
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  'SELECT 1',
+                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' DECIMAL(10,2) DEFAULT NULL;')
+                ));
+                PREPARE alterIfNotExists FROM @preparedStatement;
+                EXECUTE alterIfNotExists;
+                DEALLOCATE PREPARE alterIfNotExists;
                 
                 CREATE TABLE IF NOT EXISTS pending_registrations (
                     id INT AUTO_INCREMENT PRIMARY KEY,
