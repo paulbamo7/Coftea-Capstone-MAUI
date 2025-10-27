@@ -236,19 +236,6 @@
                                     FontSize="16"/>
                         </Frame>
 
-<<<<<<< Updated upstream
-                        <!-- ADD BUTTON -->
-                        <Button Text="Add Item"
-                                WidthRequest="150"
-                                BackgroundColor="#FFCC00"
-                                TextColor="Black"
-                                Command="{Binding AddItemCommand}"
-                                HorizontalOptions="End"
-                                Margin="0,20,0,0"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                CornerRadius="25"/>
-=======
                         <!-- BUTTONS -->
                         <HorizontalStackLayout HorizontalOptions="End" Spacing="15" Margin="0,20,0,0">
                             <Button Text="Cancel"
@@ -273,7 +260,6 @@
                                     FontAttributes="Bold"
                                     Command="{Binding AddItemCommand}"/>
                         </HorizontalStackLayout>
->>>>>>> Stashed changes
                     </VerticalStackLayout>
                 </ScrollView>
             </Grid>

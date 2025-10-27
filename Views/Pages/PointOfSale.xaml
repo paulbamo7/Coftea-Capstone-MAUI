@@ -109,23 +109,6 @@
                 </ScrollView>
 
                 <!-- History + Cart (far right) -->
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="20" HorizontalOptions="End" VerticalOptions="Center">
-                    <Image Source="historyicon.png" WidthRequest="40" HeightRequest="40">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding ShowHistoryCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
-                    <!-- Cart icon (badge removed to prevent crashes) -->
-                    <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding CartCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
-=======
-=======
->>>>>>> Stashed changes
                 <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
                     <Button Text="📝" 
                             BackgroundColor="#D4A574" 
@@ -158,7 +141,6 @@
                             <Label Text="{Binding CartCount}" FontSize="10" TextColor="White" Margin="4,0"/>
                         </Frame>
                     </Grid>
->>>>>>> Stashed changes
                 </StackLayout>
             </Grid>
 
@@ -238,7 +220,16 @@
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="#D9C3B0" CornerRadius="20" Margin="10" Padding="5" VerticalOptions="Fill" HorizontalOptions="Fill">
+                                <Frame CornerRadius="20" Margin="10" Padding="5" VerticalOptions="Fill" HorizontalOptions="Fill"
+                                       BackgroundColor="#D9C3B0"
+                                    
+                                       BorderColor="Transparent">
+                                    <Frame.Triggers>
+                                        <DataTrigger TargetType="Frame" Binding="{Binding Source={x:Reference ProductsCollectionView}, Path=BindingContext.SelectedProduct.ProductId, Converter={StaticResource NullToBoolConverter}}" Value="{Binding ProductId}">
+                                            <Setter Property="BackgroundColor" Value="#F5E6D8" />
+                                            <Setter Property="BorderColor" Value="#D4A574" />
+                                        </DataTrigger>
+                                    </Frame.Triggers>
                                     <Frame.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" 
                                                              CommandParameter="{Binding .}" />

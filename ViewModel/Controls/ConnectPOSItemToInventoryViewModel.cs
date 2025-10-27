@@ -238,7 +238,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Close all popups and return to PointOfSale
             IsConnectPOSToInventoryVisible = false;
             IsInputIngredientsVisible = false;
-            IsUpdateAmountsMode = false;
             IsPreviewVisible = false;
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
@@ -266,15 +265,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             var app = (App)Application.Current;
             (app?.POSVM?.AddItemToPOSViewModel)?.SetIsAddItemToPOSVisibleTrue();
             ReturnRequested?.Invoke();
-        }
-
-        [RelayCommand]
-        private void CloseConnectPOSToInventory()
-        {
-            IsConnectPOSToInventoryVisible = false;
-            // Ensure any addon popup is closed
-            IsAddonPopupVisible = false;
-            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
         }
 
         [RelayCommand]

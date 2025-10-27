@@ -314,12 +314,6 @@
                                        HorizontalOptions="End"
                                        Spacing="15"
                                        Margin="0,10,0,0">
-<<<<<<< Updated upstream
-                    <Button Text="Back"
-                            BackgroundColor="#EFEFEF"
-                            TextColor="Black"
-                            CornerRadius="14"
-=======
                     <Button Text="Cancel"
                             BackgroundColor="#BDAEA2"
                             TextColor="#5B4F45"
@@ -336,7 +330,6 @@
                             TextColor="White"
                             BorderWidth="0"
                             CornerRadius="20"
->>>>>>> Stashed changes
                             WidthRequest="120"
                             HeightRequest="50"
                             FontSize="15"
