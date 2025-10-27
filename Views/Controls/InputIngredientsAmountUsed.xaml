@@ -314,19 +314,43 @@
                                        HorizontalOptions="End"
                                        Spacing="15"
                                        Margin="0,10,0,0">
+<<<<<<< Updated upstream
                     <Button Text="Back"
                             BackgroundColor="#EFEFEF"
                             TextColor="Black"
                             CornerRadius="14"
+=======
+                    <Button Text="Cancel"
+                            BackgroundColor="#BDAEA2"
+                            TextColor="#5B4F45"
+                            BorderColor="#8B7355"
+                            BorderWidth="2"
+                            CornerRadius="20"
                             WidthRequest="120"
-                            HeightRequest="45"
+                            HeightRequest="50"
+                            FontSize="15"
+                            FontAttributes="Bold"
+                            Command="{Binding ForceCloseAllPopupsCommand}"/>
+                    <Button Text="← Back"
+                            BackgroundColor="#D4A574"
+                            TextColor="White"
+                            BorderWidth="0"
+                            CornerRadius="20"
+>>>>>>> Stashed changes
+                            WidthRequest="120"
+                            HeightRequest="50"
+                            FontSize="15"
+                            FontAttributes="Bold"
                             Command="{Binding BackToInventorySelectionCommand}"/>
-                    <Button Text="Preview"
-                            BackgroundColor="#E6DE9D"
-                            TextColor="Black"
-                            CornerRadius="14"
+                    <Button Text="Preview →"
+                            BackgroundColor="#5B4F45"
+                            TextColor="White"
+                            BorderWidth="0"
+                            CornerRadius="20"
                             WidthRequest="120"
-                            HeightRequest="45"
+                            HeightRequest="50"
+                            FontSize="15"
+                            FontAttributes="Bold"
                             Command="{Binding ShowPreviewCommand}"/>
                 </HorizontalStackLayout>
 

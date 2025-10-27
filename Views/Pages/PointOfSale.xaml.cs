@@ -73,37 +73,42 @@ public partial class PointOfSale : ContentPage
             bool isVeryNarrow = pageWidth < 500; // reduce product span further
 
             // Sidebar collapse: set column width to 0 when narrow
-        if (SidebarColumn is not null)
-        {
-            SidebarColumn.Width = isPhoneLike ? new GridLength(0) : new GridLength(200);
-        }
-        if (Sidebar is not null)
-        {
-            Sidebar.IsVisible = !isPhoneLike;
-        }
+            if (Content is Grid mainGrid && mainGrid.ColumnDefinitions.Count > 0)
+            {
+                mainGrid.ColumnDefinitions[0].Width = isPhoneLike ? new GridLength(0) : new GridLength(200);
+            }
+            
+            if (Sidebar is not null)
+            {
+                Sidebar.IsVisible = !isPhoneLike;
+            }
 
-        // Cart collapse: hide cart column on phone-like widths
-        if (CartColumn is not null)
-        {
-            CartColumn.Width = isPhoneLike ? new GridLength(0) : new GridLength(2, GridUnitType.Star);
-        }
+            // Cart collapse: hide cart column on phone-like widths  
+            if (Content is Grid mainGridContent)
+            {
+                var mainContentGrid = GetMainContentGrid(mainGridContent);
+                if (mainContentGrid != null && mainContentGrid.ColumnDefinitions.Count > 1)
+                {
+                    mainContentGrid.ColumnDefinitions[1].Width = isPhoneLike ? new GridLength(0) : new GridLength(2, GridUnitType.Star);
+                }
+            }
 
-        // Adjust product grid span by width
-        if (ProductsGridLayout is not null)
-        {
-            if (isVeryNarrow)
+            // Adjust product grid span by width
+            if (ProductsCollectionView?.ItemsLayout is GridItemsLayout gridLayout)
             {
-                ProductsGridLayout.Span = 1;
+                if (isVeryNarrow)
+                {
+                    gridLayout.Span = 1;
+                }
+                else if (isPhoneLike)
+                {
+                    gridLayout.Span = 2;
+                }
+                else
+                {
+                    gridLayout.Span = 3;
+                }
             }
-            else if (isPhoneLike)
-            {
-                ProductsGridLayout.Span = 2;
-            }
-            else
-            {
-                ProductsGridLayout.Span = 3;
-            }
-        }
         }
         catch
         {
@@ -299,6 +304,34 @@ public partial class PointOfSale : ContentPage
         }
         }
         catch { }
+    }
+
+    private Grid GetMainContentGrid(Grid mainGrid)
+    {
+        if (mainGrid == null || mainGrid.Children.Count == 0)
+            return null;
+
+        try
+        {
+            // The Products + Cart grid should be in the main grid's row 2
+            // Main content is at Grid.Column="1" of the outer grid
+            // Inside that, we have a Grid with RowDefinitions="Auto, Auto, *"
+            // The Products + Cart is at Grid.Row="2"
+            
+            if (mainGrid.Children.Count > 1)
+            {
+                // Get the main content area (second column, which is a Grid)
+                var mainContent = mainGrid.Children[1];
+                if (mainContent is Grid contentGrid && contentGrid.Children.Count > 2)
+                {
+                    // Get the third row (Grid.Row="2") which contains Products + Cart
+                    return contentGrid.Children[2] as Grid;
+                }
+            }
+        }
+        catch { }
+        
+        return null;
     }
 
     protected override bool OnBackButtonPressed()

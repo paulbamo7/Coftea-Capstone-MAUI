@@ -38,18 +38,21 @@
                   RowDefinitions="Auto,*,Auto">
 
                 <!-- HEADER -->
-                <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="FillAndExpand" Spacing="10">
+                <HorizontalStackLayout Grid.Row="0" VerticalOptions="Start" HorizontalOptions="FillAndExpand">
                     <Label Text="Connect POS to Inventory"
                            FontAttributes="Bold"
                            FontSize="26"
                            TextColor="#3C3C3C"
                            VerticalOptions="Center" />
+<<<<<<< Updated upstream
                     <Button Text="✕"
                             BackgroundColor="Transparent"
                             TextColor="#444"
                             FontSize="20"
                             Command="{Binding CloseConnectPOSToInventoryCommand}"
                             HorizontalOptions="EndAndExpand" />
+=======
+>>>>>>> Stashed changes
                 </HorizontalStackLayout>
 
                 <!-- CONTENT SECTION -->
@@ -143,7 +146,18 @@
                                         </BoxView.Triggers>
                                     </BoxView>
                                 </Grid>
-                                <Button Text="Refresh" BackgroundColor="Green" TextColor="White" FontAttributes="Bold"  Command="{Binding RefreshInventoryCommand}"/>
+                                <Button Text="🔄 Refresh" 
+                                        BackgroundColor="#D4A574" 
+                                        TextColor="White" 
+                                        BorderColor="#8B7355"
+                                        BorderWidth="2"
+                                        FontAttributes="Bold"
+                                        FontSize="13"
+                                        HeightRequest="40"
+                                        WidthRequest="100"
+                                        CornerRadius="20"
+                                        Padding="10,0"
+                                        Command="{Binding RefreshInventoryCommand}"/>
 
                                 <!-- Sort -->
                                 <Frame CornerRadius="12" Padding="8,0" BackgroundColor="White" HasShadow="False" VerticalOptions="Center">
@@ -170,7 +184,23 @@
                                                FontSize="16"/>
                                 </Frame>
 
+<<<<<<< Updated upstream
                                 <Button Text="Unselect All" Command="{Binding UnselectAllVisibleCommand}" BackgroundColor="#F0C0C0" TextColor="#333" FontSize="16" FontAttributes="Bold"/>
+=======
+                                <Button Text="✕ Unselect All" 
+                                        Command="{Binding UnselectAllVisibleCommand}" 
+                                        BackgroundColor="#BDAEA2" 
+                                        TextColor="#5B4F45" 
+                                        BorderColor="#8B7355"
+                                        BorderWidth="2"
+                                        FontSize="13"
+                                        FontFamily="OpenSans-Semibold"
+                                        FontAttributes="Bold"
+                                        HeightRequest="40"
+                                        WidthRequest="120"
+                                        CornerRadius="20"
+                                        Padding="10,0"/>
+>>>>>>> Stashed changes
                             </HorizontalStackLayout>
                         </ScrollView>
 
@@ -269,9 +299,37 @@
                                        HorizontalOptions="End"
                                        Spacing="15"
                                        Padding="0,10,0,10">
-                    <Button Text="Close" Command="{Binding CloseConnectPOSToInventoryCommand}" StyleClass="SecondaryButton"/>
-                    <Button Text="Return" BackgroundColor="#D3D3D3" TextColor="Black" Command="{Binding ReturnToAddItemToPOSCommand}" />
-                    <Button Text="Next" BackgroundColor="#E6DE9D" TextColor="Black" Command="{Binding OpenInputIngredientsCommand}" />
+                    <Button Text="Close" 
+                            BackgroundColor="#BDAEA2" 
+                            TextColor="#5B4F45"
+                            BorderColor="#8B7355"
+                            BorderWidth="2"
+                            FontSize="15"
+                            FontAttributes="Bold"
+                            WidthRequest="120"
+                            HeightRequest="50"
+                            CornerRadius="20"
+                            Command="{Binding CloseConnectPOSToInventoryCommand}"/>
+                    <Button Text="← Return" 
+                            BackgroundColor="#D4A574" 
+                            TextColor="White"
+                            BorderWidth="0"
+                            FontSize="15"
+                            FontAttributes="Bold"
+                            Command="{Binding ReturnToAddItemToPOSCommand}" 
+                            WidthRequest="120"
+                            HeightRequest="50"
+                            CornerRadius="20"/>
+                    <Button Text="Next →" 
+                            BackgroundColor="#5B4F45" 
+                            TextColor="White"
+                            BorderWidth="0"
+                            FontSize="15"
+                            FontAttributes="Bold"
+                            Command="{Binding OpenInputIngredientsCommand}" 
+                            WidthRequest="120"
+                            HeightRequest="50"
+                            CornerRadius="20"/>
                 </HorizontalStackLayout>
 
             </Grid>

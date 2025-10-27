@@ -130,15 +130,25 @@
                                 </Grid>
 
                                 <!-- Payment Status -->
+<<<<<<< Updated upstream
                                 <Grid Grid.Row="3" Margin="0,0,0,20">
                                     <Label Text="Status:" 
                                            FontSize="16" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
                                            FontSize="16" 
+=======
+                                <Grid Grid.Row="3" Margin="0,0,0,20" ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="Status:" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
+                                           TextColor="Black" 
+                                           VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
+>>>>>>> Stashed changes
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
-                                           HorizontalOptions="End" />
+                                           VerticalOptions="Center" />
                                 </Grid>
 
                                 <!-- Quick Amount Buttons -->
@@ -286,15 +296,25 @@
                                 </Frame>
 
                                 <!-- Payment Status -->
+<<<<<<< Updated upstream
                                 <Grid Grid.Row="2" Margin="0,0,0,15">
                                     <Label Text="Payment Status:" 
                                            FontSize="16" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
                                            FontSize="16" 
+=======
+                                <Grid Grid.Row="2" Margin="0,0,0,15" ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="Payment Status:" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
+                                           TextColor="Black"
+                                           VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
+>>>>>>> Stashed changes
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
-                                           HorizontalOptions="End" />
+                                           VerticalOptions="Center" />
                                 </Grid>
 
                                 <!-- GCash Payment Steps -->
@@ -358,15 +378,25 @@
                                 </Frame>
 
                                 <!-- Payment Status -->
+<<<<<<< Updated upstream
                                 <Grid Grid.Row="2" Margin="0,0,0,15">
                                     <Label Text="Payment Status:" 
                                            FontSize="16" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
                                            FontSize="16" 
+=======
+                                <Grid Grid.Row="2" Margin="0,0,0,15" ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="Payment Status:" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
+                                           TextColor="Black"
+                                           VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
+                                           FontSize="16" FontFamily="MontserratBlack" 
+>>>>>>> Stashed changes
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
-                                           HorizontalOptions="End" />
+                                           VerticalOptions="Center" />
                                 </Grid>
 
                                 <!-- Bank Transfer Steps -->
