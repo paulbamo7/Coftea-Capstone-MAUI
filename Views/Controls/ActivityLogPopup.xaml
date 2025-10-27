@@ -52,6 +52,7 @@
                                VerticalOptions="Center"/>
                         <Button Grid.Column="1" 
                                 Text="✕" 
+                                Padding="0"
                                 BackgroundColor="Transparent" 
                                 TextColor="White" 
                                 FontSize="20" FontFamily="MontserratBlack" 

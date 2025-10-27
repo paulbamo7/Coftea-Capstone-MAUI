@@ -1178,9 +1178,9 @@ namespace Coftea_Capstone.Models
 		}
 
         // Deduct inventory quantities by item name and amount
-        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions) // Deducts inventory quantities
+        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions, string productName = null) // Deducts inventory quantities
         {
-            System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Starting with {deductions?.Count() ?? 0} deductions");
+            System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Starting with {deductions?.Count() ?? 0} deductions for product: {productName ?? "Unknown"}");
             
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
@@ -1242,8 +1242,15 @@ namespace Coftea_Capstone.Models
                             UnitOfMeasurement = unitOfMeasurement,
                             Reason = "POS_ORDER",
                             UserEmail = App.CurrentUser?.Email ?? "System",
+                            UserFullName = !string.IsNullOrWhiteSpace(App.CurrentUser?.FullName) 
+                                ? App.CurrentUser.FullName 
+                                : $"{App.CurrentUser?.FirstName} {App.CurrentUser?.LastName}".Trim(),
+                            UserId = App.CurrentUser?.ID,
+                            ChangedBy = "POS",
                             OrderId = null, // Will be set by calling code if available
-                            Notes = $"Deducted {amount} {unitOfMeasurement} for POS order"
+                            Notes = !string.IsNullOrWhiteSpace(productName) 
+                                ? $"Deducted {amount} {unitOfMeasurement} for {productName}"
+                                : $"Deducted {amount} {unitOfMeasurement} for POS order"
                         };
                         
                         await LogInventoryActivityAsync(logEntry, conn, tx);

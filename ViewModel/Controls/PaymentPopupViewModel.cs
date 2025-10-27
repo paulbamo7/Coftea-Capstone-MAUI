@@ -686,10 +686,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 if (deductions.Any())
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔧 About to call DeductInventoryAsync with {deductions.Count} deductions");
+                    System.Diagnostics.Debug.WriteLine($"🔧 About to call DeductInventoryAsync with {deductions.Count} deductions for product: {cartItem.ProductName}");
                     try
                     {
-                        var affectedRows = await database.DeductInventoryAsync(deductions);
+                        var affectedRows = await database.DeductInventoryAsync(deductions, cartItem.ProductName);
                         System.Diagnostics.Debug.WriteLine($"✅ DeductInventoryAsync completed. Affected rows: {affectedRows} for {cartItem.ProductName}");
                     }
                     catch (Exception deductEx)
