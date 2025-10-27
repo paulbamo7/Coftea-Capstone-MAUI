@@ -136,9 +136,6 @@
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
-<<<<<<< HEAD
-                                           FontSize="16" FontFamily="MontserratBlack" 
-=======
                                            FontSize="16" 
 =======
                                 <Grid Grid.Row="3" Margin="0,0,0,20" ColumnDefinitions="*,Auto">
@@ -149,7 +146,6 @@
                                     <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
                                            FontSize="16" FontFamily="MontserratBlack" 
 >>>>>>> Stashed changes
->>>>>>> Dolores
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
                                            VerticalOptions="Center" />
@@ -306,9 +302,6 @@
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
-<<<<<<< HEAD
-                                           FontSize="16" FontFamily="MontserratBlack" 
-=======
                                            FontSize="16" 
 =======
                                 <Grid Grid.Row="2" Margin="0,0,0,15" ColumnDefinitions="*,Auto">
@@ -319,7 +312,6 @@
                                     <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
                                            FontSize="16" FontFamily="MontserratBlack" 
 >>>>>>> Stashed changes
->>>>>>> Dolores
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
                                            VerticalOptions="Center" />
@@ -392,9 +384,6 @@
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
                                     <Label Text="{Binding PaymentStatus}" 
-<<<<<<< HEAD
-                                           FontSize="16" FontFamily="MontserratBlack" 
-=======
                                            FontSize="16" 
 =======
                                 <Grid Grid.Row="2" Margin="0,0,0,15" ColumnDefinitions="*,Auto">
@@ -405,7 +394,6 @@
                                     <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
                                            FontSize="16" FontFamily="MontserratBlack" 
 >>>>>>> Stashed changes
->>>>>>> Dolores
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
                                            VerticalOptions="Center" />
