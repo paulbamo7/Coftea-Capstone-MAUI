@@ -40,10 +40,8 @@
                    CornerRadius="20"
                    BorderColor="#8B7355"
                    HasShadow="True"
-                   WidthRequest="{OnPlatform Default=420, Android=400, iOS=400, WinUI=520}"
-                   MinimumWidthRequest="380"
-                   MaximumWidthRequest="650"
-                   MaximumHeightRequest="600">
+                   WidthRequest="500"
+                   MinimumHeightRequest="500">
 
                 <ScrollView Orientation="Vertical" VerticalScrollBarVisibility="Default">
                     <VerticalStackLayout Spacing="20">

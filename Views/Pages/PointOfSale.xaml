@@ -65,7 +65,7 @@
                 <!-- Categories -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
                     <StackLayout Orientation="Horizontal" Spacing="10" Margin="25,0,0,0">
-                        <Button Text="Frappe" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14" 
+                        <Button Text="Frappe" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
                             <Button.Triggers>
@@ -75,7 +75,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14"
+                        <Button Text="Fruit/Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda">
                             <Button.Triggers>
@@ -85,7 +85,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Milktea" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14"
+                        <Button Text="Milktea" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea">
                             <Button.Triggers>
@@ -95,7 +95,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Coffee" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14" 
+                        <Button Text="Coffee" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40" 
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee">
                             <Button.Triggers>
@@ -115,13 +115,39 @@
                             <TapGestureRecognizer Command="{Binding ShowHistoryCommand}" />
                         </Image.GestureRecognizers>
                     </Image>
+                    <!-- Cart icon (badge removed to prevent crashes) -->
+                    <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding CartCommand}" />
+                        </Image.GestureRecognizers>
+                    </Image>
+                <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
+                    
+                    <Button Text="📝" 
+                            BackgroundColor="#D4A574" 
+                            TextColor="White" 
+                            BorderColor="#8B7355"
+                            BorderWidth="2"
+                            CornerRadius="25"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            FontSize="20"
+                            Padding="0"
+                            Command="{Binding ShowHistoryCommand}" />
+                    
                     <!-- Cart icon with badge -->
                     <Grid>
-                        <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
-                            <Image.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding CartCommand}" />
-                            </Image.GestureRecognizers>
-                        </Image>
+                        <Button Text="🛒" 
+                                BackgroundColor="White" 
+                                TextColor="#5B4F45" 
+                                BorderColor="#8B7355"
+                                BorderWidth="2"
+                                CornerRadius="25"
+                                WidthRequest="48"
+                                HeightRequest="48"
+                                FontSize="20"
+                                Padding="0"
+                                Command="{Binding CartCommand}" />
                         <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
                                HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
                                IsVisible="{Binding CartCount, Converter={StaticResource IsPositiveConverter}}">
@@ -134,7 +160,7 @@
             <!-- Subcategories for Fruit/Soda - Left Side -->
             <StackLayout Orientation="Horizontal" Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
                                    IsVisible="{Binding IsFruitSodaSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Fruit" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14"
+                <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit">
                     <Button.Triggers>
@@ -144,7 +170,7 @@
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
-                <Button Text="Soda" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14"
+                <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda">
                     <Button.Triggers>
@@ -159,7 +185,7 @@
             <!-- Subcategories for Coffee - Left Side -->
             <StackLayout Orientation="Horizontal" Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
                                    IsVisible="{Binding IsCoffeeSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Americano" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14"
+                <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano">
                     <Button.Triggers>
@@ -169,7 +195,7 @@
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
-                <Button Text="Latte" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="Black" FontSize="14"
+                <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
                         BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
                         Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte">
                     <Button.Triggers>
@@ -223,28 +249,48 @@
                                                     </Image.GestureRecognizers>
                                                 </Image>
                                             </Frame>
-                                            <Frame CornerRadius="15" BackgroundColor="White" Padding="5,2" Margin="0,5,0,0" HasShadow="False" HorizontalOptions="Center">
-                                                <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
-                                            </Frame>
-                                            <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                                            <Label Text="{Binding ProductName}" 
+                                                   FontAttributes="Bold" 
+                                                   FontSize="14" 
+                                                   HorizontalOptions="Center" 
+                                                   VerticalOptions="Center" 
+                                                   TextColor="#5B4F45"
+                                                   FontFamily="OpenSansSemibold"
+                                                   Margin="0,8,0,0"/>
+                                            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="6" Margin="0,4,0,0">
                                                 <!-- Small price only visible for Coffee category -->
-                                                <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black" IsVisible="False">
+                                                <Label Text="{Binding SmallPrice, StringFormat='₱{0:F2}'}" 
+                                                       FontSize="12" 
+                                                       TextColor="#8B7355" 
+                                                       FontFamily="OpenSansSemibold"
+                                                       IsVisible="False">
                                                     <Label.Triggers>
                                                         <DataTrigger TargetType="Label" Binding="{Binding Category}" Value="Coffee">
                                                             <Setter Property="IsVisible" Value="True" />
                                                         </DataTrigger>
                                                     </Label.Triggers>
                                                 </Label>
-                                                <Label Text="  |  " FontSize="13" TextColor="Black" IsVisible="False">
+                                                <Label Text="•" 
+                                                       FontSize="12" 
+                                                       TextColor="#8B7355" 
+                                                       IsVisible="False">
                                                     <Label.Triggers>
                                                         <DataTrigger TargetType="Label" Binding="{Binding Category}" Value="Coffee">
                                                             <Setter Property="IsVisible" Value="True" />
                                                         </DataTrigger>
                                                     </Label.Triggers>
                                                 </Label>
-                                                <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>
-                                                <Label Text="  |  " FontSize="13" TextColor="Black"/>
-                                                <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" FontSize="13" TextColor="Black"/>
+                                                <Label Text="{Binding MediumPrice, StringFormat='₱{0:F2}'}" 
+                                                       FontSize="12" 
+                                                       TextColor="#8B7355"
+                                                       FontFamily="OpenSansSemibold"/>
+                                                <Label Text="•" 
+                                                       FontSize="12" 
+                                                       TextColor="#8B7355"/>
+                                                <Label Text="{Binding LargePrice, StringFormat='₱{0:F2}'}" 
+                                                       FontSize="12" 
+                                                       TextColor="#8B7355"
+                                                       FontFamily="OpenSansSemibold"/>
                                             </StackLayout>
                                         </VerticalStackLayout>
                                         
@@ -491,27 +537,30 @@
 
                                 <!-- Action Buttons -->
                                 <StackLayout Orientation="Horizontal" Spacing="10" HorizontalOptions="Center" Margin="0,15,0,0">
-                                    <Button Text="Cancel Order" Command="{Binding RemoveFromCartCommand}" TextColor="White" FontSize="16" 
-                                        CommandParameter="{Binding SelectedProduct}" WidthRequest="130" HeightRequest="50"
-                                        HorizontalOptions="FillAndExpand" FontAttributes="Bold">
-                                        <Button.Background>
-                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                <GradientStop Color="#A57C5C" Offset="0.0" />
-                                                <GradientStop Color="#5B4F45" Offset="1.0" />
-                                            </LinearGradientBrush>
-                                        </Button.Background>
-                                        <Button.CornerRadius>25</Button.CornerRadius>
-                                    </Button>
-                                    <Button Text="Add Order" Command="{Binding AddToCartCommand}" CommandParameter="{Binding SelectedProduct}" WidthRequest="130" FontAttributes="Bold"
-                                        FontSize="16" TextColor="White" HeightRequest="50" HorizontalOptions="FillAndExpand">
-                                        <Button.Background>
-                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                <GradientStop Color="#A57C5C" Offset="0.0" />
-                                                <GradientStop Color="#5B4F45" Offset="1.0" />
-                                            </LinearGradientBrush>
-                                        </Button.Background>
-                                        <Button.CornerRadius>25</Button.CornerRadius>
-                                    </Button>
+                                    <Button Text="Cancel" 
+                                            Command="{Binding RemoveFromCartCommand}" 
+                                            CommandParameter="{Binding SelectedProduct}" 
+                                            BackgroundColor="#BDAEA2" 
+                                            TextColor="#5B4F45" 
+                                            FontSize="15" 
+                                            BorderColor="#8B7355"
+                                            BorderWidth="2"
+                                            FontAttributes="Bold"
+                                            HeightRequest="50"
+                                            CornerRadius="20"
+                                            HorizontalOptions="FillAndExpand"
+                                            Padding="0"/>
+                                    <Button Text="Add Order" 
+                                            Command="{Binding AddToCartCommand}" 
+                                            CommandParameter="{Binding SelectedProduct}" 
+                                            BackgroundColor="#5B4F45" 
+                                            TextColor="White" 
+                                            FontSize="15" 
+                                            FontAttributes="Bold"
+                                            HeightRequest="50" 
+                                            CornerRadius="20"
+                                            HorizontalOptions="FillAndExpand"
+                                            Padding="0"/>
                                 </StackLayout>
                                 </VerticalStackLayout>
                             </ScrollView>
@@ -521,16 +570,19 @@
                 
                 <!-- Manage POS Menu Button - Bottom Right -->
                 <Button Grid.Row="1" 
-                        Text="Manage POS Menu" 
-                        BackgroundColor="#4CAF50" 
-                        TextColor="White" 
+                        Text="⚙ Menu" 
+                        BackgroundColor="#BDAEA2" 
+                        TextColor="#5B4F45" 
                         FontSize="14" 
                         FontAttributes="Bold"
-                        CornerRadius="8"
-                        Padding="15,8"
+                        CornerRadius="20"
+                        BorderColor="#8B7355"
+                        BorderWidth="2"
+                        Padding="20,10"
                         HorizontalOptions="End"
                         VerticalOptions="End"
                         Margin="0,10,10,10"
+                        HeightRequest="45"
                         Command="{Binding ManagePOSCommand}"
                         IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
             </Grid>
@@ -548,8 +600,7 @@
         <otherViews:AddItemToPOS BindingContext="{Binding AddItemToPOSViewModel}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <!-- Page-level overlays so Next hides previous and shows next cleanly -->
         <otherViews:ConnectPOSItemToInventory BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1100"/>
-        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding IsInputIngredientsAmountUsedVisible}"/>
-        <otherViews:UpdateInputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200" IsVisible="{Binding IsUpdateInputIngredientsAmountUsedVisible}"/>
+        <otherViews:InputIngredientsAmountUsed BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1200"/>
         <otherViews:PreviewPOSItem BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM}" Grid.ColumnSpan="2" ZIndex="1300"/>
         <otherViews:AddonsSelectionPopup BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:CartPopup BindingContext="{Binding CartPopup}" Grid.ColumnSpan="2"/>

@@ -34,7 +34,7 @@
 
                 <!-- Top Bar -->
                 <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
-                    <Label Text="User Management" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center"/>
+                    <Label Text="User Management" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#5B4F45" VerticalOptions="Center"/>
                     <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                     <Grid Grid.Column="3" WidthRequest="40" HeightRequest="40">
                         <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
@@ -57,23 +57,46 @@
                     <!-- Search & Sort (wrap on narrow screens) -->
                     <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="SpaceBetween" AlignContent="Start">
                     <Label Text="{Binding Users.Count, StringFormat='Users: {0}'}"
-                           FontSize="20"
+                           FontSize="22"
                            FontAttributes="Bold"
-                           TextColor="Black"/>
-                        <Entry Placeholder="Search" Text="{Binding SearchText}" PlaceholderColor="Black" WidthRequest="250"/>
-                        <Button Text="Sort By" Command="{Binding SortByCommand}" WidthRequest="100"/>
+                           FontFamily="Montserrat-Black"
+                           TextColor="#5B4F45"/>
+                        <Border Stroke="#8B7355" 
+                                StrokeShape="RoundRectangle 15" 
+                                StrokeThickness="2" 
+                                HeightRequest="45" 
+                                BackgroundColor="White"
+                                WidthRequest="250">
+                            <Entry Placeholder="Search" 
+                                   Text="{Binding SearchText}" 
+                                   PlaceholderColor="#8B7355" 
+                                   TextColor="#5B4F45"
+                                   BackgroundColor="Transparent"
+                                   Margin="15,0"/>
+                        </Border>
+                        <Button Text="⚙ Sort By" 
+                                Command="{Binding SortByCommand}" 
+                                BackgroundColor="#BDAEA2" 
+                                TextColor="#5B4F45" 
+                                BorderColor="#8B7355"
+                                BorderWidth="2"
+                                CornerRadius="20"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                WidthRequest="120"
+                                HeightRequest="45"/>
                     </FlexLayout>
 
                     <!-- Users Table -->
-                    <Frame BackgroundColor="White" CornerRadius="10" Padding="0" HasShadow="True">
+                    <Frame BackgroundColor="White" CornerRadius="15" Padding="0" HasShadow="True">
                         <VerticalStackLayout Spacing="0">
 
                             <!-- Table Header -->
-                            <Grid ColumnDefinitions="2*,3*,2*,2*" BackgroundColor="#D2B892" Padding="10">
-                                <Label Text="Username" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
-                                <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
-                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
-                                <Label Text="Date Added" Grid.Column="3" FontAttributes="Bold" FontSize="18" TextColor="Black"/>
+                            <Grid ColumnDefinitions="2*,3*,2*,2*" BackgroundColor="#BDAEA2" Padding="10">
+                                <Label Text="Username" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
+                                <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
+                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
+                                <Label Text="Date Added" Grid.Column="3" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
                             </Grid>
 
                             <!-- Users List -->
@@ -82,47 +105,75 @@
                                     <DataTemplate>
                                         <VerticalStackLayout Spacing="0">
                                             <Grid ColumnDefinitions="2*,3*,2*,2*,Auto" Padding="10" RowSpacing="0">
-                                                <Label Text="{Binding Username}" FontSize="18" VerticalOptions="Center" TextColor="Black"/>
+                                                <Label Text="{Binding Username}" FontSize="16" FontFamily="OpenSansSemibold" VerticalOptions="Center" TextColor="#5B4F45"/>
 
                                                 <VerticalStackLayout Grid.Column="1" Spacing="8">
                                                     <!-- Show access toggles only for non-admin users -->
                                                     <VerticalStackLayout IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}" Spacing="8">
                                                         <!-- Inventory Access -->
                                                         <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                                            <Label Text="Inventory Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
+                                                            <Label Text="Inventory Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
                                                             <Switch IsToggled="{Binding CanAccessInventory}"/>
                                                         </HorizontalStackLayout>
                                                         
                                                         <!-- Sales Report Access -->
                                                         <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                                            <Label Text="Sales Report Access:" FontSize="14" TextColor="Black" VerticalOptions="Center"/>
+                                                            <Label Text="Sales Report Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
                                                             <Switch IsToggled="{Binding CanAccessSalesReport}"/>
                                                         </HorizontalStackLayout>
                                                     </VerticalStackLayout>
                                                 </VerticalStackLayout>
 
-                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="18" VerticalOptions="Center" TextColor="Black"/>
-                                                <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="18" VerticalOptions="Center" TextColor="Black"/>
+                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" TextColor="#8B7355"/>
+                                                <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" TextColor="#8B7355"/>
 
                                                 <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
                                                 <Grid Grid.Column="4" HorizontalOptions="End" VerticalOptions="Center">
-                                                    <Button Text="..." WidthRequest="36" HeightRequest="20" CornerRadius="6" Padding="0"
+                                                    <Button Text="⋮" 
+                                                            FontSize="18"
+                                                            FontAttributes="Bold"
+                                                            BackgroundColor="#BDAEA2" 
+                                                            TextColor="#5B4F45" 
+                                                            BorderColor="#8B7355"
+                                                            BorderWidth="1"
+                                                            WidthRequest="40" 
+                                                            HeightRequest="35" 
+                                                            CornerRadius="8" 
+                                                            Padding="0"
                                                             Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=OpenRowMenuCommand}"
                                                             CommandParameter="{Binding .}"/>
                                                 </Grid>
                                             </Grid>
                                             
                                             <!-- Separator line between users -->
-                                            <BoxView HeightRequest="2" BackgroundColor="#D0D0D0" Margin="15,5,15,5" CornerRadius="1"/>
+                                            <BoxView HeightRequest="1" BackgroundColor="#E5DDD3" Margin="15,5,15,5" CornerRadius="0"/>
                                         </VerticalStackLayout>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
 
                             <!-- Action Buttons -->
-                            <HorizontalStackLayout HorizontalOptions="End" Padding="10" Spacing="10">
-                                <Button Text="Add User" BackgroundColor="#D0B08A" TextColor="Black" Command="{Binding AddUserCommand}" WidthRequest="120"/>
-                                <Button Text="Delete User" BackgroundColor="#B24D4D" TextColor="White" Command="{Binding DeleteUserCommand}" WidthRequest="120"/>
+                            <HorizontalStackLayout HorizontalOptions="End" Padding="10" Spacing="15">
+                                <Button Text="Add User" 
+                                        BackgroundColor="#BDAEA2" 
+                                        TextColor="#5B4F45" 
+                                        BorderColor="#8B7355"
+                                        BorderWidth="2"
+                                        CornerRadius="20"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        Command="{Binding AddUserCommand}" 
+                                        WidthRequest="140"
+                                        HeightRequest="45"/>
+                                <Button Text="Delete User" 
+                                        BackgroundColor="#5B4F45" 
+                                        TextColor="White" 
+                                        CornerRadius="20"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        Command="{Binding DeleteUserCommand}" 
+                                        WidthRequest="140"
+                                        HeightRequest="45"/>
                                 <!-- Test Request removed; access is managed per-user -->
                             </HorizontalStackLayout>
 

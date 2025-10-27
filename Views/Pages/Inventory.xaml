@@ -264,45 +264,63 @@
                         </ScrollView>
                         
                         <!-- Bottom Buttons -->
-                        <StackLayout Grid.Row="1" 
-                                     Orientation="Horizontal" 
-                                     HorizontalOptions="End" 
-                                     VerticalOptions="End" 
-                                     Spacing="10"
-                                     Margin="0,10,0,0">
+                        <Grid Grid.Row="1" 
+                              ColumnDefinitions="Auto,*" 
+                              HorizontalOptions="Fill" 
+                              VerticalOptions="End" 
+                              Margin="0,10,0,0">
                             
-                            <!-- Purchase Order Button -->
-                            <Button Text="Purchase Order" 
-                                    BackgroundColor="#4CAF50" 
-                                    TextColor="White" 
+                            <!-- Manage Inventory Button - Left -->
+                            <Button Grid.Column="0"
+                                    Text="📦 Manage Inventory" 
+                                    BackgroundColor="#BDAEA2" 
+                                    TextColor="#5B4F45" 
                                     FontSize="14" 
                                     FontAttributes="Bold"
-                                    CornerRadius="8"
-                                    Padding="15,8"
-                                    Command="{Binding CreatePurchaseOrderCommand}"
-                                    IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
-                            
-                            <!-- Manage Inventory Button -->
-                            <Button Text="Manage Inventory" 
-                                    BackgroundColor="#4CAF50" 
-                                    TextColor="White" 
-                                    FontSize="14" 
-                                    FontAttributes="Bold"
-                                    CornerRadius="8"
-                                    Padding="15,8"
+                                    CornerRadius="20"
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
+                                    Padding="20,10"
+                                    HeightRequest="45"
                                     Command="{Binding ManageInventoryCommand}"
-                                    IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
+                                    IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"
+                                    HorizontalOptions="Start"/>
                             
-                            <!-- Activity Log Button -->
-                            <Button Text="Activity Log" 
-                                    BackgroundColor="#FF9800" 
-                                    TextColor="White" 
-                                    FontSize="14" 
-                                    FontAttributes="Bold"
-                                    CornerRadius="8"
-                                    Padding="15,8"
-                                    Command="{Binding ShowActivityLogCommand}"/>
-                        </StackLayout>
+                            <!-- Purchase Order and Activity Log Buttons - Right -->
+                            <StackLayout Grid.Column="1"
+                                        Orientation="Horizontal" 
+                                        HorizontalOptions="End" 
+                                        VerticalOptions="End" 
+                                        Spacing="10">
+                                
+                                <!-- Purchase Order Button -->
+                                <Button Text="📋 Purchase Order" 
+                                        BackgroundColor="#BDAEA2" 
+                                        TextColor="#5B4F45" 
+                                        FontSize="14" 
+                                        FontAttributes="Bold"
+                                        CornerRadius="20"
+                                        BorderColor="#8B7355"
+                                        BorderWidth="2"
+                                        Padding="20,10"
+                                        HeightRequest="45"
+                                        Command="{Binding CreatePurchaseOrderCommand}"
+                                        IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
+                                
+                                <!-- Activity Log Button -->
+                                <Button Text="📝 Activity Log" 
+                                        BackgroundColor="#BDAEA2" 
+                                        TextColor="#5B4F45" 
+                                        FontSize="14" 
+                                        FontAttributes="Bold"
+                                        CornerRadius="20"
+                                        BorderColor="#8B7355"
+                                        BorderWidth="2"
+                                        Padding="20,10"
+                                        HeightRequest="45"
+                                        Command="{Binding ShowActivityLogCommand}"/>
+                            </StackLayout>
+                        </Grid>
                     </Grid>
                 </Frame>
             </VerticalStackLayout>

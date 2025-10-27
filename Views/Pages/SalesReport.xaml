@@ -13,6 +13,19 @@
         <ResourceDictionary>
             <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
             <converters:StringToColorConverter x:Key="StringToColorConverter"/>
+            
+            <!-- Style for Time Period Buttons -->
+            <Style x:Key="TimePeriodButtonStyle" TargetType="Button">
+                <Setter Property="FontSize" Value="10"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="#2E7D32"/>
+                <Setter Property="BackgroundColor" Value="White"/>
+                <Setter Property="HeightRequest" Value="32"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="BorderColor" Value="#C8E6C9"/>
+                <Setter Property="BorderWidth" Value="1"/>
+                <Setter Property="Padding" Value="0"/>
+            </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -145,7 +158,7 @@
                     </VerticalStackLayout>
 
                     <!-- Middle Column: Top 3 Picks Today - Pie Chart -->
-                    <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" HeightRequest="230" VerticalOptions="Start">
+                    <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" HeightRequest="300" VerticalOptions="Start">
                         <Grid RowDefinitions="Auto,*,Auto">
                             <!-- Header -->
                             <Grid ColumnDefinitions="*,Auto">
@@ -194,128 +207,86 @@
                     </Frame>
 
                     <!-- Right Column: Total Cash Accumulated -->
-                    <Frame Grid.Column="2" BackgroundColor="#2E7D32" CornerRadius="12" Padding="20" HasShadow="True" HeightRequest="230" VerticalOptions="Start">
+                    <Frame Grid.Column="2" BackgroundColor="#C8E6C9" CornerRadius="15" Padding="20" HasShadow="True" HeightRequest="300" VerticalOptions="Start" BorderColor="#81C784">
                         <VerticalStackLayout Spacing="12" HorizontalOptions="Fill">
                             <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                                <Label Text="Total Sales" FontAttributes="Bold" FontSize="18" TextColor="White" HorizontalOptions="Center"/>
-                                <Label Text="{Binding SelectedTimePeriod, StringFormat='{0} sales totals'}" FontSize="12" TextColor="#E8F5E8" HorizontalOptions="Center"/>
+                                <Label Text="Total Sales" FontAttributes="Bold" FontSize="20" FontFamily="Montserrat-Black" TextColor="#2E7D32" HorizontalOptions="Center"/>
+                                <Label Text="{Binding SelectedTimePeriod, StringFormat='{0} sales totals'}" FontSize="13" TextColor="#558B2F" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
                             
                             <!-- Time Period Filter Buttons -->
                             <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="3">
                                 <Button Text="Today" 
-                                        Padding="0"
+                                        Style="{StaticResource TimePeriodButtonStyle}"
                                         Grid.Column="0"
-                                        FontSize="12" 
-                                        TextColor="White" 
-                                        BackgroundColor="#4CAF50" 
-                                        HeightRequest="31" 
-                                        CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="Today">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Today">
-                                            <Setter Property="BackgroundColor" Value="#81C784" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                        CommandParameter="Today"/>
                                 <Button Text="Yesterday" 
-                                        Padding="0"
+                                        Style="{StaticResource TimePeriodButtonStyle}"
                                         Grid.Column="1"
-                                        FontSize="12" 
-                                        TextColor="White" 
-                                        BackgroundColor="#4CAF50" 
-                                        HeightRequest="31" 
-                                        CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="Yesterday">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="Yesterday">
-                                            <Setter Property="BackgroundColor" Value="#81C784" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                        CommandParameter="Yesterday"/>
                                 <Button Text="1 Week" 
-                                        Padding="0"
+                                        Style="{StaticResource TimePeriodButtonStyle}"
                                         Grid.Column="2"
-                                        FontSize="12" 
-                                        TextColor="White" 
-                                        BackgroundColor="#4CAF50" 
-                                        HeightRequest="31" 
-                                        CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="1 Week">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="1 Week">
-                                            <Setter Property="BackgroundColor" Value="#81C784" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                        CommandParameter="1 Week"/>
                                 <Button Text="1 Month" 
-                                        Padding="0"
+                                        Style="{StaticResource TimePeriodButtonStyle}"
                                         Grid.Column="3"
-                                        FontSize="12" 
-                                        TextColor="White" 
-                                        BackgroundColor="#4CAF50" 
-                                        HeightRequest="31" 
-                                        CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="1 Month">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="1 Month">
-                                            <Setter Property="BackgroundColor" Value="#81C784" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                        CommandParameter="1 Month"/>
                                 <Button Text="All Time" 
-                                        Padding="0"
+                                        Style="{StaticResource TimePeriodButtonStyle}"
                                         Grid.Column="4"
-                                        FontSize="12" 
-                                        TextColor="White" 
-                                        BackgroundColor="#4CAF50" 
-                                        HeightRequest="31" 
-                                        CornerRadius="4"
                                         Command="{Binding SelectTimePeriodCommand}" 
-                                        CommandParameter="All Time">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedTimePeriod}" Value="All Time">
-                                            <Setter Property="BackgroundColor" Value="#81C784" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                        CommandParameter="All Time"/>
                             </Grid>
                             
                             <Label Text="{Binding DisplayTotalSales, StringFormat='₱{0:N2}'}" 
-                                   FontSize="28" 
+                                   FontSize="32" 
                                    FontAttributes="Bold" 
-                                   TextColor="White" 
+                                   FontFamily="Montserrat-Black"
+                                   TextColor="#2E7D32" 
                                    HorizontalOptions="Center"/>
                             
-                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
-                                <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="4">
-                                    <Label Text="Cash" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" 
-                                           FontSize="14" 
-                                           FontAttributes="Bold" 
-                                           TextColor="White" 
-                                           HorizontalOptions="Center"/>
-                                </VerticalStackLayout>
-                                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" Spacing="4">
-                                    <Label Text="GCash" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" 
-                                           FontSize="14" 
-                                           FontAttributes="Bold" 
-                                           TextColor="White" 
-                                           HorizontalOptions="Center"/>
-                                </VerticalStackLayout>
-                                <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center" Spacing="4">
-                                    <Label Text="Bank" FontSize="10" TextColor="#E8F5E8" HorizontalOptions="Center"/>
-                                    <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" 
-                                           FontSize="14" 
-                                           FontAttributes="Bold" 
-                                           TextColor="White" 
-                                           HorizontalOptions="Center"/>
-                                </VerticalStackLayout>
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,5,0,0">
+                                <Frame Grid.Column="0" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True">
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Label Text="💰" FontSize="16" HorizontalOptions="Center"/>
+                                        <Label Text="Cash" FontSize="12" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" 
+                                               FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               FontFamily="Montserrat-Black"
+                                               TextColor="#2E7D32" 
+                                               HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Frame>
+                                <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True">
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Label Text="📱" FontSize="16" HorizontalOptions="Center"/>
+                                        <Label Text="GCash" FontSize="12" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" 
+                                               FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               FontFamily="Montserrat-Black"
+                                               TextColor="#2E7D32" 
+                                               HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Frame>
+                                <Frame Grid.Column="2" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True">
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Label Text="🏦" FontSize="16" HorizontalOptions="Center"/>
+                                        <Label Text="Bank" FontSize="12" TextColor="#558B2F" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" 
+                                               FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               FontFamily="Montserrat-Black"
+                                               TextColor="#2E7D32" 
+                                               HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Frame>
                             </Grid>
                         </VerticalStackLayout>
                     </Frame>
@@ -348,7 +319,7 @@
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
-                            <CollectionView ItemsSource="{Binding TopItemsWeekly}" HeightRequest="100" Grid.Row="2" Grid.ColumnSpan="2">
+                            <CollectionView ItemsSource="{Binding TopItemsWeekly}" HeightRequest="60" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
@@ -362,12 +333,14 @@
                             <Button Grid.Row="3" 
                                     Grid.ColumnSpan="2"
                                     Text="📄 Download Weekly Report" 
-                                    FontSize="12" 
-                                    TextColor="White" 
-                                    BackgroundColor="#2E7D32" 
-                                    HeightRequest="35" 
-                                    CornerRadius="6"
-                                    Margin="0,10,0,0"
+                                    FontSize="13" 
+                                    FontAttributes="Bold"
+                                    TextColor="#5B4F45" 
+                                    BackgroundColor="#FFB3D9" 
+                                    HeightRequest="40" 
+                                    CornerRadius="12"
+                                    BorderWidth="0"
+                                    Margin="0,5,0,0"
                                     Command="{Binding DownloadWeeklyReportCommand}"/>
                         </Grid>
                     </Frame>
@@ -397,7 +370,7 @@
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
-                            <CollectionView ItemsSource="{Binding TopItemsMonthly}" HeightRequest="100" Grid.Row="2" Grid.ColumnSpan="2">
+                            <CollectionView ItemsSource="{Binding TopItemsMonthly}" HeightRequest="60" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
@@ -411,12 +384,14 @@
                             <Button Grid.Row="3" 
                                     Grid.ColumnSpan="2"
                                     Text="📄 Download Monthly Report" 
-                                    FontSize="12" 
-                                    TextColor="White" 
-                                    BackgroundColor="#2E7D32" 
-                                    HeightRequest="35" 
-                                    CornerRadius="6"
-                                    Margin="0,10,0,0"
+                                    FontSize="13" 
+                                    FontAttributes="Bold"
+                                    TextColor="#5B4F45" 
+                                    BackgroundColor="#FFB3D9" 
+                                    HeightRequest="40" 
+                                    CornerRadius="12"
+                                    BorderWidth="0"
+                                    Margin="0,5,0,0"
                                     Command="{Binding DownloadMonthlyReportCommand}"/>
                         </Grid>
                     </Frame>
