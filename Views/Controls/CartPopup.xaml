@@ -136,8 +136,7 @@
                                                    VerticalOptions="Center" />
                                         </VerticalStackLayout>
 
-                                        <!-- Size -->Open Merge Editor (Legacy)
-
+                                        <!-- Size -->
                                         <Label Grid.Column="4" 
                                                Text="{Binding SizeDisplay}" 
                                                FontSize="12" FontFamily="MontserratBlack" 

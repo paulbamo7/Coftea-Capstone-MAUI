@@ -44,15 +44,12 @@
                            FontSize="26" FontFamily="MontserratBlack"
                            TextColor="#3C3C3C"
                            VerticalOptions="Center" />
-<<<<<<< Updated upstream
                     <Button Text="✕"
                             BackgroundColor="Transparent"
                             TextColor="#444"
                             FontSize="20" FontFamily="MontserratBlack"
                             Command="{Binding CloseConnectPOSToInventoryCommand}"
                             HorizontalOptions="EndAndExpand" />
-=======
->>>>>>> Stashed changes
                 </HorizontalStackLayout>
 
                 <!-- CONTENT SECTION -->
@@ -184,9 +181,6 @@
                                                FontSize="16" FontFamily="MontserratBlack"/>
                                 </Frame>
 
-<<<<<<< Updated upstream
-                                <Button Text="Unselect All" Command="{Binding UnselectAllVisibleCommand}" BackgroundColor="#F0C0C0" TextColor="#333" FontSize="16" FontAttributes="Bold"/>
-=======
                                 <Button Text="✕ Unselect All" 
                                         Command="{Binding UnselectAllVisibleCommand}" 
                                         BackgroundColor="#BDAEA2" 
@@ -200,7 +194,6 @@
                                         WidthRequest="120"
                                         CornerRadius="20"
                                         Padding="10,0"/>
->>>>>>> Stashed changes
                             </HorizontalStackLayout>
                         </ScrollView>
 
