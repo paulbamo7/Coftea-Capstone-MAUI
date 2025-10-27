@@ -301,7 +301,7 @@ namespace Coftea_Capstone.Models
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     notes TEXT,
                     FOREIGN KEY (itemId) REFERENCES inventory(itemID) ON DELETE CASCADE,
-                    FOREIGN KEY (userId) REFERENCES users(userID) ON DELETE SET NULL,
+                    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE SET NULL,
                     INDEX idx_itemId (itemId),
                     INDEX idx_timestamp (timestamp),
                     INDEX idx_action (action),
@@ -313,18 +313,17 @@ namespace Coftea_Capstone.Models
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     productID INT NOT NULL,
                     itemID INT NOT NULL,
-                    amount DECIMAL(10,4) NOT NULL,
-                    unit VARCHAR(50),
-                    -- Per-size amounts/units (nullable; fallback to shared amount/unit when NULL)
-                    amount_small  DECIMAL(10,4) NULL,
-                    unit_small    VARCHAR(50)   NULL,
-                    amount_medium DECIMAL(10,4) NULL,
-                    unit_medium   VARCHAR(50)   NULL,
-                    amount_large  DECIMAL(10,4) NULL,
-                    unit_large    VARCHAR(50)   NULL,
+                    amount_small  DECIMAL(10,4) NOT NULL DEFAULT 0,
+                    unit_small    VARCHAR(50) NOT NULL DEFAULT 'pcs',
+                    amount_medium DECIMAL(10,4) NOT NULL DEFAULT 0,
+                    unit_medium   VARCHAR(50) NOT NULL DEFAULT 'pcs',
+                    amount_large  DECIMAL(10,4) NOT NULL DEFAULT 0,
+                    unit_large    VARCHAR(50) NOT NULL DEFAULT 'pcs',
                     role VARCHAR(50) DEFAULT 'ingredient',
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
-                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
+                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE,
+                    INDEX idx_productID (productID),
+                    INDEX idx_itemID (itemID)
                 );
     
                 CREATE TABLE IF NOT EXISTS product_addons (
@@ -372,6 +371,34 @@ namespace Coftea_Capstone.Models
                 -- Alter existing transaction_items table to increase size column length if needed
                 -- This will fail silently if column doesn't exist or is already the right size
                 ALTER TABLE transaction_items MODIFY COLUMN size VARCHAR(100);
+                
+                -- Drop unused columns from product_ingredients table if they exist
+                SET @tablename = 'product_ingredients';
+                SET @columnname = 'amount';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = DATABASE())
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  CONCAT('ALTER TABLE ', @tablename, ' DROP COLUMN ', @columnname, ';'),
+                  'SELECT 1'
+                ));
+                PREPARE dropIfExists FROM @preparedStatement;
+                EXECUTE dropIfExists;
+                DEALLOCATE PREPARE dropIfExists;
+                
+                SET @columnname = 'unit';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = DATABASE())
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  CONCAT('ALTER TABLE ', @tablename, ' DROP COLUMN ', @columnname, ';'),
+                  'SELECT 1'
+                ));
+                PREPARE dropIfExists FROM @preparedStatement;
+                EXECUTE dropIfExists;
+                DEALLOCATE PREPARE dropIfExists;
                 
                 -- Alter existing inventory_activity_log table to add new columns if they don't exist
                 -- Add userFullName column if it doesn't exist
