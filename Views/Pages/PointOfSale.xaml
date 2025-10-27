@@ -109,18 +109,6 @@
                 </ScrollView>
 
                 <!-- History + Cart (far right) -->
-                <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="20" HorizontalOptions="End" VerticalOptions="Center">
-                    <Image Source="historyicon.png" WidthRequest="40" HeightRequest="40">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding ShowHistoryCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
-                    <!-- Cart icon (badge removed to prevent crashes) -->
-                    <Image Source="carticon.png" WidthRequest="40" HeightRequest="40">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding CartCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
                 <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
                     
                     <Button Text="📝" 

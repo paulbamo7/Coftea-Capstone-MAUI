@@ -73,8 +73,9 @@
                         BorderColor="#8B7355"
                         BorderWidth="2"
                         CornerRadius="20"
-                        HorizontalOptions="Center"            
-                        Command="{Binding CloseInventoryManagementPopupCommand}" />
+                       HorizontalOptions="Center"            
+                       Command="{Binding CloseInventoryManagementPopupCommand}" />
             </VerticalStackLayout>
+        </Frame>
     </Grid>
 </ContentView>

@@ -51,7 +51,7 @@
                                TextColor="White" 
                                VerticalOptions="Center"/>
                         <Button Grid.Column="1" 
-                                Text="×" 
+                                    Text="×" 
                                 BackgroundColor="Transparent" 
                                 TextColor="White" 
                                 FontSize="32" 
