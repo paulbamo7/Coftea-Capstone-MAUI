@@ -218,6 +218,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"🔧 Cart item quantities - Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
                 
                 // IMPORTANT: Remove the item from cart first (to avoid duplicates when re-adding after edit)
+                // But preserve addon information before removing
+                List<InventoryPageModel> preservedAddons = null;
+                
                 if (_originalItems != null)
                 {
                     var matchingCartItem = _originalItems.FirstOrDefault(x =>
@@ -228,6 +231,38 @@ namespace Coftea_Capstone.ViewModel.Controls
                     
                     if (matchingCartItem != null)
                     {
+                        // Preserve addon information before removing
+                        if (matchingCartItem.InventoryItems != null && matchingCartItem.InventoryItems.Any(a => a.IsSelected || a.AddonQuantity > 0))
+                        {
+                            preservedAddons = new List<InventoryPageModel>();
+                            foreach (var addon in matchingCartItem.InventoryItems)
+                            {
+                                if (addon.IsSelected || addon.AddonQuantity > 0)
+                                {
+                                    preservedAddons.Add(new InventoryPageModel
+                                    {
+                                        itemID = addon.itemID,
+                                        itemName = addon.itemName,
+                                        itemCategory = addon.itemCategory,
+                                        itemDescription = addon.itemDescription,
+                                        itemQuantity = addon.itemQuantity,
+                                        unitOfMeasurement = addon.unitOfMeasurement,
+                                        minimumQuantity = addon.minimumQuantity,
+                                        maximumQuantity = addon.maximumQuantity,
+                                        ImageSet = addon.ImageSet,
+                                        IsSelected = addon.IsSelected,
+                                        AddonQuantity = addon.AddonQuantity,
+                                        AddonPrice = addon.AddonPrice,
+                                        AddonUnit = addon.AddonUnit,
+                                        InputAmount = addon.InputAmount,
+                                        InputUnit = addon.InputUnit
+                                    });
+                                    System.Diagnostics.Debug.WriteLine($"🔧 Preserved addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                }
+                            }
+                            System.Diagnostics.Debug.WriteLine($"🔧 Preserved {preservedAddons.Count} addons for restoration");
+                        }
+                        
                         _originalItems.Remove(matchingCartItem);
                         System.Diagnostics.Debug.WriteLine($"🔧 Removed item from cart for editing");
                     }
@@ -235,12 +270,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 // Close the cart popup
                 IsCartVisible = false;
+                System.Diagnostics.Debug.WriteLine($"🔧 EditCartItem: Cart popup closed, waiting for UI to update...");
                 
-                // Find the product in the product list and restore it with quantities
+                // Wait for popup to fully close before accessing underlying page
+                await Task.Delay(200);
+                
+                // Find the product in the product list and restore it with quantities AND addons
                 if (_originalItems != null)
                 {
                     // Navigate to POS page if not already there, then set the selected product with quantities
-                    await SetSelectedProductInCurrentPOS(item);
+                    await SetSelectedProductInCurrentPOS(item, preservedAddons);
                 }
             }
             catch (Exception ex)
@@ -249,7 +288,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task SetSelectedProductInCurrentPOS(CartItem cartItem) // Set selected product in current POS page from cart item
+        private async Task SetSelectedProductInCurrentPOS(CartItem cartItem, List<InventoryPageModel> preservedAddons = null) // Set selected product in current POS page from cart item
         {
             try
             {
@@ -262,27 +301,45 @@ namespace Coftea_Capstone.ViewModel.Controls
                     return;
                 }
                 
-                // Get the current page (ensure we're on POS if null)
-                var nav = Application.Current?.MainPage as NavigationPage;
-                if (nav?.CurrentPage == null)
+                // App uses Shell navigation, not NavigationPage
+                // Try to get current page from Shell
+                ContentPage currentPage = null;
+                
+                if (Shell.Current?.CurrentPage is ContentPage shellPage)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: Navigation or CurrentPage is null - navigating to POS");
+                    currentPage = shellPage;
+                    System.Diagnostics.Debug.WriteLine($"✅ SetSelectedProductInCurrentPOS: Found current page from Shell: {shellPage.GetType().Name}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Current page not found via Shell, navigating to POS...");
                     try
                     {
                         await Coftea_Capstone.Services.SimpleNavigationService.NavigateToAsync("//pos");
-                        await Task.Delay(500);
+                        await Task.Delay(500); // Wait for navigation to complete
+                        
+                        if (Shell.Current?.CurrentPage is ContentPage newPage)
+                        {
+                            currentPage = newPage;
+                            System.Diagnostics.Debug.WriteLine($"✅ SetSelectedProductInCurrentPOS: Found page after navigation: {newPage.GetType().Name}");
+                        }
                     }
                     catch (Exception navEx)
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Navigation to POS failed: {navEx.Message}");
                     }
-                    nav = Application.Current?.MainPage as NavigationPage;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Current page type: {nav.CurrentPage.GetType().Name}");
+                if (currentPage == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: Could not find current page - cannot proceed");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Current page type: {currentPage.GetType().Name}");
 
                 // Check if current page is POS page
-                if (nav.CurrentPage is PointOfSale posPage)
+                if (currentPage is PointOfSale posPage)
                 {
                     System.Diagnostics.Debug.WriteLine($"✅ SetSelectedProductInCurrentPOS: Found PointOfSale page");
                     
@@ -307,6 +364,48 @@ namespace Coftea_Capstone.ViewModel.Controls
                             currentProduct.LargeQuantity = cartItem.LargeQuantity;
                             System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
 
+                            // Restore addons if preserved
+                            if (preservedAddons != null && preservedAddons.Any())
+                            {
+                                System.Diagnostics.Debug.WriteLine($"🔧 Restoring {preservedAddons.Count} preserved addons...");
+                                
+                                // Wait longer for addons to load from database (LoadAddonsForSelectedAsync is async)
+                                // Keep checking until InventoryItems has items or timeout
+                                int retries = 0;
+                                while ((currentProduct.InventoryItems == null || currentProduct.InventoryItems.Count == 0) && retries < 10)
+                                {
+                                    await Task.Delay(100);
+                                    retries++;
+                                }
+                                
+                                System.Diagnostics.Debug.WriteLine($"🔧 Addon loading check: InventoryItems count = {currentProduct.InventoryItems?.Count ?? 0}, retries = {retries}");
+                                
+                                if (currentProduct.InventoryItems != null && currentProduct.InventoryItems.Any())
+                                {
+                                    foreach (var addon in currentProduct.InventoryItems.ToList())
+                                    {
+                                        var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                        if (preserved != null)
+                                        {
+                                            addon.IsSelected = preserved.IsSelected;
+                                            addon.AddonQuantity = preserved.AddonQuantity;
+                                            System.Diagnostics.Debug.WriteLine($"✅ Restored addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                        }
+                                        else
+                                        {
+                                            // Reset addons that weren't in cart
+                                            addon.IsSelected = false;
+                                            addon.AddonQuantity = 0;
+                                        }
+                                    }
+                                    System.Diagnostics.Debug.WriteLine($"✅ Finished restoring addons");
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"⚠️ InventoryItems is null or empty after waiting, cannot restore addons");
+                                }
+                            }
+
                             // Force UI updates by reassigning SelectedProduct
                             var temp = posViewModel.SelectedProduct;
                             posViewModel.SelectedProduct = null;
@@ -330,6 +429,39 @@ namespace Coftea_Capstone.ViewModel.Controls
                                 currentProduct.LargeQuantity = cartItem.LargeQuantity;
                                 System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after refresh - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
 
+                                // Restore addons after refresh
+                                if (preservedAddons != null && preservedAddons.Any())
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"🔧 Restoring {preservedAddons.Count} preserved addons after refresh...");
+                                    
+                                    // Wait for addons to load
+                                    int retries = 0;
+                                    while ((currentProduct.InventoryItems == null || currentProduct.InventoryItems.Count == 0) && retries < 10)
+                                    {
+                                        await Task.Delay(100);
+                                        retries++;
+                                    }
+                                    
+                                    if (currentProduct.InventoryItems != null && currentProduct.InventoryItems.Any())
+                                    {
+                                        foreach (var addon in currentProduct.InventoryItems.ToList())
+                                        {
+                                            var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                            if (preserved != null)
+                                            {
+                                                addon.IsSelected = preserved.IsSelected;
+                                                addon.AddonQuantity = preserved.AddonQuantity;
+                                                System.Diagnostics.Debug.WriteLine($"✅ Restored addon after refresh: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                            }
+                                            else
+                                            {
+                                                addon.IsSelected = false;
+                                                addon.AddonQuantity = 0;
+                                            }
+                                        }
+                                    }
+                                }
+
                                 var temp2 = posViewModel.SelectedProduct;
                                 posViewModel.SelectedProduct = null;
                                 posViewModel.SelectedProduct = temp2;
@@ -348,34 +480,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Current page is not POS page, navigating to POS page. Current type: {nav.CurrentPage.GetType().Name}");
-                    // Navigate to POS page first
-                    await Coftea_Capstone.Services.SimpleNavigationService.NavigateToAsync("//pos");
-                    
-                    // Wait a moment for navigation to complete
-                    await Task.Delay(500);
-                    
-                    // Try again after navigation
-                    nav = Application.Current?.MainPage as NavigationPage;
-                    if (nav?.CurrentPage is PointOfSale newPosPage && newPosPage.BindingContext is POSPageViewModel newPosViewModel)
-                    {
-                        var currentProduct = newPosViewModel.Products?.FirstOrDefault(p => p.ProductID == cartItem.ProductId);
-                        if (currentProduct != null)
-                        {
-                            try { newPosViewModel.SelectProductCommand.Execute(currentProduct); } catch { }
-                            await Task.Delay(50);
-
-                            currentProduct.SmallQuantity = cartItem.SmallQuantity;
-                            currentProduct.MediumQuantity = cartItem.MediumQuantity;
-                            currentProduct.LargeQuantity = cartItem.LargeQuantity;
-                            System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after navigation - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
-
-                            var temp3 = newPosViewModel.SelectedProduct;
-                            newPosViewModel.SelectedProduct = null;
-                            newPosViewModel.SelectedProduct = temp3;
-                            System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} after navigation");
-                        }
-                    }
+                    System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: Current page is not POS page (type: {currentPage.GetType().Name}), but we should have already navigated - cannot proceed");
+                    // We've already tried to navigate above, so if we're still not on POS, something's wrong
                 }
             }
             catch (Exception ex)
