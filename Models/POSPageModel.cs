@@ -23,7 +23,7 @@ namespace Coftea_Capstone.C_
         }
         public int ProductID { get; set; }
         public string ProductName { get; set; }
-        public decimal SmallPrice { get; set; }
+        public decimal? SmallPrice { get; set; } // Nullable for non-Coffee categories
         public decimal MediumPrice { get; set; }
         public decimal LargePrice { get; set; }
         public string ImageSet { get; set; }
@@ -103,7 +103,7 @@ namespace Coftea_Capstone.C_
         {
             get
             {
-                decimal baseSizes = (SmallPrice * SmallQuantity) + (MediumPrice * MediumQuantity) + (LargePrice * LargeQuantity);
+                decimal baseSizes = ((SmallPrice ?? 0) * SmallQuantity) + (MediumPrice * MediumQuantity) + (LargePrice * LargeQuantity);
                 decimal addons = 0m;
                 foreach (var addon in InventoryItems)
                 {

@@ -141,101 +141,129 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async void AddToCart(POSPageModel product) // Adds products to cart with their quantities and addons
         {
-            if (product == null || CartItems == null)
+            try
             {
-                System.Diagnostics.Debug.WriteLine("AddToCart: product or CartItems is null");
-                return;
-            }
-            // Check if there are any items to add (at least one quantity > 0 for available sizes)
-            bool hasAnyQuantity = false;
-            
-            // Only check sizes that the product actually supports
-            if (product.HasSmall && product.SmallQuantity > 0) hasAnyQuantity = true;
-            if (product.HasMedium && product.MediumQuantity > 0) hasAnyQuantity = true;
-            if (product.HasLarge && product.LargeQuantity > 0) hasAnyQuantity = true;
-            
-            // If product doesn't support any sizes, allow adding without size selection
-            if (!product.HasSmall && !product.HasMedium && !product.HasLarge)
-            {
-                hasAnyQuantity = true; // Allow products without size support
-            }
-            
-            if (!hasAnyQuantity)
-            {
-                // Show notification that no items were selected
-                if (NotificationPopup != null)
+                if (product == null || CartItems == null)
                 {
-                    NotificationPopup.ShowNotification("Please select at least one item to add to cart.", "No Items Selected");
+                    System.Diagnostics.Debug.WriteLine("AddToCart: product or CartItems is null");
+                    return;
                 }
-                return;
-            }
-            // Check if cups and straws are available before adding to cart
-            bool cupsAndStrawsAvailable = await CheckCupsAndStrawsAvailability();
-            if (cupsAndStrawsAvailable)
-            {
-                if (NotificationPopup != null)
+                
+                System.Diagnostics.Debug.WriteLine($"🛒 AddToCart called for: {product.ProductName}");
+                System.Diagnostics.Debug.WriteLine($"   SmallPrice: {product.SmallPrice}, MediumPrice: {product.MediumPrice}, LargePrice: {product.LargePrice}");
+                
+                // Check if there are any items to add (at least one quantity > 0 for available sizes)
+                bool hasAnyQuantity = false;
+                
+                // Only check sizes that the product actually supports
+                if (product.HasSmall && product.SmallQuantity > 0) hasAnyQuantity = true;
+                if (product.HasMedium && product.MediumQuantity > 0) hasAnyQuantity = true;
+                if (product.HasLarge && product.LargeQuantity > 0) hasAnyQuantity = true;
+                
+                // If product doesn't support any sizes, allow adding without size selection
+                if (!product.HasSmall && !product.HasMedium && !product.HasLarge)
                 {
-                    NotificationPopup.ShowNotification("Cannot add items to cart: No cups or straws available in inventory.", "Out of Stock");
+                    hasAnyQuantity = true; // Allow products without size support
                 }
-                return;
-            }
-            // Always create a new cart line entry even if the same product already exists
-            var copy = new POSPageModel
-            {
-                ProductID = product.ProductID,
-                ProductName = product.ProductName,
-                SmallPrice = product.SmallPrice,
-                MediumPrice = product.MediumPrice,
-                LargePrice = product.LargePrice,
-                ImageSet = product.ImageSet,
-                SmallQuantity = product.SmallQuantity,
-                MediumQuantity = product.MediumQuantity,
-                LargeQuantity = product.LargeQuantity,
-                InventoryItems = new ObservableCollection<InventoryPageModel>() // Create new collection
-            };
-
-            if (product.InventoryItems != null)
-            {
-                foreach (var addon in product.InventoryItems)
+                
+                if (!hasAnyQuantity)
                 {
-                    var addonCopy = new InventoryPageModel
+                    // Show notification that no items were selected
+                    if (NotificationPopup != null)
                     {
-                        itemID = addon.itemID,
-                        itemName = addon.itemName,
-                        itemCategory = addon.itemCategory,
-                        itemDescription = addon.itemDescription,
-                        itemQuantity = addon.itemQuantity,
-                        unitOfMeasurement = addon.unitOfMeasurement,
-                        minimumQuantity = addon.minimumQuantity,
-                        ImageSet = addon.ImageSet,
-                        IsSelected = addon.IsSelected,
-                        AddonQuantity = addon.AddonQuantity,
-                        AddonPrice = addon.AddonPrice,
-                        AddonUnit = addon.AddonUnit,
-                        InputAmount = addon.InputAmount,
-                        InputUnit = addon.InputUnit
-                    };
-                    copy.InventoryItems.Add(addonCopy);
-                    System.Diagnostics.Debug.WriteLine($"🔧 Copied addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                        NotificationPopup.ShowNotification("Please select at least one item to add to cart.", "No Items Selected");
+                    }
+                    return;
                 }
-            }
-            CartItems.Add(copy);
-
-            // Reset selection quantities
-            product.SmallQuantity = 0;
-            product.MediumQuantity = 0;
-            product.LargeQuantity = 0;
-
-            // Reset addons to 0
-            if (product.InventoryItems != null)
-            {
-                foreach (var addon in product.InventoryItems)
+                // Check if cups and straws are available before adding to cart
+                bool cupsAndStrawsAvailable = await CheckCupsAndStrawsAvailability();
+                if (cupsAndStrawsAvailable)
                 {
-                    addon.AddonQuantity = 0;
-                    addon.IsSelected = false;
+                    if (NotificationPopup != null)
+                    {
+                        NotificationPopup.ShowNotification("Cannot add items to cart: No cups or straws available in inventory.", "Out of Stock");
+                    }
+                    return;
                 }
+                
+                System.Diagnostics.Debug.WriteLine($"🛒 Creating cart item copy...");
+                
+                // Always create a new cart line entry even if the same product already exists
+                var copy = new POSPageModel
+                {
+                    ProductID = product.ProductID,
+                    ProductName = product.ProductName,
+                    SmallPrice = product.SmallPrice,
+                    MediumPrice = product.MediumPrice,
+                    LargePrice = product.LargePrice,
+                    ImageSet = product.ImageSet,
+                    SmallQuantity = product.SmallQuantity,
+                    MediumQuantity = product.MediumQuantity,
+                    LargeQuantity = product.LargeQuantity,
+                    InventoryItems = new ObservableCollection<InventoryPageModel>() // Create new collection
+                };
+
+                if (product.InventoryItems != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🛒 Copying {product.InventoryItems.Count} addons...");
+                    foreach (var addon in product.InventoryItems)
+                    {
+                        var addonCopy = new InventoryPageModel
+                        {
+                            itemID = addon.itemID,
+                            itemName = addon.itemName,
+                            itemCategory = addon.itemCategory,
+                            itemDescription = addon.itemDescription,
+                            itemQuantity = addon.itemQuantity,
+                            unitOfMeasurement = addon.unitOfMeasurement,
+                            minimumQuantity = addon.minimumQuantity,
+                            ImageSet = addon.ImageSet,
+                            IsSelected = addon.IsSelected,
+                            AddonQuantity = addon.AddonQuantity,
+                            AddonPrice = addon.AddonPrice,
+                            AddonUnit = addon.AddonUnit,
+                            InputAmount = addon.InputAmount,
+                            InputUnit = addon.InputUnit
+                        };
+                        copy.InventoryItems.Add(addonCopy);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Copied addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                    }
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"🛒 Adding to CartItems collection...");
+                CartItems.Add(copy);
+                System.Diagnostics.Debug.WriteLine($"✅ Successfully added to cart! Cart now has {CartItems.Count} items");
+
+                // Reset selection quantities
+                product.SmallQuantity = 0;
+                product.MediumQuantity = 0;
+                product.LargeQuantity = 0;
+
+                // Reset addons to 0
+                if (product.InventoryItems != null)
+                {
+                    foreach (var addon in product.InventoryItems)
+                    {
+                        addon.AddonQuantity = 0;
+                        addon.IsSelected = false;
+                    }
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"🛒 Saving cart to storage...");
+                _ = _cartStorage.SaveCartAsync(CartItems);
             }
-            _ = _cartStorage.SaveCartAsync(CartItems);
+            catch (InvalidCastException castEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ CAST ERROR in AddToCart: {castEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {castEx.StackTrace}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to add product: Specified cast is not valid.\n\nDetails: {castEx.Message}\n\nPlease check that all prices are set correctly.", "OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ ERROR in AddToCart: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to add product: {ex.Message}", "OK");
+            }
         }
 
         [RelayCommand]

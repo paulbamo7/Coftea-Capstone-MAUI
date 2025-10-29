@@ -594,7 +594,7 @@ namespace Coftea_Capstone.Models
 			{
 				ProductID = reader.GetInt32("productID"),
 				ProductName = reader.GetString("productName"),
-				SmallPrice = reader.GetDecimal("smallPrice"),
+				SmallPrice = reader.IsDBNull(reader.GetOrdinal("smallPrice")) ? null : reader.GetDecimal("smallPrice"),
 				MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
 				LargePrice = reader.GetDecimal("largePrice"),
 				ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),

@@ -411,10 +411,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                     
                     // Create a combined transaction record for the entire order
                     // Calculate size-specific prices for the transaction
-                    var smallTotal = CartItems.Sum(item => item.SmallPrice * item.SmallQuantity);
+                    var smallTotal = CartItems.Sum(item => (item.SmallPrice ?? 0) * item.SmallQuantity);
                     var mediumTotal = CartItems.Sum(item => item.MediumPrice * item.MediumQuantity);
                     var largeTotal = CartItems.Sum(item => item.LargePrice * item.LargeQuantity);
-                    var addonTotal = CartItems.Sum(item => Math.Max(0, item.TotalPrice - ((item.SmallPrice * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity))));
+                    var addonTotal = CartItems.Sum(item => Math.Max(0, item.TotalPrice - (((item.SmallPrice ?? 0) * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity))));
 
                     var orderTransaction = new TransactionHistoryModel
                     {
@@ -423,10 +423,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                         Size = CartItems.Count == 1 ? CartItems[0].SelectedSize : "Multiple",
                         Quantity = CartItems.Sum(item => item.Quantity),
                         Price = orderTotal,
-                        SmallPrice = smallTotal,
-                        MediumPrice = mediumTotal,
-                        LargePrice = largeTotal,
-                        AddonPrice = addonTotal,
+                        SmallPrice = (decimal)smallTotal,
+                        MediumPrice = (decimal)mediumTotal,
+                        LargePrice = (decimal)largeTotal,
+                        AddonPrice = (decimal)addonTotal,
                         Vat = 0m,
                         Total = orderTotal,
                         AddOns = string.Join(", ", CartItems.Where(item => !string.IsNullOrWhiteSpace(item.AddOnsDisplay) && item.AddOnsDisplay != "No add-ons").Select(item => $"{item.ProductName}: {item.AddOnsDisplay}")),

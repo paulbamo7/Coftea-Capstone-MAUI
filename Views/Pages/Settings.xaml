@@ -1,6 +1,7 @@
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
     x:Class="Coftea_Capstone.Views.Pages.Settings"
     BackgroundColor="#80000000"
     x:Name="SettingsPop"
@@ -35,13 +36,20 @@
             <ScrollView>
                 <VerticalStackLayout Spacing="10">
                 <!-- Header -->
-                <Label Text="Settings"
-                       FontSize="30"
-                       FontAttributes="Bold"
-                       FontFamily="Montserrat-Black"
-                       TextColor="#5B4F45"
-                       HorizontalOptions="Center"
-                       Margin="0,0,0,0" />
+                <!-- Top Bar with Settings Title and Connectivity Indicator -->
+                <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,20">
+                    <Label Text="Settings"
+                           Grid.Column="0"
+                           FontSize="30"
+                           FontAttributes="Bold"
+                           FontFamily="Montserrat-Black"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                    
+                    <!-- Connectivity Status Indicator -->
+                    <otherViews:ConnectivityStatusIndicator Grid.Column="1" VerticalOptions="Center" HorizontalOptions="End"/>
+                </Grid>
 
                 <!-- Feature buttons (wrap on small screens) -->
                     <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="Center" AlignContent="Start" Margin="0,0,0,0">

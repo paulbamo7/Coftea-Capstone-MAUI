@@ -92,7 +92,7 @@ namespace Coftea_Capstone.Services
         {
             public int ProductID { get; set; }
             public string ProductName { get; set; }
-            public decimal SmallPrice { get; set; }
+            public decimal? SmallPrice { get; set; } // Nullable for non-Coffee categories
             public decimal MediumPrice { get; set; }
             public decimal LargePrice { get; set; }
             public string ImageSet { get; set; }

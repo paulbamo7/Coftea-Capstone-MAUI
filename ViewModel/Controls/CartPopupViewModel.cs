@@ -120,7 +120,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                             LargePrice = it.LargePrice,
                             SelectedSize = GetCombinedSizeDisplay(it),
                             Quantity = it.SmallQuantity + it.MediumQuantity + it.LargeQuantity,
-                            Price = (it.SmallQuantity * it.SmallPrice) + (it.MediumQuantity * it.MediumPrice) + (it.LargeQuantity * it.LargePrice) + addonTotalPrice
+                            Price = (it.SmallQuantity * (it.SmallPrice ?? 0)) + (it.MediumQuantity * it.MediumPrice) + (it.LargeQuantity * it.LargePrice) + addonTotalPrice
                         };
 
                         // Carry addon items with quantities to checkout for proper deductions
@@ -217,24 +217,30 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"🔧 EditCartItem: Starting edit for {item.ProductName}");
                 System.Diagnostics.Debug.WriteLine($"🔧 Cart item quantities - Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
                 
-                // Close the cart popup immediately
-                IsCartVisible = false;
-                
-                // Find the original POSPageModel item
+                // IMPORTANT: Remove the item from cart first (to avoid duplicates when re-adding after edit)
                 if (_originalItems != null)
                 {
-                    var originalItem = _originalItems.FirstOrDefault(x => x.ProductID == item.ProductId);
-                    if (originalItem != null)
+                    var matchingCartItem = _originalItems.FirstOrDefault(x =>
+                        x.ProductID == item.ProductId &&
+                        x.SmallQuantity == item.SmallQuantity &&
+                        x.MediumQuantity == item.MediumQuantity &&
+                        x.LargeQuantity == item.LargeQuantity);
+                    
+                    if (matchingCartItem != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"🔧 Found original item: {originalItem.ProductName}");
-                        System.Diagnostics.Debug.WriteLine($"🔧 Original item quantities - Small: {originalItem.SmallQuantity}, Medium: {originalItem.MediumQuantity}, Large: {originalItem.LargeQuantity}");
-                        // Navigate to POS page if not already there, then set the selected product with quantities
-                        await SetSelectedProductInCurrentPOS(originalItem, item);
+                        _originalItems.Remove(matchingCartItem);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Removed item from cart for editing");
                     }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"❌ Original item not found for ProductID: {item.ProductId}");
-                    }
+                }
+                
+                // Close the cart popup
+                IsCartVisible = false;
+                
+                // Find the product in the product list and restore it with quantities
+                if (_originalItems != null)
+                {
+                    // Navigate to POS page if not already there, then set the selected product with quantities
+                    await SetSelectedProductInCurrentPOS(item);
                 }
             }
             catch (Exception ex)
@@ -243,64 +249,106 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task SetSelectedProductInCurrentPOS(POSPageModel product, CartItem cartItem = null) // Set selected product in current POS page
+        private async Task SetSelectedProductInCurrentPOS(CartItem cartItem) // Set selected product in current POS page from cart item
         {
             try
             {
-                if (product == null) return;
+                System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Starting for {cartItem?.ProductName ?? "null"} (ID: {cartItem?.ProductId ?? 0})");
+                System.Diagnostics.Debug.WriteLine($"🔧 CartItem quantities - Small: {cartItem?.SmallQuantity ?? 0}, Medium: {cartItem?.MediumQuantity ?? 0}, Large: {cartItem?.LargeQuantity ?? 0}");
                 
-                // Get the current page
+                if (cartItem == null) 
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: cartItem is null");
+                    return;
+                }
+                
+                // Get the current page (ensure we're on POS if null)
                 var nav = Application.Current?.MainPage as NavigationPage;
-                if (nav?.CurrentPage == null) return;
+                if (nav?.CurrentPage == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: Navigation or CurrentPage is null - navigating to POS");
+                    try
+                    {
+                        await Coftea_Capstone.Services.SimpleNavigationService.NavigateToAsync("//pos");
+                        await Task.Delay(500);
+                    }
+                    catch (Exception navEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Navigation to POS failed: {navEx.Message}");
+                    }
+                    nav = Application.Current?.MainPage as NavigationPage;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Current page type: {nav.CurrentPage.GetType().Name}");
 
                 // Check if current page is POS page
                 if (nav.CurrentPage is PointOfSale posPage)
                 {
+                    System.Diagnostics.Debug.WriteLine($"✅ SetSelectedProductInCurrentPOS: Found PointOfSale page");
+                    
                     // Get the POS page's ViewModel and set the selected product
                     if (posPage.BindingContext is POSPageViewModel posViewModel)
                     {
-                        // Find the product in the current product list to ensure it exists
-                        var currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
+                        System.Diagnostics.Debug.WriteLine($"✅ SetSelectedProductInCurrentPOS: Found POSPageViewModel");
+                        System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Products count: {posViewModel.Products?.Count ?? 0}");
+                        
+                        // Find the product in the current product list
+                        var currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == cartItem.ProductId);
+                        System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Search result - Found: {currentProduct != null}, Looking for ProductID={cartItem.ProductId}");
                         if (currentProduct != null)
                         {
-                            // Restore quantities from cart item if provided
-                            if (cartItem != null)
-                            {
-                                currentProduct.SmallQuantity = cartItem.SmallQuantity;
-                                currentProduct.MediumQuantity = cartItem.MediumQuantity;
-                                currentProduct.LargeQuantity = cartItem.LargeQuantity;
-                                System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
-                            }
-                            
-                            posViewModel.SelectedProduct = currentProduct;
+                            // Select using the ViewModel command so all related UI state updates
+                            try { posViewModel.SelectProductCommand.Execute(currentProduct); } catch { }
+                            await Task.Delay(50);
+
+                            // Restore quantities AFTER selection to ensure they stick
+                            currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                            currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                            currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                            System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+
+                            // Force UI updates by reassigning SelectedProduct
+                            var temp = posViewModel.SelectedProduct;
+                            posViewModel.SelectedProduct = null;
+                            posViewModel.SelectedProduct = temp;
                             System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} in current POS page");
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"⚠️ Product {product.ProductName} not found in current product list");
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Product {cartItem.ProductName} (ID: {cartItem.ProductId}) not found in current product list");
+                            System.Diagnostics.Debug.WriteLine($"🔧 Available Product IDs: {string.Join(", ", posViewModel.Products?.Select(p => $"{p.ProductID}({p.ProductName})") ?? Enumerable.Empty<string>())}");
                             // Try to refresh the product list and try again
                             await posViewModel.LoadDataAsync();
-                            currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
+                            currentProduct = posViewModel.Products?.FirstOrDefault(p => p.ProductID == cartItem.ProductId);
                             if (currentProduct != null)
                             {
-                                // Restore quantities from cart item if provided
-                                if (cartItem != null)
-                                {
-                                    currentProduct.SmallQuantity = cartItem.SmallQuantity;
-                                    currentProduct.MediumQuantity = cartItem.MediumQuantity;
-                                    currentProduct.LargeQuantity = cartItem.LargeQuantity;
-                                    System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after refresh - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
-                                }
-                                
-                                posViewModel.SelectedProduct = currentProduct;
+                                try { posViewModel.SelectProductCommand.Execute(currentProduct); } catch { }
+                                await Task.Delay(50);
+
+                                currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                                currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                                currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                                System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after refresh - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+
+                                var temp2 = posViewModel.SelectedProduct;
+                                posViewModel.SelectedProduct = null;
+                                posViewModel.SelectedProduct = temp2;
                                 System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} after refresh");
                             }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: Product still not found after refresh");
+                            }
                         }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: POS page BindingContext is not POSPageViewModel (type: {posPage.BindingContext?.GetType().Name ?? "null"})");
                     }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("Current page is not POS page, navigating to POS page");
+                    System.Diagnostics.Debug.WriteLine($"🔧 SetSelectedProductInCurrentPOS: Current page is not POS page, navigating to POS page. Current type: {nav.CurrentPage.GetType().Name}");
                     // Navigate to POS page first
                     await Coftea_Capstone.Services.SimpleNavigationService.NavigateToAsync("//pos");
                     
@@ -311,19 +359,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                     nav = Application.Current?.MainPage as NavigationPage;
                     if (nav?.CurrentPage is PointOfSale newPosPage && newPosPage.BindingContext is POSPageViewModel newPosViewModel)
                     {
-                        var currentProduct = newPosViewModel.Products?.FirstOrDefault(p => p.ProductID == product.ProductID);
+                        var currentProduct = newPosViewModel.Products?.FirstOrDefault(p => p.ProductID == cartItem.ProductId);
                         if (currentProduct != null)
                         {
-                            // Restore quantities from cart item if provided
-                            if (cartItem != null)
-                            {
-                                currentProduct.SmallQuantity = cartItem.SmallQuantity;
-                                currentProduct.MediumQuantity = cartItem.MediumQuantity;
-                                currentProduct.LargeQuantity = cartItem.LargeQuantity;
-                                System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after navigation - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
-                            }
-                            
-                            newPosViewModel.SelectedProduct = currentProduct;
+                            try { newPosViewModel.SelectProductCommand.Execute(currentProduct); } catch { }
+                            await Task.Delay(50);
+
+                            currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                            currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                            currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                            System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after navigation - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+
+                            var temp3 = newPosViewModel.SelectedProduct;
+                            newPosViewModel.SelectedProduct = null;
+                            newPosViewModel.SelectedProduct = temp3;
                             System.Diagnostics.Debug.WriteLine($"✅ Selected product set to: {currentProduct.ProductName} after navigation");
                         }
                     }
@@ -331,7 +380,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error setting selected product: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ SetSelectedProductInCurrentPOS: Error setting selected product: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
             }
         }
 

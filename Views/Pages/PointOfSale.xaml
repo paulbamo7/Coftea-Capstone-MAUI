@@ -33,11 +33,13 @@
         <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto, Auto, *">
 
             <!-- Top Bar -->
-            <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
+            <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
                 <Label Text="Point Of Sale" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                 <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                <!-- Connectivity Status Indicator -->
+                <otherViews:ConnectivityStatusIndicator Grid.Column="2" VerticalOptions="Center"/>
                 <!-- Notification with badge -->
-                <Grid Grid.Column="2">
+                <Grid Grid.Column="3">
                     <ImageButton Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Command="{Binding ShowNotificationBellCommand}"/>
                     <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
                            HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
@@ -45,7 +47,7 @@
                         <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
                     </Frame>
                 </Grid>
-                <Grid Grid.Column="3" WidthRequest="35" HeightRequest="35">
+                <Grid Grid.Column="4" WidthRequest="35" HeightRequest="35">
                     <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                            WidthRequest="35" 
                            HeightRequest="35" 

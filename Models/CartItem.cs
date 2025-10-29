@@ -34,7 +34,7 @@ namespace Coftea_Capstone.Models
         private int largeQuantity;
 
         [ObservableProperty]
-        private decimal smallPrice;
+        private decimal? smallPrice; // Nullable for non-Coffee categories
 
         [ObservableProperty]
         private decimal mediumPrice;

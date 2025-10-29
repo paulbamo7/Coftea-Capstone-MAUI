@@ -24,9 +24,11 @@
             <VerticalStackLayout Padding="0" Spacing="20">
 
                 <!-- Top Bar -->
-                <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                     <Label Text="Inventory" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                     
+                    <!-- Connectivity Status Indicator -->
+                    <otherViews:ConnectivityStatusIndicator Grid.Column="2" VerticalOptions="Center"/>
                     
                     <ImageButton Grid.Column="3" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                     <Grid Grid.Column="4" WidthRequest="40" HeightRequest="40">
