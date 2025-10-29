@@ -19,6 +19,11 @@ namespace Coftea_Capstone
         public static UserInfoModel CurrentUser { get; private set; }
         public static string ResetPasswordEmail { get; set; }
 
+        // Offline-first services
+        public static LocalDatabaseService LocalDb { get; private set; }
+        public static ConnectivityService ConnectivityService { get; private set; }
+        public static DatabaseSyncService SyncService { get; private set; }
+
         // Shared ViewModels
         public AddItemToPOSViewModel AddItemPopup { get; private set; }
         public SettingsPopUpViewModel SettingsPopup { get; private set; }
@@ -37,6 +42,7 @@ namespace Coftea_Capstone
         public HistoryPopupViewModel HistoryPopup { get; private set; }
         public ProfilePopupViewModel ProfilePopup { get; private set; }
         public ActivityLogPopupViewModel ActivityLogPopup { get; private set; }
+        public PurchaseOrderApprovalPopupViewModel PurchaseOrderApprovalPopup { get; private set; }
         
         // Shared Page ViewModels to prevent memory leaks
         public InventoryPageViewModel InventoryVM { get; private set; }
@@ -124,6 +130,14 @@ namespace Coftea_Capstone
                 }
             });
 
+            // Initialize offline-first services
+            LocalDb = new LocalDatabaseService();
+            ConnectivityService = new ConnectivityService();
+            var onlineDb = new Database();
+            SyncService = new DatabaseSyncService(LocalDb, onlineDb, ConnectivityService);
+            
+            System.Diagnostics.Debug.WriteLine("[App] 🚀 Offline-first services initialized");
+
             // Ensure database exists and tables are created, then adjust theme colors to match Login page
             MainThread.BeginInvokeOnMainThread(async () =>
             {
@@ -132,32 +146,43 @@ namespace Coftea_Capstone
                     // Initialize image persistence service
                     await Services.ImagePersistenceService.MigrateOldImagesAsync();
                     
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
-                    var db = new Database();
-                    await db.EnsureServerAndDatabaseAsync(cts.Token);
-                    await db.InitializeDatabaseAsync(cts.Token);
-                    
-                    // TODO: Re-enable backup service once MySqlBackup.NET package reference issue is resolved
-                    // Initialize backup service with automatic backups every 4 hours
-                    //BackupService = new Services.DatabaseBackupService(
-                    //    db.ConnectionString, 
-                    //    backupDirectory: null, // Use default location
-                    //    hostIpAddress: db.Host  // Pass host IP for network backup storage
-                    //);
-                    //BackupService.StartAutomaticBackup(intervalHours: 4); // Backup every 4 hours
-                    //System.Diagnostics.Debug.WriteLine("✅ Database backup service initialized");
-                    
-                    // Check for minimum stock levels after database initialization
-                    await db.CheckAllMinimumStockLevelsAsync();
+                    // Try to connect to online database
+                    if (ConnectivityService.IsConnected)
+                    {
+                        try
+                        {
+                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
+                            var db = new Database();
+                            await db.EnsureServerAndDatabaseAsync(cts.Token);
+                            await db.InitializeDatabaseAsync(cts.Token);
+                            
+                            System.Diagnostics.Debug.WriteLine("[App] ✅ Online database connected");
+                            
+                            // Pull latest data from online to local cache
+                            await SyncService.PullLatestDataAsync();
+                            
+                            // Check for minimum stock levels after database initialization
+                            await db.CheckAllMinimumStockLevelsAsync();
+                        }
+                        catch (Exception dbEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[App] ⚠️ Online database unavailable: {dbEx.Message}");
+                            System.Diagnostics.Debug.WriteLine("[App] 📱 Running in OFFLINE mode");
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[App] 📱 No internet - starting in OFFLINE mode");
+                    }
                 }
                 catch (OperationCanceledException)
                 {
-                    System.Diagnostics.Debug.WriteLine("⏰ Database initialization timeout");
+                    System.Diagnostics.Debug.WriteLine("[App] ⏰ Database initialization timeout - running in OFFLINE mode");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ Database initialization error: {ex.Message}");
-                    // Swallow init errors here; UI will display connection issues elsewhere
+                    System.Diagnostics.Debug.WriteLine($"[App] ❌ Initialization error: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine("[App] 📱 Running in OFFLINE mode");
                 }
 
                 // Align app accent colors to Login page palette
@@ -214,6 +239,7 @@ namespace Coftea_Capstone
             HistoryPopup = new HistoryPopupViewModel();
             ProfilePopup = new ProfilePopupViewModel();
             ActivityLogPopup = new ActivityLogPopupViewModel();
+            PurchaseOrderApprovalPopup = new PurchaseOrderApprovalPopupViewModel();
             
             // Initialize shared page ViewModels
             InventoryVM = new InventoryPageViewModel(SettingsPopup);
@@ -273,9 +299,11 @@ namespace Coftea_Capstone
                 System.Diagnostics.Debug.WriteLine($"🚨 Handling exception: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"🚨 Exception type: {ex.GetType().Name}");
                 
-                string message = !NetworkService.HasInternetConnection()
-                    ? "No internet connection. Please check your network."
-                    : $"Unexpected error: {ex.Message}";
+                // With offline-first system, database errors are handled gracefully
+                // Only show connection errors for features that REQUIRE internet (like email)
+                string message = ex.Message.Contains("email") || ex.Message.Contains("password reset")
+                    ? "This feature requires an internet connection. Please check your network."
+                    : $"An error occurred: {ex.Message}";
 
                 // Only show alert if we have a valid MainPage
                 if (MainPage != null)

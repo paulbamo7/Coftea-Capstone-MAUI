@@ -167,6 +167,23 @@ namespace Coftea_Capstone.ViewModel.Controls
                 return;
 
             System.Diagnostics.Debug.WriteLine("🔵 About to call ProcessPaymentWithSteps");
+            
+            // Assign payment method to each cart item BEFORE clearing
+            var cartItemsCopy = new List<CartItem>();
+            foreach (var item in CartItems)
+            {
+                item.PaymentMethod = SelectedPaymentMethod; // Assign the payment method to each item
+                cartItemsCopy.Add(new CartItem
+                {
+                    ProductName = item.ProductName,
+                    PaymentMethod = item.PaymentMethod,
+                    Price = item.Price,
+                    SmallQuantity = item.SmallQuantity,
+                    MediumQuantity = item.MediumQuantity,
+                    LargeQuantity = item.LargeQuantity
+                });
+            }
+            
             // Process payment with realistic steps
             await ProcessPaymentWithSteps();
             System.Diagnostics.Debug.WriteLine("🔵 ProcessPaymentWithSteps completed");
@@ -236,11 +253,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                 await appInstance.OrderCompletePopup.ShowOrderCompleteAsync(orderNumber);
             }
             
-            // Show order confirmation popup in bottom right
+            // Show order confirmation popup in bottom right with payment breakdown
             var orderConfirmedPopup = appInstance?.OrderConfirmedPopup;
             if (orderConfirmedPopup != null)
             {
-                await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod);
+                await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod, cartItemsCopy);
             }
             
             // No automatic toast here; user can open notifications manually via bell

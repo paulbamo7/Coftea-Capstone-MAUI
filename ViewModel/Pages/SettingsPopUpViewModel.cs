@@ -21,6 +21,12 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private bool isAddItemToPOSVisible = false;
         [ObservableProperty] private bool isAddItemToInventoryVisible = false;
         
+        // Sync properties
+        [ObservableProperty] private bool isSyncing = false;
+        [ObservableProperty] private string syncButtonText = "Sync Database";
+        
+        public bool IsNotSyncing => !IsSyncing;
+        
         [ObservableProperty] 
         private ObservableCollection<RecentOrderModel> recentOrders = new();
 
@@ -163,6 +169,90 @@ namespace Coftea_Capstone.ViewModel
 
         [RelayCommand]
         private void CloseSettingsPopup() => IsSettingsPopupVisible = false; // Close settings popup
+
+        [RelayCommand]
+        private async Task SyncDatabase() // Manually trigger database sync
+        {
+            if (IsSyncing) return; // Prevent multiple simultaneous syncs
+            
+            try
+            {
+                IsSyncing = true;
+                SyncButtonText = "Syncing...";
+                OnPropertyChanged(nameof(IsNotSyncing));
+                
+                System.Diagnostics.Debug.WriteLine("[Settings] 🔄 Manual sync triggered");
+                
+                // Check if we're online
+                if (!App.ConnectivityService.IsConnected)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Offline Mode", 
+                        "You're currently offline. Sync will happen automatically when internet connection is restored.", 
+                        "OK");
+                    return;
+                }
+                
+                // Get pending operations count
+                var pendingCount = await App.LocalDb.GetPendingOperationsCountAsync();
+                
+                if (pendingCount == 0)
+                {
+                    // Pull latest data from online
+                    SyncButtonText = "Pulling latest data...";
+                    var pullSuccess = await App.SyncService.PullLatestDataAsync();
+                    
+                    await Application.Current.MainPage.DisplayAlert(
+                        "✅ Data Pulled", 
+                        pullSuccess 
+                            ? "Latest data has been pulled from online database!\n\n• Products updated\n• Inventory updated\n• Users updated" 
+                            : "Failed to pull data. Please check your connection.", 
+                        "OK");
+                    System.Diagnostics.Debug.WriteLine($"[Settings] ✅ Pull complete - Success: {pullSuccess}");
+                }
+                else
+                {
+                    // Sync pending operations
+                    SyncButtonText = $"Syncing {pendingCount} operations...";
+                    var result = await App.SyncService.SyncPendingOperationsAsync();
+                    
+                    if (result.Success)
+                    {
+                        // Also pull latest data after sync
+                        await App.SyncService.PullLatestDataAsync();
+                        
+                        await Application.Current.MainPage.DisplayAlert(
+                            "✅ Sync Complete", 
+                            $"Successfully synced {result.OperationsSynced} operations to online database!" +
+                            (result.OperationsFailed > 0 ? $"\n{result.OperationsFailed} operations failed." : ""), 
+                            "OK");
+                        System.Diagnostics.Debug.WriteLine($"[Settings] ✅ Sync complete: {result.OperationsSynced} synced, {result.OperationsFailed} failed");
+                    }
+                    else
+                    {
+                        await Application.Current.MainPage.DisplayAlert(
+                            "❌ Sync Failed", 
+                            $"Sync failed: {result.Message}\n\nOperations will be retried automatically when connection is stable.", 
+                            "OK");
+                        System.Diagnostics.Debug.WriteLine($"[Settings] ❌ Sync failed: {result.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Settings] ❌ Sync error: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error", 
+                    $"An error occurred during sync: {ex.Message}", 
+                    "OK");
+            }
+            finally
+            {
+                IsSyncing = false;
+                SyncButtonText = "Sync Database";
+                OnPropertyChanged(nameof(IsNotSyncing));
+            }
+        }
 
         [RelayCommand]
         private void OpenAddItemToPOS() // Open the Add Item to POS panel

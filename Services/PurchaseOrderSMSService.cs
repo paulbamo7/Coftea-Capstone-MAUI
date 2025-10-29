@@ -11,8 +11,8 @@ namespace Coftea_Capstone.Services
 {
     public static class PurchaseOrderSMSService
     {
-        private static readonly string SUPPLIER_PHONE = "+639625068078"; // Coftea Supplier phone number (Philippines)
-        private static readonly string ADMIN_PHONE = "+639625068078"; // Admin phone number for notifications (Philippines)
+        private static readonly string SUPPLIER_PHONE = "+639625068078"; // Coftea Supplier phone number (Philippines) - CHANGE THIS TO YOUR SUPPLIER'S NUMBER
+        private static readonly string ADMIN_PHONE = "+639625068078"; // Admin phone number for notifications (Philippines) - CHANGE THIS TO ADMIN'S NUMBER
         
         // SMS Service Configuration - Choose one method
         private static readonly SMS_METHOD CurrentSMSMethod = SMS_METHOD.PHONE_SMS_APP; // Change this to your preferred method

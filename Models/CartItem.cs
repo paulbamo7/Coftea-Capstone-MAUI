@@ -51,6 +51,9 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private decimal price;
 
+        [ObservableProperty]
+        private string paymentMethod = ""; // Track which payment method was used for this item
+
         public string SizeDisplay => GetSizeDisplay(); // Displays quantities for each size
 
         public string AddOnsDisplay => AddOns != null && AddOns.Count > 0 ? string.Join(", ", AddOns) : "No add-ons"; // Displays selected add-ons or "No add-ons"

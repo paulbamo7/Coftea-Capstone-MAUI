@@ -21,11 +21,95 @@ namespace Coftea_Capstone.Models
         public string ChangedBy { get; set; } // "USER", "SYSTEM", "POS", "IMPORT"
         public double? Cost { get; set; }
         public string OrderId { get; set; } // Reference to POS order or purchase order
+        public string ProductName { get; set; } // POS product name that used this ingredient
         public DateTime Timestamp { get; set; }
         public string Notes { get; set; }
 
         // Display properties for UI
         public string FormattedTimestamp => Timestamp.ToString("MMM dd, yyyy HH:mm");
+        
+        // Table-specific display properties
+        public int RowNumber { get; set; } // Set by ViewModel
+        
+        public string FormattedTimestampShort => Timestamp.ToString("yyyy-MM-dd HH:mm");
+        
+        public string ActionText
+        {
+            get
+            {
+                return Action switch
+                {
+                    "DEDUCTED" => "Reduced Stock",
+                    "ADDED" => "Added Stock",
+                    "UPDATED" => "Adjusted Stock",
+                    "PURCHASE_ORDER" => "Purchase Order",
+                    _ => Action
+                };
+            }
+        }
+        
+        public string QuantityChangeText
+        {
+            get
+            {
+                if (Action == "DEDUCTED" || QuantityChanged < 0)
+                    return $"-{Math.Abs(QuantityChanged)}";
+                else if (Action == "ADDED" || QuantityChanged > 0)
+                    return $"+{QuantityChanged}";
+                else
+                    return "—";
+            }
+        }
+        
+        public string PreviousQuantityText => PreviousQuantity.ToString("0.##");
+        
+        public string NewQuantityText => NewQuantity.ToString("0.##");
+        
+        public string RemarksText
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(Reason))
+                {
+                    return Reason switch
+                    {
+                        "POS_ORDER" => $"Sold to customer",
+                        "MANUAL_ADJUSTMENT" => "Manual correction",
+                        "PURCHASE_ORDER" => "New delivery received",
+                        "WASTAGE" => "Wastage/Expired",
+                        "RETURN" => "Customer return",
+                        _ => Reason
+                    };
+                }
+                if (!string.IsNullOrWhiteSpace(Notes))
+                    return Notes;
+                return "—";
+            }
+        }
+        
+        public string ReferenceId
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(OrderId))
+                {
+                    // Format reference ID based on action
+                    return Action switch
+                    {
+                        "DEDUCTED" => $"SALE-{OrderId}",
+                        "ADDED" => $"STOCKIN-{OrderId}",
+                        "UPDATED" => $"ADJ-{OrderId}",
+                        "PURCHASE_ORDER" => $"PO-{OrderId}",
+                        _ => OrderId
+                    };
+                }
+                return "—";
+            }
+        }
+        
+        public string UsedForProductText => !string.IsNullOrWhiteSpace(ProductName) ? ProductName : "—";
+        
+        public string RowBackgroundColor => RowNumber % 2 == 0 ? "#F9F9F9" : "#FFFFFF";
         
         public string ActionDisplay
         {

@@ -37,10 +37,23 @@ namespace Coftea_Capstone.ViewModel.Controls
                     return;
                 }
 
-                // Prevent deleting admin user
+                // Prevent deleting the first user (primary admin)
+                if (user.Id == 1)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Cannot Delete", 
+                        "Cannot delete the primary admin account (first user). This account is protected.", 
+                        "OK");
+                    return;
+                }
+
+                // Prevent deleting admin users
                 if (user.IsAdmin)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Cannot Delete", "Cannot delete the admin user.", "OK");
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Cannot Delete", 
+                        "Cannot delete admin users. Please revoke admin privileges first.", 
+                        "OK");
                     return;
                 }
 
@@ -83,6 +96,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
                     LastActive = GetLastActiveText(u.ID),
                     DateAdded = GetDateAddedText(u.ID),
+                    IsAdmin = u.IsAdmin, // Set IsAdmin property
                     CanAccessInventory = u.ID == 1 ? true : u.CanAccessInventory,
                     CanAccessSalesReport = u.ID == 1 ? true : u.CanAccessSalesReport
                 }));

@@ -104,6 +104,35 @@
                         </VerticalStackLayout>
 
                         <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                            <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#4A90E2" Padding="20">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SyncDatabaseCommand}" />
+                                </Frame.GestureRecognizers>
+                                <Grid>
+                                    <!-- Sync Icon (using Unicode character as fallback) -->
+                                    <Label Text="🔄"
+                                       FontSize="60"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       InputTransparent="True"
+                                       IsVisible="{Binding IsNotSyncing}" />
+                                    <ActivityIndicator 
+                                       IsRunning="{Binding IsSyncing}"
+                                       IsVisible="{Binding IsSyncing}"
+                                       Color="White"
+                                       HeightRequest="60"
+                                       WidthRequest="60" />
+                                </Grid>
+                            </Frame>
+                            <Label Text="{Binding SyncButtonText}"
+                               HorizontalOptions="Center"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="#5B4F45"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
                             <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#D9534F" Padding="20">
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnLogoutClicked" />

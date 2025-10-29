@@ -307,6 +307,20 @@
                                         Command="{Binding CreatePurchaseOrderCommand}"
                                         IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
                                 
+                                <!-- View Purchase Orders Button (Admin Only) -->
+                                <Button Text="📦 Purchase Orders" 
+                                        BackgroundColor="#4A90E2" 
+                                        TextColor="White" 
+                                        FontSize="14" 
+                                        FontAttributes="Bold"
+                                        CornerRadius="20"
+                                        BorderColor="#3D7AC4"
+                                        BorderWidth="2"
+                                        Padding="20,10"
+                                        HeightRequest="45"
+                                        Command="{Binding ShowPurchaseOrdersCommand}"
+                                        IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
+                                
                                 <!-- Activity Log Button -->
                                 <Button Text="📝 Activity Log" 
                                         BackgroundColor="#BDAEA2" 
@@ -350,5 +364,6 @@
         <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
         <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="1700"/>
         <otherViews:ActivityLogPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ActivityLogPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
+        <otherViews:PurchaseOrderApprovalPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PurchaseOrderApprovalPopup}" Grid.ColumnSpan="2" ZIndex="1850"/>
     </Grid>
 </ContentPage>
