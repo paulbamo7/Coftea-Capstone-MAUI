@@ -65,6 +65,65 @@
                 <!-- Categories -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
                     <StackLayout Orientation="Horizontal" Spacing="10" Margin="25,0,0,0">
+                        <Button Text="All" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="All">
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        
+                        <!-- Subcategories for Fruit/Soda -->
+                        <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
+                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit"
+                                IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Fruit">
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
+                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda"
+                                IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Soda">
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        
+                        <!-- Subcategories for Coffee -->
+                        <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
+                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano"
+                                IsVisible="{Binding IsCoffeeSubcategoryVisible}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Americano">
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
+                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte"
+                                IsVisible="{Binding IsCoffeeSubcategoryVisible}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Latte">
+                                    <Setter Property="BackgroundColor" Value="#D4A574" />
+                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        
                         <Button Text="Frappe" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
@@ -144,55 +203,6 @@
                 </StackLayout>
             </Grid>
 
-            <!-- Subcategories for Fruit/Soda - Left Side -->
-            <StackLayout Orientation="Horizontal" Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
-                                   IsVisible="{Binding IsFruitSodaSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit">
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Fruit">
-                            <Setter Property="BackgroundColor" Value="#D4A574" />
-                            <Setter Property="TextColor" Value="#2b2b2b" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-                <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda">
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Soda">
-                            <Setter Property="BackgroundColor" Value="#D4A574" />
-                            <Setter Property="TextColor" Value="#2b2b2b" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-            </StackLayout>
-
-            <!-- Subcategories for Coffee - Left Side -->
-            <StackLayout Orientation="Horizontal" Grid.Row="1"  HorizontalOptions="Start" Spacing="10"
-                                   IsVisible="{Binding IsCoffeeSubcategoryVisible}" Padding="0,10,0,0">
-                <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano">
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Americano">
-                            <Setter Property="BackgroundColor" Value="#D4A574" />
-                            <Setter Property="TextColor" Value="#2b2b2b" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-                <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                        BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
-                        Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte">
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Latte">
-                            <Setter Property="BackgroundColor" Value="#D4A574" />
-                            <Setter Property="TextColor" Value="#2b2b2b" />
-                        </DataTrigger>
-                    </Button.Triggers>
-                </Button>
-            </StackLayout>
 
             <!-- Products + Cart -->
             <Grid RowDefinitions="*" ColumnSpacing="15" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" Grid.Row="2">
@@ -441,7 +451,7 @@
                                 <!-- Select Size Section -->
                                 <Label Text="Select Size:" TextColor="Black" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>
 
-                                <Grid Margin="25,0,0,0" RowSpacing="8">
+                                <Grid Margin="25,0,0,0" RowSpacing="10">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <!-- Small -->
@@ -452,63 +462,123 @@
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="28"/>
-                                        <ColumnDefinition Width="36"/>
-                                        <ColumnDefinition Width="28"/>
+                                        <ColumnDefinition Width="32"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="32"/>
                                     </Grid.ColumnDefinitions>
 
                                         <!-- Small Size -->
-                                        <Label Text="Small:" TextColor="Black" Grid.Row="0" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
-                                        <Frame Grid.Row="0" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
+                                        <Label Text="Small:" TextColor="Black" Grid.Row="0" Grid.Column="0" VerticalOptions="Center" FontSize="14" Margin="0,0,12,0" IsVisible="{Binding IsSmallSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="0" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsSmallSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseSmallQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseSmallQtyCommand}"/>
+                                            <Label Text="−" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" FontFamily="OpenSansSemibold">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding DecreaseSmallQtyCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
                                         </Frame>
-                                        <Frame Grid.Row="0" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
-                                            <Label Text="{Binding SelectedProduct.SmallQuantity}" TextColor="Black" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        <Frame Grid.Row="0" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="0" HasShadow="False" HeightRequest="40" IsVisible="{Binding IsSmallSizeVisibleInCart}">
+                                            <Entry Text="{Binding SelectedProduct.SmallQuantity, Mode=TwoWay, StringFormat='{0}'}" 
+                                                   TextColor="#000000" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold" 
+                                                   HorizontalOptions="FillAndExpand" 
+                                                   VerticalOptions="FillAndExpand" 
+                                                   HorizontalTextAlignment="Center"
+                                                   VerticalTextAlignment="Center"
+                                                   FontFamily="OpenSansSemibold"
+                                                   Keyboard="Numeric"
+                                                   BackgroundColor="Transparent"
+                                                   Placeholder="0"
+                                                   PlaceholderColor="#666666"/>
                                         </Frame>
-                                        <Frame Grid.Row="0" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsSmallSizeVisibleInCart}">
+                                        <Frame Grid.Row="0" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsSmallSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding IncreaseSmallQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="up.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding IncreaseSmallQtyCommand}"/>
+                                            <Label Text="+" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" FontFamily="OpenSansSemibold">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding IncreaseSmallQtyCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
                                         </Frame>
 
                                         <!-- Medium Size -->
-                                        <Label Text="Medium:" TextColor="Black" Grid.Row="1" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
-                                        <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                        <Label Text="Medium:" TextColor="Black" Grid.Row="1" Grid.Column="0" VerticalOptions="Center" FontSize="14" Margin="0,0,12,0" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsMediumSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseMediumQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseMediumQtyCommand}"/>
+                                            <Label Text="−" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" FontFamily="OpenSansSemibold">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding DecreaseMediumQtyCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
                                         </Frame>
-                                        <Frame Grid.Row="1" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
-                                            <Label Text="{Binding SelectedProduct.MediumQuantity}" TextColor="Black" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        <Frame Grid.Row="1" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="0" HasShadow="False" HeightRequest="40" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                            <Entry Text="{Binding SelectedProduct.MediumQuantity, Mode=TwoWay, StringFormat='{0}'}" 
+                                                   TextColor="#000000" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold" 
+                                                   HorizontalOptions="FillAndExpand" 
+                                                   VerticalOptions="FillAndExpand" 
+                                                   HorizontalTextAlignment="Center"
+                                                   VerticalTextAlignment="Center"
+                                                   FontFamily="OpenSansSemibold"
+                                                   Keyboard="Numeric"
+                                                   BackgroundColor="Transparent"
+                                                   Placeholder="0"
+                                                   PlaceholderColor="#666666"/>
                                         </Frame>
-                                        <Frame Grid.Row="1" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                        <Frame Grid.Row="1" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsMediumSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding IncreaseMediumQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseMediumQtyCommand}"/>
+                                            <Label Text="+" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" FontFamily="OpenSansSemibold">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding IncreaseMediumQtyCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
                                         </Frame>
 
                                         <!-- Large Size -->
-                                        <Label Text="Large:" TextColor="Black" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
-                                        <Frame Grid.Row="2" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                        <Label Text="Large:" TextColor="Black" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" FontSize="14" Margin="0,0,12,0" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="2" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsLargeSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseLargeQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="down.png" WidthRequest="15" HeightRequest="15" BackgroundColor="Transparent" Command="{Binding DecreaseLargeQtyCommand}"/>
+                                            <Label Text="−" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" FontFamily="OpenSansSemibold">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding DecreaseLargeQtyCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
                                         </Frame>
-                                        <Frame Grid.Row="2" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="8,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
-                                            <Label Text="{Binding SelectedProduct.LargeQuantity}" TextColor="Black" FontSize="12" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        <Frame Grid.Row="2" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="0" HasShadow="False" HeightRequest="40" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                            <Entry Text="{Binding SelectedProduct.LargeQuantity, Mode=TwoWay, StringFormat='{0}'}" 
+                                                   TextColor="#000000" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold" 
+                                                   HorizontalOptions="FillAndExpand" 
+                                                   VerticalOptions="FillAndExpand" 
+                                                   HorizontalTextAlignment="Center"
+                                                   VerticalTextAlignment="Center"
+                                                   FontFamily="OpenSansSemibold"
+                                                   Keyboard="Numeric"
+                                                   BackgroundColor="Transparent"
+                                                   Placeholder="0"
+                                                   PlaceholderColor="#666666"/>
                                         </Frame>
-                                        <Frame Grid.Row="2" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="8" Padding="6,2" HasShadow="False" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                        <Frame Grid.Row="2" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsLargeSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding IncreaseLargeQtyCommand}"/>
                                             </Frame.GestureRecognizers>
-                                            <ImageButton Source="up.png" WidthRequest="10" HeightRequest="10" BackgroundColor="Transparent" Command="{Binding IncreaseLargeQtyCommand}"/>
+                                            <Label Text="+" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" FontFamily="OpenSansSemibold">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding IncreaseLargeQtyCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
                                         </Frame>
                                     </Grid>
 
@@ -533,7 +603,7 @@
 
                                 <!-- Action Buttons -->
                                 <StackLayout Orientation="Horizontal" Spacing="10" HorizontalOptions="Center" Margin="0,15,0,0">
-                                    <Button Text="Cancel" 
+                                    <Button Text="Clear" 
                                             Command="{Binding RemoveFromCartCommand}" 
                                             CommandParameter="{Binding SelectedProduct}" 
                                             BackgroundColor="#BDAEA2" 
