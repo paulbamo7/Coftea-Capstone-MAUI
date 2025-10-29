@@ -20,10 +20,16 @@ namespace Coftea_Capstone.ViewModel
         private ObservableCollection<UserEntry> users = new();
 
         [ObservableProperty]
+        private ObservableCollection<UserEntry> filteredUsers = new();
+
+        [ObservableProperty]
         private int currentPage = 1;
 
         [ObservableProperty]
         private string searchText;
+
+        [ObservableProperty]
+        private string selectedSortOption = "Name (A-Z)";
 
         [ObservableProperty]
         private UserApprovalPopupViewModel userApprovalPopup = new();

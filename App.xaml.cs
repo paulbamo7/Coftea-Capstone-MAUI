@@ -10,6 +10,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Threading;
+using Microsoft.Maui.Networking;
 
 namespace Coftea_Capstone
 {
@@ -182,7 +183,45 @@ namespace Coftea_Capstone
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
+            // Monitor connectivity changes and auto-sync when online
+            Connectivity.Current.ConnectivityChanged += OnConnectivityChanged;
+
             // Persist cart when app goes to background (platform lifecycle events handled elsewhere)
+        }
+
+        private async void OnConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
+        {
+            if (e.NetworkAccess == NetworkAccess.Internet)
+            {
+                System.Diagnostics.Debug.WriteLine("🌐 Internet connection restored - syncing pending operations...");
+                try
+                {
+                    var offlineQueue = new Services.OfflineQueueService();
+                    var syncedCount = await offlineQueue.SyncPendingOperationsAsync();
+                    if (syncedCount > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"✅ Synced {syncedCount} pending operations");
+                        // Show notification if there осталось pending operations
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            try
+                            {
+                                if (MainPage != null && NotificationPopup != null)
+                                {
+                                    NotificationPopup.ShowNotification(
+                                        $"Synced {syncedCount} pending operation(s) to database.",
+                                        "Sync Complete");
+                                }
+                            }
+                            catch { }
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Error syncing on connection restore: {ex.Message}");
+                }
+            }
         }
 
         private void SetRootPage(Page page)

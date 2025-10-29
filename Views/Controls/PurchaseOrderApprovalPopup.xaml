@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.PurchaseOrderApprovalPopup"
+    x:Name="PurchaseOrderApprovalPopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsVisible}"
+    InputTransparent="False">
+
+    <Grid VerticalOptionsייה="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <!-- Background overlay that closes on tap -->
+        <BoxView BackgroundColor="#80000000" InputTransparent="False">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Main popup content -->
+        <Frame Grid.Row="0" 
+               BackgroundColor="White" 
+               CornerRadius="20" 
+               Padding="0" 
+               WidthRequest="900" 
+               HeightRequest="600"
+               HorizontalOptions="Center" 
+               VerticalOptions="Center"
+               HasShadow="True"
+               InputTransparent="False">
+            
+            <Grid RowDefinitions="Auto,*,Auto">
+                <!-- Header -->
+                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="20">
+                    <Label Text="📦 Purchase Orders" 
+                           FontSize="24" 
+                           FontAttributes="Bold" 
+                           TextColor="White"
+                           HorizontalOptions="Start"
+                           VerticalOptions="Center"/>
+                    <ImageButton Source="close_icon.png" 
+                                 WidthRequest="30" 
+                                 HeightRequest="30"
+                                 HorizontalOptions="End" 
+                                 VerticalOptions="Center"
+                                 Command="{Binding CloseCommand}"
+                                 BackgroundColor="Transparent"/>
+                </Grid>
+
+                <!-- Content -->
+                <ScrollView Grid.Row="1" Padding="20">
+                    <VerticalStackLayout Spacing="15">
+                        <!-- Loading indicator -->
+                        <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                                         IsVisible="{Binding IsLoading}"
+                                         Color="#D4A574"
+                                         HeightRequest="50"/>
+
+                        <!-- No orders message -->
+                        <Label Text="No pending purchase orders"
+                               IsVisible="{Binding HasNoPendingOrders}"
+                               FontSize="16"
+                               TextColor="Gray"
+                               HorizontalOptions="Center"
+                               Margin="0,50,0,0"/>
+
+                        <!-- Purchase Orders List -->
+                        <CollectionView ItemsSource="{Binding PendingOrders}"
+                                      IsVisible="{Binding HasPendingOrders}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame BackgroundColor="#F5F5F5"
+                                           CornerRadius="10"
+                                           Padding="15"
+                                           Margin="0,0,0,10"
+                                           HasShadow="True">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+                                            <!-- Order Header -->
+                                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding PurchaseOrderId, StringFormat='Purchase Order #{0}'}"
+                                                       FontSize="18"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#5B4F45"/>
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding Status}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#D4A574"
+                                                       Padding="10,5"
+                                                       BackgroundColor="#FFF8E1"
+                                                       HorizontalOptions="End"/>
+                                            </Grid>
+
+                                            <!-- Order Info -->
+                                            <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
+                                                <Label Grid.Row="0" Grid.Column="0" Text="Requested by:" FontSize="12" TextColor="Gray"/>
+                                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding RequestedBy}" FontSize="12" TextColor="#333" FontAttributes="Bold"/>
+                                                
+                                                <Label Grid.Row="1" Grid.Column="0" Text="Date:" FontSize="12" TextColor="Gray"/>
+                                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding CreatedAt, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="12" TextColor="#333"/>
+                                                
+                                                <Label Grid.Row="2" Grid.Column="0" Text="Total:" FontSize="12" TextColor="Gray"/>
+                                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" FontSize="12" TextColor="#333" FontAttributes="Bold"/>
+                                            </Grid>
+
+                                            <!-- Items Preview -->
+                                            <Label Grid.Row="2"
+                                                   Text="{Binding ItemsPreview}"
+                                                   FontSize=" León"
+                                                   TextColor="#666"
+                                                   LineBreakMode="TailTruncation"/>
+
+                                            <!-- Action Buttons -->
+                                            <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
+                                                <Button Grid.Column="0"
+                                                        Text="✅ Approve"
+                                                        BackgroundColor="#4CAF50"
+                                                        TextColor="White"
+                                                        CornerRadius="10"
+                                                        HeightRequest="40"
+                                                        Clicked="OnApproveClicked"/>
+                                                <Button Grid.Column="1"
+                                                        Text="❌ Reject"
+                                                        BackgroundColor="#F44336"
+                                                        TextColor="White"
+                                                        CornerRadius="10"
+                                                        HeightRequest="40"
+                                                        Clicked="OnRejectClicked"/>
+                                            </Grid>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Footer -->
+                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="20">
+                    <Button Text="CLOSE" 
+                            BackgroundColor="#BDAEA2"
+                            TextColor="White"
+                            CornerRadius="10"
+                            HeightRequest="45"
+                            WidthRequest="150"
+                            HorizontalOptions="Center"
+                            Command="{Binding CloseCommand}"/>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>
+
