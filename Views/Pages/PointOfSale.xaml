@@ -14,6 +14,7 @@
         <ResourceDictionary>
             <converters:RadioButtonItemSize x:Key="RadioButtonItemSize"/>
             <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
             <converters:NotificationIconConverter x:Key="NotificationIconConverter"/>
             <converters:NotificationTextIconConverter x:Key="NotificationTextIconConverter"/>
             <converters:NotificationColorConverter x:Key="NotificationColorConverter"/>
@@ -67,59 +68,59 @@
                 <!-- Categories -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
                     <StackLayout Orientation="Horizontal" Spacing="10" Margin="25,0,0,0">
-                        <Button Text="All" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
-                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
+                        <!-- Subcategories for Coffee (leftmost) -->
+                        <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
+                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano"
+                                IsVisible="{Binding IsCoffeeSubcategoryVisible}">
                             <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="All">
-                                    <Setter Property="BackgroundColor" Value="#D4A574" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Americano">
+                                    <Setter Property="BackgroundColor" Value="#C5AD98" />
+                                    <Setter Property="TextColor" Value="#2B2B2B" />
+                                </DataTrigger>
+                            </Button.Triggers>
+                        </Button>
+                        <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
+                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte"
+                                IsVisible="{Binding IsCoffeeSubcategoryVisible}">
+                            <Button.Triggers>
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Latte">
+                                    <Setter Property="BackgroundColor" Value="#C5AD98" />
+                                    <Setter Property="TextColor" Value="#2B2B2B" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
                         
                         <!-- Subcategories for Fruit/Soda -->
-                        <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                        <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
+                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit"
                                 IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Fruit">
-                                    <Setter Property="BackgroundColor" Value="#D4A574" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                    <Setter Property="BackgroundColor" Value="#C5AD98" />
+                                    <Setter Property="TextColor" Value="#2B2B2B" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
+                        <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
+                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda"
                                 IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Soda">
-                                    <Setter Property="BackgroundColor" Value="#D4A574" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
+                                    <Setter Property="BackgroundColor" Value="#C5AD98" />
+                                    <Setter Property="TextColor" Value="#2B2B2B" />
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
                         
-                        <!-- Subcategories for Coffee -->
-                        <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
-                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano"
-                                IsVisible="{Binding IsCoffeeSubcategoryVisible}">
+                        <Button Text="All" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14" 
+                                BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"  
+                                Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
                             <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Americano">
-                                    <Setter Property="BackgroundColor" Value="#D4A574" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-                        <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="Black" FontSize="14"
-                                BackgroundColor="#FFEAD6" WidthRequest="100" HeightRequest="40" 
-                                Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte"
-                                IsVisible="{Binding IsCoffeeSubcategoryVisible}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button" Binding="{Binding SelectedSubcategory}" Value="Latte">
+                                <DataTrigger TargetType="Button" Binding="{Binding SelectedMainCategory}" Value="All">
                                     <Setter Property="BackgroundColor" Value="#D4A574" />
                                     <Setter Property="TextColor" Value="#2b2b2b" />
                                 </DataTrigger>
