@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.ProcessingQueuePopup"
+             x:Name="Root"
+             IsVisible="{Binding IsVisible}"
+             BackgroundColor="#80000000">
+    <Grid HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
+        <Frame BackgroundColor="White" CornerRadius="24" Padding="0" HasShadow="True"
+               WidthRequest="500" MaximumHeightRequest="600"
+               HorizontalOptions="Center" VerticalOptions="Center">
+            <Grid RowDefinitions="Auto,*" RowSpacing="0">
+                <!-- Header -->
+                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15" ColumnDefinitions="*,Auto">
+                    <Label Text="📋 To Prepare" FontAttributes="Bold" FontSize="18" TextColor="White" VerticalOptions="Center"/>
+                    <Button Grid.Column="1" Text="✕" FontSize="18" BackgroundColor="Transparent" TextColor="White" 
+                            Command="{Binding CloseCommand}" WidthRequest="35" HeightRequest="35" Padding="0"/>
+                </Grid>
+                
+                <!-- Items List -->
+                <CollectionView Grid.Row="1" ItemsSource="{Binding PendingItems}" MaximumHeightRequest="450" Margin="0">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="#FAFAFA" HasShadow="False" Padding="20,12" Margin="0,0,0,1">
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="6">
+                                    <!-- Item Info -->
+                                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                        <StackLayout Orientation="Horizontal" Spacing="8">
+                                            <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="14" TextColor="#2B2B2B"/>
+                                            <Label Text="{Binding Size}" FontSize="12" TextColor="#666" VerticalOptions="Center"/>
+                                            <Label Text="x{Binding Quantity}" FontSize="12" TextColor="#666" FontAttributes="Bold" VerticalOptions="Center"/>
+                                        </StackLayout>
+                                        <Label Text="{Binding AddOnsDisplay}" FontSize="11" TextColor="#999" Margin="0,0,0,0"/>
+                                    </VerticalStackLayout>
+                                    
+                                    <!-- Completed Button -->
+                                    <Button Grid.Column="1" Text="✓" FontSize="16" FontAttributes="Bold"
+                                            BackgroundColor="#66BB6A" TextColor="White"
+                                            CornerRadius="20" WidthRequest="50" HeightRequest="50" Padding="0"
+                                            Command="{Binding BindingContext.CompleteItemCommand, Source={x:Reference Root}}"
+                                            CommandParameter="{Binding .}"/>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>
+
+
