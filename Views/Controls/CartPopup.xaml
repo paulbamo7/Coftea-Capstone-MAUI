@@ -217,7 +217,7 @@
 
                         <!-- Checkout Button -->
                         <Button Grid.Column="1" 
-                                Text="✓ Check Out" 
+                                Text="Check Out" 
                                 FontSize="15" 
                                 FontAttributes="Bold"
                                 BackgroundColor="#5B4F45" 

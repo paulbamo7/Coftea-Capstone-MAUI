@@ -731,11 +731,13 @@ namespace Coftea_Capstone.ViewModel
                 var weeklyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, TopFrappeWeekly, TopFruitSodaWeekly, SelectedCategory);
                 var topWeeklyItems = weeklyItems.OrderByDescending(x => x.Count).Take(5).ToList();
                 SetMaxCountForItems(topWeeklyItems);
+                AssignUniqueColors(topWeeklyItems); // Assign unique colors to weekly items
                 
                 // Create monthly data (combine weekly data for demo)
                 var monthlyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, TopFrappeWeekly, TopFruitSodaWeekly, SelectedCategory);
                 var topMonthlyItems = monthlyItems.OrderByDescending(x => x.Count).Take(5).ToList();
                 SetMaxCountForItems(topMonthlyItems);
+                AssignUniqueColors(topMonthlyItems); // Assign unique colors to monthly items
                 
                 // Update filtered order counts
                 FilteredTodayOrders = todayItems.Sum(x => x.Count);
@@ -824,6 +826,37 @@ namespace Coftea_Capstone.ViewModel
             foreach (var item in items)
             {
                 item.MaxCount = maxCount;
+            }
+        }
+
+        private void AssignUniqueColors(List<TrendItem> items)
+        {
+            if (items == null || items.Count == 0) return;
+            
+            // Define a palette of distinct colors
+            var colorPalette = new List<string>
+            {
+                "#66BB6A", // Green
+                "#42A5F5", // Blue
+                "#EF5350", // Red
+                "#FFA726", // Orange
+                "#AB47BC", // Purple
+                "#26A69A", // Teal
+                "#FFB74D", // Amber
+                "#78909C", // Blue Grey
+                "#EC407A", // Pink
+                "#5C6BC0", // Indigo
+                "#26C6DA", // Cyan
+                "#AED581", // Light Green
+                "#FFD54F", // Yellow
+                "#9575CD", // Deep Purple
+                "#FF7043"  // Deep Orange
+            };
+            
+            // Assign unique colors to each item
+            for (int i = 0; i < items.Count; i++)
+            {
+                items[i].ColorCode = colorPalette[i % colorPalette.Count];
             }
         }
 
@@ -1352,7 +1385,7 @@ namespace Coftea_Capstone.ViewModel
                 // Show success message with file location
                 await Application.Current.MainPage.DisplayAlert(
                     "Weekly Report Generated", 
-                    $"Weekly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past week.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Weekly_Report HTML file", 
+                    $"Weekly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past week.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Weekly_Report HTML file\n4. Open it in a browser to print or save as PDF", 
                     "OK");
             }
             catch (Exception ex)
@@ -1387,7 +1420,7 @@ namespace Coftea_Capstone.ViewModel
                 // Show success message with file location
                 await Application.Current.MainPage.DisplayAlert(
                     "Monthly Report Generated", 
-                    $"Monthly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past month.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Monthly_Report HTML file", 
+                    $"Monthly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past month.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Monthly_Report HTML file\n4. Open it in a browser to print or save as PDF", 
                     "OK");
             }
             catch (Exception ex)

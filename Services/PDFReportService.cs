@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Storage;
 using System.Text;
-// Reverted: no direct HTML→PDF generator
+using System.IO;
 
 namespace Coftea_Capstone.Services
 {
@@ -13,7 +13,6 @@ namespace Coftea_Capstone.Services
     {
         Task<string> GenerateWeeklyReportAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
         Task<string> GenerateMonthlyReportAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
-        // Reverted: HTML export only
     }
 
     public class PDFReportService : IPDFReportService
@@ -36,7 +35,7 @@ namespace Coftea_Capstone.Services
                 // Generate HTML content for the report
                 var htmlContent = GenerateWeeklyReportHTML(startDate, endDate, transactions, topItems, inventoryDeductions, unitMap);
                 
-                // Save as HTML file in accessible location for emulator
+                // Save as HTML file (browser can print/save as PDF)
                 var fileName = $"Weekly_Report_{startDate:yyyy_MM_dd}_to_{endDate:yyyy_MM_dd}.html";
                 
                 // Try to save to Download folder first (most accessible in emulator)
@@ -57,6 +56,7 @@ namespace Coftea_Capstone.Services
                     filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
                 }
                 
+                // Save HTML content to file
                 await File.WriteAllTextAsync(filePath, htmlContent, Encoding.UTF8);
                 
                 return filePath;
@@ -79,7 +79,7 @@ namespace Coftea_Capstone.Services
                 // Generate HTML content for the report
                 var htmlContent = GenerateMonthlyReportHTML(startDate, endDate, transactions, topItems, inventoryDeductions, unitMap);
                 
-                // Save as HTML file in accessible location for emulator
+                // Save as HTML file (browser can print/save as PDF)
                 var fileName = $"Monthly_Report_{startDate:yyyy_MM}_to_{endDate:yyyy_MM}.html";
                 
                 // Try to save to Download folder first (most accessible in emulator)
@@ -100,6 +100,7 @@ namespace Coftea_Capstone.Services
                     filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
                 }
                 
+                // Save HTML content to file
                 await File.WriteAllTextAsync(filePath, htmlContent, Encoding.UTF8);
                 
                 return filePath;
