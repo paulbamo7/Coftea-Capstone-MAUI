@@ -170,6 +170,12 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         public async Task AddProduct() // Validates and adds/updates the product
         {
+            // Block immediately if no internet for DB-backed save
+            if (!Services.NetworkService.HasInternetConnection())
+            {
+                try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                return;
+            }
             if (string.IsNullOrWhiteSpace(ProductName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Product name is required.", "OK");
@@ -195,10 +201,26 @@ namespace Coftea_Capstone.ViewModel
             }
 
             // Parse and validate prices
-            if (!decimal.TryParse(SmallPrice, out decimal smallPriceValue) && string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase))
+            // Small price is only required for Coffee category
+            decimal smallPriceValue = 0;
+            bool isCoffeeCategory = string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
+            
+            if (isCoffeeCategory)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid small price.", "OK");
-                return;
+                // Coffee category requires a valid small price
+                if (!decimal.TryParse(SmallPrice, out smallPriceValue) || smallPriceValue <= 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid small price for Coffee (must be greater than 0).", "OK");
+                    return;
+                }
+            }
+            else
+            {
+                // Non-Coffee categories: small price is optional, default to 0 (saved as NULL in database)
+                if (!string.IsNullOrWhiteSpace(SmallPrice))
+                {
+                    decimal.TryParse(SmallPrice, out smallPriceValue);
+                }
             }
 
             if (!decimal.TryParse(MediumPrice, out decimal mediumPriceValue))
@@ -210,13 +232,6 @@ namespace Coftea_Capstone.ViewModel
             if (!decimal.TryParse(LargePrice, out decimal largePriceValue))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid large price.", "OK");
-                return;
-            }
-
-            // Only validate Small price if it's visible (Coffee category)
-            if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase) && smallPriceValue <= 0)
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Small price must be greater than 0.", "OK");
                 return;
             }
 
@@ -248,6 +263,9 @@ namespace Coftea_Capstone.ViewModel
 
             try
             {
+                System.Diagnostics.Debug.WriteLine($"💾 Saving product: {product.ProductName}");
+                System.Diagnostics.Debug.WriteLine($"💾 Category: {product.Category}, SmallPrice: {product.SmallPrice}, Medium: {product.MediumPrice}, Large: {product.LargePrice}");
+                
                 if (IsEditMode)
                 {
                     // Update existing product
@@ -281,16 +299,16 @@ namespace Coftea_Capstone.ViewModel
                             .Where(i => !addonIds.Contains(i.itemID))
                             .Select(i => (
                                 inventoryItemId: i.itemID,
-                                amount: ConvertUnits(i.InputAmount > 0 ? i.InputAmount : 1, i.InputUnit, i.unitOfMeasurement),
-                                unit: (string?)i.unitOfMeasurement,
+                                amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                unit: (string?)(i.InputUnit ?? i.unitOfMeasurement),
                                 // Only save Small size data if product has Small size
-                                amtS: hasSmallSize ? ConvertUnits(i.InputAmountSmall > 0 ? i.InputAmountSmall : 1, i.InputUnitSmall, i.unitOfMeasurement) : 0,
+                                amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
                                 unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
 
-                                amtM: ConvertUnits(i.InputAmountMedium > 0 ? i.InputAmountMedium : 1, i.InputUnitMedium, i.unitOfMeasurement),
+                                amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
                                 unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
 
-                                amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
+                                amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
                                 unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
                             ));
 
@@ -439,8 +457,23 @@ namespace Coftea_Capstone.ViewModel
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"❌ Error saving product: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
+                
                 string action = IsEditMode ? "update" : "add";
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to {action} product: {ex.Message}", "OK");
+                var errorMessage = ex.Message;
+                
+                // Provide helpful message for NULL constraint errors
+                if (ex.Message.Contains("cannot be null") || ex.Message.Contains("NULL") || ex.Message.Contains("smallPrice"))
+                {
+                    errorMessage = $"{ex.Message}\n\n💡 Tip: Run this SQL to fix your database:\nALTER TABLE products MODIFY COLUMN smallPrice DECIMAL(10,2) DEFAULT NULL;";
+                }
+                
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to {action} product: {errorMessage}", "OK");
             }
         }
 
@@ -628,10 +661,79 @@ namespace Coftea_Capstone.ViewModel
                         System.Diagnostics.Debug.WriteLine($"🔧 Final selected ingredient: {item.itemName} (ID: {item.itemID}) - IsSelected: {item.IsSelected}");
                     }
                 }
+                
+                // Load addons for edit mode
+                await LoadAddonDataForEdit(productId);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"🔧 LoadIngredientDataForEdit: Error - {ex.Message}");
+            }
+        }
+
+        private async Task LoadAddonDataForEdit(int productId) // Loads addon data for editing
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Starting for product ID {productId}");
+                
+                // Get addons from database
+                var addonLinks = await _database.GetProductAddonsAsync(productId);
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Found {addonLinks?.Count ?? 0} linked addons");
+                
+                if (addonLinks == null || !addonLinks.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: No addons found for this product");
+                    return;
+                }
+                
+                // Clear existing addon selections
+                ConnectPOSToInventoryVM.SelectedAddons.Clear();
+                
+                foreach (var addon in addonLinks)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Processing addon {addon.itemName} (ID: {addon.itemID})");
+                    
+                    // Set addon properties from database
+                    // DO NOT set IsSelected = true here - addons should NOT appear in ingredient list
+                    addon.InputAmount = addon.InputAmountSmall > 0 ? addon.InputAmountSmall : 1; // Use saved amount
+                    addon.InputUnit = !string.IsNullOrWhiteSpace(addon.InputUnitSmall) ? addon.InputUnitSmall : addon.unitOfMeasurement;
+                    addon.AddonPrice = addon.AddonPrice; // This is already loaded from GetProductAddonsAsync
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: {addon.itemName} - Amount: {addon.InputAmount}, Unit: {addon.InputUnit}, Price: {addon.AddonPrice}");
+                    
+                    // Add to SelectedAddons collection ONLY (not to ingredient lists)
+                    ConnectPOSToInventoryVM.SelectedAddons.Add(addon);
+                    
+                    // Update AllInventoryItems with addon configuration but DO NOT mark as selected
+                    // This keeps addons separate from ingredients
+                    var existingInAll = ConnectPOSToInventoryVM.AllInventoryItems?.FirstOrDefault(i => i.itemID == addon.itemID);
+                    if (existingInAll == null)
+                    {
+                        // If not in AllInventoryItems, add it but keep IsSelected = false
+                        addon.IsSelected = false;
+                        ConnectPOSToInventoryVM.AllInventoryItems.Add(addon);
+                        System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Added {addon.itemName} to AllInventoryItems (IsSelected=false)");
+                    }
+                    else
+                    {
+                        // Update existing item with addon data but DO NOT set IsSelected
+                        // Keep IsSelected as false so it doesn't appear in ingredient UI
+                        existingInAll.InputAmount = addon.InputAmount;
+                        existingInAll.InputUnit = addon.InputUnit;
+                        existingInAll.AddonPrice = addon.AddonPrice;
+                        // Explicitly ensure IsSelected remains false for addons
+                        existingInAll.IsSelected = false;
+                        System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Updated {existingInAll.itemName} in AllInventoryItems (IsSelected=false)");
+                    }
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Completed. SelectedAddons count: {ConnectPOSToInventoryVM.SelectedAddons.Count}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ LoadAddonDataForEdit: Error - {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ LoadAddonDataForEdit: StackTrace - {ex.StackTrace}");
             }
         }
 

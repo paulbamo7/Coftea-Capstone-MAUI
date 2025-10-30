@@ -11,10 +11,10 @@
     <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
         <Frame Style="{StaticResource CenteredPopupFrame}" 
                WidthRequest="600" 
-               HeightRequest="530" 
+               HeightRequest="560" 
                MaximumWidthRequest="700" 
                BackgroundColor="#F8E8D7"
-               MaximumHeightRequest="600">
+               MaximumHeightRequest="650">
             <ScrollView>
                 <VerticalStackLayout Spacing="10">
                     <!-- Header -->
@@ -83,14 +83,40 @@
                     <!-- Inline Addons section removed; selection will be via popup -->
 
                     <!-- Buttons -->
-                    <HorizontalStackLayout HorizontalOptions="End" Spacing="20">
-                        <Button Text="Close" BackgroundColor="#D3D3D3" TextColor="Black"
-                            Command="{Binding ClosePreviewCommand}"/>
-                        <!-- Single working Add Addons button -->
-                        <Button Text="Add Addons" BackgroundColor="#D3D3D3" TextColor="Black"
+                    <HorizontalStackLayout HorizontalOptions="End" Spacing="15">
+                        <Button Text="Close" 
+                                BackgroundColor="#BDAEA2" 
+                                TextColor="#5B4F45"
+                                BorderColor="#8B7355"
+                                BorderWidth="2"
+                                CornerRadius="20"
+                                WidthRequest="120"
+                                HeightRequest="50"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                Command="{Binding ClosePreviewCommand}"/>
+                        <!-- Add Addons button -->
+                        <Button Text="➕ Add Addons" 
+                                BackgroundColor="#D4A574" 
+                                TextColor="White"
+                                BorderWidth="0"
+                                CornerRadius="20"
+                                WidthRequest="150"
+                                HeightRequest="50"
+                                FontSize="15"
+                                FontAttributes="Bold"
                                 Command="{Binding OpenAddonPopupCommand}"/>
-                        <Button Text="Confirm" BackgroundColor="#E6DE9D" TextColor="Black"
-                            Command="{Binding ConfirmPreviewCommand}"/>
+                        <!-- Save Product button -->
+                        <Button Text="✓ Save Product" 
+                                BackgroundColor="#5B4F45" 
+                                TextColor="White"
+                                BorderWidth="0"
+                                CornerRadius="20"
+                                WidthRequest="150"
+                                HeightRequest="50"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                Command="{Binding SaveProductCommand}"/>
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>

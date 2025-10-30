@@ -24,6 +24,73 @@
             </BoxView.GestureRecognizers>
         </BoxView>
 
+        <!-- Date Filter Popup -->
+        <Frame IsVisible="{Binding IsDateFilterVisible}"
+               BackgroundColor="White"
+               CornerRadius="15"
+               Padding="20"
+               WidthRequest="350"
+               HeightRequest="400"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               HasShadow="True"
+               InputTransparent="False">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="15">
+                <!-- Header -->
+                <Label Grid.Row="0" 
+                       Text="📅 Filter by Date Range" 
+                       FontSize="18" 
+                       FontAttributes="Bold" 
+                       TextColor="#5B4F45"
+                       HorizontalOptions="Center"/>
+                
+                <!-- Date inputs -->
+                <VerticalStackLayout Grid.Row="1" Spacing="15">
+                    <Label Text="From Date:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
+                    <DatePicker Date="{Binding FilterStartDate}" 
+                                Format="yyyy-MM-dd"
+                                TextColor="Black"
+                                BackgroundColor="#F5F5F5"/>
+                    
+                    <Label Text="To Date:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45" Margin="0,10,0,0"/>
+                    <DatePicker Date="{Binding FilterEndDate}" 
+                                Format="yyyy-MM-dd"
+                                TextColor="Black"
+                                BackgroundColor="#F5F5F5"/>
+                    
+                    <Label Text="Quick Filters:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45" Margin="0,15,0,0"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="10">
+                        <Button Grid.Row="0" Grid.Column="0" Text="Today" Command="{Binding SetTodayCommand}" 
+                                BackgroundColor="#D4A574" TextColor="White" CornerRadius="10"/>
+                        <Button Grid.Row="0" Grid.Column="1" Text="Yesterday" Command="{Binding SetYesterdayCommand}" 
+                                BackgroundColor="#D4A574" TextColor="White" CornerRadius="10"/>
+                        <Button Grid.Row="1" Grid.Column="0" Text="Last 7 Days" Command="{Binding SetLast7DaysCommand}" 
+                                BackgroundColor="#D4A574" TextColor="White" CornerRadius="10"/>
+                        <Button Grid.Row="1" Grid.Column="1" Text="Last 30 Days" Command="{Binding SetLast30DaysCommand}" 
+                                BackgroundColor="#D4A574" TextColor="White" CornerRadius="10"/>
+                    </Grid>
+                </VerticalStackLayout>
+                
+                <!-- Buttons -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0" 
+                            Text="Clear Filter" 
+                            Command="{Binding ClearDateFilterCommand}"
+                            BackgroundColor="#BDAEA2" 
+                            TextColor="White" 
+                            CornerRadius="10"
+                            HeightRequest="45"/>
+                    <Button Grid.Column="1" 
+                            Text="Apply Filter" 
+                            Command="{Binding ApplyDateFilterCommand}"
+                            BackgroundColor="#4A90E2" 
+                            TextColor="White" 
+                            CornerRadius="10"
+                            HeightRequest="45"/>
+                </Grid>
+            </Grid>
+        </Frame>
+
         <!-- Main popup content -->
         <Frame Grid.Row="0" 
                Grid.Column="0" 
@@ -168,8 +235,8 @@
                             </Button>
                         </StackLayout>
 
-                        <!-- Search and Refresh -->
-                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
+                        <!-- Search, Date Filter, and Refresh -->
+                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="10">
                             <Border Grid.Column="0" 
                                     Stroke="#8B7355" 
                                     StrokeShape="RoundRectangle 15" 
@@ -184,6 +251,16 @@
                                        Margin="15,0"/>
                             </Border>
                             <Button Grid.Column="1" 
+                                    Text="📅" 
+                                    BackgroundColor="#BDAEA2" 
+                                    TextColor="#5B4F45" 
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
+                                    WidthRequest="55" 
+                                    HeightRequest="45"
+                                    CornerRadius="20"
+                                    Command="{Binding ShowDateFilterCommand}"/>
+                            <Button Grid.Column="2" 
                                     Text="🔍" 
                                     BackgroundColor="#BDAEA2" 
                                     TextColor="#5B4F45" 
@@ -193,7 +270,7 @@
                                     HeightRequest="45"
                                     CornerRadius="20"
                                     Command="{Binding SearchCommand}"/>
-                            <Button Grid.Column="2" 
+                            <Button Grid.Column="3" 
                                     Text="🔄" 
                                     BackgroundColor="#BDAEA2" 
                                     TextColor="#5B4F45" 
@@ -205,91 +282,81 @@
                                     Command="{Binding RefreshCommand}"/>
                         </Grid>
 
-                        <!-- Activity Log List -->
-                        <CollectionView Grid.Row="2" 
-                                        ItemsSource="{Binding FilteredActivityLog}"
-                                        BackgroundColor="Transparent">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate>
-                                    <Frame Padding="15" 
-                                           Margin="0,5,0,5" 
-                                           CornerRadius="10" 
-                                           BackgroundColor="White" 
-                                           HasShadow="True">
-                                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="15">
-                                            <!-- Action Icon -->
-                                            <Frame Grid.Row="0" 
-                                                   Grid.Column="0" 
-                                                   Grid.RowSpan="3"
-                                                   WidthRequest="50" 
-                                                   HeightRequest="50" 
-                                                   CornerRadius="25" 
-                                                   Padding="0" 
-                                                   HasShadow="False"
-                                                   BackgroundColor="{Binding ColorCode}">
-                                                <Label Text="{Binding ActionIcon}" 
-                                                       FontSize="20" FontFamily="MontserratBlack" 
-                                                       TextColor="White" 
-                                                       HorizontalOptions="Center" 
-                                                       VerticalOptions="Center"/>
-                                            </Frame>
+                        <!-- Activity Log Table -->
+                        <ScrollView Grid.Row="2">
+                            <VerticalStackLayout Spacing="0">
+                                <!-- Table Header -->
+                                <Grid BackgroundColor="#7E6D5F" Padding="10,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>  <!-- # -->
+                                        <ColumnDefinition Width="110"/> <!-- Date & Time -->
+                                        <ColumnDefinition Width="90"/>  <!-- User -->
+                                        <ColumnDefinition Width="80"/>  <!-- Action -->
+                                        <ColumnDefinition Width="*"/>   <!-- Item -->
+                                        <ColumnDefinition Width="60"/>  <!-- Qty Change -->
+                                        <ColumnDefinition Width="50"/>  <!-- UoM -->
+                                        <ColumnDefinition Width="60"/>  <!-- Prev Qty -->
+                                        <ColumnDefinition Width="60"/>  <!-- New Qty -->
+                                        <ColumnDefinition Width="120"/> <!-- Used for Product -->
+                                        <ColumnDefinition Width="100"/> <!-- Remarks -->
+                                        <ColumnDefinition Width="80"/>  <!-- Ref. ID -->
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <Label Grid.Column="0" Text="#" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Start"/>
+                                    <Label Grid.Column="1" Text="Date &amp; Time" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="2" Text="User" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="3" Text="Action" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="4" Text="Item" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="5" Text="Qty Change" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="End"/>
+                                    <Label Grid.Column="6" Text="UoM" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="7" Text="Prev Qty" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="End"/>
+                                    <Label Grid.Column="8" Text="New Qty" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="End"/>
+                                    <Label Grid.Column="9" Text="Used for Product" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="10" Text="Remarks" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                    <Label Grid.Column="11" Text="Ref. ID" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                                </Grid>
 
-                                            <!-- Main Content -->
-                                            <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="5">
-                                                <Label Text="{Binding ItemName}" 
-                                                       FontSize="16" FontFamily="MontserratBlack" 
-                                                       FontAttributes="Bold" 
-                                                       TextColor="Black"/>
-                                                <Label Text="{Binding ActionDisplay}" 
-                                                       FontSize="14" FontFamily="MontserratBlack" 
-                                                       TextColor="{Binding ColorCode}" 
-                                                       FontAttributes="Bold"/>
-                                                <Label Text="{Binding ReasonDisplay}" 
-                                                       FontSize="12" FontFamily="MontserratBlack" 
-                                                       TextColor="Gray"/>
-                                            </VerticalStackLayout>
-
-                                            <!-- Quantity and Time -->
-                                            <VerticalStackLayout Grid.Row="0" Grid.Column="2" Spacing="5" HorizontalOptions="End">
-                                                <Label Text="{Binding QuantityChangeDisplay}" 
-                                                       FontSize="16" FontFamily="MontserratBlack" 
-                                                       FontAttributes="Bold" 
-                                                       TextColor="{Binding ColorCode}" 
-                                                       HorizontalOptions="End"/>
-                                                <Label Text="{Binding StockLevelDisplay}" 
-                                                       FontSize="12" FontFamily="MontserratBlack" 
-                                                       TextColor="Gray" 
-                                                       HorizontalOptions="End"/>
-                                                <Label Text="{Binding FormattedTimestamp}" 
-                                                       FontSize="11" FontFamily="MontserratBlack" 
-                                                       TextColor="LightGray" 
-                                                       HorizontalOptions="End"/>
-                                            </VerticalStackLayout>
-
-                                            <!-- User and Order Info -->
-                                            <StackLayout Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="10">
-                                                <Label Text="{Binding UserEmail, StringFormat='User: {0}'}" 
-                                                       FontSize="11" FontFamily="MontserratBlack" 
-                                                       TextColor="Gray" 
-                                                       IsVisible="{Binding UserEmail, Converter={StaticResource StringToBoolConverter}}"/>
-                                                <Label Text="{Binding OrderId, StringFormat='Order: {0}'}" 
-                                                       FontSize="11" FontFamily="MontserratBlack" 
-                                                       TextColor="Gray" 
-                                                       IsVisible="{Binding OrderId, Converter={StaticResource StringToBoolConverter}}"/>
-                                            </StackLayout>
-
-                                            <!-- Notes -->
-                                            <Label Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
-                                                   Text="{Binding Notes}" 
-                                                   FontSize="11" FontFamily="MontserratBlack" 
-                                                   TextColor="DarkGray" 
-                                                   IsVisible="{Binding Notes, Converter={StaticResource StringToBoolConverter}}"
-                                                   LineBreakMode="WordWrap"/>
-                                        </Grid>
-                                    </Frame>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                                <!-- Table Rows -->
+                                <CollectionView ItemsSource="{Binding FilteredActivityLog}">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="40"/>  <!-- # -->
+                                                    <ColumnDefinition Width="110"/> <!-- Date & Time -->
+                                                    <ColumnDefinition Width="90"/>  <!-- User -->
+                                                    <ColumnDefinition Width="80"/>  <!-- Action -->
+                                                    <ColumnDefinition Width="*"/>   <!-- Item -->
+                                                    <ColumnDefinition Width="60"/>  <!-- Qty Change -->
+                                                    <ColumnDefinition Width="50"/>  <!-- UoM -->
+                                                    <ColumnDefinition Width="60"/>  <!-- Prev Qty -->
+                                                    <ColumnDefinition Width="60"/>  <!-- New Qty -->
+                                                    <ColumnDefinition Width="120"/> <!-- Used for Product -->
+                                                    <ColumnDefinition Width="100"/> <!-- Remarks -->
+                                                    <ColumnDefinition Width="80"/>  <!-- Ref. ID -->
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <Label Grid.Column="0" Text="{Binding RowNumber}" FontSize="10" TextColor="#333" HorizontalOptions="Start" VerticalOptions="Center"/>
+                                                <Label Grid.Column="1" Text="{Binding FormattedTimestampShort}" FontSize="10" TextColor="#333" VerticalOptions="Center"/>
+                                                <Label Grid.Column="2" Text="{Binding UserFullName}" FontSize="10" TextColor="#333" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                                <Label Grid.Column="3" Text="{Binding ActionText}" FontSize="10" TextColor="{Binding ColorCode}" FontAttributes="Bold" VerticalOptions="Center"/>
+                                                <Label Grid.Column="4" Text="{Binding ItemName}" FontSize="10" TextColor="#333" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                                <Label Grid.Column="5" Text="{Binding QuantityChangeText}" FontSize="10" TextColor="{Binding ColorCode}" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
+                                                <Label Grid.Column="6" Text="{Binding UnitOfMeasurement}" FontSize="10" TextColor="#666" VerticalOptions="Center"/>
+                                                <Label Grid.Column="7" Text="{Binding PreviousQuantityText}" FontSize="10" TextColor="#666" HorizontalOptions="End" VerticalOptions="Center"/>
+                                                <Label Grid.Column="8" Text="{Binding NewQuantityText}" FontSize="10" TextColor="#333" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
+                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                                <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                                <Label Grid.Column="11" Text="{Binding ReferenceId}" FontSize="10" TextColor="#4A90E2" VerticalOptions="Center"/>
+                                                
+                                                <!-- Separator Line -->
+                                                <BoxView Grid.ColumnSpan="12" HeightRequest="1" BackgroundColor="#E0E0E0" VerticalOptions="End"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </ScrollView>
                     </Grid>
                 </Grid>
 

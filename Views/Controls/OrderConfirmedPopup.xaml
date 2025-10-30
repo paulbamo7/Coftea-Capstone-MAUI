@@ -17,7 +17,8 @@
                Padding="20"
                BackgroundColor="#4CAF50"
                CornerRadius="15"
-               WidthRequest="350"
+               WidthRequest="380"
+               MaximumHeightRequest="500"
                HasShadow="True"
                InputTransparent="True"
                Opacity="{Binding Opacity}">
@@ -44,22 +45,69 @@
 
                 <!-- Transaction Details -->
                 <Grid Grid.Row="2">
-                    <VerticalStackLayout Spacing="3">
+                    <VerticalStackLayout Spacing="8">
                         <Label Text="{Binding OrderDetails, StringFormat='Order #{0}'}"
                                FontSize="14" FontFamily="MontserratBlack"
                                TextColor="White"
                                HorizontalOptions="Center"
                                Opacity="0.9" />
                         <Label Text="{Binding TotalAmount, StringFormat='Total: ₱{0:F2}'}"
-                               FontSize="14" FontFamily="MontserratBlack"
+                               FontSize="16" FontFamily="MontserratBlack"
                                FontAttributes="Bold"
                                TextColor="White"
                                HorizontalOptions="Center" />
+                        
+                        <!-- Payment Breakdown -->
+                        <Frame BackgroundColor="#45A049"
+                               CornerRadius="8"
+                               Padding="10"
+                               HasShadow="False"
+                               Margin="0,5,0,0"
+                               IsVisible="{Binding HasMultiplePaymentMethods}">
+                            <VerticalStackLayout Spacing="5">
+                                <Label Text="Payment Breakdown"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="White"
+                                       HorizontalOptions="Center"
+                                       Margin="0,0,0,3" />
+                                
+                                <CollectionView ItemsSource="{Binding PaymentBreakdown}"
+                                               HeightRequest="100">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="*, Auto" Margin="0,2">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding DisplayText}"
+                                                       FontSize="11"
+                                                       TextColor="White"
+                                                       VerticalOptions="Center" />
+                                                <HorizontalStackLayout Grid.Column="1" Spacing="5">
+                                                    <Label Text="{Binding PaymentMethod}"
+                                                           FontSize="10"
+                                                           FontAttributes="Bold"
+                                                           TextColor="#FFD700"
+                                                           VerticalOptions="Center" />
+                                                    <Label Text="{Binding FormattedAmount}"
+                                                           FontSize="11"
+                                                           FontAttributes="Bold"
+                                                           TextColor="White"
+                                                           VerticalOptions="Center" />
+                                                </HorizontalStackLayout>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </Frame>
+                        
+                        <!-- Single Payment Method (when no breakdown needed) -->
                         <Label Text="{Binding PaymentMethod, StringFormat='Payment: {0}'}"
                                FontSize="12" FontFamily="MontserratBlack"
                                TextColor="White"
                                HorizontalOptions="Center"
-                               Opacity="0.8" />
+                               Opacity="0.8"
+                               IsVisible="{Binding HasSinglePaymentMethod}" />
                     </VerticalStackLayout>
                 </Grid>
             </Grid>

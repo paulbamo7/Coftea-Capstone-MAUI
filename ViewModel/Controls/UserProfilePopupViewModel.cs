@@ -25,12 +25,6 @@ namespace Coftea_Capstone.ViewModel.Controls
         private string phoneNumber = string.Empty;
 
         [ObservableProperty]
-        private string address = string.Empty;
-
-        [ObservableProperty]
-        private DateTime birthday = DateTime.Now;
-
-        [ObservableProperty]
         private bool canEditInventory = false;
 
         [ObservableProperty]
@@ -56,8 +50,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             FullName = $"{user.FirstName} {user.LastName}".Trim();
             Email = MaskEmail(user.Email);
             PhoneNumber = user.PhoneNumber;
-            Address = user.Address;
-            Birthday = user.Birthday;
             CanEditInventory = user.CanAccessInventory;
             CanEditPOSMenu = user.CanAccessSalesReport;
             
@@ -85,8 +77,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             FullName = user.Username;
             Email = "N/A"; // UserEntry doesn't have email
             PhoneNumber = "N/A"; // UserEntry doesn't have phone
-            Address = "N/A"; // UserEntry doesn't have address
-            Birthday = DateTime.Now; // UserEntry doesn't have birthday
             CanEditInventory = user.CanAccessInventory;
             CanEditPOSMenu = user.CanAccessSalesReport;
 

@@ -271,9 +271,13 @@ namespace Coftea_Capstone.ViewModel
                                 // Send SMS to supplier with approved order
                                 var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, lowStockItems);
                                 
+                                // Note: SMS app opens but user needs to press send manually
                                 await Application.Current.MainPage.DisplayAlert(
                                     "Purchase Order Created & Approved", 
-                                    $"Purchase order #{purchaseOrderId} has been created, auto-approved by admin, and sent to Coftea Supplier via SMS. Inventory has been updated.", 
+                                    $"Purchase order #{purchaseOrderId} has been created and auto-approved!\n\n" +
+                                    $"📱 SMS app should have opened with the message pre-filled.\n" +
+                                    $"Please press 'Send' to notify the supplier.\n\n" +
+                                    $"Inventory has been updated.", 
                                     "OK");
                                 
                                 System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} auto-approved by admin");
@@ -281,8 +285,9 @@ namespace Coftea_Capstone.ViewModel
                             else
                             {
                                 await Application.Current.MainPage.DisplayAlert(
-                                    "Purchase Order Created", 
-                                    $"Purchase order #{purchaseOrderId} created but auto-approval failed. Please check manually.", 
+                                    "Purchase Order Creation Error", 
+                                    $"Purchase order #{purchaseOrderId} was created but could not be auto-approved.\n\n" +
+                                    $"Please check the purchase order in the system and approve it manually.", 
                                     "OK");
                             }
                         }
@@ -297,20 +302,13 @@ namespace Coftea_Capstone.ViewModel
                             // Notify admin via SMS
                             var adminNotified = await PurchaseOrderSMSService.NotifyAdminOfPurchaseOrderAsync(purchaseOrderId, currentUser);
                             
-                            if (smsSent && adminNotified)
-                            {
-                                await Application.Current.MainPage.DisplayAlert(
-                                    "Purchase Order Created", 
-                                    $"Purchase order #{purchaseOrderId} has been created and sent to Coftea Supplier via SMS. Admin has been notified for approval.", 
-                                    "OK");
-                            }
-                            else
-                            {
-                                await Application.Current.MainPage.DisplayAlert(
-                                    "Purchase Order Created (Partial)", 
-                                    $"Purchase order #{purchaseOrderId} created but SMS notifications may have failed. Please check manually.", 
-                                    "OK");
-                            }
+                            // Note: SMS app opens but user needs to press send manually
+                            await Application.Current.MainPage.DisplayAlert(
+                                "Purchase Order Created", 
+                                $"Purchase order #{purchaseOrderId} has been created!\n\n" +
+                                $"📱 SMS app should have opened with the message pre-filled.\n" +
+                                $"Please press 'Send' to notify the supplier and admin.", 
+                                "OK");
                         }
                         
                         System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created and processed");
@@ -392,6 +390,36 @@ namespace Coftea_Capstone.ViewModel
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error showing activity log: {ex.Message}");
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load activity log: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ShowPurchaseOrdersAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("📦 Showing purchase orders...");
+                
+                // Get the PurchaseOrderApprovalPopup from the app
+                var app = (App)Application.Current;
+                var purchaseOrderPopup = app.PurchaseOrderApprovalPopup;
+                
+                if (purchaseOrderPopup != null)
+                {
+                    // Show the popup (it will load data when shown)
+                    await purchaseOrderPopup.ShowAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Purchase order popup shown");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ PurchaseOrderApprovalPopup is null");
+                    await Application.Current.MainPage.DisplayAlert("Error", "Purchase order feature is not available.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error showing purchase orders: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load purchase orders: {ex.Message}", "OK");
             }
         }
         

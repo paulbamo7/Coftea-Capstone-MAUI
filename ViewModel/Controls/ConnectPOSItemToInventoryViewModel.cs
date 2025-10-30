@@ -48,26 +48,27 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 SelectedAddons.Add(addon);
 
-                // Sync into InventoryItems so save path can persist them
-                var existing = InventoryItems.FirstOrDefault(i => i.itemID == addon.itemID);
-                if (existing == null)
+                // DO NOT add addons to InventoryItems - they should only be in SelectedAddons
+                // This prevents them from showing up in the ingredient selection UI
+                
+                // However, we need to ensure they exist in AllInventoryItems for proper persistence
+                var existingInAll = AllInventoryItems.FirstOrDefault(i => i.itemID == addon.itemID);
+                if (existingInAll != null)
                 {
-                    existing = addon;
-                    InventoryItems.Add(existing);
+                    // Update the item in AllInventoryItems with addon configuration
+                    // But do NOT mark it as IsSelected in AllInventoryItems (that's only for ingredients)
+                    existingInAll.AddonPrice = addon.AddonPrice;
+                    existingInAll.AddonUnit = addon.AddonUnit;
+                    existingInAll.InputAmount = addon.InputAmount > 0 ? addon.InputAmount : 1;
+                    existingInAll.InputUnit = string.IsNullOrWhiteSpace(addon.InputUnit) ? addon.DefaultUnit : addon.InputUnit;
                 }
-
-                // Mark as selected and carry over editable fields
-                existing.IsSelected = true;
-                existing.AddonPrice = addon.AddonPrice;
-                existing.AddonUnit = addon.AddonUnit;
-                existing.InputAmount = addon.InputAmount > 0 ? addon.InputAmount : 1;
-                existing.InputUnit = string.IsNullOrWhiteSpace(addon.InputUnit) ? addon.DefaultUnit : addon.InputUnit;
             }
             
             // Notify UI of changes
             OnPropertyChanged(nameof(SelectedAddons));
-            OnPropertyChanged(nameof(SelectedInventoryItems));
-            OnPropertyChanged(nameof(SelectedIngredientsOnly));
+            // Don't update SelectedInventoryItems or SelectedIngredientsOnly - addons are separate
+            // OnPropertyChanged(nameof(SelectedInventoryItems));
+            // OnPropertyChanged(nameof(SelectedIngredientsOnly));
 
             // Ensure the popup closes and we return to the preview overlay
             IsAddonPopupVisible = false;
@@ -341,6 +342,36 @@ namespace Coftea_Capstone.ViewModel.Controls
         public event Action ReturnRequested;
 
         [RelayCommand]
+        private void CloseConnectPOSToInventory()
+        {
+            // Close all popups and return to PointOfSale
+            IsConnectPOSToInventoryVisible = false;
+            IsInputIngredientsVisible = false;
+            IsPreviewVisible = false;
+            IsAddonPopupVisible = false;
+            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
+            
+            // Close the AddItemToPOS form as well to return to PointOfSale
+            var app = (App)Application.Current;
+            var addItemVM = app?.POSVM?.AddItemToPOSViewModel ?? app?.AddItemPopup;
+            if (addItemVM != null)
+            {
+                addItemVM.IsAddItemToPOSVisible = false;
+            }
+            
+            // Call ReturnRequested to notify parent
+            ReturnRequested?.Invoke();
+        }
+
+        [RelayCommand]
+        private void ForceCloseAllPopups()
+        {
+            // Alias for CloseConnectPOSToInventory - used by Cancel buttons
+            // Closes all popups and returns to PointOfSale
+            CloseConnectPOSToInventory();
+        }
+
+        [RelayCommand]
         private void ReturnToAddItemToPOS()
         {
             IsConnectPOSToInventoryVisible = false;
@@ -357,35 +388,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             var app = (App)Application.Current;
             (app?.POSVM?.AddItemToPOSViewModel)?.SetIsAddItemToPOSVisibleTrue();
             ReturnRequested?.Invoke();
-        }
-
-        [RelayCommand]
-        private void ForceCloseAllPopups()
-        {
-            System.Diagnostics.Debug.WriteLine("🔧 ForceCloseAllPopups called");
-            IsConnectPOSToInventoryVisible = false;
-            IsInputIngredientsVisible = false;
-            IsEditMode = false;
-            IsUpdateAmountsMode = false;
-            IsPreviewVisible = false;
-            IsAddonPopupVisible = false;
-            if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
-            
-            // Clear all selections
-            ClearAllSelections();
-            
-            // Reset the parent AddItemToPOS form
-            var app = (App)Application.Current;
-            var addItemVM = app?.POSVM?.AddItemToPOSViewModel ?? app?.AddItemPopup;
-            if (addItemVM != null)
-            {
-                System.Diagnostics.Debug.WriteLine("🔧 Calling ResetForm on AddItemToPOSViewModel");
-                addItemVM.ResetForm();
-            }
-            
-            // Force property change notifications
-            OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
-            OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
         }
 
         [RelayCommand]
@@ -440,6 +442,13 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
             ConfirmPreviewRequested?.Invoke();
+        }
+
+        [RelayCommand]
+        private void SaveProduct()
+        {
+            // Alias for ConfirmPreview - saves the product
+            ConfirmPreview();
         }
 
         // Sync InputAmount to per-size fields for all selected ingredients
@@ -555,6 +564,14 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(SelectedInventoryItems));
             OnPropertyChanged(nameof(IsInputIngredientsAmountUsedVisible));
             OnPropertyChanged(nameof(IsUpdateInputIngredientsAmountUsedVisible));
+            
+            // Ensure current size values are properly loaded into InputAmount/InputUnit
+            // This is especially important in edit mode to display the correct UoM
+            if (!string.IsNullOrWhiteSpace(SelectedSize))
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 OpenInputIngredients: Calling SetSize({SelectedSize}) to ensure current size values are loaded");
+                SetSize(SelectedSize);
+            }
         }
 
         [RelayCommand]
@@ -1210,6 +1227,24 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Load addons and show popup
                 System.Diagnostics.Debug.WriteLine($"🔍 Loading addons...");
                 await AddonsPopup.LoadAddonsAsync();
+                
+                // Sync current selections from SelectedAddons (especially important in edit mode)
+                if (SelectedAddons != null && SelectedAddons.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔍 Syncing {SelectedAddons.Count} previously selected addons");
+                    AddonsPopup.SyncSelectionsFrom(SelectedAddons);
+                    
+                    // Debug: Log synced selections
+                    foreach (var addon in SelectedAddons)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔍 Synced addon: {addon.itemName}, Amount: {addon.InputAmount}, Unit: {addon.InputUnit}, Price: {addon.AddonPrice}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔍 No previously selected addons to sync");
+                }
+                
                 System.Diagnostics.Debug.WriteLine($"🔍 Setting IsAddonPopupVisible = true");
                 IsAddonPopupVisible = true;
                 AddonsPopup.IsAddonsPopupVisible = true;

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using CommunityToolkit.Maui; 
+using CommunityToolkit.Maui;
+using Coftea_Capstone.Services;
+using Coftea_Capstone.Models;
 
 namespace Coftea_Capstone
 {
@@ -22,6 +24,9 @@ namespace Coftea_Capstone
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+
+            // Register core database service
+            builder.Services.AddSingleton<Database>();
 
             return builder.Build();
         }

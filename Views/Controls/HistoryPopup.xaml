@@ -99,7 +99,7 @@
                             </Button.Triggers>
                         </Button>
 
-                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" WidthRequest="100" Style="{StaticResource FilterButtonStyle}">
+                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button"
                                              Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Yesterday}"

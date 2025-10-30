@@ -70,14 +70,14 @@
                     
                     <!-- Fixed Table Header -->
                     <Grid Grid.Row="0" BackgroundColor="#BDAEA2" Padding="10" Margin="0,0,0,10">
-                        <Grid ColumnDefinitions="40, 80, *, 150, 60, 80, 80">
-                            <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="40" HorizontalTextAlignment="Center"/>
-                            <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="80" HorizontalTextAlignment="Center"/>
-                            <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" />
-                            <Label Grid.Column="3" Text="Add-ons" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="150" />
-                            <Label Grid.Column="4" Text="Size" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="60" />
-                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="80" />
-                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" WidthRequest="80" />
+                        <Grid ColumnDefinitions="40, 80, *, 150, 130, 80, 80">
+                            <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Start" HorizontalTextAlignment="Start"/>
+                            <Label Grid.Column="3" Text="Add-ons" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Start" HorizontalTextAlignment="Start"/>
+                            <Label Grid.Column="4" Text="Size" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="5" Text="Cost" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="6" Text="Action" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                         </Grid>
                     </Grid>
 
@@ -92,13 +92,13 @@
                                             <ColumnDefinition Width="80" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="150" />
-                                            <ColumnDefinition Width="60" />
+                                            <ColumnDefinition Width="130" />
                                             <ColumnDefinition Width="80" />
                                             <ColumnDefinition Width="80" />
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Row Number -->
-                                        <Label Grid.Column="0" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center">
+                                        <Label Grid.Column="0" TextColor="Black" VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center">
                                             <Label.Text>
                                                 <MultiBinding Converter="{StaticResource IndexOfConverter}">
                                                     <Binding Path="BindingContext.CartItems" Source="{x:Reference CartPopupView}" />
@@ -113,7 +113,9 @@
                                                Padding="5" 
                                                BackgroundColor="#F0F0F0"
                                                WidthRequest="60" 
-                                               HeightRequest="60">
+                                               HeightRequest="60"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center">
                                             <Image Source="{Binding ImageSource}" 
                                                    Aspect="AspectFill" 
                                                    HorizontalOptions="Fill" 
@@ -121,28 +123,34 @@
                                         </Frame>
 
                                         <!-- Drink Details -->
-                                        <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="10,0" VerticalOptions="Center">
+                                        <VerticalStackLayout Grid.Column="2" Spacing="2" Padding="10,0" VerticalOptions="Center" HorizontalOptions="Start">
                                             <Label Text="{Binding ProductName, StringFormat='Drink: {0}'}" 
                                                    FontSize="12" FontFamily="MontserratBlack" 
                                                    TextColor="Black"
-                                                   VerticalOptions="Center" />
+                                                   VerticalOptions="Center"
+                                                   HorizontalOptions="Start"
+                                                   HorizontalTextAlignment="Start" />
                                         </VerticalStackLayout>
 
                                         <!-- Add-ons -->
-                                        <VerticalStackLayout Grid.Column="3" Spacing="2" Padding="5,0" VerticalOptions="Center">
+                                        <VerticalStackLayout Grid.Column="3" Spacing="2" Padding="5,0" VerticalOptions="Center" HorizontalOptions="Start">
                                             <Label Text="{Binding AddOnsDisplay}" 
                                                    FontSize="11" FontFamily="MontserratBlack" 
                                                    TextColor="Black"
-                                                   VerticalOptions="Center" />
+                                                   VerticalOptions="Center"
+                                                   HorizontalOptions="Start"
+                                                   HorizontalTextAlignment="Start" />
                                         </VerticalStackLayout>
 
                                         <!-- Size -->
                                         <Label Grid.Column="4" 
                                                Text="{Binding SizeDisplay}" 
-                                               FontSize="12" FontFamily="MontserratBlack" 
+                                               FontSize="10" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
+                                               HorizontalOptions="Center"
+                                               LineBreakMode="WordWrap"
+                                               HorizontalTextAlignment="Center" />
 
                                         <!-- Cost -->
                                         <Label Grid.Column="5" 
@@ -150,10 +158,11 @@
                                                FontSize="12" FontFamily="MontserratBlack" 
                                                TextColor="Black" 
                                                VerticalOptions="Center" 
-                                               HorizontalOptions="Center" />
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center" />
 
                                         <!-- Action Buttons -->
-                                        <VerticalStackLayout Grid.Column="6" Spacing="10">
+                                        <VerticalStackLayout Grid.Column="6" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
                                             <Button
                                                 Text="Edit" 
                                                 FontSize="12" 
@@ -166,6 +175,7 @@
                                                 WidthRequest="65" 
                                                 HeightRequest="35"
                                                 FontAttributes="Bold"
+                                                HorizontalOptions="Center"
                                                 Command="{Binding BindingContext.EditCartItemCommand, Source={x:Reference CartPopupView}}" 
                                                 CommandParameter="{Binding .}" />
                                             <Button 
@@ -180,6 +190,7 @@
                                                 WidthRequest="65" 
                                                 HeightRequest="35"
                                                 FontAttributes="Bold"
+                                                HorizontalOptions="Center"
                                                 Command="{Binding BindingContext.DeleteCartItemCommand, Source={x:Reference CartPopupView}}" 
                                                 CommandParameter="{Binding .}" />
                                         </VerticalStackLayout>

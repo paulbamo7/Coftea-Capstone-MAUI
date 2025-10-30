@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Maui.Controls;
+using System.Collections.ObjectModel;
+using Coftea_Capstone.Models;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -20,9 +22,15 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private string paymentMethod = "";
 
+        [ObservableProperty]
+        private ObservableCollection<PaymentBreakdownItem> paymentBreakdown = new();
+
+        public bool HasMultiplePaymentMethods => PaymentBreakdown.Count > 1;
+        public bool HasSinglePaymentMethod => PaymentBreakdown.Count <= 1;
+
         private CancellationTokenSource _hideCancellationTokenSource;
 
-        public async Task ShowOrderConfirmationAsync(string orderId, decimal total, string paymentMethod) // Show order confirmed popup
+        public async Task ShowOrderConfirmationAsync(string orderId, decimal total, string paymentMethod, List<CartItem> cartItems = null) // Show order confirmed popup
         {
             // Cancel any existing hide operation
             _hideCancellationTokenSource?.Cancel();
@@ -32,6 +40,26 @@ namespace Coftea_Capstone.ViewModel.Controls
             TotalAmount = total;
             PaymentMethod = paymentMethod;
 
+            // Build payment breakdown from cart items
+            PaymentBreakdown.Clear();
+            if (cartItems != null && cartItems.Count > 0)
+            {
+                foreach (var item in cartItems)
+                {
+                    PaymentBreakdown.Add(new PaymentBreakdownItem
+                    {
+                        ProductName = item.ProductName,
+                        PaymentMethod = string.IsNullOrEmpty(item.PaymentMethod) ? paymentMethod : item.PaymentMethod,
+                        Amount = item.Price,
+                        Quantity = item.TotalQuantity
+                    });
+                }
+            }
+
+            // Notify property changes for visibility bindings
+            OnPropertyChanged(nameof(HasMultiplePaymentMethods));
+            OnPropertyChanged(nameof(HasSinglePaymentMethod));
+
             // Show the popup with animation
             IsVisible = true;
             await Task.Delay(50); // Small delay to ensure UI is ready
@@ -39,13 +67,13 @@ namespace Coftea_Capstone.ViewModel.Controls
             // No animation
             Opacity = 1;
 
-            // Auto-hide after 3 seconds
+            // Auto-hide after 5 seconds (increased to give time to read breakdown)
             _hideCancellationTokenSource = new CancellationTokenSource();
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(3000, _hideCancellationTokenSource.Token);
+                    await Task.Delay(5000, _hideCancellationTokenSource.Token);
                     
                     // No animation
                     await MainThread.InvokeOnMainThreadAsync(() =>

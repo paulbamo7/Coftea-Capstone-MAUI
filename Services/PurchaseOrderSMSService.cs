@@ -11,11 +11,11 @@ namespace Coftea_Capstone.Services
 {
     public static class PurchaseOrderSMSService
     {
-        private static readonly string SUPPLIER_PHONE = "+639625068078"; // Coftea Supplier phone number (Philippines)
-        private static readonly string ADMIN_PHONE = "+639625068078"; // Admin phone number for notifications (Philippines)
+        private static readonly string SUPPLIER_PHONE = "+639625068078"; // Coftea Supplier phone number (Philippines) - CHANGE THIS TO YOUR SUPPLIER'S NUMBER
+        private static readonly string ADMIN_PHONE = "+639625068078"; // Admin phone number for notifications (Philippines) - CHANGE THIS TO ADMIN'S NUMBER
         
         // SMS Service Configuration - Choose one method
-        private static readonly SMS_METHOD CurrentSMSMethod = SMS_METHOD.EMAIL_TO_SMS; // Change this to your preferred method
+        private static readonly SMS_METHOD CurrentSMSMethod = SMS_METHOD.PHONE_SMS_APP; // Change this to your preferred method
         
         // Method 1: Email-to-SMS (Free - Works with most carriers)
         private static readonly string EMAIL_TO_SMS = "09625068078@txt.att.net"; // AT&T format
@@ -56,6 +56,7 @@ namespace Coftea_Capstone.Services
         
         public enum SMS_METHOD
         {
+            PHONE_SMS_APP,          // Use phone's built-in SMS app (FREE - no API needed)
             EMAIL_TO_SMS,          // Email-to-SMS (Free - works with most carriers)
             TEXTLOCAL_API,          // TextLocal API (Free trial, cheap rates)
             CLICKSEND_API,          // ClickSend API (Free trial, cheap rates)
@@ -271,6 +272,7 @@ namespace Coftea_Capstone.Services
             {
                 return CurrentSMSMethod switch
                 {
+                    SMS_METHOD.PHONE_SMS_APP => await OpenPhoneSMSAppAsync(toPhoneNumber, message),
                     SMS_METHOD.EMAIL_TO_SMS => await SendEmailToSMSAsync(toPhoneNumber, message),
                     SMS_METHOD.TEXTLOCAL_API => await SendTextLocalSMSAsync(toPhoneNumber, message),
                     SMS_METHOD.CLICKSEND_API => await SendClickSendSMSAsync(toPhoneNumber, message),
@@ -287,6 +289,46 @@ namespace Coftea_Capstone.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error sending notification: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Opens phone's built-in SMS app with pre-filled message (100% FREE)
+        /// </summary>
+        private static async Task<bool> OpenPhoneSMSAppAsync(string toPhoneNumber, string message)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"📱 Opening phone SMS app for {toPhoneNumber}");
+                System.Diagnostics.Debug.WriteLine($"📝 Message: {message}");
+                
+                // Use MAUI's Sms API to open the phone's SMS app
+                if (Sms.Default.IsComposeSupported)
+                {
+                    var smsMessage = new SmsMessage(message, new[] { toPhoneNumber });
+                    await Sms.Default.ComposeAsync(smsMessage);
+                    
+                    System.Diagnostics.Debug.WriteLine("✅ SMS app opened successfully");
+                    return true;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ SMS not supported on this device");
+                    await Application.Current.MainPage.DisplayAlert(
+                        "SMS Not Available",
+                        "Your device doesn't support SMS. Please contact the supplier manually.",
+                        "OK");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error opening SMS app: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error",
+                    $"Could not open SMS app: {ex.Message}",
+                    "OK");
                 return false;
             }
         }

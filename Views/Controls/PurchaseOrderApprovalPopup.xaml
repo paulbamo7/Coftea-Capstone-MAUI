@@ -8,7 +8,7 @@
     IsVisible="{Binding IsVisible}"
     InputTransparent="False">
 
-    <Grid VerticalOptionsייה="Fill" HorizontalOptions="Fill" InputTransparent="False">
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
         <!-- Background overlay that closes on tap -->
         <BoxView BackgroundColor="#80000000" InputTransparent="False">
             <BoxView.GestureRecognizers>
@@ -106,7 +106,7 @@
                                             <!-- Items Preview -->
                                             <Label Grid.Row="2"
                                                    Text="{Binding ItemsPreview}"
-                                                   FontSize=" León"
+                                                   FontSize="12"
                                                    TextColor="#666"
                                                    LineBreakMode="TailTruncation"/>
 

@@ -144,7 +144,7 @@ namespace Coftea_Capstone.Models
                     // Android emulator typically uses 10.0.2.2 to access host machine
                     var androidIPs = isLikelyEmulator ? 
                         new[] { "10.0.2.2", "192.168.1.6", "localhost" } : 
-                        new[] { "192.168.1.6", "10.0.2.2", "localhost" };
+                        new[] { "192.168.1.2", "10.0.2.2", "localhost" };
                     
                     foreach (var ip in androidIPs)
                     {
@@ -158,7 +158,7 @@ namespace Coftea_Capstone.Models
                     // iOS simulator typically uses localhost or host machine IP
                     var iosIPs = isLikelyEmulator ? 
                         new[] { "localhost", "192.168.1.6" } : 
-                        new[] { "192.168.1.6", "localhost" };
+                        new[] { "192.168.1.2", "localhost" };
                     
                     foreach (var ip in iosIPs)
                     {
@@ -257,7 +257,7 @@ namespace Coftea_Capstone.Models
                 CREATE TABLE IF NOT EXISTS products (
                     productID INT AUTO_INCREMENT PRIMARY KEY,
                     productName VARCHAR(255) NOT NULL,
-                    smallPrice DECIMAL(10,2) NOT NULL,
+                    smallPrice DECIMAL(10,2) DEFAULT NULL,
                     mediumPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
                     largePrice DECIMAL(10,2) NOT NULL,
                     category VARCHAR(100),
@@ -298,33 +298,34 @@ namespace Coftea_Capstone.Models
                     changedBy VARCHAR(50) DEFAULT 'USER',
                     cost DECIMAL(10,2) DEFAULT NULL,
                     orderId VARCHAR(100),
+                    productName VARCHAR(255) DEFAULT NULL COMMENT 'POS product name that used this ingredient',
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     notes TEXT,
                     FOREIGN KEY (itemId) REFERENCES inventory(itemID) ON DELETE CASCADE,
-                    FOREIGN KEY (userId) REFERENCES users(userID) ON DELETE SET NULL,
+                    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE SET NULL,
                     INDEX idx_itemId (itemId),
                     INDEX idx_timestamp (timestamp),
                     INDEX idx_action (action),
                     INDEX idx_userEmail (userEmail),
-                    INDEX idx_orderId (orderId)
+                    INDEX idx_orderId (orderId),
+                    INDEX idx_productName (productName)
                 );
                 
                 CREATE TABLE IF NOT EXISTS product_ingredients (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     productID INT NOT NULL,
                     itemID INT NOT NULL,
-                    amount DECIMAL(10,4) NOT NULL,
-                    unit VARCHAR(50),
-                    -- Per-size amounts/units (nullable; fallback to shared amount/unit when NULL)
-                    amount_small  DECIMAL(10,4) NULL,
-                    unit_small    VARCHAR(50)   NULL,
-                    amount_medium DECIMAL(10,4) NULL,
-                    unit_medium   VARCHAR(50)   NULL,
-                    amount_large  DECIMAL(10,4) NULL,
-                    unit_large    VARCHAR(50)   NULL,
+                    amount_small  DECIMAL(10,4) NOT NULL DEFAULT 0,
+                    unit_small    VARCHAR(50) NOT NULL DEFAULT 'pcs',
+                    amount_medium DECIMAL(10,4) NOT NULL DEFAULT 0,
+                    unit_medium   VARCHAR(50) NOT NULL DEFAULT 'pcs',
+                    amount_large  DECIMAL(10,4) NOT NULL DEFAULT 0,
+                    unit_large    VARCHAR(50) NOT NULL DEFAULT 'pcs',
                     role VARCHAR(50) DEFAULT 'ingredient',
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
-                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
+                    FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE,
+                    INDEX idx_productID (productID),
+                    INDEX idx_itemID (itemID)
                 );
     
                 CREATE TABLE IF NOT EXISTS product_addons (
@@ -373,6 +374,37 @@ namespace Coftea_Capstone.Models
                 -- This will fail silently if column doesn't exist or is already the right size
                 ALTER TABLE transaction_items MODIFY COLUMN size VARCHAR(100);
                 
+                -- Allow NULL for smallPrice in products table (only Coffee category needs small size)
+                ALTER TABLE products MODIFY COLUMN smallPrice DECIMAL(10,2) DEFAULT NULL;
+                
+                -- Drop unused columns from product_ingredients table if they exist
+                SET @tablename = 'product_ingredients';
+                SET @columnname = 'amount';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = DATABASE())
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  CONCAT('ALTER TABLE ', @tablename, ' DROP COLUMN ', @columnname, ';'),
+                  'SELECT 1'
+                ));
+                PREPARE dropIfExists FROM @preparedStatement;
+                EXECUTE dropIfExists;
+                DEALLOCATE PREPARE dropIfExists;
+                
+                SET @columnname = 'unit';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = DATABASE())
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  CONCAT('ALTER TABLE ', @tablename, ' DROP COLUMN ', @columnname, ';'),
+                  'SELECT 1'
+                ));
+                PREPARE dropIfExists FROM @preparedStatement;
+                EXECUTE dropIfExists;
+                DEALLOCATE PREPARE dropIfExists;
+                
                 -- Alter existing inventory_activity_log table to add new columns if they don't exist
                 -- Add userFullName column if it doesn't exist
                 SET @dbname = DATABASE();
@@ -399,6 +431,20 @@ namespace Coftea_Capstone.Models
                    AND (COLUMN_NAME = @columnname)) > 0,
                   'SELECT 1',
                   CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' INT;')
+                ));
+                PREPARE alterIfNotExists FROM @preparedStatement;
+                EXECUTE alterIfNotExists;
+                DEALLOCATE PREPARE alterIfNotExists;
+                
+                -- Add productName column if it doesn't exist
+                SET @columnname = 'productName';
+                SET @preparedStatement = (SELECT IF(
+                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE (TABLE_SCHEMA = @dbname)
+                   AND (TABLE_NAME = @tablename)
+                   AND (COLUMN_NAME = @columnname)) > 0,
+                  'SELECT 1',
+                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' VARCHAR(255) DEFAULT NULL COMMENT ''POS product name that used this ingredient'';')
                 ));
                 PREPARE alterIfNotExists FROM @preparedStatement;
                 EXECUTE alterIfNotExists;
@@ -548,7 +594,7 @@ namespace Coftea_Capstone.Models
 			{
 				ProductID = reader.GetInt32("productID"),
 				ProductName = reader.GetString("productName"),
-				SmallPrice = reader.GetDecimal("smallPrice"),
+				SmallPrice = reader.IsDBNull(reader.GetOrdinal("smallPrice")) ? null : reader.GetDecimal("smallPrice"),
 				MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
 				LargePrice = reader.GetDecimal("largePrice"),
 				ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
@@ -786,7 +832,8 @@ namespace Coftea_Capstone.Models
                       "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
-            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
+            // Save 0 as NULL for smallPrice (only Coffee category needs small size)
+            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice > 0 ? (object)product.SmallPrice : DBNull.Value);
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -809,7 +856,8 @@ namespace Coftea_Capstone.Models
                       "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
-            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
+            // Save 0 as NULL for smallPrice (only Coffee category needs small size)
+            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice > 0 ? (object)product.SmallPrice : DBNull.Value);
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -1027,7 +1075,8 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductID", product.ProductID);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
-            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
+            // Save 0 as NULL for smallPrice (only Coffee category needs small size)
+            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice > 0 ? (object)product.SmallPrice : DBNull.Value);
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -1248,6 +1297,7 @@ namespace Coftea_Capstone.Models
                             UserId = App.CurrentUser?.ID,
                             ChangedBy = "POS",
                             OrderId = null, // Will be set by calling code if available
+                            ProductName = productName, // Store the POS product name
                             Notes = !string.IsNullOrWhiteSpace(productName) 
                                 ? $"Deducted {amount} {unitOfMeasurement} for {productName}"
                                 : $"Deducted {amount} {unitOfMeasurement} for POS order"
@@ -1454,10 +1504,10 @@ namespace Coftea_Capstone.Models
             var sql = @"INSERT INTO inventory_activity_log 
                         (itemId, itemName, itemCategory, action, quantityChanged, previousQuantity, 
                          newQuantity, unitOfMeasurement, reason, userEmail, userFullName, userId, 
-                         changedBy, cost, orderId, notes) 
+                         changedBy, cost, orderId, productName, notes) 
                         VALUES (@ItemId, @ItemName, @ItemCategory, @Action, @QuantityChanged, 
                                 @PreviousQuantity, @NewQuantity, @UnitOfMeasurement, @Reason, 
-                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @Notes);";
+                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @ProductName, @Notes);";
             
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemId", logEntry.ItemId);
@@ -1475,6 +1525,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@ChangedBy", (object?)logEntry.ChangedBy ?? "USER");
             cmd.Parameters.AddWithValue("@Cost", (object?)logEntry.Cost ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@OrderId", (object?)logEntry.OrderId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProductName", (object?)logEntry.ProductName ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Notes", (object?)logEntry.Notes ?? DBNull.Value);
             
             return await cmd.ExecuteNonQueryAsync();
@@ -1485,10 +1536,10 @@ namespace Coftea_Capstone.Models
             var sql = @"INSERT INTO inventory_activity_log 
                         (itemId, itemName, itemCategory, action, quantityChanged, previousQuantity, 
                          newQuantity, unitOfMeasurement, reason, userEmail, userFullName, userId, 
-                         changedBy, cost, orderId, notes) 
+                         changedBy, cost, orderId, productName, notes) 
                         VALUES (@ItemId, @ItemName, @ItemCategory, @Action, @QuantityChanged, 
                                 @PreviousQuantity, @NewQuantity, @UnitOfMeasurement, @Reason, 
-                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @Notes);";
+                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @ProductName, @Notes);";
             
             await using var cmd = new MySqlCommand(sql, conn, tx);
             cmd.Parameters.AddWithValue("@ItemId", logEntry.ItemId);
@@ -1506,6 +1557,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@ChangedBy", (object?)logEntry.ChangedBy ?? "USER");
             cmd.Parameters.AddWithValue("@Cost", (object?)logEntry.Cost ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@OrderId", (object?)logEntry.OrderId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProductName", (object?)logEntry.ProductName ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Notes", (object?)logEntry.Notes ?? DBNull.Value);
             
             return await cmd.ExecuteNonQueryAsync();
@@ -1553,6 +1605,7 @@ namespace Coftea_Capstone.Models
                     ChangedBy = reader.IsDBNull(reader.GetOrdinal("changedBy")) ? "USER" : reader.GetString("changedBy"),
                     Cost = reader.IsDBNull(reader.GetOrdinal("cost")) ? (double?)null : reader.GetDouble("cost"),
                     OrderId = reader.IsDBNull(reader.GetOrdinal("orderId")) ? null : reader.GetString("orderId"),
+                    ProductName = reader.IsDBNull(reader.GetOrdinal("productName")) ? null : reader.GetString("productName"),
                     Timestamp = reader.GetDateTime("timestamp"),
                     Notes = reader.IsDBNull(reader.GetOrdinal("notes")) ? null : reader.GetString("notes")
                 });
@@ -1893,9 +1946,7 @@ namespace Coftea_Capstone.Models
                     Password = reader.GetString("password"),
                     FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
                     LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-                    Birthday = reader.IsDBNull(reader.GetOrdinal("birthday")) ? DateTime.MinValue : reader.GetDateTime("birthday"),
                     PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
-                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
                     IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
                     Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
                     CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
@@ -2210,11 +2261,38 @@ namespace Coftea_Capstone.Models
         // Delete user
         public async Task<int> DeleteUserAsync(int userId)
         {
+            // Protect the first user (primary admin) from deletion
+            if (userId == 1)
+            {
+                System.Diagnostics.Debug.WriteLine("[Database] ⚠️ Attempted to delete protected primary admin account (ID: 1)");
+                throw new InvalidOperationException("Cannot delete the primary admin account. This account is protected.");
+            }
+            
             await using var conn = await GetOpenConnectionAsync();
+            
+            // Check if user is admin before deleting
+            var checkSql = "SELECT isAdmin FROM users WHERE id = @Id;";
+            await using var checkCmd = new MySqlCommand(checkSql, conn);
+            checkCmd.Parameters.AddWithValue("@Id", userId);
+            var result = await checkCmd.ExecuteScalarAsync();
+            
+            if (result != null && Convert.ToBoolean(result))
+            {
+                System.Diagnostics.Debug.WriteLine($"[Database] ⚠️ Attempted to delete admin user (ID: {userId})");
+                throw new InvalidOperationException("Cannot delete admin users. Please revoke admin privileges first.");
+            }
+            
             var sql = "DELETE FROM users WHERE id = @Id;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Id", userId);
-            return await cmd.ExecuteNonQueryAsync();
+            var deleted = await cmd.ExecuteNonQueryAsync();
+            
+            if (deleted > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Database] ✅ User deleted (ID: {userId})");
+            }
+            
+            return deleted;
         }
         
         // Update existing users to approved status
@@ -2473,48 +2551,89 @@ namespace Coftea_Capstone.Models
             {
                 await using var conn = await GetOpenConnectionAsync();
                 
+                System.Diagnostics.Debug.WriteLine("📦 [Database] Fetching pending purchase orders...");
+                
+                // First, get all pending orders
                 var sql = @"
-                    SELECT po.*, poi.*
-                    FROM purchase_orders po
-                    LEFT JOIN purchase_order_items poi ON po.purchaseOrderId = poi.purchaseOrderId
-                    WHERE po.status = 'Pending'
-                    ORDER BY po.createdAt DESC;";
+                    SELECT * FROM purchase_orders
+                    WHERE status = 'Pending'
+                    ORDER BY createdAt DESC;";
                 
                 await using var cmd = new MySqlCommand(sql, conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 
                 var orders = new List<PurchaseOrderModel>();
-                var currentOrder = (PurchaseOrderModel)null;
                 
                 while (await reader.ReadAsync())
                 {
-                    if (currentOrder == null || currentOrder.PurchaseOrderId != reader.GetInt32("purchaseOrderId"))
+                    var order = new PurchaseOrderModel
                     {
-                        if (currentOrder != null)
-                            orders.Add(currentOrder);
-                            
-                        currentOrder = new PurchaseOrderModel
-                        {
-                            PurchaseOrderId = reader.GetInt32("purchaseOrderId"),
-                            OrderDate = reader.GetDateTime("orderDate"),
-                            SupplierName = reader.GetString("supplierName"),
-                            Status = reader.GetString("status"),
-                            RequestedBy = reader.GetString("requestedBy"),
-                            TotalAmount = reader.GetDecimal("totalAmount"),
-                            CreatedAt = reader.GetDateTime("createdAt")
-                        };
-                    }
+                        PurchaseOrderId = reader.GetInt32("purchaseOrderId"),
+                        OrderDate = reader.GetDateTime("orderDate"),
+                        SupplierName = reader.GetString("supplierName"),
+                        Status = reader.GetString("status"),
+                        RequestedBy = reader.GetString("requestedBy"),
+                        ApprovedBy = reader.IsDBNull(reader.GetOrdinal("approvedBy")) ? string.Empty : reader.GetString("approvedBy"),
+                        TotalAmount = reader.GetDecimal("totalAmount"),
+                        CreatedAt = reader.GetDateTime("createdAt"),
+                        Notes = reader.IsDBNull(reader.GetOrdinal("notes")) ? string.Empty : reader.GetString("notes")
+                    };
+                    orders.Add(order);
+                    System.Diagnostics.Debug.WriteLine($"📦 [Database] Found pending order #{order.PurchaseOrderId} by {order.RequestedBy}");
                 }
                 
-                if (currentOrder != null)
-                    orders.Add(currentOrder);
-                
+                System.Diagnostics.Debug.WriteLine($"📦 [Database] Total pending orders found: {orders.Count}");
                 return orders;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error getting pending purchase orders: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 return new List<PurchaseOrderModel>();
+            }
+        }
+
+        /// <summary>
+        /// Gets all items for a specific purchase order
+        /// </summary>
+        public async Task<List<PurchaseOrderItemModel>> GetPurchaseOrderItemsAsync(int purchaseOrderId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                
+                var sql = @"
+                    SELECT * FROM purchase_order_items
+                    WHERE purchaseOrderId = @purchaseOrderId
+                    ORDER BY itemName;";
+                
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                
+                var items = new List<PurchaseOrderItemModel>();
+                while (await reader.ReadAsync())
+                {
+                    items.Add(new PurchaseOrderItemModel
+                    {
+                        PurchaseOrderItemId = reader.GetInt32("purchaseOrderItemId"),
+                        PurchaseOrderId = reader.GetInt32("purchaseOrderId"),
+                        InventoryItemId = reader.GetInt32("inventoryItemId"),
+                        ItemName = reader.GetString("itemName"),
+                        ItemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
+                        RequestedQuantity = reader.GetInt32("requestedQuantity"),
+                        UnitPrice = reader.GetDecimal("unitPrice"),
+                        TotalPrice = reader.GetDecimal("totalPrice"),
+                        UnitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement")
+                    });
+                }
+                
+                return items;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting purchase order items: {ex.Message}");
+                return new List<PurchaseOrderItemModel>();
             }
         }
 

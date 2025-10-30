@@ -26,19 +26,47 @@ namespace Coftea_Capstone.ViewModel.Controls
         public void SyncSelectionsFrom(IEnumerable<InventoryPageModel> items)
         {
             if (items == null) return;
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 SyncSelectionsFrom: Syncing {items.Count()} items");
+            
             var byId = items.Where(i => i != null).ToDictionary(i => i.itemID, i => i);
+            
             foreach (var addon in AvailableAddons)
             {
                 if (addon == null) continue;
+                
                 if (byId.TryGetValue(addon.itemID, out var existing))
                 {
-                    addon.IsSelected = existing.IsSelected || existing.AddonQuantity > 0;
-                    addon.AddonQuantity = existing.AddonQuantity > 0 ? existing.AddonQuantity : (addon.IsSelected ? 1 : 0);
-                    if (existing.InputAmount > 0) addon.InputAmount = existing.InputAmount;
-                    if (!string.IsNullOrWhiteSpace(existing.InputUnit)) addon.InputUnit = existing.InputUnit;
-                    if (existing.AddonPrice > 0) addon.AddonPrice = existing.AddonPrice;
+                    System.Diagnostics.Debug.WriteLine($"🔧 SyncSelectionsFrom: Syncing addon {addon.itemName} (ID: {addon.itemID})");
+                    System.Diagnostics.Debug.WriteLine($"🔧   Existing values - IsSelected: {existing.IsSelected}, InputAmount: {existing.InputAmount}, InputUnit: {existing.InputUnit}, AddonPrice: {existing.AddonPrice}");
+                    
+                    // If this addon exists in SelectedAddons, it should be marked as selected in the popup
+                    // (even if IsSelected is false in the source to prevent it from appearing in ingredient lists)
+                    addon.IsSelected = true;
+                    
+                    // Sync addon quantity
+                    addon.AddonQuantity = existing.AddonQuantity > 0 ? existing.AddonQuantity : 1;
+                    
+                    // Sync input amount (use existing value, default to 1 if selected)
+                    addon.InputAmount = existing.InputAmount > 0 ? existing.InputAmount : 1;
+                    
+                    // Sync input unit (prefer existing, fallback to addon's default unit)
+                    addon.InputUnit = !string.IsNullOrWhiteSpace(existing.InputUnit) ? existing.InputUnit : addon.DefaultUnit;
+                    
+                    // Sync addon price (always sync, even if 0 - could be intentionally free)
+                    addon.AddonPrice = existing.AddonPrice;
+                    
+                    // Sync addon unit if available
+                    if (!string.IsNullOrWhiteSpace(existing.AddonUnit))
+                    {
+                        addon.AddonUnit = existing.AddonUnit;
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧   Synced values - IsSelected: {addon.IsSelected}, InputAmount: {addon.InputAmount}, InputUnit: {addon.InputUnit}, AddonPrice: {addon.AddonPrice}");
                 }
             }
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 SyncSelectionsFrom: Completed syncing");
         }
 
         [RelayCommand]

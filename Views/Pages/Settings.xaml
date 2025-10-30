@@ -1,6 +1,7 @@
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
     x:Class="Coftea_Capstone.Views.Pages.Settings"
     BackgroundColor="#80000000"
     x:Name="SettingsPop"
@@ -33,128 +34,134 @@
             </Frame.GestureRecognizers>
 
             <ScrollView>
-                <VerticalStackLayout Spacing="25">
+                <VerticalStackLayout Spacing="10">
                 <!-- Header -->
-                <Label Text="Settings"
-                       FontSize="30"
-                       FontAttributes="Bold"
-                       FontFamily="Montserrat-Black"
-                       TextColor="#5B4F45"
-                       HorizontalOptions="Center"
-                       Margin="0,5,0,20" />
+                <!-- Top Bar with Settings Title and Connectivity Indicator -->
+                <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,20">
+                    <Label Text="Settings"
+                           Grid.Column="0"
+                           FontSize="30"
+                           FontAttributes="Bold"
+                           FontFamily="Montserrat-Black"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                    
+                    <!-- Connectivity Status Indicator -->
+                    <otherViews:ConnectivityStatusIndicator Grid.Column="1" VerticalOptions="Center" HorizontalOptions="End"/>
+                </Grid>
 
                 <!-- Feature buttons (wrap on small screens) -->
-                <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="Center" AlignContent="Start" Margin="0,0,0,0">
+                    <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="Center" AlignContent="Start" Margin="0,0,0,0">
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
-                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="White" Padding="20">
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding OpenUserManagementCommand}" />
-                            </Frame.GestureRecognizers>
-                            <Image Source="usermanagementicon.png"
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                            <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#A89580" Padding="20">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenUserManagementCommand}" />
+                                </Frame.GestureRecognizers>
+                                <Image Source="usermanagementicon.png"
                                    HeightRequest="80"
                                    WidthRequest="80"
                                    Aspect="AspectFit"
                                    InputTransparent="True" />
-                        </Frame>
-                        <Label Text="User Management"
+                            </Frame>
+                            <Label Text="User Management"
                                HorizontalOptions="Center"
                                FontSize="14"
                                FontAttributes="Bold"
                                FontFamily="OpenSansSemibold"
                                TextColor="#5B4F45"/>
-                    </VerticalStackLayout>
-                    
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
-                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="White" Padding="20">
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding OpenManagePOSOptionsCommand}" />
-                            </Frame.GestureRecognizers>
-                            <Image Source="manageposicon.png"
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                            <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#A89580" Padding="20">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenManagePOSOptionsCommand}" />
+                                </Frame.GestureRecognizers>
+                                <Image Source="manageposicon.png"
                                    HeightRequest="80"
                                    WidthRequest="80"
                                    Aspect="AspectFit"
                                    InputTransparent="True" />
-                        </Frame>
-                        <Label Text="Manage POS Menu"
+                            </Frame>
+                            <Label Text="Manage POS Menu"
                                HorizontalOptions="Center"
                                FontSize="14"
                                FontAttributes="Bold"
                                FontFamily="OpenSansSemibold"
                                TextColor="#5B4F45"/>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15" IsVisible="{Binding CanManageInventory}">
-                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="White" Padding="20">
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding OpenManageInventoryOptionsCommand}" />
-                            </Frame.GestureRecognizers>
-                            <Image Source="manageinventoryicon.png"
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15" IsVisible="{Binding CanManageInventory}">
+                            <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#A89580" Padding="20">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenManageInventoryOptionsCommand}" />
+                                </Frame.GestureRecognizers>
+                                <Image Source="manageinventoryicon.png"
                                    HeightRequest="80"
                                    WidthRequest="80"
                                    Aspect="AspectFit"
                                    InputTransparent="True" />
-                        </Frame>
-                        <Label Text="Manage Inventory"
+                            </Frame>
+                            <Label Text="Manage Inventory"
                                HorizontalOptions="Center"
                                FontSize="14"
                                FontAttributes="Bold"
                                FontFamily="OpenSansSemibold"
                                TextColor="#5B4F45"/>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
 
-                    <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
-                        <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#BDAEA2" Padding="20">
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnLogoutClicked" />
-                            </Frame.GestureRecognizers>
-                            <Image Source="logouticon.png"
-                                   HeightRequest="80"
-                                   WidthRequest="80"
-                                   Aspect="AspectFit"
-                                   InputTransparent="True" />
-                        </Frame>
-                        <Label Text="Logout"
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                            <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#4A90E2" Padding="20">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding SyncDatabaseCommand}" />
+                                </Frame.GestureRecognizers>
+                                <Grid>
+                                    <!-- Sync Icon (using Unicode character as fallback) -->
+                                    <Label Text="🔄"
+                                       FontSize="60"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       InputTransparent="True"
+                                       IsVisible="{Binding IsNotSyncing}" />
+                                    <ActivityIndicator 
+                                       IsRunning="{Binding IsSyncing}"
+                                       IsVisible="{Binding IsSyncing}"
+                                       Color="White"
+                                       HeightRequest="60"
+                                       WidthRequest="60" />
+                                </Grid>
+                            </Frame>
+                            <Label Text="{Binding SyncButtonText}"
                                HorizontalOptions="Center"
                                FontSize="14"
                                FontAttributes="Bold"
                                FontFamily="OpenSansSemibold"
                                TextColor="#5B4F45"/>
-                    </VerticalStackLayout>
+                        </VerticalStackLayout>
 
-                </FlexLayout>
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                            <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#D9534F" Padding="20">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnLogoutClicked" />
+                                </Frame.GestureRecognizers>
+                                <Image Source="logouticon.png"
+                                   HeightRequest="80"
+                                   WidthRequest="80"
+                                   Aspect="AspectFit"
+                                   InputTransparent="True" />
+                            </Frame>
+                            <Label Text="Logout"
+                               HorizontalOptions="Center"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               FontFamily="OpenSansSemibold"
+                               TextColor="#5B4F45"/>
+                        </VerticalStackLayout>
 
-                <!-- Database IP Setting Section - COMMENTED OUT -->
-                <!--
-                <Frame BackgroundColor="#F0F0F0" CornerRadius="15" Padding="15" Margin="0,10,0,0">
-                    <VerticalStackLayout Spacing="10">
-                        <Label Text="Database Connection" FontSize="16" FontAttributes="Bold" TextColor="#4B3832" HorizontalOptions="Center"/>
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
-                            <Label Text="IP:" FontSize="14" TextColor="#4B3832" VerticalOptions="Center"/>
-                            <Entry Text="{Binding DatabaseIP}" 
-                                   Placeholder="192.168.1.xxx" 
-                                   FontSize="14" 
-                                   BackgroundColor="White"
-                                   Grid.Column="1"/>
-                            <Button Text="Save" 
-                                    Command="{Binding SaveDatabaseIPCommand}"
-                                    BackgroundColor="#4CAF50" 
-                                    TextColor="White" 
-                                    FontSize="12"
-                                    CornerRadius="10"
-                                    WidthRequest="60"
-                                    HeightRequest="35"
-                                    Grid.Column="2"/>
-                        </Grid>
-                        <Label Text="Enter the PC's IP address where the database is running" 
-                               FontSize="12" 
-                               TextColor="Gray" 
-                               HorizontalOptions="Center"/>
-                    </VerticalStackLayout>
-                </Frame>
-                -->
+                    </FlexLayout>
 
-                <!-- Close button at bottom -->
+                    <!-- Close button at bottom -->
                 <Button Text="Close"
                         Margin="0,15,0,0"
                         WidthRequest="140"

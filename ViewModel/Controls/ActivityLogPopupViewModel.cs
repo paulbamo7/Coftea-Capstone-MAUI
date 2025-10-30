@@ -34,6 +34,17 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ObservableCollection<InventoryActivityLog> filteredActivityLog = new();
 
+        [ObservableProperty]
+        private bool isDateFilterVisible = false;
+
+        [ObservableProperty]
+        private DateTime filterStartDate = DateTime.Now.AddDays(-7);
+
+        [ObservableProperty]
+        private DateTime filterEndDate = DateTime.Now;
+
+        private bool _hasDateFilter = false;
+
         public ActivityLogPopupViewModel()
         {
             _database = new Database();
@@ -117,7 +128,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                         (log.OrderId?.ToLowerInvariant().Contains(searchTerm) ?? false));
                 }
 
-                FilteredActivityLog = new ObservableCollection<InventoryActivityLog>(query);
+                // Apply date filter
+                if (_hasDateFilter)
+                {
+                    var startDate = FilterStartDate.Date;
+                    var endDate = FilterEndDate.Date.AddDays(1).AddSeconds(-1); // Include entire end date
+                    query = query.Where(log => log.Timestamp >= startDate && log.Timestamp <= endDate);
+                }
+
+                // Assign row numbers for table display
+                var filteredList = query.ToList();
+                for (int i = 0; i < filteredList.Count; i++)
+                {
+                    filteredList[i].RowNumber = i + 1;
+                }
+
+                FilteredActivityLog = new ObservableCollection<InventoryActivityLog>(filteredList);
                 StatusMessage = $"Showing {FilteredActivityLog.Count} of {_allActivityLog.Count} entries";
             }
             catch (Exception ex)
@@ -125,6 +151,58 @@ namespace Coftea_Capstone.ViewModel.Controls
                 StatusMessage = $"Error applying filters: {ex.Message}";
                 System.Diagnostics.Debug.WriteLine($"❌ Error applying filters: {ex.Message}");
             }
+        }
+
+        [RelayCommand]
+        private void ShowDateFilter()
+        {
+            IsDateFilterVisible = true;
+        }
+
+        [RelayCommand]
+        private void ApplyDateFilter()
+        {
+            _hasDateFilter = true;
+            IsDateFilterVisible = false;
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        private void ClearDateFilter()
+        {
+            _hasDateFilter = false;
+            FilterStartDate = DateTime.Now.AddDays(-7);
+            FilterEndDate = DateTime.Now;
+            IsDateFilterVisible = false;
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        private void SetToday()
+        {
+            FilterStartDate = DateTime.Now.Date;
+            FilterEndDate = DateTime.Now.Date;
+        }
+
+        [RelayCommand]
+        private void SetYesterday()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-1).Date;
+            FilterEndDate = DateTime.Now.AddDays(-1).Date;
+        }
+
+        [RelayCommand]
+        private void SetLast7Days()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-7).Date;
+            FilterEndDate = DateTime.Now.Date;
+        }
+
+        [RelayCommand]
+        private void SetLast30Days()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-30).Date;
+            FilterEndDate = DateTime.Now.Date;
         }
     }
 }

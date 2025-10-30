@@ -168,6 +168,23 @@ namespace Coftea_Capstone.ViewModel.Controls
                 return;
 
             System.Diagnostics.Debug.WriteLine("🔵 About to call ProcessPaymentWithSteps");
+            
+            // Assign payment method to each cart item BEFORE clearing
+            var cartItemsCopy = new List<CartItem>();
+            foreach (var item in CartItems)
+            {
+                item.PaymentMethod = SelectedPaymentMethod; // Assign the payment method to each item
+                cartItemsCopy.Add(new CartItem
+                {
+                    ProductName = item.ProductName,
+                    PaymentMethod = item.PaymentMethod,
+                    Price = item.Price,
+                    SmallQuantity = item.SmallQuantity,
+                    MediumQuantity = item.MediumQuantity,
+                    LargeQuantity = item.LargeQuantity
+                });
+            }
+            
             // Process payment with realistic steps
             await ProcessPaymentWithSteps();
             System.Diagnostics.Debug.WriteLine("🔵 ProcessPaymentWithSteps completed");
@@ -237,11 +254,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                 await appInstance.OrderCompletePopup.ShowOrderCompleteAsync(orderNumber);
             }
             
-            // Show order confirmation popup in bottom right
+            // Show order confirmation popup in bottom right with payment breakdown
             var orderConfirmedPopup = appInstance?.OrderConfirmedPopup;
             if (orderConfirmedPopup != null)
             {
-                await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod);
+                await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod, cartItemsCopy);
             }
             
             // No automatic toast here; user can open notifications manually via bell
@@ -377,6 +394,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                // Block immediately if no internet
+                if (!Services.NetworkService.HasInternetConnection())
+                {
+                    try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                    return new List<TransactionHistoryModel>();
+                }
                 System.Diagnostics.Debug.WriteLine($"🔄 Starting transaction save for {CartItems.Count} items");
                 
                 var app = (App)Application.Current;
@@ -395,10 +418,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                     
                     // Create a combined transaction record for the entire order
                     // Calculate size-specific prices for the transaction
-                    var smallTotal = CartItems.Sum(item => item.SmallPrice * item.SmallQuantity);
+                    var smallTotal = CartItems.Sum(item => (item.SmallPrice ?? 0) * item.SmallQuantity);
                     var mediumTotal = CartItems.Sum(item => item.MediumPrice * item.MediumQuantity);
                     var largeTotal = CartItems.Sum(item => item.LargePrice * item.LargeQuantity);
-                    var addonTotal = CartItems.Sum(item => Math.Max(0, item.TotalPrice - ((item.SmallPrice * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity))));
+                    var addonTotal = CartItems.Sum(item => Math.Max(0, item.TotalPrice - (((item.SmallPrice ?? 0) * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity))));
 
                     var orderTransaction = new TransactionHistoryModel
                     {
@@ -407,10 +430,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                         Size = CartItems.Count == 1 ? CartItems[0].SelectedSize : "Multiple",
                         Quantity = CartItems.Sum(item => item.Quantity),
                         Price = orderTotal,
-                        SmallPrice = smallTotal,
-                        MediumPrice = mediumTotal,
-                        LargePrice = largeTotal,
-                        AddonPrice = addonTotal,
+                        SmallPrice = (decimal)smallTotal,
+                        MediumPrice = (decimal)mediumTotal,
+                        LargePrice = (decimal)largeTotal,
+                        AddonPrice = (decimal)addonTotal,
                         Vat = 0m,
                         Total = orderTotal,
                         AddOns = string.Join(", ", CartItems.Where(item => !string.IsNullOrWhiteSpace(item.AddOnsDisplay) && item.AddOnsDisplay != "No add-ons").Select(item => $"{item.ProductName}: {item.AddOnsDisplay}")),
@@ -700,47 +723,86 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Include selected addons based on configured per-serving amounts
                 // Fetch addon link definitions (amount/unit per serving)
                 var addonLinks = await database.GetProductAddonsAsync(product.ProductID);
+                System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Found {addonLinks?.Count ?? 0} addon links for product {product.ProductName}");
+                
                 if (addonLinks != null && addonLinks.Count > 0 && cartItem.InventoryItems != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Cart has {cartItem.InventoryItems.Count} inventory items");
+                    
                     foreach (var linkedAddon in addonLinks)
                     {
+                        System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Processing linked addon: {linkedAddon.itemName} (ID: {linkedAddon.itemID})");
+                        
                         // Find this addon in the cart with user-selected quantity
                         var cartAddon = cartItem.InventoryItems.FirstOrDefault(ai => ai.itemID == linkedAddon.itemID);
-                        if (cartAddon == null) continue;
-                        if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0) continue;
+                        if (cartAddon == null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon not found in cart inventory items");
+                            continue;
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"   ✅ Found in cart: IsSelected={cartAddon.IsSelected}, AddonQuantity={cartAddon.AddonQuantity}");
+                        
+                        if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon skipped: not selected or quantity <= 0");
+                            continue;
+                        }
 
-                        // Use shared per-serving amount/unit for addons (same across sizes), fallback to inventory unit
+                        // Use the user-entered amount/unit for addons (prioritize InputUnit over inventory unit)
                         var perServingAmount = linkedAddon.InputAmount > 0
                             ? linkedAddon.InputAmount
                             : (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : 0);
-                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.unitOfMeasurement)
-                            ? linkedAddon.unitOfMeasurement
-                            : (cartAddon.unitOfMeasurement ?? string.Empty);
+                        
+                        // Use the saved InputUnit from the addon configuration
+                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.InputUnit)
+                            ? linkedAddon.InputUnit
+                            : (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitSmall)
+                                ? linkedAddon.InputUnitSmall
+                                : cartAddon.unitOfMeasurement);
+
+                        System.Diagnostics.Debug.WriteLine($"   📊 Per-serving: {perServingAmount} {perServingUnit}");
 
                         if (perServingAmount <= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Per-serving amount is 0, skipping addon");
                             continue; // nothing to deduct for this addon
+                        }
 
-                        var addonTargetUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
-                        var convertedAddonAmount = ConvertUnits(perServingAmount, perServingUnit, addonTargetUnit);
+                        // Convert to inventory base unit for deduction
+                        // (Database stores inventory in base units like L, kg, etc.)
+                        var inventoryBaseUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
+                        var convertedAmount = ConvertUnits(perServingAmount, perServingUnit, inventoryBaseUnit);
+
+                        System.Diagnostics.Debug.WriteLine($"   🔄 Converting: {perServingAmount} {perServingUnit} → {convertedAmount} {inventoryBaseUnit}");
 
                         // Deduct addon based on total quantity ordered across all sizes
                         // AddonQuantity is per drink, so multiply by total drinks ordered
                         var totalDrinks = cartItem.SmallQuantity + cartItem.MediumQuantity + cartItem.LargeQuantity;
+                        System.Diagnostics.Debug.WriteLine($"   📦 Total drinks: {totalDrinks}, Addon quantity per drink: {cartAddon.AddonQuantity}");
+                        
                         if (totalDrinks > 0)
                         {
-                            var totalAddonDeduction = convertedAddonAmount * cartAddon.AddonQuantity * (double)totalDrinks;
+                            var totalAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)totalDrinks;
+                            System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING: {totalAddonDeduction} {inventoryBaseUnit} ({convertedAmount} x {cartAddon.AddonQuantity} x {totalDrinks})");
                             
                             // Accumulate addon amounts for the same ingredient
                             if (deductionsDict.ContainsKey(cartAddon.itemName))
                             {
                                 deductionsDict[cartAddon.itemName] += totalAddonDeduction;
+                                System.Diagnostics.Debug.WriteLine($"   📝 Accumulated total for {cartAddon.itemName}: {deductionsDict[cartAddon.itemName]}");
                             }
                             else
                             {
                                 deductionsDict[cartAddon.itemName] = totalAddonDeduction;
+                                System.Diagnostics.Debug.WriteLine($"   📝 First deduction for {cartAddon.itemName}: {totalAddonDeduction}");
                             }
                         }
                     }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: No addons to deduct (addonLinks={addonLinks?.Count ?? 0}, cartItems={cartItem.InventoryItems?.Count ?? 0})");
                 }
 
                 // Add automatic cups and straws per size (1 per serving)

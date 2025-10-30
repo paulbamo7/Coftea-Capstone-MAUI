@@ -122,8 +122,8 @@ namespace Coftea_Capstone.ViewModel
         partial void OnItemCategoryChanged(string value) // Triggered when item category changes
         {
             // Toggle UI sections based on selected category
-            // Pieces-only: only quantity field is shown
-            IsPiecesOnlyCategory = value == "Others" || value == "Other";
+            // Pieces-only: only quantity field is shown (includes Supplies for cups/straws)
+            IsPiecesOnlyCategory = value == "Others" || value == "Other" || value == "Supplies";
             // UoM-only categories: show only UoM fields (e.g., Syrups, Powdered, etc.)
             IsUoMOnlyCategory = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc." || value == "Liquid";
             // Backward compatibility flag for existing bindings using Syrups
@@ -334,6 +334,12 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         public async Task AddItem() // Add or update inventory item
         {
+            // Block immediately if no internet for DB-backed save
+            if (!Services.NetworkService.HasInternetConnection())
+            {
+                try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                return;
+            }
             if (string.IsNullOrWhiteSpace(ItemName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Item name is required.", "OK");

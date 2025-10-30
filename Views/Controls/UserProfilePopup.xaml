@@ -101,14 +101,6 @@
                             <Label Text="{Binding PhoneNumber, StringFormat='Phone Number: {0}'}"
                                    FontSize="16" FontFamily="MontserratBlack"
                                    TextColor="Black"/>
-                            
-                            <Label Text="{Binding Address, StringFormat='Address: {0}'}"
-                                   FontSize="16" FontFamily="MontserratBlack"
-                                   TextColor="Black"/>
-                            
-                            <Label Text="{Binding Birthday, StringFormat='Birthday: {0:MMMM dd, yyyy}'}"
-                                   FontSize="16" FontFamily="MontserratBlack"
-                                   TextColor="Black"/>
                         </VerticalStackLayout>
                         
                         <!-- Permissions Section -->
