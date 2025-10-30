@@ -170,6 +170,12 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         public async Task AddProduct() // Validates and adds/updates the product
         {
+            // Block immediately if no internet for DB-backed save
+            if (!Services.NetworkService.HasInternetConnection())
+            {
+                try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                return;
+            }
             if (string.IsNullOrWhiteSpace(ProductName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Product name is required.", "OK");

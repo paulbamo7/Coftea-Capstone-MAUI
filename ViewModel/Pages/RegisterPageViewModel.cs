@@ -164,6 +164,12 @@ namespace Coftea_Capstone.ViewModel
 
             try
             {
+            // Require internet for registration
+            if (!Services.NetworkService.HasInternetConnection())
+            {
+                try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                return;
+            }
                 // Check if email already exists
                 var existingUser = await _database.GetUserByEmailAsync(Email);
                 if (existingUser != null)

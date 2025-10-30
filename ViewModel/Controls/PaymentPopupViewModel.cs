@@ -393,6 +393,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                // Block immediately if no internet
+                if (!Services.NetworkService.HasInternetConnection())
+                {
+                    try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                    return new List<TransactionHistoryModel>();
+                }
                 System.Diagnostics.Debug.WriteLine($"🔄 Starting transaction save for {CartItems.Count} items");
                 
                 var app = (App)Application.Current;

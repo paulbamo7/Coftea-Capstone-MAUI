@@ -25,11 +25,8 @@ namespace Coftea_Capstone
     		builder.Logging.AddDebug();
 #endif
 
-            // Register offline-first services
-            builder.Services.AddSingleton<LocalDatabaseService>();
-            builder.Services.AddSingleton<ConnectivityService>();
+            // Register core database service
             builder.Services.AddSingleton<Database>();
-            builder.Services.AddSingleton<DatabaseSyncService>();
 
             return builder.Build();
         }

@@ -334,6 +334,12 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         public async Task AddItem() // Add or update inventory item
         {
+            // Block immediately if no internet for DB-backed save
+            if (!Services.NetworkService.HasInternetConnection())
+            {
+                try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                return;
+            }
             if (string.IsNullOrWhiteSpace(ItemName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Item name is required.", "OK");

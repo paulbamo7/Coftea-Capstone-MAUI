@@ -19,10 +19,7 @@ namespace Coftea_Capstone
         public static UserInfoModel CurrentUser { get; private set; }
         public static string ResetPasswordEmail { get; set; }
 
-        // Offline-first services
-        public static LocalDatabaseService LocalDb { get; private set; }
-        public static ConnectivityService ConnectivityService { get; private set; }
-        public static DatabaseSyncService SyncService { get; private set; }
+        // Online-only mode
 
         // Shared ViewModels
         public AddItemToPOSViewModel AddItemPopup { get; private set; }
@@ -130,13 +127,7 @@ namespace Coftea_Capstone
                 }
             });
 
-            // Initialize offline-first services
-            LocalDb = new LocalDatabaseService();
-            ConnectivityService = new ConnectivityService();
-            var onlineDb = new Database();
-            SyncService = new DatabaseSyncService(LocalDb, onlineDb, ConnectivityService);
-            
-            System.Diagnostics.Debug.WriteLine("[App] 🚀 Offline-first services initialized");
+            // Online-only initialization
 
             // Ensure database exists and tables are created, then adjust theme colors to match Login page
             MainThread.BeginInvokeOnMainThread(async () =>
@@ -146,43 +137,26 @@ namespace Coftea_Capstone
                     // Initialize image persistence service
                     await Services.ImagePersistenceService.MigrateOldImagesAsync();
                     
-                    // Try to connect to online database
-                    if (ConnectivityService.IsConnected)
+                    try
                     {
-                        try
-                        {
-                            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
-                            var db = new Database();
-                            await db.EnsureServerAndDatabaseAsync(cts.Token);
-                            await db.InitializeDatabaseAsync(cts.Token);
-                            
-                            System.Diagnostics.Debug.WriteLine("[App] ✅ Online database connected");
-                            
-                            // Pull latest data from online to local cache
-                            await SyncService.PullLatestDataAsync();
-                            
-                            // Check for minimum stock levels after database initialization
-                            await db.CheckAllMinimumStockLevelsAsync();
-                        }
-                        catch (Exception dbEx)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[App] ⚠️ Online database unavailable: {dbEx.Message}");
-                            System.Diagnostics.Debug.WriteLine("[App] 📱 Running in OFFLINE mode");
-                        }
+                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)); // 15 second timeout
+                        var db = new Database();
+                        await db.EnsureServerAndDatabaseAsync(cts.Token);
+                        await db.InitializeDatabaseAsync(cts.Token);
+                        await db.CheckAllMinimumStockLevelsAsync();
                     }
-                    else
+                    catch (Exception dbEx)
                     {
-                        System.Diagnostics.Debug.WriteLine("[App] 📱 No internet - starting in OFFLINE mode");
+                        System.Diagnostics.Debug.WriteLine($"[App] ⚠️ Online database unavailable: {dbEx.Message}");
                     }
                 }
                 catch (OperationCanceledException)
                 {
-                    System.Diagnostics.Debug.WriteLine("[App] ⏰ Database initialization timeout - running in OFFLINE mode");
+                    System.Diagnostics.Debug.WriteLine("[App] ⏰ Database initialization timeout");
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"[App] ❌ Initialization error: {ex.Message}");
-                    System.Diagnostics.Debug.WriteLine("[App] 📱 Running in OFFLINE mode");
                 }
 
                 // Align app accent colors to Login page palette
