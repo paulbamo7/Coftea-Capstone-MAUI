@@ -35,6 +35,17 @@ namespace Coftea_Capstone.ViewModel.Controls
         private ObservableCollection<InventoryActivityLog> filteredActivityLog = new();
 
         [ObservableProperty]
+        private ObservableCollection<InventoryActivityLog> pagedActivityLog = new();
+
+        [ObservableProperty]
+        private int currentPage = 1;
+
+        [ObservableProperty]
+        private int pageSize = 30;
+
+        public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)(FilteredActivityLog?.Count ?? 0) / PageSize));
+
+        [ObservableProperty]
         private bool isDateFilterVisible = false;
 
         [ObservableProperty]
@@ -48,6 +59,49 @@ namespace Coftea_Capstone.ViewModel.Controls
         public ActivityLogPopupViewModel()
         {
             _database = new Database();
+        }
+
+        private void UpdatePagedItems()
+        {
+            try
+            {
+                if (FilteredActivityLog == null)
+                {
+                    PagedActivityLog = new ObservableCollection<InventoryActivityLog>();
+                    StatusMessage = "No entries";
+                    return;
+                }
+
+                var total = FilteredActivityLog.Count;
+                var totalPages = TotalPages;
+                var page = Math.Max(1, Math.Min(CurrentPage, totalPages));
+                var skip = (page - 1) * PageSize;
+                var pageItems = FilteredActivityLog.Skip(skip).Take(PageSize).ToList();
+
+                // Re-number rows for the current page view
+                for (int i = 0; i < pageItems.Count; i++)
+                {
+                    pageItems[i].RowNumber = skip + i + 1;
+                }
+
+                PagedActivityLog = new ObservableCollection<InventoryActivityLog>(pageItems);
+                StatusMessage = $"Showing {skip + pageItems.Count} of {total} entries (Page {page}/{totalPages})";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error paginating: {ex.Message}";
+            }
+        }
+
+        partial void OnCurrentPageChanged(int value)
+        {
+            UpdatePagedItems();
+        }
+
+        partial void OnPageSizeChanged(int value)
+        {
+            if (value <= 0) PageSize = 30;
+            UpdatePagedItems();
         }
 
         [RelayCommand]
@@ -92,6 +146,24 @@ namespace Coftea_Capstone.ViewModel.Controls
         private async Task Refresh()
         {
             await LoadActivityLogAsync();
+        }
+
+        [RelayCommand]
+        private void NextPage()
+        {
+            if (CurrentPage < TotalPages)
+            {
+                CurrentPage += 1;
+            }
+        }
+
+        [RelayCommand]
+        private void PrevPage()
+        {
+            if (CurrentPage > 1)
+            {
+                CurrentPage -= 1;
+            }
         }
 
         [RelayCommand]
@@ -144,7 +216,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
 
                 FilteredActivityLog = new ObservableCollection<InventoryActivityLog>(filteredList);
-                StatusMessage = $"Showing {FilteredActivityLog.Count} of {_allActivityLog.Count} entries";
+                // Reset to first page on new filter
+                CurrentPage = 1;
+                UpdatePagedItems();
             }
             catch (Exception ex)
             {

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Storage;
 using System.Text;
+// Reverted: no direct HTML→PDF generator
 
 namespace Coftea_Capstone.Services
 {
@@ -12,6 +13,7 @@ namespace Coftea_Capstone.Services
     {
         Task<string> GenerateWeeklyReportAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
         Task<string> GenerateMonthlyReportAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
+        // Reverted: HTML export only
     }
 
     public class PDFReportService : IPDFReportService
@@ -29,9 +31,10 @@ namespace Coftea_Capstone.Services
             {
                 // Get inventory deduction data for the week
                 var inventoryDeductions = await GetInventoryDeductionsForPeriodAsync(startDate, endDate);
+                var unitMap = await GetInventoryUnitsMapAsync();
                 
                 // Generate HTML content for the report
-                var htmlContent = GenerateWeeklyReportHTML(startDate, endDate, transactions, topItems, inventoryDeductions);
+                var htmlContent = GenerateWeeklyReportHTML(startDate, endDate, transactions, topItems, inventoryDeductions, unitMap);
                 
                 // Save as HTML file in accessible location for emulator
                 var fileName = $"Weekly_Report_{startDate:yyyy_MM_dd}_to_{endDate:yyyy_MM_dd}.html";
@@ -71,9 +74,10 @@ namespace Coftea_Capstone.Services
             {
                 // Get inventory deduction data for the month
                 var inventoryDeductions = await GetInventoryDeductionsForPeriodAsync(startDate, endDate);
+                var unitMap = await GetInventoryUnitsMapAsync();
                 
                 // Generate HTML content for the report
-                var htmlContent = GenerateMonthlyReportHTML(startDate, endDate, transactions, topItems, inventoryDeductions);
+                var htmlContent = GenerateMonthlyReportHTML(startDate, endDate, transactions, topItems, inventoryDeductions, unitMap);
                 
                 // Save as HTML file in accessible location for emulator
                 var fileName = $"Monthly_Report_{startDate:yyyy_MM}_to_{endDate:yyyy_MM}.html";
@@ -106,6 +110,9 @@ namespace Coftea_Capstone.Services
                 throw;
             }
         }
+
+        // ============== Direct HTML → PDF generation (auto-save selectable text PDF) ==============
+        // Reverted: removed direct PDF generation helpers
 
         private async Task<Dictionary<string, double>> GetInventoryDeductionsForPeriodAsync(DateTime startDate, DateTime endDate)
         {
@@ -145,6 +152,24 @@ namespace Coftea_Capstone.Services
                 System.Diagnostics.Debug.WriteLine($"Error getting inventory deductions: {ex.Message}");
                 return new Dictionary<string, double>();
             }
+        }
+
+        private async Task<Dictionary<string, string>> GetInventoryUnitsMapAsync()
+        {
+            var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var items = await _database.GetInventoryItemsAsyncCached();
+                foreach (var it in items)
+                {
+                    if (!string.IsNullOrWhiteSpace(it.itemName) && !string.IsNullOrWhiteSpace(it.unitOfMeasurement))
+                    {
+                        map[it.itemName] = it.unitOfMeasurement;
+                    }
+                }
+            }
+            catch { }
+            return map;
         }
 
         private void AddBasicDeductionsForProduct(Dictionary<string, double> deductions, string productName, int totalQuantity)
@@ -252,7 +277,7 @@ namespace Coftea_Capstone.Services
             }
         }
 
-        private string GenerateWeeklyReportHTML(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems, Dictionary<string, double> inventoryDeductions)
+        private string GenerateWeeklyReportHTML(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems, Dictionary<string, double> inventoryDeductions, Dictionary<string, string> unitMap)
         {
             var totalSales = transactions.Sum(t => t.Total);
             var totalOrders = transactions.Count;
@@ -349,11 +374,12 @@ namespace Coftea_Capstone.Services
             <h3>📦 Inventory Deductions</h3>
             <div class='inventory-section'>
                 <p><strong>Total ingredients and supplies deducted this week:</strong></p>
-                {string.Join("", inventoryDeductions.OrderByDescending(x => x.Value).Select(kvp => $@"
-                <div class='inventory-item'>
+                {string.Join("", inventoryDeductions.OrderByDescending(x => x.Value).Select(kvp => {
+                    var unit = unitMap.TryGetValue(kvp.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : "units";
+                    return $@"<div class='inventory-item'>
                     <span>{kvp.Key}</span>
-                    <span>{kvp.Value:N1} units</span>
-                </div>"))}
+                    <span>{kvp.Value:N1} {unit}</span>
+                </div>"; }))}
             </div>
         </div>
 
@@ -367,7 +393,7 @@ namespace Coftea_Capstone.Services
             return html;
         }
 
-        private string GenerateMonthlyReportHTML(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems, Dictionary<string, double> inventoryDeductions)
+        private string GenerateMonthlyReportHTML(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems, Dictionary<string, double> inventoryDeductions, Dictionary<string, string> unitMap)
         {
             var totalSales = transactions.Sum(t => t.Total);
             var totalOrders = transactions.Count;
@@ -468,11 +494,12 @@ namespace Coftea_Capstone.Services
             <h3>📦 Inventory Deductions</h3>
             <div class='inventory-section'>
                 <p><strong>Total ingredients and supplies deducted this month:</strong></p>
-                {string.Join("", inventoryDeductions.OrderByDescending(x => x.Value).Select(kvp => $@"
-                <div class='inventory-item'>
+                {string.Join("", inventoryDeductions.OrderByDescending(x => x.Value).Select(kvp => {
+                    var unit = unitMap.TryGetValue(kvp.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : "units";
+                    return $@"<div class='inventory-item'>
                     <span>{kvp.Key}</span>
-                    <span>{kvp.Value:N1} units</span>
-                </div>"))}
+                    <span>{kvp.Value:N1} {unit}</span>
+                </div>"; }))}
             </div>
         </div>
 

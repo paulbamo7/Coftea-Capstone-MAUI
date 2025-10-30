@@ -286,20 +286,20 @@
                         <ScrollView Grid.Row="2">
                             <VerticalStackLayout Spacing="0">
                                 <!-- Table Header -->
-                                <Grid BackgroundColor="#7E6D5F" Padding="10,8">
+                                <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="40"/>  <!-- # -->
-                                        <ColumnDefinition Width="110"/> <!-- Date & Time -->
-                                        <ColumnDefinition Width="90"/>  <!-- User -->
-                                        <ColumnDefinition Width="80"/>  <!-- Action -->
-                                        <ColumnDefinition Width="*"/>   <!-- Item -->
-                                        <ColumnDefinition Width="60"/>  <!-- Qty Change -->
-                                        <ColumnDefinition Width="50"/>  <!-- UoM -->
-                                        <ColumnDefinition Width="60"/>  <!-- Prev Qty -->
-                                        <ColumnDefinition Width="60"/>  <!-- New Qty -->
-                                        <ColumnDefinition Width="120"/> <!-- Used for Product -->
-                                        <ColumnDefinition Width="100"/> <!-- Remarks -->
-                                        <ColumnDefinition Width="80"/>  <!-- Ref. ID -->
+                                        <ColumnDefinition Width="40"/>   <!-- # -->
+                                        <ColumnDefinition Width="120"/>  <!-- Date & Time -->
+                                        <ColumnDefinition Width="100"/>  <!-- User -->
+                                        <ColumnDefinition Width="90"/>   <!-- Action -->
+                                        <ColumnDefinition Width="160"/>  <!-- Item -->
+                                        <ColumnDefinition Width="70"/>   <!-- Qty Change -->
+                                        <ColumnDefinition Width="60"/>   <!-- UoM -->
+                                        <ColumnDefinition Width="70"/>   <!-- Prev Qty -->
+                                        <ColumnDefinition Width="70"/>   <!-- New Qty -->
+                                        <ColumnDefinition Width="140"/>  <!-- Used for Product -->
+                                        <ColumnDefinition Width="120"/>  <!-- Remarks -->
+                                        <ColumnDefinition Width="90"/>   <!-- Ref. ID -->
                                     </Grid.ColumnDefinitions>
                                     
                                     <Label Grid.Column="0" Text="#" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Start"/>
@@ -317,23 +317,23 @@
                                 </Grid>
 
                                 <!-- Table Rows -->
-                                <CollectionView ItemsSource="{Binding FilteredActivityLog}">
+                                <CollectionView ItemsSource="{Binding PagedActivityLog}">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}">
+                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}" ColumnSpacing="12">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="40"/>  <!-- # -->
-                                                    <ColumnDefinition Width="110"/> <!-- Date & Time -->
-                                                    <ColumnDefinition Width="90"/>  <!-- User -->
-                                                    <ColumnDefinition Width="80"/>  <!-- Action -->
-                                                    <ColumnDefinition Width="*"/>   <!-- Item -->
-                                                    <ColumnDefinition Width="60"/>  <!-- Qty Change -->
-                                                    <ColumnDefinition Width="50"/>  <!-- UoM -->
-                                                    <ColumnDefinition Width="60"/>  <!-- Prev Qty -->
-                                                    <ColumnDefinition Width="60"/>  <!-- New Qty -->
-                                                    <ColumnDefinition Width="120"/> <!-- Used for Product -->
-                                                    <ColumnDefinition Width="100"/> <!-- Remarks -->
-                                                    <ColumnDefinition Width="80"/>  <!-- Ref. ID -->
+                                                    <ColumnDefinition Width="40"/>   <!-- # -->
+                                                    <ColumnDefinition Width="120"/>  <!-- Date & Time -->
+                                                    <ColumnDefinition Width="100"/>  <!-- User -->
+                                                    <ColumnDefinition Width="90"/>   <!-- Action -->
+                                                    <ColumnDefinition Width="160"/>  <!-- Item -->
+                                                    <ColumnDefinition Width="70"/>   <!-- Qty Change -->
+                                                    <ColumnDefinition Width="60"/>   <!-- UoM -->
+                                                    <ColumnDefinition Width="70"/>   <!-- Prev Qty -->
+                                                    <ColumnDefinition Width="70"/>   <!-- New Qty -->
+                                                    <ColumnDefinition Width="140"/>  <!-- Used for Product -->
+                                                    <ColumnDefinition Width="120"/>  <!-- Remarks -->
+                                                    <ColumnDefinition Width="90"/>   <!-- Ref. ID -->
                                                 </Grid.ColumnDefinitions>
                                                 
                                                 <Label Grid.Column="0" Text="{Binding RowNumber}" FontSize="10" TextColor="#333" HorizontalOptions="Start" VerticalOptions="Center"/>
@@ -355,6 +355,15 @@
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
+                                <!-- Pagination Controls -->
+                                <Grid Padding="10" BackgroundColor="#FFF" ColumnDefinitions="Auto,*,Auto" Margin="0,5,0,0">
+                                    <Button Grid.Column="0" Text="Prev" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
+                                            IsEnabled="{Binding CurrentPage, Converter={StaticResource StringToBoolConverter}}"
+                                            Command="{Binding PrevPageCommand}"/>
+                                    <Label Grid.Column="1" Text="{Binding CurrentPage, StringFormat='Page {0}'}" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    <Button Grid.Column="2" Text="Next" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
+                                            Command="{Binding NextPageCommand}"/>
+                                </Grid>
                             </VerticalStackLayout>
                         </ScrollView>
                     </Grid>

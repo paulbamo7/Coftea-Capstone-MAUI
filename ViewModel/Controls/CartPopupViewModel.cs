@@ -278,7 +278,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Find the product in the product list and restore it with quantities AND addons
                 if (_originalItems != null)
                 {
-                    // Navigate to POS page if not already there, then set the selected product with quantities
+                        // Navigate to POS page if not already there, then set the selected product with quantities
                     await SetSelectedProductInCurrentPOS(item, preservedAddons);
                 }
             }
@@ -359,10 +359,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                             await Task.Delay(50);
 
                             // Restore quantities AFTER selection to ensure they stick
-                            currentProduct.SmallQuantity = cartItem.SmallQuantity;
-                            currentProduct.MediumQuantity = cartItem.MediumQuantity;
-                            currentProduct.LargeQuantity = cartItem.LargeQuantity;
-                            System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+                                currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                                currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                                currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                                System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
 
                             // Restore addons if preserved
                             if (preservedAddons != null && preservedAddons.Any())
@@ -424,10 +424,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                                 try { posViewModel.SelectProductCommand.Execute(currentProduct); } catch { }
                                 await Task.Delay(50);
 
-                                currentProduct.SmallQuantity = cartItem.SmallQuantity;
-                                currentProduct.MediumQuantity = cartItem.MediumQuantity;
-                                currentProduct.LargeQuantity = cartItem.LargeQuantity;
-                                System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after refresh - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
+                                    currentProduct.SmallQuantity = cartItem.SmallQuantity;
+                                    currentProduct.MediumQuantity = cartItem.MediumQuantity;
+                                    currentProduct.LargeQuantity = cartItem.LargeQuantity;
+                                    System.Diagnostics.Debug.WriteLine($"🔧 Restored quantities after refresh - Small: {cartItem.SmallQuantity}, Medium: {cartItem.MediumQuantity}, Large: {cartItem.LargeQuantity}");
 
                                 // Restore addons after refresh
                                 if (preservedAddons != null && preservedAddons.Any())

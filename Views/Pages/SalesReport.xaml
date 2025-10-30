@@ -302,7 +302,10 @@
                         <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                             <Grid ColumnDefinitions="*,Auto" Grid.Row="0">
                                 <Label Text="Weekly Picks" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                                <Label Text="{Binding FilteredWeeklyOrders, StringFormat='{0} Orders'}" Grid.Column="1" FontSize="14" TextColor="Gray"/>
+                                <VerticalStackLayout Grid.Column="1" Spacing="0" HorizontalOptions="End">
+                                    <Label Text="{Binding FilteredWeeklyOrders, StringFormat='{0} Orders'}" FontSize="14" TextColor="Gray" HorizontalOptions="End"/>
+                                    <Label Text="{Binding WeeklyRangeText}" FontSize="12" TextColor="#8B7355" HorizontalOptions="End"/>
+                                </VerticalStackLayout>
                             </Grid>
                             <!-- Bar chart for Weekly items -->
                             <CollectionView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding TopItemsWeekly}" HeightRequest="180" ItemsLayout="HorizontalList">
@@ -353,7 +356,10 @@
                         <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                             <Grid ColumnDefinitions="*,Auto" Grid.Row="0">
                                 <Label Text="Monthly Picks" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                                <Label Text="{Binding MonthlyOrders, StringFormat='{0} Orders'}" Grid.Column="1" FontSize="14" TextColor="Gray"/>
+                                <VerticalStackLayout Grid.Column="1" Spacing="0" HorizontalOptions="End">
+                                    <Label Text="{Binding MonthlyOrders, StringFormat='{0} Orders'}" FontSize="14" TextColor="Gray" HorizontalOptions="End"/>
+                                    <Label Text="{Binding MonthlyRangeText}" FontSize="12" TextColor="#8B7355" HorizontalOptions="End"/>
+                                </VerticalStackLayout>
                             </Grid>
                             <!-- Bar chart for Monthly items -->
                             <CollectionView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding TopItemsMonthly}" HeightRequest="180" ItemsLayout="HorizontalList">

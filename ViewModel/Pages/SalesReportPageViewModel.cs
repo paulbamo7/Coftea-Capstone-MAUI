@@ -175,6 +175,13 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<TrendItem> topItemsMonthly = new();
 
+        // Header date ranges
+        [ObservableProperty]
+        private string weeklyRangeText = string.Empty; // e.g., 10/30 - 11/05
+
+        [ObservableProperty]
+        private string monthlyRangeText = string.Empty; // e.g., 11/01 - 11/30
+
         // Filtered order counts for selected category
         [ObservableProperty]
         private int filteredTodayOrders;
@@ -274,6 +281,61 @@ namespace Coftea_Capstone.ViewModel
             _ = LoadCumulativeTotalsAsync();
         }
 
+        [RelayCommand]
+        private async Task ExportWeeklyReportToPdf()
+        {
+            try
+            {
+                if (!Services.NetworkService.HasInternetConnection())
+                {
+                    await Application.Current.MainPage.DisplayAlert("No Internet", "Please connect to the internet to export reports.", "OK");
+                    return;
+                }
+
+                var end = DateTime.Today.AddDays(1);
+                var start = end.AddDays(-7);
+                var transactions = await _database.GetTransactionsByDateRangeAsync(start, end);
+                var top = TopItemsWeekly?.ToList() ?? new List<TrendItem>();
+
+                var pdfService = new Services.PDFReportService();
+                var path = await pdfService.GenerateWeeklyReportAsync(start, end, transactions, top);
+                await Application.Current.MainPage.DisplayAlert("Exported", $"Weekly report saved to:\n{path}", "OK");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to export weekly report: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ExportMonthlyReportToPdf()
+        {
+            try
+            {
+                if (!Services.NetworkService.HasInternetConnection())
+                {
+                    await Application.Current.MainPage.DisplayAlert("No Internet", "Please connect to the internet to export reports.", "OK");
+                    return;
+                }
+
+                // Determine month range (current month)
+                var now = DateTime.Today;
+                var start = new DateTime(now.Year, now.Month, 1);
+                var end = start.AddMonths(1);
+
+                var transactions = await _database.GetTransactionsByDateRangeAsync(start, end);
+                var top = TopItemsMonthly?.ToList() ?? new List<TrendItem>();
+
+                var pdfService = new Services.PDFReportService();
+                var path = await pdfService.GenerateMonthlyReportAsync(start, end, transactions, top);
+                await Application.Current.MainPage.DisplayAlert("Exported", $"Monthly report saved to:\n{path}", "OK");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to export monthly report: {ex.Message}", "OK");
+            }
+        }
+
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
             return ((App)Application.Current).RetryConnectionPopup;
@@ -311,6 +373,24 @@ namespace Coftea_Capstone.ViewModel
                 RecentOrders = new ObservableCollection<TransactionHistoryModel>();
                 RecentOrdersCount = 0;
             }
+        }
+
+        private void UpdateHeaderRanges()
+        {
+            try
+            {
+                var today = DateTime.Today;
+                // Weekly: last 7 days inclusive (Monolithic approach: today-6 to today)
+                var weeklyStart = today.AddDays(-6);
+                var weeklyEnd = today;
+                WeeklyRangeText = $"{weeklyStart:MM/dd} - {weeklyEnd:MM/dd}";
+
+                // Monthly: first day to last day of current month
+                var monthStart = new DateTime(today.Year, today.Month, 1);
+                var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+                MonthlyRangeText = $"{monthStart:MM/dd} - {monthEnd:MM/dd}";
+            }
+            catch { }
         }
 
         public async Task RefreshRecentOrdersAsync() // Public method to refresh recent orders
@@ -533,6 +613,7 @@ namespace Coftea_Capstone.ViewModel
                 OnPropertyChanged(nameof(TopMilkteaTodayOrders));
 
                 ApplyCategoryFilter();
+                UpdateHeaderRanges();
             }
             catch (OperationCanceledException)
             {

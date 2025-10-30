@@ -743,6 +743,12 @@ namespace Coftea_Capstone.ViewModel.Controls
                         
                         System.Diagnostics.Debug.WriteLine($"   ✅ Found in cart: IsSelected={cartAddon.IsSelected}, AddonQuantity={cartAddon.AddonQuantity}");
                         
+                        // Treat checked addons with no explicit quantity as 1
+                        if (cartAddon.IsSelected && cartAddon.AddonQuantity <= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine("   ℹ️ Addon selected with quantity 0 — defaulting to 1");
+                            cartAddon.AddonQuantity = 1;
+                        }
                         if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0)
                         {
                             System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon skipped: not selected or quantity <= 0");
