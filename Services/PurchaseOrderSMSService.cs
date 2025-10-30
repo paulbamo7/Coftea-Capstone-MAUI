@@ -15,8 +15,7 @@ namespace Coftea_Capstone.Services
         private static readonly string ADMIN_PHONE = "+639625068078"; // Admin phone number for notifications (Philippines) - CHANGE THIS TO ADMIN'S NUMBER
         
         // SMS Service Configuration - Choose one method
-        // Default to a real provider; you can switch to PHONE_SMS_APP if you only want to open compose UI
-        private static readonly SMS_METHOD CurrentSMSMethod = SMS_METHOD.CLICKSEND_API; // Use ClickSend for PH delivery
+        private static readonly SMS_METHOD CurrentSMSMethod = SMS_METHOD.PHONE_SMS_APP; // Change this to your preferred method
         
         // Method 1: Email-to-SMS (Free - Works with most carriers)
         private static readonly string EMAIL_TO_SMS = "09625068078@txt.att.net"; // AT&T format
@@ -27,8 +26,8 @@ namespace Coftea_Capstone.Services
         private static readonly string TEXTLOCAL_SENDER = "COFTEA";
         
         // Method 3: ClickSend API (Free trial, cheap rates)
-        private static readonly string CLICKSEND_USERNAME = Environment.GetEnvironmentVariable("CLICKSEND_USERNAME") ?? "YOUR_CLICKSEND_USERNAME";
-        private static readonly string CLICKSEND_API_KEY = Environment.GetEnvironmentVariable("CLICKSEND_API_KEY") ?? "YOUR_CLICKSEND_API_KEY";
+        private static readonly string CLICKSEND_USERNAME = "YOUR_CLICKSEND_USERNAME";
+        private static readonly string CLICKSEND_API_KEY = "YOUR_CLICKSEND_API_KEY";
         
         // Method 4: MessageBird API (Free trial)
         private static readonly string MESSAGEBIRD_API_KEY = "YOUR_MESSAGEBIRD_API_KEY";
@@ -271,21 +270,20 @@ namespace Coftea_Capstone.Services
         {
             try
             {
-                var normalized = NormalizePhoneNumber(toPhoneNumber);
                 return CurrentSMSMethod switch
                 {
-                    SMS_METHOD.PHONE_SMS_APP => await OpenPhoneSMSAppAsync(normalized, message),
-                    SMS_METHOD.EMAIL_TO_SMS => await SendEmailToSMSAsync(normalized, message),
-                    SMS_METHOD.TEXTLOCAL_API => await SendTextLocalSMSAsync(normalized, message),
-                    SMS_METHOD.CLICKSEND_API => await SendClickSendSMSAsync(normalized, message),
-                    SMS_METHOD.MESSAGEBIRD_API => await SendMessageBirdSMSAsync(normalized, message),
-                    SMS_METHOD.AWS_SNS => await SendAWSSNSSMSAsync(normalized, message),
-                    SMS_METHOD.VONAGE_API => await SendVonageSMSAsync(normalized, message),
-                    SMS_METHOD.WHATSAPP_API => await SendWhatsAppMessageAsync(normalized, message),
+                    SMS_METHOD.PHONE_SMS_APP => await OpenPhoneSMSAppAsync(toPhoneNumber, message),
+                    SMS_METHOD.EMAIL_TO_SMS => await SendEmailToSMSAsync(toPhoneNumber, message),
+                    SMS_METHOD.TEXTLOCAL_API => await SendTextLocalSMSAsync(toPhoneNumber, message),
+                    SMS_METHOD.CLICKSEND_API => await SendClickSendSMSAsync(toPhoneNumber, message),
+                    SMS_METHOD.MESSAGEBIRD_API => await SendMessageBirdSMSAsync(toPhoneNumber, message),
+                    SMS_METHOD.AWS_SNS => await SendAWSSNSSMSAsync(toPhoneNumber, message),
+                    SMS_METHOD.VONAGE_API => await SendVonageSMSAsync(toPhoneNumber, message),
+                    SMS_METHOD.WHATSAPP_API => await SendWhatsAppMessageAsync(toPhoneNumber, message),
                     SMS_METHOD.TELEGRAM_BOT => await SendTelegramMessageAsync(message),
-                    SMS_METHOD.LOCAL_SMS_GATEWAY => await SendLocalSMSAsync(normalized, message),
-                    SMS_METHOD.SIMULATION_ONLY => await SimulateSMSAsync(normalized, message),
-                    _ => await SimulateSMSAsync(normalized, message)
+                    SMS_METHOD.LOCAL_SMS_GATEWAY => await SendLocalSMSAsync(toPhoneNumber, message),
+                    SMS_METHOD.SIMULATION_ONLY => await SimulateSMSAsync(toPhoneNumber, message),
+                    _ => await SimulateSMSAsync(toPhoneNumber, message)
                 };
             }
             catch (Exception ex)
@@ -293,30 +291,6 @@ namespace Coftea_Capstone.Services
                 System.Diagnostics.Debug.WriteLine($"❌ Error sending notification: {ex.Message}");
                 return false;
             }
-        }
-
-        private static string NormalizePhoneNumber(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input)) return input;
-            var digits = new string(input.Where(char.IsDigit).ToArray());
-
-            // If starts with 09 (PH local), convert to +639
-            if (digits.StartsWith("09"))
-                return "+63" + digits.Substring(1);
-
-            // If starts with 9 and length is 10 or 11, assume PH mobile without 0
-            if (digits.StartsWith("9") && (digits.Length == 10 || digits.Length == 11))
-                return "+63" + digits;
-
-            // If starts with 63, add +
-            if (digits.StartsWith("63"))
-                return "+" + digits;
-
-            // If already starts with +, keep
-            if (input.Trim().StartsWith("+"))
-                return input.Trim();
-
-            return "+" + digits; // fallback to E.164-ish
         }
 
         /// <summary>

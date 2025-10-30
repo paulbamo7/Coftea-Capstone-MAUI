@@ -64,13 +64,8 @@
                                Margin="0,50,0,0"/>
 
                         <!-- Purchase Orders List -->
-                        <CollectionView ItemsSource="{Binding PendingOrders}">
-                            <CollectionView.EmptyView>
-                                <Grid Padding="40" HorizontalOptions="Center" VerticalOptions="Center">
-                                    <Label Text="No pending purchase orders"
-                                           FontSize="16" TextColor="Gray"/>
-                                </Grid>
-                            </CollectionView.EmptyView>
+                        <CollectionView ItemsSource="{Binding PendingOrders}"
+                                      IsVisible="{Binding HasPendingOrders}">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
                                     <Frame BackgroundColor="#F5F5F5"
@@ -123,38 +118,14 @@
                                                         TextColor="White"
                                                         CornerRadius="10"
                                                         HeightRequest="40"
-                                                        Clicked="OnApproveClicked">
-                                                    <Button.Triggers>
-                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Pending">
-                                                            <Setter Property="IsVisible" Value="True" />
-                                                        </DataTrigger>
-                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Approved">
-                                                            <Setter Property="IsVisible" Value="False" />
-                                                        </DataTrigger>
-                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Rejected">
-                                                            <Setter Property="IsVisible" Value="False" />
-                                                        </DataTrigger>
-                                                    </Button.Triggers>
-                                                </Button>
+                                                        Clicked="OnApproveClicked"/>
                                                 <Button Grid.Column="1"
                                                         Text="❌ Reject"
                                                         BackgroundColor="#F44336"
                                                         TextColor="White"
                                                         CornerRadius="10"
                                                         HeightRequest="40"
-                                                        Clicked="OnRejectClicked">
-                                                    <Button.Triggers>
-                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Pending">
-                                                            <Setter Property="IsVisible" Value="True" />
-                                                        </DataTrigger>
-                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Approved">
-                                                            <Setter Property="IsVisible" Value="False" />
-                                                        </DataTrigger>
-                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Rejected">
-                                                            <Setter Property="IsVisible" Value="False" />
-                                                        </DataTrigger>
-                                                    </Button.Triggers>
-                                                </Button>
+                                                        Clicked="OnRejectClicked"/>
                                             </Grid>
                                         </Grid>
                                     </Frame>

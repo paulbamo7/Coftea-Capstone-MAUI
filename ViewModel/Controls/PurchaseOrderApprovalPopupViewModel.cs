@@ -46,13 +46,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var orders = await _database.GetPendingPurchaseOrdersAsync();
                 System.Diagnostics.Debug.WriteLine($"📦 [VM] Received {orders.Count} pending orders from database");
 
-                // Fallback: if no pending orders, show recent orders so the popup isn't blank
-                if (orders.Count == 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("📦 [VM] No pending orders; loading recent orders as fallback");
-                    orders = await _database.GetRecentPurchaseOrdersAsync(50);
-                }
-
                 // Get items for each order
                 var displayOrders = new ObservableCollection<PurchaseOrderDisplayModel>();
                 foreach (var order in orders)

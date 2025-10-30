@@ -2556,7 +2556,7 @@ namespace Coftea_Capstone.Models
                 // First, get all pending orders
                 var sql = @"
                     SELECT * FROM purchase_orders
-                    WHERE LOWER(TRIM(status)) = 'pending'
+                    WHERE status = 'Pending'
                     ORDER BY createdAt DESC;";
                 
                 await using var cmd = new MySqlCommand(sql, conn);
@@ -2589,47 +2589,6 @@ namespace Coftea_Capstone.Models
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error getting pending purchase orders: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
-                return new List<PurchaseOrderModel>();
-            }
-        }
-
-        /// <summary>
-        /// Gets recent purchase orders regardless of status (fallback for UI display)
-        /// </summary>
-        public async Task<List<PurchaseOrderModel>> GetRecentPurchaseOrdersAsync(int limit = 50)
-        {
-            try
-            {
-                await using var conn = await GetOpenConnectionAsync();
-
-                var sql = @"SELECT * FROM purchase_orders ORDER BY createdAt DESC LIMIT @limit;";
-                await using var cmd = new MySqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@limit", limit);
-
-                var orders = new List<PurchaseOrderModel>();
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    var order = new PurchaseOrderModel
-                    {
-                        PurchaseOrderId = reader.GetInt32("purchaseOrderId"),
-                        OrderDate = reader.GetDateTime("orderDate"),
-                        SupplierName = reader.GetString("supplierName"),
-                        Status = reader.GetString("status"),
-                        RequestedBy = reader.GetString("requestedBy"),
-                        ApprovedBy = reader.IsDBNull(reader.GetOrdinal("approvedBy")) ? string.Empty : reader.GetString("approvedBy"),
-                        TotalAmount = reader.GetDecimal("totalAmount"),
-                        CreatedAt = reader.GetDateTime("createdAt"),
-                        Notes = reader.IsDBNull(reader.GetOrdinal("notes")) ? string.Empty : reader.GetString("notes")
-                    };
-                    orders.Add(order);
-                }
-
-                return orders;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Error getting recent purchase orders: {ex.Message}");
                 return new List<PurchaseOrderModel>();
             }
         }
@@ -2703,35 +2662,7 @@ namespace Coftea_Capstone.Models
                 });
                 
                 var rowsAffected = await cmd.ExecuteNonQueryAsync();
-
-                // Fallback: if no rows reported as changed, verify current status and force set
-                if (rowsAffected == 0)
-                {
-                    var checkSql = "SELECT status FROM purchase_orders WHERE purchaseOrderId = @purchaseOrderId LIMIT 1;";
-                    await using var checkCmd = new MySqlCommand(checkSql, conn);
-                    checkCmd.Parameters.AddWithValue("@purchaseOrderId", purchaseOrderId);
-                    var currentStatusObj = await checkCmd.ExecuteScalarAsync();
-                    var currentStatus = currentStatusObj?.ToString() ?? string.Empty;
-                    System.Diagnostics.Debug.WriteLine($"ℹ️ PO {purchaseOrderId} rowsAffected=0. Current status in DB: '{currentStatus}'");
-                    if (!string.Equals(currentStatus, status, StringComparison.OrdinalIgnoreCase))
-                    {
-                        var forceSql = @"UPDATE purchase_orders 
-                                         SET status = @status, approvedBy = @approvedBy, approvedDate = @approvedDate, updatedAt = @updatedAt
-                                         WHERE purchaseOrderId = @purchaseOrderId LIMIT 1;";
-                        await using var forceCmd = new MySqlCommand(forceSql, conn);
-                        AddParameters(forceCmd, new Dictionary<string, object?>
-                        {
-                            ["@status"] = status,
-                            ["@approvedBy"] = approvedBy,
-                            ["@approvedDate"] = DateTime.Now,
-                            ["@updatedAt"] = DateTime.Now,
-                            ["@purchaseOrderId"] = purchaseOrderId
-                        });
-                        rowsAffected = await forceCmd.ExecuteNonQueryAsync();
-                        System.Diagnostics.Debug.WriteLine($"🔁 Forced update attempt for PO {purchaseOrderId}, rows={rowsAffected}");
-                    }
-                }
-
+                
                 if (status == "Approved")
                 {
                     // Update inventory quantities
