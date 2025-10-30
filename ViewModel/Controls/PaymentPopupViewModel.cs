@@ -743,15 +743,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                         
                         System.Diagnostics.Debug.WriteLine($"   ✅ Found in cart: IsSelected={cartAddon.IsSelected}, AddonQuantity={cartAddon.AddonQuantity}");
                         
-                        // Treat checked addons with no explicit quantity as 1
-                        if (cartAddon.IsSelected && cartAddon.AddonQuantity <= 0)
+                        // Determine effective per-drink addon quantity
+                        var effectiveAddonQty = cartAddon.AddonQuantity;
+                        if (effectiveAddonQty <= 0 && cartAddon.IsSelected)
                         {
                             System.Diagnostics.Debug.WriteLine("   ℹ️ Addon selected with quantity 0 — defaulting to 1");
-                            cartAddon.AddonQuantity = 1;
+                            effectiveAddonQty = 1; // Treat checked with no qty as 1
                         }
-                        if (!cartAddon.IsSelected || cartAddon.AddonQuantity <= 0)
+                        if (effectiveAddonQty <= 0)
                         {
-                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon skipped: not selected or quantity <= 0");
+                            System.Diagnostics.Debug.WriteLine("   ⚠️ Addon skipped: no quantity selected");
                             continue;
                         }
 
@@ -775,22 +776,62 @@ namespace Coftea_Capstone.ViewModel.Controls
                             continue; // nothing to deduct for this addon
                         }
 
-                        // Convert to inventory base unit for deduction
-                        // (Database stores inventory in base units like L, kg, etc.)
+                        // Compute total deduction per size with size multipliers
                         var inventoryBaseUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
-                        var convertedAmount = ConvertUnits(perServingAmount, perServingUnit, inventoryBaseUnit);
 
-                        System.Diagnostics.Debug.WriteLine($"   🔄 Converting: {perServingAmount} {perServingUnit} → {convertedAmount} {inventoryBaseUnit}");
-
-                        // Deduct addon based on total quantity ordered across all sizes
-                        // AddonQuantity is per drink, so multiply by total drinks ordered
-                        var totalDrinks = cartItem.SmallQuantity + cartItem.MediumQuantity + cartItem.LargeQuantity;
-                        System.Diagnostics.Debug.WriteLine($"   📦 Total drinks: {totalDrinks}, Addon quantity per drink: {cartAddon.AddonQuantity}");
-                        
-                        if (totalDrinks > 0)
+                        double SizeMultiplier(string label) => label switch
                         {
-                            var totalAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)totalDrinks;
-                            System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING: {totalAddonDeduction} {inventoryBaseUnit} ({convertedAmount} x {cartAddon.AddonQuantity} x {totalDrinks})");
+                            "Small" => 1.0,
+                            "Medium" => 1.5,
+                            "Large" => 2.0,
+                            _ => 1.0
+                        };
+
+                        double SizeAmount(string label)
+                        {
+                            // Prefer configured per-size amount if provided (>0), otherwise scale base per-serving by multiplier
+                            var multiplier = SizeMultiplier(label);
+                            return label switch
+                            {
+                                "Small" => (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : perServingAmount * multiplier),
+                                "Medium" => (linkedAddon.InputAmountMedium > 0 ? linkedAddon.InputAmountMedium : perServingAmount * multiplier),
+                                "Large" => (linkedAddon.InputAmountLarge > 0 ? linkedAddon.InputAmountLarge : perServingAmount * multiplier),
+                                _ => perServingAmount * multiplier
+                            };
+                        }
+
+                        string SizeUnit(string label)
+                        {
+                            return label switch
+                            {
+                                "Small" => !string.IsNullOrWhiteSpace(linkedAddon.InputUnitSmall) ? linkedAddon.InputUnitSmall : perServingUnit,
+                                "Medium" => !string.IsNullOrWhiteSpace(linkedAddon.InputUnitMedium) ? linkedAddon.InputUnitMedium : perServingUnit,
+                                "Large" => !string.IsNullOrWhiteSpace(linkedAddon.InputUnitLarge) ? linkedAddon.InputUnitLarge : perServingUnit,
+                                _ => perServingUnit
+                            };
+                        }
+
+                        double totalAddonDeduction = 0;
+                        double AddFor(string label, int drinks)
+                        {
+                            if (drinks <= 0) return 0;
+                            var amount = SizeAmount(label);
+                            var unit = SizeUnit(label);
+                            var convertedPerDrink = ConvertUnits(amount, unit, inventoryBaseUnit);
+                            var contribution = convertedPerDrink * effectiveAddonQty * (double)drinks;
+                            System.Diagnostics.Debug.WriteLine($"   🔄 {label}: {amount} {unit} → {convertedPerDrink} {inventoryBaseUnit}; drinks={drinks}, addonQty={effectiveAddonQty} ⇒ {contribution}");
+                            return contribution;
+                        }
+
+                        totalAddonDeduction += AddFor("Small", cartItem.SmallQuantity);
+                        totalAddonDeduction += AddFor("Medium", cartItem.MediumQuantity);
+                        totalAddonDeduction += AddFor("Large", cartItem.LargeQuantity);
+
+                        System.Diagnostics.Debug.WriteLine($"   📦 Addon qty per drink: {effectiveAddonQty}; Size counts → S:{cartItem.SmallQuantity}, M:{cartItem.MediumQuantity}, L:{cartItem.LargeQuantity}");
+                        
+                        if (totalAddonDeduction > 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING: {totalAddonDeduction} {inventoryBaseUnit}");
                             
                             // Accumulate addon amounts for the same ingredient
                             if (deductionsDict.ContainsKey(cartAddon.itemName))
