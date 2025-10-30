@@ -48,7 +48,18 @@
                         <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
                     </Frame>
                 </Grid>
-                <Grid Grid.Column="4" WidthRequest="35" HeightRequest="35">
+                <!-- To Prepare button -->
+                <Button Grid.Column="4"
+                        Text="📋 To Prepare"
+                        BackgroundColor="#BDAEA2"
+                        TextColor="#5B4F45"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        CornerRadius="18"
+                        Padding="12,6"
+                        Command="{Binding ShowProcessingQueueCommand}" />
+
+                <Grid Grid.Column="5" WidthRequest="35" HeightRequest="35">
                     <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                            WidthRequest="35" 
                            HeightRequest="35" 
@@ -678,6 +689,7 @@
         <otherViews:PaymentPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PaymentPopup}" Grid.ColumnSpan="2"/>
         <otherViews:OrderCompletePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:OrderConfirmedPopup BindingContext="{Binding OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
+        <otherViews:ProcessingQueuePopup BindingContext="{Binding ProcessingQueuePopup}" Grid.ColumnSpan="2" ZIndex="1900"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
         <otherViews:NotificationPopup BindingContext="{Binding NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
         <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>

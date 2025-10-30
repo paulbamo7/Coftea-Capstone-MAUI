@@ -24,6 +24,7 @@ namespace Coftea_Capstone.ViewModel
         public NotificationPopupViewModel NotificationPopup { get; set; }
         public CartPopupViewModel CartPopup { get; set; }
         public HistoryPopupViewModel HistoryPopup { get; set; }
+        public ProcessingQueuePopupViewModel ProcessingQueuePopup { get; set; }
         public PaymentPopupViewModel PaymentPopup { get; set; }
         public OrderCompletePopupViewModel OrderCompletePopup { get; set; }
         public OrderConfirmedPopupViewModel OrderConfirmedPopup { get; set; }
@@ -96,6 +97,7 @@ namespace Coftea_Capstone.ViewModel
             RetryConnectionPopup = ((App)Application.Current).RetryConnectionPopup;
             CartPopup = new CartPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
+            ProcessingQueuePopup = new ProcessingQueuePopupViewModel();
             PaymentPopup = ((App)Application.Current).PaymentPopup;
             OrderCompletePopup = ((App)Application.Current).OrderCompletePopup;
             OrderConfirmedPopup = ((App)Application.Current).OrderConfirmedPopup;
@@ -234,6 +236,9 @@ namespace Coftea_Capstone.ViewModel
                 CartItems.Add(copy);
                 System.Diagnostics.Debug.WriteLine($"✅ Successfully added to cart! Cart now has {CartItems.Count} items");
 
+                // Enqueue to processing queue (split per size)
+                ProcessingQueuePopup?.EnqueueFromCartItem(copy);
+
                 // Reset selection quantities
                 product.SmallQuantity = 0;
                 product.MediumQuantity = 0;
@@ -270,6 +275,12 @@ namespace Coftea_Capstone.ViewModel
         private void ShowNotificationBell() // Opens the notification popup
         {
             NotificationPopup?.ToggleCommand.Execute(null);
+        }
+
+        [RelayCommand]
+        private void ShowProcessingQueue()
+        {
+            ProcessingQueuePopup?.Show();
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
