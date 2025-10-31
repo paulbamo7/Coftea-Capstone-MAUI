@@ -230,96 +230,21 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
                 
-                // Show confirmation dialog with SMS details
-                var currentUserIsAdmin = App.CurrentUser?.IsAdmin ?? false;
-                
-                // Build item list for confirmation dialog
-                var itemList = string.Join("\n", lowStockItems.Select(item => 
+                // Show the beautiful popup with editable fields
+                var app = (App)Application.Current;
+                if (app?.CreatePurchaseOrderPopup != null)
                 {
-                    var neededQuantity = (int)(item.minimumQuantity - item.itemQuantity);
-                    return $"• {item.itemName} - {neededQuantity} {item.unitOfMeasurement}";
-                }));
-                
-                var confirmationMessage = currentUserIsAdmin 
-                    ? $"Found {lowStockItems.Count} items below minimum stock levels:\n\n{itemList}\n\nThis will:\n• Create a purchase order\n• Auto-approve (you're admin)\n• Send SMS to Coftea Supplier\n• Update inventory immediately\n\nProceed?"
-                    : $"Found {lowStockItems.Count} items below minimum stock levels:\n\n{itemList}\n\nThis will:\n• Create a purchase order\n• Send SMS to Coftea Supplier\n• Notify admin for approval\n\nProceed?";
-                
-                var result = await Application.Current.MainPage.DisplayAlert(
-                    "Create Purchase Order", 
-                    confirmationMessage, 
-                    "Yes", "Cancel");
-                
-                if (result)
+                    var currentUserIsAdmin = App.CurrentUser?.IsAdmin ?? false;
+                    app.CreatePurchaseOrderPopup.LoadItems(lowStockItems, currentUserIsAdmin);
+                    app.CreatePurchaseOrderPopup.IsVisible = true;
+                }
+                else
                 {
-                    // Create purchase order in database
-                    var purchaseOrderId = await _database.CreatePurchaseOrderAsync(lowStockItems);
-                    
-                    if (purchaseOrderId > 0)
-                    {
-                        var currentUser = App.CurrentUser?.Email ?? "Unknown";
-                        
-                        if (currentUserIsAdmin)
-                        {
-                            // Admin is creating the order - auto-approve it
-                            System.Diagnostics.Debug.WriteLine("👑 Admin user detected - auto-approving purchase order");
-                            
-                            // Auto-approve the purchase order
-                            var approved = await _database.UpdatePurchaseOrderStatusAsync(purchaseOrderId, "Approved", currentUser);
-                            
-                            if (approved)
-                            {
-                                // Send SMS to supplier with approved order
-                                var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, lowStockItems);
-                                
-                                // Note: SMS app opens but user needs to press send manually
-                                await Application.Current.MainPage.DisplayAlert(
-                                    "Purchase Order Created & Approved", 
-                                    $"Purchase order #{purchaseOrderId} has been created and auto-approved!\n\n" +
-                                    $"📱 SMS app should have opened with the message pre-filled.\n" +
-                                    $"Please press 'Send' to notify the supplier.\n\n" +
-                                    $"Inventory has been updated.", 
-                                    "OK");
-                                
-                                System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} auto-approved by admin");
-                            }
-                            else
-                            {
-                                await Application.Current.MainPage.DisplayAlert(
-                                    "Purchase Order Creation Error", 
-                                    $"Purchase order #{purchaseOrderId} was created but could not be auto-approved.\n\n" +
-                                    $"Please check the purchase order in the system and approve it manually.", 
-                                    "OK");
-                            }
-                        }
-                        else
-                        {
-                            // Regular user - requires admin approval
-                            System.Diagnostics.Debug.WriteLine("👤 Regular user detected - purchase order requires admin approval");
-                            
-                            // Send SMS to supplier
-                            var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, lowStockItems);
-                            
-                            // Notify admin via SMS
-                            var adminNotified = await PurchaseOrderSMSService.NotifyAdminOfPurchaseOrderAsync(purchaseOrderId, currentUser);
-                            
-                            // Note: SMS app opens but user needs to press send manually
-                            await Application.Current.MainPage.DisplayAlert(
-                                "Purchase Order Created", 
-                                $"Purchase order #{purchaseOrderId} has been created!\n\n" +
-                                $"📱 SMS app should have opened with the message pre-filled.\n" +
-                                $"Please press 'Send' to notify the supplier and admin.", 
-                                "OK");
-                        }
-                        
-                        System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created and processed");
-                    }
-                    else
-                    {
-                        await Application.Current.MainPage.DisplayAlert(
-                            "Error", 
-                            "Failed to create purchase order. Please try again.", 
-                            "OK");
-                    }
+                    // Fallback to old method if popup not available
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Error", 
+                        "Purchase order popup is not initialized.", 
+                        "OK");
                 }
             }
             catch (Exception ex)

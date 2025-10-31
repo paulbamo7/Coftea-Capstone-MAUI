@@ -755,17 +755,23 @@ namespace Coftea_Capstone.ViewModel.Controls
                             continue;
                         }
 
-                        // Use the user-entered amount/unit for addons (prioritize InputUnit over inventory unit)
-                        var perServingAmount = linkedAddon.InputAmount > 0
-                            ? linkedAddon.InputAmount
-                            : (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : 0);
+                        // Use the amount/unit from product_addons table (stored in InputAmountMedium/InputUnitMedium)
+                        // InputAmountMedium is set from the 'amount' column in product_addons
+                        // InputUnitMedium is set from the 'unit' column in product_addons
+                        var perServingAmount = linkedAddon.InputAmountMedium > 0
+                            ? linkedAddon.InputAmountMedium
+                            : (linkedAddon.InputAmount > 0 
+                                ? linkedAddon.InputAmount 
+                                : (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : 0));
                         
-                        // Use the saved InputUnit from the addon configuration
-                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.InputUnit)
-                            ? linkedAddon.InputUnit
-                            : (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitSmall)
-                                ? linkedAddon.InputUnitSmall
-                                : cartAddon.unitOfMeasurement);
+                        // Use the saved InputUnitMedium from the addon configuration (from product_addons.unit)
+                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.InputUnitMedium)
+                            ? linkedAddon.InputUnitMedium
+                            : (!string.IsNullOrWhiteSpace(linkedAddon.InputUnit)
+                                ? linkedAddon.InputUnit
+                                : (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitSmall)
+                                    ? linkedAddon.InputUnitSmall
+                                    : cartAddon.unitOfMeasurement));
 
                         System.Diagnostics.Debug.WriteLine($"   📊 Per-serving: {perServingAmount} {perServingUnit}");
 

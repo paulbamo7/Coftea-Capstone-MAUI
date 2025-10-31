@@ -41,6 +41,7 @@ namespace Coftea_Capstone
         public ProfilePopupViewModel ProfilePopup { get; private set; }
         public ActivityLogPopupViewModel ActivityLogPopup { get; private set; }
         public PurchaseOrderApprovalPopupViewModel PurchaseOrderApprovalPopup { get; private set; }
+        public CreatePurchaseOrderPopupViewModel CreatePurchaseOrderPopup { get; private set; }
         
         // Shared Page ViewModels to prevent memory leaks
         public InventoryPageViewModel InventoryVM { get; private set; }
@@ -253,6 +254,7 @@ namespace Coftea_Capstone
             ProfilePopup = new ProfilePopupViewModel();
             ActivityLogPopup = new ActivityLogPopupViewModel();
             PurchaseOrderApprovalPopup = new PurchaseOrderApprovalPopupViewModel();
+            CreatePurchaseOrderPopup = new CreatePurchaseOrderPopupViewModel();
             
             // Initialize shared page ViewModels
             InventoryVM = new InventoryPageViewModel(SettingsPopup);

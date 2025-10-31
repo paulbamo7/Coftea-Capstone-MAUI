@@ -98,6 +98,8 @@ namespace Coftea_Capstone.ViewModel
             CartPopup = new CartPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
             ProcessingQueuePopup = new ProcessingQueuePopupViewModel();
+            // Load pending items on initialization
+            _ = ProcessingQueuePopup.LoadPendingItemsAsync();
             PaymentPopup = ((App)Application.Current).PaymentPopup;
             OrderCompletePopup = ((App)Application.Current).OrderCompletePopup;
             OrderConfirmedPopup = ((App)Application.Current).OrderConfirmedPopup;
@@ -237,7 +239,7 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"✅ Successfully added to cart! Cart now has {CartItems.Count} items");
 
                 // Enqueue to processing queue (split per size)
-                ProcessingQueuePopup?.EnqueueFromCartItem(copy);
+                _ = ProcessingQueuePopup?.EnqueueFromCartItem(copy);
 
                 // Reset selection quantities
                 product.SmallQuantity = 0;

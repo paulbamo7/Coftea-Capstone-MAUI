@@ -103,29 +103,150 @@
                                                 <Label Grid.Row="2" Grid.Column="1" Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" FontSize="12" TextColor="#333" FontAttributes="Bold"/>
                                             </Grid>
 
-                                            <!-- Items Preview -->
-                                            <Label Grid.Row="2"
-                                                   Text="{Binding ItemsPreview}"
-                                                   FontSize="12"
-                                                   TextColor="#666"
-                                                   LineBreakMode="TailTruncation"/>
+                                            <!-- Expandable Items Section -->
+                                            <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="8">
+                                                <!-- Items Preview Header (Clickable to expand) -->
+                                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                                    <Label Grid.Column="0"
+                                                           Text="📋 Items in this order"
+                                                           FontSize="14"
+                                                           FontAttributes="Bold"
+                                                           TextColor="#5B4F45"
+                                                           VerticalOptions="Center"/>
+                                                    <Label Grid.Column="1"
+                                                           x:Name="ExpandIcon"
+                                                           Text="▼"
+                                                           FontSize="16"
+                                                           TextColor="#7E6D5F"
+                                                           VerticalOptions="Center"
+                                                           HorizontalOptions="End"/>
+                                                </Grid>
+
+                                                <!-- Expandable Items List -->
+                                                <VerticalStackLayout Grid.Row="1" 
+                                                                     x:Name="ItemsContainer"
+                                                                     Spacing="8"
+                                                                     IsVisible="True">
+                                                    <CollectionView ItemsSource="{Binding EditableItems}">
+                                                        <CollectionView.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Frame BackgroundColor="White"
+                                                                       CornerRadius="8"
+                                                                       Padding="12"
+                                                                       Margin="0,0,0,8"
+                                                                       BorderColor="#E0E0E0"
+                                                                       HasShadow="False">
+                                                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
+                                                                        <!-- Item Name -->
+                                                                        <Label Grid.Row="0" Grid.Column="0"
+                                                                               Text="{Binding ItemName}"
+                                                                               FontSize="14"
+                                                                               FontAttributes="Bold"
+                                                                               TextColor="#333"/>
+                                                                        
+                                                                        <!-- Requested Info -->
+                                                                        <Label Grid.Row="0" Grid.Column="1"
+                                                                               Text="{Binding RequestedQuantity, StringFormat='Requested: {0}'}"
+                                                                               FontSize="11"
+                                                                               TextColor="#999"
+                                                                               HorizontalOptions="End"/>
+                                                                        
+                                                                        <!-- Quantity Input -->
+                                                                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                                                              ColumnDefinitions="Auto,*,Auto,*" 
+                                                                              ColumnSpacing="8"
+                                                                              VerticalOptions="Center">
+                                                                            <Label Grid.Column="0"
+                                                                                   Text="Approved Amount:"
+                                                                                   FontSize="12"
+                                                                                   TextColor="#666"
+                                                                                   VerticalOptions="Center"/>
+                                                                            <Entry Grid.Column="1"
+                                                                                   Text="{Binding ApprovedQuantity, Mode=TwoWay}"
+                                                                                   Keyboard="Numeric"
+                                                                                   Placeholder="0"
+                                                                                   BackgroundColor="#F8F8F8"
+                                                                                   TextColor="#333"
+                                                                                   FontSize="14"
+                                                                                   HeightRequest="35"/>
+                                                                            <Label Grid.Column="2"
+                                                                                   Text="UoM:"
+                                                                                   FontSize="12"
+                                                                                   TextColor="#666"
+                                                                                   VerticalOptions="Center"
+                                                                                   Margin="8,0,0,0"/>
+                                                                            <Picker Grid.Column="3"
+                                                                                    ItemsSource="{Binding AvailableUoMs}"
+                                                                                    SelectedItem="{Binding ApprovedUoM}"
+                                                                                    BackgroundColor="#F8F8F8"
+                                                                                    TextColor="#333"
+                                                                                    FontSize="14"
+                                                                                    HeightRequest="35"
+                                                                                    Title="Select UoM"/>
+                                                                        </Grid>
+
+                                                                        <!-- Original UoM Display -->
+                                                                        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                                                               FontSize="11"
+                                                                               TextColor="#999"
+                                                                               VerticalOptions="Center">
+                                                                            <Label.FormattedText>
+                                                                                <FormattedString>
+                                                                                    <Span Text="Original: " FontAttributes="None"/>
+                                                                                    <Span Text="{Binding RequestedQuantity}"/>
+                                                                                    <Span Text=" " FontAttributes="None"/>
+                                                                                    <Span Text="{Binding OriginalUoM}"/>
+                                                                                </FormattedString>
+                                                                            </Label.FormattedText>
+                                                                        </Label>
+                                                                    </Grid>
+                                                                </Frame>
+                                                            </DataTemplate>
+                                                        </CollectionView.ItemTemplate>
+                                                    </CollectionView>
+                                                </VerticalStackLayout>
+                                            </Grid>
 
                                             <!-- Action Buttons -->
-                                            <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
+                                            <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,15,0,0">
                                                 <Button Grid.Column="0"
                                                         Text="✅ Approve"
                                                         BackgroundColor="#4CAF50"
                                                         TextColor="White"
                                                         CornerRadius="10"
                                                         HeightRequest="40"
-                                                        Clicked="OnApproveClicked"/>
+                                                        Clicked="OnApproveClicked">
+                                                    <Button.Triggers>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Pending">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Approved">
+                                                            <Setter Property="IsVisible" Value="False" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Rejected">
+                                                            <Setter Property="IsVisible" Value="False" />
+                                                        </DataTrigger>
+                                                    </Button.Triggers>
+                                                </Button>
                                                 <Button Grid.Column="1"
                                                         Text="❌ Reject"
                                                         BackgroundColor="#F44336"
                                                         TextColor="White"
                                                         CornerRadius="10"
                                                         HeightRequest="40"
-                                                        Clicked="OnRejectClicked"/>
+                                                        Clicked="OnRejectClicked">
+                                                    <Button.Triggers>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Pending">
+                                                            <Setter Property="IsVisible" Value="True" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Approved">
+                                                            <Setter Property="IsVisible" Value="False" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Rejected">
+                                                            <Setter Property="IsVisible" Value="False" />
+                                                        </DataTrigger>
+                                                    </Button.Triggers>
+                                                </Button>
                                             </Grid>
                                         </Grid>
                                     </Frame>

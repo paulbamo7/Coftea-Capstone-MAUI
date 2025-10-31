@@ -62,6 +62,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     if (items.Count > 3)
                         itemsPreview += $" and {items.Count - 3} more...";
 
+                    // Create editable items
+                    var editableItems = new ObservableCollection<EditablePurchaseOrderItem>();
+                    foreach (var item in items)
+                    {
+                        editableItems.Add(new EditablePurchaseOrderItem(item));
+                    }
+
                     var displayOrder = new PurchaseOrderDisplayModel
                     {
                         PurchaseOrderId = order.PurchaseOrderId,
@@ -72,7 +79,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                         TotalAmount = order.TotalAmount,
                         CreatedAt = order.CreatedAt,
                         ItemsPreview = itemsPreview,
-                        Items = items
+                        Items = items,
+                        EditableItems = editableItems
                     };
                     
                     displayOrders.Add(displayOrder);
@@ -104,10 +112,21 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                // Validate all items have valid quantities
+                var invalidItems = order.EditableItems.Where(i => i.ApprovedQuantity <= 0 || string.IsNullOrWhiteSpace(i.ApprovedUoM)).ToList();
+                if (invalidItems.Any())
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Validation Error",
+                        $"Please ensure all items have valid quantities (> 0) and unit of measurement selected.",
+                        "OK");
+                    return;
+                }
+
                 var confirm = await Application.Current.MainPage.DisplayAlert(
                     "Approve Purchase Order",
                     $"Approve Purchase Order #{order.PurchaseOrderId}?\n\n" +
-                    $"This will update inventory quantities for all items in this order.",
+                    $"This will update inventory quantities using the custom amounts you've set.",
                     "Approve", "Cancel");
 
                 if (!confirm) return;
@@ -115,13 +134,27 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"✅ Approving purchase order #{order.PurchaseOrderId}");
 
                 var currentUser = App.CurrentUser?.Email ?? "Admin";
-                var success = await _database.UpdatePurchaseOrderStatusAsync(order.PurchaseOrderId, "Approved", currentUser);
+                
+                // Prepare custom quantities and UoMs for approval
+                var customItemsList = order.EditableItems.Select(ei => new
+                {
+                    ei.InventoryItemId,
+                    ei.ItemName,
+                    ApprovedQuantity = ei.ApprovedQuantity,
+                    ApprovedUoM = ei.ApprovedUoM
+                }).ToList();
+
+                var success = await _database.UpdatePurchaseOrderStatusAsync(
+                    order.PurchaseOrderId, 
+                    "Approved", 
+                    currentUser,
+                    new { Items = customItemsList });
 
                 if (success)
                 {
                     await Application.Current.MainPage.DisplayAlert(
                         "Success",
-                        $"Purchase Order #{order.PurchaseOrderId} has been approved!\nInventory has been updated.",
+                        $"Purchase Order #{order.PurchaseOrderId} has been approved!\nInventory has been updated with your custom amounts.",
                         "OK");
 
                     // Reload orders
@@ -204,7 +237,59 @@ namespace Coftea_Capstone.ViewModel.Controls
     public class PurchaseOrderDisplayModel : PurchaseOrderModel
     {
         public string ItemsPreview { get; set; } = string.Empty;
+        public ObservableCollection<EditablePurchaseOrderItem> EditableItems { get; set; } = new();
         public List<PurchaseOrderItemModel> Items { get; set; } = new();
+        public bool IsExpanded { get; set; } = false;
+    }
+
+    // Editable item model with custom amount and UoM
+    public partial class EditablePurchaseOrderItem : ObservableObject
+    {
+        [ObservableProperty]
+        private int purchaseOrderItemId;
+
+        [ObservableProperty]
+        private int inventoryItemId;
+
+        [ObservableProperty]
+        private string itemName = string.Empty;
+
+        [ObservableProperty]
+        private string itemCategory = string.Empty;
+
+        [ObservableProperty]
+        private int requestedQuantity;
+
+        [ObservableProperty]
+        private double approvedQuantity;
+
+        [ObservableProperty]
+        private string approvedUoM = string.Empty;
+
+        [ObservableProperty]
+        private decimal unitPrice;
+
+        [ObservableProperty]
+        private decimal totalPrice;
+
+        [ObservableProperty]
+        private string originalUoM = string.Empty;
+
+        public List<string> AvailableUoMs { get; set; } = new() { "pcs", "kg", "g", "L", "ml" };
+
+        public EditablePurchaseOrderItem(PurchaseOrderItemModel item)
+        {
+            PurchaseOrderItemId = item.PurchaseOrderItemId;
+            InventoryItemId = item.InventoryItemId;
+            ItemName = item.ItemName;
+            ItemCategory = item.ItemCategory;
+            RequestedQuantity = item.RequestedQuantity;
+            ApprovedQuantity = item.RequestedQuantity; // Default to requested quantity
+            ApprovedUoM = item.UnitOfMeasurement;
+            OriginalUoM = item.UnitOfMeasurement;
+            UnitPrice = item.UnitPrice;
+            TotalPrice = item.TotalPrice;
+        }
     }
 }
 
