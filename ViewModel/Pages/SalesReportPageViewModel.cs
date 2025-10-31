@@ -298,8 +298,8 @@ namespace Coftea_Capstone.ViewModel
                 var top = TopItemsWeekly?.ToList() ?? new List<TrendItem>();
 
                 var pdfService = new Services.PDFReportService();
-                var path = await pdfService.GenerateWeeklyReportAsync(start, end, transactions, top);
-                await Application.Current.MainPage.DisplayAlert("Exported", $"Weekly report saved to:\n{path}", "OK");
+                var path = await pdfService.GenerateWeeklyReportPDFAsync(start, end, transactions, top);
+                await Application.Current.MainPage.DisplayAlert("Exported", $"Weekly PDF report saved to:\n{path}", "OK");
             }
             catch (Exception ex)
             {
@@ -327,8 +327,8 @@ namespace Coftea_Capstone.ViewModel
                 var top = TopItemsMonthly?.ToList() ?? new List<TrendItem>();
 
                 var pdfService = new Services.PDFReportService();
-                var path = await pdfService.GenerateMonthlyReportAsync(start, end, transactions, top);
-                await Application.Current.MainPage.DisplayAlert("Exported", $"Monthly report saved to:\n{path}", "OK");
+                var path = await pdfService.GenerateMonthlyReportPDFAsync(start, end, transactions, top);
+                await Application.Current.MainPage.DisplayAlert("Exported", $"Monthly PDF report saved to:\n{path}", "OK");
             }
             catch (Exception ex)
             {
@@ -1380,12 +1380,12 @@ namespace Coftea_Capstone.ViewModel
                 
                 // Generate PDF report
                 var pdfService = new Services.PDFReportService();
-                var filePath = await pdfService.GenerateWeeklyReportAsync(weekStart, weekEnd, transactions, TopItemsWeekly.ToList());
+                var filePath = await pdfService.GenerateWeeklyReportPDFAsync(weekStart, weekEnd, transactions, TopItemsWeekly.ToList());
                 
                 // Show success message with file location
                 await Application.Current.MainPage.DisplayAlert(
                     "Weekly Report Generated", 
-                    $"Weekly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past week.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Weekly_Report HTML file\n4. Open it in a browser to print or save as PDF", 
+                    $"Weekly PDF report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past week.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Weekly_Report PDF file", 
                     "OK");
             }
             catch (Exception ex)
@@ -1415,12 +1415,12 @@ namespace Coftea_Capstone.ViewModel
                 
                 // Generate PDF report
                 var pdfService = new Services.PDFReportService();
-                var filePath = await pdfService.GenerateMonthlyReportAsync(monthStart, monthEnd, transactions, TopItemsMonthly.ToList());
+                var filePath = await pdfService.GenerateMonthlyReportPDFAsync(monthStart, monthEnd, transactions, TopItemsMonthly.ToList());
                 
                 // Show success message with file location
                 await Application.Current.MainPage.DisplayAlert(
                     "Monthly Report Generated", 
-                    $"Monthly sales report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past month.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Monthly_Report HTML file\n4. Open it in a browser to print or save as PDF", 
+                    $"Monthly PDF report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past month.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Monthly_Report PDF file", 
                     "OK");
             }
             catch (Exception ex)

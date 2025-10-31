@@ -30,7 +30,7 @@
             
             <Grid RowDefinitions="Auto,*,Auto">
                 <!-- Header -->
-                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="20">
+                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="10">
                     <Label Text="📦 Purchase Orders" 
                            FontSize="24" 
                            FontAttributes="Bold" 
@@ -47,8 +47,8 @@
                 </Grid>
 
                 <!-- Content -->
-                <ScrollView Grid.Row="1" Padding="20">
-                    <VerticalStackLayout Spacing="15">
+                <ScrollView Grid.Row="1" Padding="10">
+                    <VerticalStackLayout Spacing="10">
                         <!-- Loading indicator -->
                         <ActivityIndicator IsRunning="{Binding IsLoading}" 
                                          IsVisible="{Binding IsLoading}"
@@ -56,7 +56,7 @@
                                          HeightRequest="50"/>
 
                         <!-- No orders message -->
-                        <Label Text="No pending purchase orders"
+                        <Label Text="No purchase orders found"
                                IsVisible="{Binding HasNoPendingOrders}"
                                FontSize="16"
                                TextColor="Gray"
@@ -70,10 +70,10 @@
                                 <DataTemplate>
                                     <Frame BackgroundColor="#F5F5F5"
                                            CornerRadius="10"
-                                           Padding="15"
+                                           Padding="10"
                                            Margin="0,0,0,10"
                                            HasShadow="True">
-                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
                                             <!-- Order Header -->
                                             <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                                                 <Label Grid.Column="0"
@@ -86,14 +86,14 @@
                                                        FontSize="14"
                                                        FontAttributes="Bold"
                                                        TextColor="#D4A574"
-                                                       Padding="10,5"
+                                                       Padding="5,3"
                                                        BackgroundColor="#FFF8E1"
                                                        HorizontalOptions="End"/>
                                             </Grid>
 
                                             <!-- Order Info -->
                                             <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
-                                                <Label Grid.Row="0" Grid.Column="0" Text="Requested by:" FontSize="12" TextColor="Gray"/>
+                                                <Label Grid.Row="0" Grid.Column="0" Text="arp by:" FontSize="12" TextColor="Gray"/>
                                                 <Label Grid.Row="0" Grid.Column="1" Text="{Binding RequestedBy}" FontSize="12" TextColor="#333" FontAttributes="Bold"/>
                                                 
                                                 <Label Grid.Row="1" Grid.Column="0" Text="Date:" FontSize="12" TextColor="Gray"/>
@@ -132,34 +132,50 @@
                                                             <DataTemplate>
                                                                 <Frame BackgroundColor="White"
                                                                        CornerRadius="8"
-                                                                       Padding="12"
+                                                                       Padding="8"
                                                                        Margin="0,0,0,8"
                                                                        BorderColor="#E0E0E0"
                                                                        HasShadow="False">
-                                                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
-                                                                        <!-- Item Name -->
+                                                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
+                                                                        <!-- Item Name and Status -->
                                                                         <Label Grid.Row="0" Grid.Column="0"
                                                                                Text="{Binding ItemName}"
                                                                                FontSize="14"
                                                                                FontAttributes="Bold"
                                                                                TextColor="#333"/>
                                                                         
+                                                                        <!-- Status Badge -->
+                                                                        <Frame Grid.Row="0" Grid.Column="1"
+                                                                               BackgroundColor="{Binding ItemStatus, Converter={StaticResource StatusColorConverter}}"
+                                                                               CornerRadius="12"
+                                                                               Padding="5,2"
+                                                                               HorizontalOptions="End"
+                                                                               HeightRequest="20">
+                                                                            <Label Text="{Binding ItemStatus}"
+                                                                                   FontSize="10"
+                                                                                   TextColor="White"
+                                                                                   FontAttributes="Bold"
+                                                                                   VerticalOptions="Center"
+                                                                                   HorizontalOptions="Center"/>
+                                                                        </Frame>
+                                                                        
                                                                         <!-- Requested Info -->
-                                                                        <Label Grid.Row="0" Grid.Column="1"
+                                                                        <Label Grid.Row="1" Grid.Column="0"
                                                                                Text="{Binding RequestedQuantity, StringFormat='Requested: {0}'}"
                                                                                FontSize="11"
-                                                                               TextColor="#999"
-                                                                               HorizontalOptions="End"/>
+                                                                               TextColor="#999"/>
                                                                         
                                                                         <!-- Quantity Input -->
-                                                                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                                                        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
                                                                               ColumnDefinitions="Auto,*,Auto,*" 
                                                                               ColumnSpacing="8"
-                                                                              VerticalOptions="Center">
+                                                                              VerticalOptions="Center"
+                                                                              IsEnabled="{Binding IsPending}">
                                                                             <Label Grid.Column="0"
                                                                                    Text="Approved Amount:"
                                                                                    FontSize="12"
                                                                                    TextColor="#666"
+                                                                                   Padding="0"
                                                                                    VerticalOptions="Center"/>
                                                                             <Entry Grid.Column="1"
                                                                                    Text="{Binding ApprovedQuantity, Mode=TwoWay}"
@@ -168,10 +184,12 @@
                                                                                    BackgroundColor="#F8F8F8"
                                                                                    TextColor="#333"
                                                                                    FontSize="14"
-                                                                                   HeightRequest="35"/>
+                                                                                   HeightRequest="35"
+                                                                                   IsEnabled="{Binding IsPending}"/>
                                                                             <Label Grid.Column="2"
                                                                                    Text="UoM:"
                                                                                    FontSize="12"
+                                                                                   Padding="0"
                                                                                    TextColor="#666"
                                                                                    VerticalOptions="Center"
                                                                                    Margin="8,0,0,0"/>
@@ -182,23 +200,54 @@
                                                                                     TextColor="#333"
                                                                                     FontSize="14"
                                                                                     HeightRequest="35"
-                                                                                    Title="Select UoM"/>
+                                                                                    Title="Select UoM"
+                                                                                    IsEnabled="{Binding IsPending}"/>
                                                                         </Grid>
 
-                                                                        <!-- Original UoM Display -->
-                                                                        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                                                                               FontSize="11"
-                                                                               TextColor="#999"
-                                                                               VerticalOptions="Center">
-                                                                            <Label.FormattedText>
-                                                                                <FormattedString>
-                                                                                    <Span Text="Original: " FontAttributes="None"/>
-                                                                                    <Span Text="{Binding RequestedQuantity}"/>
-                                                                                    <Span Text=" " FontAttributes="None"/>
-                                                                                    <Span Text="{Binding OriginalUoM}"/>
-                                                                                </FormattedString>
-                                                                            </Label.FormattedText>
-                                                                        </Label>
+                                                                        <!-- Original UoM Display and Action Buttons -->
+                                                                        <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                                                              ColumnDefinitions="*,Auto,Auto"
+                                                                              ColumnSpacing="8">
+                                                                            <Label Grid.Column="0"
+                                                                                   FontSize="11"
+                                                                                   TextColor="#999"
+                                                                                   VerticalOptions="Center">
+                                                                                <Label.FormattedText>
+                                                                                    <FormattedString>
+                                                                                        <Span Text="Original: " FontAttributes="None"/>
+                                                                                        <Span Text="{Binding RequestedQuantity}"/>
+                                                                                        <Span Text=" " FontAttributes="None"/>
+                                                                                        <Span Text="{Binding OriginalUoM}"/>
+                                                                                    </FormattedString>
+                                                                                </Label.FormattedText>
+                                                                            </Label>
+                                                                            
+                                                                            <!-- Accept Button -->
+                                                                            <Button Grid.Column="1"
+                                                                                    Text="✅ Accept"
+                                                                                    BackgroundColor="#4CAF50"
+                                                                                    TextColor="White"
+                                                                                    CornerRadius="8"
+                                                                                    HeightRequest="35"
+                                                                                    WidthRequest="90"
+                                                                                    FontSize="12"
+                                                                                    Command="{Binding BindingContext.AcceptItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                                                                    CommandParameter="{Binding .}"
+                                                                                    IsVisible="{Binding IsPending}"/>
+                                                                            
+                                                                            <!-- Cancel Button -->
+                                                                            <Button Grid.Column="2"
+                                                                                    Text="❌ Cancel"
+                                                                                    BackgroundColor="#F44336"
+                                                                                    TextColor="White"
+                                                                                    CornerRadius="8"
+                                                                                    HeightRequest="35"
+                                                                                    WidthRequest="90"
+                                                                                    FontSize="12"
+                                                                                    Command="{Binding BindingContext.CancelItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                                                                    CommandParameter="{Binding .}"
+                                                                                    IsVisible="{Binding IsPending}"/>
+                                                                        </Grid>
                                                                     </Grid>
                                                                 </Frame>
                                                             </DataTemplate>
@@ -208,14 +257,15 @@
                                             </Grid>
 
                                             <!-- Action Buttons -->
-                                            <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,15,0,0">
+                                            <Grid Grid.Row="3" ColumnDefinitions="*,*,Auto" ColumnSpacing="10" Margin="0,15,0,0">
                                                 <Button Grid.Column="0"
                                                         Text="✅ Approve"
                                                         BackgroundColor="#4CAF50"
                                                         TextColor="White"
                                                         CornerRadius="10"
                                                         HeightRequest="40"
-                                                        Clicked="OnApproveClicked">
+                                                        Command="{Binding BindingContext.ApproveOrderCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                                        CommandParameter="{Binding .}">
                                                     <Button.Triggers>
                                                         <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Pending">
                                                             <Setter Property="IsVisible" Value="True" />
@@ -234,7 +284,8 @@
                                                         TextColor="White"
                                                         CornerRadius="10"
                                                         HeightRequest="40"
-                                                        Clicked="OnRejectClicked">
+                                                        Command="{Binding BindingContext.RejectOrderCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                                        CommandParameter="{Binding .}">
                                                     <Button.Triggers>
                                                         <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Pending">
                                                             <Setter Property="IsVisible" Value="True" />
@@ -247,6 +298,15 @@
                                                         </DataTrigger>
                                                     </Button.Triggers>
                                                 </Button>
+                                                <Button Grid.Column="2"
+                                                        Text="📄 PDF"
+                                                        BackgroundColor="#2196F3"
+                                                        TextColor="White"
+                                                        CornerRadius="10"
+                                                        HeightRequest="40"
+                                                        WidthRequest="80"
+                                                        Command="{Binding BindingContext.ExportPurchaseOrderPDFCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                                        CommandParameter="{Binding .}"/>
                                             </Grid>
                                         </Grid>
                                     </Frame>
@@ -257,7 +317,7 @@
                 </ScrollView>
 
                 <!-- Footer -->
-                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="20">
+                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="10">
                     <Button Text="CLOSE" 
                             BackgroundColor="#BDAEA2"
                             TextColor="White"

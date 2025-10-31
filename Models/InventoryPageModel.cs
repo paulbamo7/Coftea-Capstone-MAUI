@@ -71,6 +71,7 @@ namespace Coftea_Capstone.Models
                     OnPropertyChanged(nameof(NewStockDisplay));
                     OnPropertyChanged(nameof(NewStockDisplayFormatted));
                     OnPropertyChanged(nameof(CurrentStockDisplay));
+                    OnPropertyChanged(nameof(StockStatusColor));
                 }
             }
         }
@@ -93,6 +94,7 @@ namespace Coftea_Capstone.Models
                     OnPropertyChanged(nameof(NewStockDisplay));
                     OnPropertyChanged(nameof(NewStockDisplayFormatted));
                     OnPropertyChanged(nameof(MinimumStockDisplay));
+                    OnPropertyChanged(nameof(StockStatusColor));
                 }
             }
         }
@@ -542,6 +544,31 @@ namespace Coftea_Capstone.Models
             }
         }
 
+        // Stock status color based on quantity vs minimum threshold
+        public Color StockStatusColor
+        {
+            get
+            {
+                if (minimumQuantity <= 0) return Colors.Black; // No minimum set, use default color
+                
+                if (itemQuantity <= minimumQuantity)
+                {
+                    // At or below minimum - Red
+                    return Colors.Red;
+                }
+                else if (itemQuantity <= minimumQuantity * 2)
+                {
+                    // Between minimum and 2x minimum - Yellow/Orange
+                    return Color.FromRgb(255, 165, 0); // Orange (#FFA500)
+                }
+                else
+                {
+                    // Above 2x minimum - Green (normal)
+                    return Colors.Green;
+                }
+            }
+        }
+
         // New format: Current Stock 300 ml | Maximum Stock: 2kg | Minimum Stock: 500 g
         public string NewStockDisplay
         {
@@ -592,9 +619,9 @@ namespace Coftea_Capstone.Models
 
                 var formattedString = new FormattedString();
                 
-                // Current Stock (Green)
+                // Current Stock (Dynamic color based on stock level)
                 formattedString.Spans.Add(new Span { Text = "Current Stock: ", TextColor = Colors.Gray });
-                formattedString.Spans.Add(new Span { Text = currentStock, TextColor = Colors.Green, FontAttributes = FontAttributes.Bold });
+                formattedString.Spans.Add(new Span { Text = currentStock, TextColor = StockStatusColor, FontAttributes = FontAttributes.Bold });
                 formattedString.Spans.Add(new Span { Text = " | " });
                 
                 // Maximum Stock (Blue)

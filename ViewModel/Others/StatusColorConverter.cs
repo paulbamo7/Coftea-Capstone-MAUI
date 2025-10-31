@@ -14,6 +14,9 @@ namespace Coftea_Capstone.ViewModel.Others
                     "Insufficient Amount" => Colors.Red,
                     "Processing..." => Colors.Orange,
                     "Payment Confirmed" => Colors.Green,
+                    "Pending" => Colors.Orange,
+                    "Accepted" => Colors.Green,
+                    "Canceled" => Colors.Red,
                     _ => Colors.Black
                 };
             }

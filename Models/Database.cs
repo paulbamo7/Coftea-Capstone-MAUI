@@ -375,13 +375,6 @@ namespace Coftea_Capstone.Models
                     CONSTRAINT fk_tx_items_product FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
                 );
                 
-                -- Alter existing transaction_items table to increase size column length if needed
-                -- This will fail silently if column doesn't exist or is already the right size
-                ALTER TABLE transaction_items MODIFY COLUMN size VARCHAR(100);
-                
-                -- Allow NULL for smallPrice in products table (only Coffee category needs small size)
-                ALTER TABLE products MODIFY COLUMN smallPrice DECIMAL(10,2) DEFAULT NULL;
-                
                 CREATE TABLE IF NOT EXISTS processing_queue (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     productID INT NOT NULL,
@@ -2787,10 +2780,10 @@ namespace Coftea_Capstone.Models
                 
                 System.Diagnostics.Debug.WriteLine("📦 [Database] Fetching pending purchase orders...");
                 
-                // First, get all pending orders
+                // First, get all pending orders (case-insensitive and whitespace-insensitive)
                 var sql = @"
                     SELECT * FROM purchase_orders
-                    WHERE status = 'Pending'
+                    WHERE LOWER(TRIM(status)) = 'pending'
                     ORDER BY createdAt DESC;";
                 
                 await using var cmd = new MySqlCommand(sql, conn);
@@ -2828,6 +2821,57 @@ namespace Coftea_Capstone.Models
         }
 
         /// <summary>
+        /// Gets recent purchase orders (all orders, ordered by date descending)
+        /// </summary>
+        public async Task<List<PurchaseOrderModel>> GetAllPurchaseOrdersAsync(int limit = 50)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                
+                System.Diagnostics.Debug.WriteLine("📦 [Database] Fetching all purchase orders...");
+                
+                var sql = @"
+                    SELECT * FROM purchase_orders
+                    ORDER BY createdAt DESC
+                    LIMIT @Limit;";
+                
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Limit", limit);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                
+                var orders = new List<PurchaseOrderModel>();
+                
+                while (await reader.ReadAsync())
+                {
+                    var order = new PurchaseOrderModel
+                    {
+                        PurchaseOrderId = reader.GetInt32("purchaseOrderId"),
+                        OrderDate = reader.GetDateTime("orderDate"),
+                        SupplierName = reader.GetString("supplierName"),
+                        Status = reader.GetString("status"),
+                        RequestedBy = reader.GetString("requestedBy"),
+                        ApprovedBy = reader.IsDBNull(reader.GetOrdinal("approvedBy")) ? string.Empty : reader.GetString("approvedBy"),
+                        ApprovedDate = reader.IsDBNull(reader.GetOrdinal("approvedDate")) ? null : reader.GetDateTime("approvedDate"),
+                        TotalAmount = reader.GetDecimal("totalAmount"),
+                        CreatedAt = reader.GetDateTime("createdAt"),
+                        Notes = reader.IsDBNull(reader.GetOrdinal("notes")) ? string.Empty : reader.GetString("notes")
+                    };
+                    orders.Add(order);
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"📦 [Database] Total purchase orders found: {orders.Count}");
+                return orders;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting all purchase orders: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                return new List<PurchaseOrderModel>();
+            }
+        }
+
+        /// <summary>
         /// Gets all items for a specific purchase order
         /// </summary>
         public async Task<List<PurchaseOrderItemModel>> GetPurchaseOrderItemsAsync(int purchaseOrderId)
@@ -2848,6 +2892,14 @@ namespace Coftea_Capstone.Models
                 var items = new List<PurchaseOrderItemModel>();
                 while (await reader.ReadAsync())
                 {
+                    var requestedQty = reader.GetInt32("requestedQuantity");
+                    // approvedQuantity = -1 means canceled, > 0 means accepted, 0 or null means pending
+                    var approvedQty = reader.IsDBNull(reader.GetOrdinal("approvedQuantity")) 
+                        ? 0 
+                        : reader.GetInt32("approvedQuantity");
+                    // If canceled (-1), set to 0 for display purposes
+                    if (approvedQty < 0) approvedQty = 0;
+                    
                     items.Add(new PurchaseOrderItemModel
                     {
                         PurchaseOrderItemId = reader.GetInt32("purchaseOrderItemId"),
@@ -2855,7 +2907,8 @@ namespace Coftea_Capstone.Models
                         InventoryItemId = reader.GetInt32("inventoryItemId"),
                         ItemName = reader.GetString("itemName"),
                         ItemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
-                        RequestedQuantity = reader.GetInt32("requestedQuantity"),
+                        RequestedQuantity = requestedQty,
+                        ApprovedQuantity = approvedQty,
                         UnitPrice = reader.GetDecimal("unitPrice"),
                         TotalPrice = reader.GetDecimal("totalPrice"),
                         UnitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement")
@@ -3100,6 +3153,227 @@ namespace Coftea_Capstone.Models
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error updating inventory from purchase order: {ex.Message}");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Gets the status of a purchase order item (approvedQuantity value)
+        /// </summary>
+        public async Task<int?> GetPurchaseOrderItemStatusAsync(int purchaseOrderId, int inventoryItemId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = @"SELECT approvedQuantity FROM purchase_order_items 
+                           WHERE purchaseOrderId = @PurchaseOrderId AND inventoryItemId = @InventoryItemId;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                cmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
+                var result = await cmd.ExecuteScalarAsync();
+                if (result == null || result == DBNull.Value)
+                    return null;
+                return Convert.ToInt32(result);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting purchase order item status: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Accepts a single purchase order item and adds it to inventory
+        /// </summary>
+        public async Task<bool> AcceptPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, double approvedQuantity, string approvedUoM, string approvedBy)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                await using var tx = await conn.BeginTransactionAsync();
+
+                // Get current inventory item info
+                var getItemSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
+                await using var getItemCmd = new MySqlCommand(getItemSql, conn, (MySqlTransaction)tx);
+                getItemCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
+
+                double currentQuantity = 0;
+                string itemName = "";
+                string itemCategory = "";
+                string inventoryUoM = "";
+
+                await using var reader = await getItemCmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    currentQuantity = reader.GetDouble("itemQuantity");
+                    itemName = reader.GetString("itemName");
+                    itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory");
+                    inventoryUoM = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
+                }
+                await reader.CloseAsync();
+
+                // Convert approved quantity to inventory UoM if needed
+                double quantityToAdd = approvedQuantity;
+                if (approvedUoM != inventoryUoM)
+                {
+                    quantityToAdd = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
+                }
+
+                // Update inventory
+                var updateSql = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity, updatedAt = @updatedAt WHERE itemID = @ItemID;";
+                await using var updateCmd = new MySqlCommand(updateSql, conn, (MySqlTransaction)tx);
+                updateCmd.Parameters.AddWithValue("@Quantity", quantityToAdd);
+                updateCmd.Parameters.AddWithValue("@updatedAt", DateTime.Now);
+                updateCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
+                await updateCmd.ExecuteNonQueryAsync();
+
+                // Update the purchase_order_items table with approved quantity and UoM
+                var updatePOItemSql = @"UPDATE purchase_order_items 
+                                       SET approvedQuantity = @ApprovedQuantity, 
+                                           unitOfMeasurement = @ApprovedUoM
+                                       WHERE purchaseOrderId = @PurchaseOrderId 
+                                         AND inventoryItemId = @InventoryItemId;";
+                await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, (MySqlTransaction)tx);
+                updatePOItemCmd.Parameters.AddWithValue("@ApprovedQuantity", (int)Math.Round(approvedQuantity));
+                updatePOItemCmd.Parameters.AddWithValue("@ApprovedUoM", approvedUoM);
+                updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
+                await updatePOItemCmd.ExecuteNonQueryAsync();
+
+                // Get new quantity after update
+                var getNewSql = "SELECT itemQuantity FROM inventory WHERE itemID = @ItemID;";
+                await using var getNewCmd = new MySqlCommand(getNewSql, conn, (MySqlTransaction)tx);
+                getNewCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
+                var newQuantity = Convert.ToDouble(await getNewCmd.ExecuteScalarAsync());
+
+                // Log the addition
+                var logEntry = new InventoryActivityLog
+                {
+                    ItemId = inventoryItemId,
+                    ItemName = itemName,
+                    ItemCategory = itemCategory,
+                    Action = "ADDED",
+                    QuantityChanged = quantityToAdd,
+                    PreviousQuantity = currentQuantity,
+                    NewQuantity = newQuantity,
+                    UnitOfMeasurement = inventoryUoM,
+                    Reason = "PURCHASE_ORDER",
+                    UserEmail = approvedBy,
+                    OrderId = purchaseOrderId.ToString(),
+                    Notes = $"Accepted item from purchase order #{purchaseOrderId}: {approvedQuantity} {approvedUoM} (converted to {quantityToAdd} {inventoryUoM})"
+                };
+
+                await LogInventoryActivityAsync(logEntry, conn, tx);
+
+                // Check if all items in the purchase order are accepted or canceled
+                var checkAllItemsSql = @"SELECT 
+                    COUNT(*) as totalItems,
+                    SUM(CASE WHEN approvedQuantity > 0 OR approvedQuantity = -1 THEN 1 ELSE 0 END) as processedItems
+                    FROM purchase_order_items 
+                    WHERE purchaseOrderId = @PurchaseOrderId;";
+                await using var checkAllItemsCmd = new MySqlCommand(checkAllItemsSql, conn, (MySqlTransaction)tx);
+                checkAllItemsCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                await using var checkReader = await checkAllItemsCmd.ExecuteReaderAsync();
+                int totalItems = 0;
+                int processedItems = 0;
+                if (await checkReader.ReadAsync())
+                {
+                    totalItems = checkReader.GetInt32("totalItems");
+                    processedItems = checkReader.GetInt32("processedItems");
+                }
+                await checkReader.CloseAsync();
+
+                // If all items are processed, update the purchase order status
+                if (processedItems >= totalItems && totalItems > 0)
+                {
+                    var updateOrderStatusSql = @"UPDATE purchase_orders 
+                                                SET status = 'Partially Approved', 
+                                                    approvedBy = @ApprovedBy, 
+                                                    approvedDate = @ApprovedDate,
+                                                    updatedAt = @UpdatedAt
+                                                WHERE purchaseOrderId = @PurchaseOrderId;";
+                    await using var updateOrderStatusCmd = new MySqlCommand(updateOrderStatusSql, conn, (MySqlTransaction)tx);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedBy", approvedBy);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedDate", DateTime.Now);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                    await updateOrderStatusCmd.ExecuteNonQueryAsync();
+                }
+
+                await tx.CommitAsync();
+                System.Diagnostics.Debug.WriteLine($"✅ Item {itemName} accepted from purchase order {purchaseOrderId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error accepting purchase order item: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Cancels a single purchase order item (does not add to inventory)
+        /// </summary>
+        public async Task<bool> CancelPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, string canceledBy)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                await using var tx = await conn.BeginTransactionAsync();
+
+                // Mark the item as canceled by setting approvedQuantity to -1
+                var updatePOItemSql = @"UPDATE purchase_order_items 
+                                       SET approvedQuantity = -1,
+                                           unitOfMeasurement = COALESCE(unitOfMeasurement, '')
+                                       WHERE purchaseOrderId = @PurchaseOrderId 
+                                         AND inventoryItemId = @InventoryItemId;";
+                await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, (MySqlTransaction)tx);
+                updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
+                var rowsAffected = await updatePOItemCmd.ExecuteNonQueryAsync();
+
+                // Check if all items in the purchase order are accepted or canceled
+                var checkAllItemsSql = @"SELECT 
+                    COUNT(*) as totalItems,
+                    SUM(CASE WHEN approvedQuantity > 0 OR approvedQuantity = -1 THEN 1 ELSE 0 END) as processedItems
+                    FROM purchase_order_items 
+                    WHERE purchaseOrderId = @PurchaseOrderId;";
+                await using var checkAllItemsCmd = new MySqlCommand(checkAllItemsSql, conn, (MySqlTransaction)tx);
+                checkAllItemsCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                await using var checkReader = await checkAllItemsCmd.ExecuteReaderAsync();
+                int totalItems = 0;
+                int processedItems = 0;
+                if (await checkReader.ReadAsync())
+                {
+                    totalItems = checkReader.GetInt32("totalItems");
+                    processedItems = checkReader.GetInt32("processedItems");
+                }
+                await checkReader.CloseAsync();
+
+                // If all items are processed, update the purchase order status
+                if (processedItems >= totalItems && totalItems > 0)
+                {
+                    var updateOrderStatusSql = @"UPDATE purchase_orders 
+                                                SET status = 'Partially Approved', 
+                                                    approvedBy = @CanceledBy, 
+                                                    approvedDate = @ApprovedDate,
+                                                    updatedAt = @UpdatedAt
+                                                WHERE purchaseOrderId = @PurchaseOrderId;";
+                    await using var updateOrderStatusCmd = new MySqlCommand(updateOrderStatusSql, conn, (MySqlTransaction)tx);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@CanceledBy", canceledBy);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedDate", DateTime.Now);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                    await updateOrderStatusCmd.ExecuteNonQueryAsync();
+                }
+
+                await tx.CommitAsync();
+                System.Diagnostics.Debug.WriteLine($"✅ Item canceled from purchase order {purchaseOrderId}");
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error canceling purchase order item: {ex.Message}");
+                return false;
             }
         }
 

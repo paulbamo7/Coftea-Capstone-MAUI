@@ -224,61 +224,79 @@
                                         
                                         <!-- QR Code Placeholder -->
                                         <Frame BackgroundColor="#F8F9FA" CornerRadius="8" Padding="15" HasShadow="False">
-                                            <Grid WidthRequest="120" HeightRequest="120">
-                                                <!-- QR Code Pattern Simulation -->
-                                                <Grid BackgroundColor="Black" Margin="5" />
-                                                <Grid BackgroundColor="Black" Margin="15,5,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="5,15,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="15,15,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="25,5,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="35,15,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="5,25,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="15,35,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="25,25,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="35,35,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="45,5,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="55,15,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="45,25,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="55,35,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="65,5,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="75,15,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="65,25,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="75,35,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="85,5,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="95,15,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="85,25,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="95,35,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="5,45,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="15,55,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="25,45,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="35,55,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="45,45,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="55,55,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="65,45,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="75,55,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="85,45,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="95,55,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="5,65,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="15,75,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="25,65,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="35,75,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="45,65,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="55,75,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="65,65,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="75,75,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="85,65,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="95,75,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="5,85,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="15,95,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="25,85,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="35,95,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="45,85,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="55,95,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="65,85,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="75,95,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="85,85,5,5" />
-                                                <Grid BackgroundColor="Black" Margin="95,95,5,5" />
-                                            </Grid>
+                                            <AbsoluteLayout WidthRequest="150" HeightRequest="150" BackgroundColor="White">
+                                                <!-- QR Code Pattern Simulation - Corner markers -->
+                                                <!-- Top-left corner -->
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="5,5,40,40" CornerRadius="0" />
+                                                <BoxView Color="White" AbsoluteLayout.LayoutBounds="12,12,26,26" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="15,15,20,20" CornerRadius="0" />
+                                                
+                                                <!-- Top-right corner -->
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="105,5,40,40" CornerRadius="0" />
+                                                <BoxView Color="White" AbsoluteLayout.LayoutBounds="112,12,26,26" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="115,15,20,20" CornerRadius="0" />
+                                                
+                                                <!-- Bottom-left corner -->
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="5,105,40,40" CornerRadius="0" />
+                                                <BoxView Color="White" AbsoluteLayout.LayoutBounds="12,112,26,26" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="15,115,20,20" CornerRadius="0" />
+                                                
+                                                <!-- QR Code data pattern -->
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,5,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,5,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="80,5,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="95,5,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,20,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,20,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="80,20,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="5,50,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="20,50,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="35,50,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,50,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,50,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="80,50,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="95,50,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="110,50,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="20,65,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="35,65,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,65,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="95,65,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="5,80,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="20,80,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,80,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,80,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="80,80,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="110,80,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="5,95,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="20,95,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="35,95,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,95,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,95,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="80,95,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="20,110,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="35,110,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,110,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,110,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="95,110,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="5,125,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="20,125,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="35,125,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,125,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="80,125,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="95,125,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="110,125,8,8" CornerRadius="0" />
+                                                
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="50,140,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="65,140,8,8" CornerRadius="0" />
+                                                <BoxView Color="Black" AbsoluteLayout.LayoutBounds="80,140,8,8" CornerRadius="0" />
+                                            </AbsoluteLayout>
                                         </Frame>
                                         
                                         <Label Text="Scan QR code with GCash app" FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" HorizontalOptions="Center" />

@@ -46,6 +46,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var orders = await _database.GetPendingPurchaseOrdersAsync();
                 System.Diagnostics.Debug.WriteLine($"📦 [VM] Received {orders.Count} pending orders from database");
 
+                // If no pending orders, show recent orders as fallback
+                if (orders.Count == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("📦 [VM] No pending orders found, loading recent orders as fallback...");
+                    orders = await _database.GetAllPurchaseOrdersAsync(20); // Get last 20 orders
+                    System.Diagnostics.Debug.WriteLine($"📦 [VM] Received {orders.Count} recent orders from database");
+                }
+
                 // Get items for each order
                 var displayOrders = new ObservableCollection<PurchaseOrderDisplayModel>();
                 foreach (var order in orders)
@@ -66,7 +74,24 @@ namespace Coftea_Capstone.ViewModel.Controls
                     var editableItems = new ObservableCollection<EditablePurchaseOrderItem>();
                     foreach (var item in items)
                     {
-                        editableItems.Add(new EditablePurchaseOrderItem(item));
+                        var editableItem = new EditablePurchaseOrderItem(item, order.PurchaseOrderId);
+                        
+                        // Check if item is canceled (approvedQuantity = -1) by querying database
+                        var dbItemStatus = await _database.GetPurchaseOrderItemStatusAsync(order.PurchaseOrderId, item.InventoryItemId);
+                        if (dbItemStatus.HasValue && dbItemStatus.Value < 0)
+                        {
+                            editableItem.ItemStatus = "Canceled";
+                        }
+                        else if (item.ApprovedQuantity > 0)
+                        {
+                            editableItem.ItemStatus = "Accepted";
+                        }
+                        else
+                        {
+                            editableItem.ItemStatus = "Pending";
+                        }
+                        
+                        editableItems.Add(editableItem);
                     }
 
                     var displayOrder = new PurchaseOrderDisplayModel
@@ -227,6 +252,156 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private async Task AcceptItem(EditablePurchaseOrderItem item)
+        {
+            try
+            {
+                if (item.ApprovedQuantity <= 0 || string.IsNullOrWhiteSpace(item.ApprovedUoM))
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Validation Error",
+                        "Please enter a valid quantity (> 0) and select a unit of measurement.",
+                        "OK");
+                    return;
+                }
+
+                var confirm = await Application.Current.MainPage.DisplayAlert(
+                    "Accept Item",
+                    $"Accept {item.ItemName}?\n\nApproved Quantity: {item.ApprovedQuantity} {item.ApprovedUoM}\n\nThis will immediately add the item to inventory.",
+                    "Accept", "Cancel");
+
+                if (!confirm) return;
+
+                System.Diagnostics.Debug.WriteLine($"✅ Accepting item: {item.ItemName} ({item.ApprovedQuantity} {item.ApprovedUoM})");
+
+                var currentUser = App.CurrentUser?.Email ?? "Admin";
+                
+                // Accept this specific item - add to inventory
+                var success = await _database.AcceptPurchaseOrderItemAsync(
+                    item.PurchaseOrderId,
+                    item.InventoryItemId,
+                    item.ApprovedQuantity,
+                    item.ApprovedUoM,
+                    currentUser);
+
+                if (success)
+                {
+                    item.ItemStatus = "Accepted";
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Success",
+                        $"{item.ItemName} has been accepted and added to inventory!",
+                        "OK");
+
+                    // Reload orders to refresh the display
+                    await LoadPendingOrders();
+
+                    // Refresh inventory if the ViewModel is available
+                    var app = (App)Application.Current;
+                    if (app?.InventoryVM != null)
+                    {
+                        await app.InventoryVM.ForceReloadDataAsync();
+                    }
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Error",
+                        "Failed to accept item. Please try again.",
+                        "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error accepting item: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to accept item: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task CancelItem(EditablePurchaseOrderItem item)
+        {
+            try
+            {
+                var confirm = await Application.Current.MainPage.DisplayAlert(
+                    "Cancel Item",
+                    $"Cancel {item.ItemName}?\n\nThis item will not be added to inventory.",
+                    "Cancel Item", "Back");
+
+                if (!confirm) return;
+
+                System.Diagnostics.Debug.WriteLine($"❌ Canceling item: {item.ItemName}");
+
+                var currentUser = App.CurrentUser?.Email ?? "Admin";
+                
+                // Cancel this specific item - mark as canceled, don't add to inventory
+                var success = await _database.CancelPurchaseOrderItemAsync(
+                    item.PurchaseOrderId,
+                    item.InventoryItemId,
+                    currentUser);
+
+                if (success)
+                {
+                    item.ItemStatus = "Canceled";
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Canceled",
+                        $"{item.ItemName} has been canceled and will not be added to inventory.",
+                        "OK");
+
+                    // Reload orders to refresh the display
+                    await LoadPendingOrders();
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Error",
+                        "Failed to cancel item. Please try again.",
+                        "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error canceling item: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to cancel item: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ExportPurchaseOrderPDF(PurchaseOrderDisplayModel order)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"📄 Starting PDF generation for Purchase Order #{order.PurchaseOrderId}");
+                
+                var pdfService = new Services.PDFReportService();
+                var items = await _database.GetPurchaseOrderItemsAsync(order.PurchaseOrderId);
+                
+                System.Diagnostics.Debug.WriteLine($"📄 Found {items?.Count ?? 0} items for purchase order");
+                
+                var filePath = await pdfService.GeneratePurchaseOrderPDFAsync(order.PurchaseOrderId, order, items);
+                
+                System.Diagnostics.Debug.WriteLine($"📄 PDF generated successfully at: {filePath}");
+                
+                await Application.Current.MainPage.DisplayAlert(
+                    "PDF Generated",
+                    $"Purchase Order PDF has been saved successfully!\n\nFile location: {filePath}\n\nTo find the file:\n1. Open File Manager\n2. Go to Download folder\n3. Look for Purchase_Order_{order.PurchaseOrderId}_*.pdf",
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error exporting purchase order PDF: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error", 
+                    $"Failed to export purchase order PDF:\n\n{ex.Message}\n\nPlease check the debug console for more details.", 
+                    "OK");
+            }
+        }
+
+        [RelayCommand]
         private void Close()
         {
             IsVisible = false;
@@ -275,20 +450,48 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private string originalUoM = string.Empty;
 
+        [ObservableProperty]
+        private string itemStatus = "Pending"; // Pending, Accepted, Canceled
+
+        [ObservableProperty]
+        private int purchaseOrderId; // Reference to parent order
+
+        public bool IsPending => ItemStatus == "Pending";
+        public bool IsAccepted => ItemStatus == "Accepted";
+        public bool IsCanceled => ItemStatus == "Canceled";
+
         public List<string> AvailableUoMs { get; set; } = new() { "pcs", "kg", "g", "L", "ml" };
 
-        public EditablePurchaseOrderItem(PurchaseOrderItemModel item)
+        public EditablePurchaseOrderItem(PurchaseOrderItemModel item, int purchaseOrderId)
         {
             PurchaseOrderItemId = item.PurchaseOrderItemId;
             InventoryItemId = item.InventoryItemId;
             ItemName = item.ItemName;
             ItemCategory = item.ItemCategory;
             RequestedQuantity = item.RequestedQuantity;
-            ApprovedQuantity = item.RequestedQuantity; // Default to requested quantity
-            ApprovedUoM = item.UnitOfMeasurement;
-            OriginalUoM = item.UnitOfMeasurement;
+            
+            // Check if item is already processed
+            // We need to query the database to check the actual approvedQuantity value
+            // For now, if approvedQuantity > 0, it's accepted
+            if (item.ApprovedQuantity > 0)
+            {
+                ApprovedQuantity = item.ApprovedQuantity;
+                ItemStatus = "Accepted";
+            }
+            else
+            {
+                ApprovedQuantity = item.RequestedQuantity; // Default to requested quantity
+                ItemStatus = "Pending";
+            }
+            
+            // Check database for canceled status (approvedQuantity = -1)
+            // This will be set after we load from database
+            
+            ApprovedUoM = item.UnitOfMeasurement ?? string.Empty;
+            OriginalUoM = item.UnitOfMeasurement ?? string.Empty;
             UnitPrice = item.UnitPrice;
             TotalPrice = item.TotalPrice;
+            PurchaseOrderId = purchaseOrderId;
         }
     }
 }

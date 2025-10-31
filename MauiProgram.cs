@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Models;
+using Maui.PDFView;
 
 namespace Coftea_Capstone
 {
@@ -12,7 +13,8 @@ namespace Coftea_Capstone
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .UseMauiCommunityToolkit();
+                .UseMauiCommunityToolkit()
+                .UseMauiPdfView();
 
                 builder.ConfigureFonts(fonts =>
                 {
