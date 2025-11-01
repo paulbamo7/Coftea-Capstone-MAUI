@@ -256,13 +256,43 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
-                if (item.ApprovedQuantity <= 0 || string.IsNullOrWhiteSpace(item.ApprovedUoM))
+                System.Diagnostics.Debug.WriteLine($"🔍 AcceptItem called for: {item.ItemName}");
+                System.Diagnostics.Debug.WriteLine($"🔍 ApprovedQuantity: {item.ApprovedQuantity}, ApprovedUoM: '{item.ApprovedUoM}', IsPending: {item.IsPending}");
+                
+                if (!item.IsPending)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Item Already Processed",
+                        $"This item has already been {item.ItemStatus.ToLower()}. Cannot accept again.",
+                        "OK");
+                    return;
+                }
+                
+                if (item.ApprovedQuantity <= 0)
                 {
                     await Application.Current.MainPage.DisplayAlert(
                         "Validation Error",
-                        "Please enter a valid quantity (> 0) and select a unit of measurement.",
+                        $"Please enter a valid quantity (> 0) for {item.ItemName}. Current value: {item.ApprovedQuantity}",
                         "OK");
                     return;
+                }
+                
+                if (string.IsNullOrWhiteSpace(item.ApprovedUoM))
+                {
+                    // Try to use OriginalUoM as fallback
+                    if (!string.IsNullOrWhiteSpace(item.OriginalUoM))
+                    {
+                        item.ApprovedUoM = item.OriginalUoM;
+                        System.Diagnostics.Debug.WriteLine($"🔧 Using OriginalUoM as fallback: {item.OriginalUoM}");
+                    }
+                    else
+                    {
+                        await Application.Current.MainPage.DisplayAlert(
+                            "Validation Error",
+                            $"Please select a unit of measurement for {item.ItemName}.",
+                            "OK");
+                        return;
+                    }
                 }
 
                 var confirm = await Application.Current.MainPage.DisplayAlert(
@@ -317,6 +347,187 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+        [RelayCommand]
+        private async Task AcceptAllItems(PurchaseOrderDisplayModel order)
+        {
+            try
+            {
+                var pendingItems = order.EditableItems.Where(i => i.IsPending).ToList();
+                
+                if (!pendingItems.Any())
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "No Pending Items",
+                        "There are no pending items in this purchase order.",
+                        "OK");
+                    return;
+                }
+                
+                var confirm = await Application.Current.MainPage.DisplayAlert(
+                    "Accept All Items",
+                    $"Accept all {pendingItems.Count} pending item(s) in Purchase Order #{order.PurchaseOrderId}?\n\nThis will add all items to inventory immediately.",
+                    "Accept All", "Cancel");
+                
+                if (!confirm) return;
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Accepting all {pendingItems.Count} items in order #{order.PurchaseOrderId}");
+                
+                var currentUser = App.CurrentUser?.Email ?? "Admin";
+                int successCount = 0;
+                int failCount = 0;
+                
+                foreach (var item in pendingItems)
+                {
+                    try
+                    {
+                        // Ensure ApprovedUoM is set
+                        if (string.IsNullOrWhiteSpace(item.ApprovedUoM))
+                        {
+                            item.ApprovedUoM = item.OriginalUoM ?? "pcs";
+                        }
+                        
+                        // Ensure ApprovedQuantity is valid
+                        if (item.ApprovedQuantity <= 0)
+                        {
+                            item.ApprovedQuantity = item.RequestedQuantity;
+                        }
+                        
+                        var success = await _database.AcceptPurchaseOrderItemAsync(
+                            item.PurchaseOrderId,
+                            item.InventoryItemId,
+                            item.ApprovedQuantity,
+                            item.ApprovedUoM,
+                            currentUser);
+                        
+                        if (success)
+                        {
+                            item.ItemStatus = "Accepted";
+                            successCount++;
+                        }
+                        else
+                        {
+                            failCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Error accepting item {item.ItemName}: {ex.Message}");
+                        failCount++;
+                    }
+                }
+                
+                // Reload orders to refresh the display
+                await LoadPendingOrders();
+                
+                // Refresh inventory if the ViewModel is available
+                var app = (App)Application.Current;
+                if (app?.InventoryVM != null)
+                {
+                    await app.InventoryVM.ForceReloadDataAsync();
+                }
+                
+                if (failCount > 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Partial Success",
+                        $"Accepted {successCount} item(s) successfully.\n{failCount} item(s) failed. Please check and accept them individually.",
+                        "OK");
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Success",
+                        $"All {successCount} item(s) have been accepted and added to inventory!",
+                        "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error accepting all items: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to accept all items: {ex.Message}", "OK");
+            }
+        }
+        
+        [RelayCommand]
+        private async Task CancelAllItems(PurchaseOrderDisplayModel order)
+        {
+            try
+            {
+                var pendingItems = order.EditableItems.Where(i => i.IsPending).ToList();
+                
+                if (!pendingItems.Any())
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "No Pending Items",
+                        "There are no pending items in this purchase order.",
+                        "OK");
+                    return;
+                }
+                
+                var confirm = await Application.Current.MainPage.DisplayAlert(
+                    "Cancel All Items",
+                    $"Cancel all {pendingItems.Count} pending item(s) in Purchase Order #{order.PurchaseOrderId}?\n\nThis will mark all items as canceled. They will NOT be added to inventory.",
+                    "Cancel All", "Back");
+                
+                if (!confirm) return;
+                
+                System.Diagnostics.Debug.WriteLine($"❌ Canceling all {pendingItems.Count} items in order #{order.PurchaseOrderId}");
+                
+                var currentUser = App.CurrentUser?.Email ?? "Admin";
+                int successCount = 0;
+                int failCount = 0;
+                
+                foreach (var item in pendingItems)
+                {
+                    try
+                    {
+                        var success = await _database.CancelPurchaseOrderItemAsync(
+                            item.PurchaseOrderId,
+                            item.InventoryItemId,
+                            currentUser);
+                        
+                        if (success)
+                        {
+                            item.ItemStatus = "Canceled";
+                            successCount++;
+                        }
+                        else
+                        {
+                            failCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Error canceling item {item.ItemName}: {ex.Message}");
+                        failCount++;
+                    }
+                }
+                
+                // Reload orders to refresh the display
+                await LoadPendingOrders();
+                
+                if (failCount > 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Partial Success",
+                        $"Canceled {successCount} item(s) successfully.\n{failCount} item(s) failed. Please check and cancel them individually.",
+                        "OK");
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Success",
+                        $"All {successCount} item(s) have been canceled.",
+                        "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error canceling all items: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to cancel all items: {ex.Message}", "OK");
+            }
+        }
+        
         [RelayCommand]
         private async Task CancelItem(EditablePurchaseOrderItem item)
         {

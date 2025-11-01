@@ -65,8 +65,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
 
             InfoText = IsAdmin
-                ? "This will create and auto-approve the purchase order, send SMS to supplier, and update inventory immediately."
-                : "This will create a purchase order and send SMS to supplier. Admin approval required.";
+                ? "This will create and auto-approve the purchase order and update inventory immediately."
+                : "This will create a purchase order. Admin approval required.";
         }
 
         [RelayCommand]
@@ -139,12 +139,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                         if (approved)
                         {
-                            // Send SMS to supplier
-                            var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, itemsForDb);
-
                             // Show success view with PDF button
                             ShowSuccessView = true;
-                            InfoText = $"✅ Purchase order #{purchaseOrderId} has been created and auto-approved!\n\n📱 SMS app should have opened. Please press 'Send' to notify the supplier.\n\nInventory has been updated.";
+                            InfoText = $"✅ Purchase order #{purchaseOrderId} has been created and auto-approved!\n\nInventory has been updated.";
                             
                             System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} auto-approved by admin");
                         }
@@ -166,15 +163,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                         // Store the created purchase order ID
                         CreatedPurchaseOrderId = purchaseOrderId;
 
-                        // Send SMS to supplier
-                        var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, itemsForDb);
-
-                        // Notify admin via SMS
-                        var adminNotified = await PurchaseOrderSMSService.NotifyAdminOfPurchaseOrderAsync(purchaseOrderId, currentUser);
-
                         // Show success view with PDF button
                         ShowSuccessView = true;
-                        InfoText = $"✅ Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\n📱 SMS app should have opened. Please press 'Send' to notify the supplier and admin.\n\nAdmin approval is required.";
+                        InfoText = $"✅ Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\nAdmin approval is required.";
                     }
                 }
                 else

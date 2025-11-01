@@ -3206,14 +3206,15 @@ namespace Coftea_Capstone.Models
         /// </summary>
         public async Task<bool> AcceptPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, double approvedQuantity, string approvedUoM, string approvedBy)
         {
+            MySqlTransaction? tx = null;
             try
             {
                 await using var conn = await GetOpenConnectionAsync();
-                await using var tx = await conn.BeginTransactionAsync();
+                tx = await conn.BeginTransactionAsync();
 
                 // Get current inventory item info
                 var getItemSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
-                await using var getItemCmd = new MySqlCommand(getItemSql, conn, (MySqlTransaction)tx);
+                await using var getItemCmd = new MySqlCommand(getItemSql, conn, tx);
                 getItemCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
 
                 double currentQuantity = 0;
@@ -3233,14 +3234,29 @@ namespace Coftea_Capstone.Models
 
                 // Convert approved quantity to inventory UoM if needed
                 double quantityToAdd = approvedQuantity;
-                if (approvedUoM != inventoryUoM)
+                if (!string.IsNullOrWhiteSpace(approvedUoM) && !string.IsNullOrWhiteSpace(inventoryUoM) && approvedUoM != inventoryUoM)
                 {
-                    quantityToAdd = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
+                    // Check if units are compatible before converting
+                    var normalizedApproved = UnitConversionService.Normalize(approvedUoM);
+                    var normalizedInventory = UnitConversionService.Normalize(inventoryUoM);
+                    
+                    if (UnitConversionService.AreCompatibleUnits(normalizedApproved, normalizedInventory))
+                    {
+                        quantityToAdd = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
+                        System.Diagnostics.Debug.WriteLine($"✅ Converted {approvedQuantity} {approvedUoM} to {quantityToAdd} {inventoryUoM}");
+                    }
+                    else
+                    {
+                        // Units are incompatible, but for purchase orders, we might allow direct addition
+                        // Log a warning but proceed with the approved quantity (assuming 1:1 for incompatible units)
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Incompatible units for item {itemName}: approved {approvedUoM} vs inventory {inventoryUoM}. Using approved quantity as-is.");
+                        quantityToAdd = approvedQuantity;
+                    }
                 }
 
                 // Update inventory
                 var updateSql = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity, updatedAt = @updatedAt WHERE itemID = @ItemID;";
-                await using var updateCmd = new MySqlCommand(updateSql, conn, (MySqlTransaction)tx);
+                await using var updateCmd = new MySqlCommand(updateSql, conn, tx);
                 updateCmd.Parameters.AddWithValue("@Quantity", quantityToAdd);
                 updateCmd.Parameters.AddWithValue("@updatedAt", DateTime.Now);
                 updateCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
@@ -3252,7 +3268,7 @@ namespace Coftea_Capstone.Models
                                            unitOfMeasurement = @ApprovedUoM
                                        WHERE purchaseOrderId = @PurchaseOrderId 
                                          AND inventoryItemId = @InventoryItemId;";
-                await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, (MySqlTransaction)tx);
+                await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, tx);
                 updatePOItemCmd.Parameters.AddWithValue("@ApprovedQuantity", (int)Math.Round(approvedQuantity));
                 updatePOItemCmd.Parameters.AddWithValue("@ApprovedUoM", approvedUoM);
                 updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
@@ -3261,7 +3277,7 @@ namespace Coftea_Capstone.Models
 
                 // Get new quantity after update
                 var getNewSql = "SELECT itemQuantity FROM inventory WHERE itemID = @ItemID;";
-                await using var getNewCmd = new MySqlCommand(getNewSql, conn, (MySqlTransaction)tx);
+                await using var getNewCmd = new MySqlCommand(getNewSql, conn, tx);
                 getNewCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
                 var newQuantity = Convert.ToDouble(await getNewCmd.ExecuteScalarAsync());
 
@@ -3290,7 +3306,7 @@ namespace Coftea_Capstone.Models
                     SUM(CASE WHEN approvedQuantity > 0 OR approvedQuantity = -1 THEN 1 ELSE 0 END) as processedItems
                     FROM purchase_order_items 
                     WHERE purchaseOrderId = @PurchaseOrderId;";
-                await using var checkAllItemsCmd = new MySqlCommand(checkAllItemsSql, conn, (MySqlTransaction)tx);
+                await using var checkAllItemsCmd = new MySqlCommand(checkAllItemsSql, conn, tx);
                 checkAllItemsCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                 await using var checkReader = await checkAllItemsCmd.ExecuteReaderAsync();
                 int totalItems = 0;
@@ -3311,7 +3327,7 @@ namespace Coftea_Capstone.Models
                                                     approvedDate = @ApprovedDate,
                                                     updatedAt = @UpdatedAt
                                                 WHERE purchaseOrderId = @PurchaseOrderId;";
-                    await using var updateOrderStatusCmd = new MySqlCommand(updateOrderStatusSql, conn, (MySqlTransaction)tx);
+                    await using var updateOrderStatusCmd = new MySqlCommand(updateOrderStatusSql, conn, tx);
                     updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedBy", approvedBy);
                     updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedDate", DateTime.Now);
                     updateOrderStatusCmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
@@ -3326,6 +3342,26 @@ namespace Coftea_Capstone.Models
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error accepting purchase order item: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
+                
+                // Try to rollback transaction if it's still open
+                try
+                {
+                    if (tx != null)
+                    {
+                        await tx.RollbackAsync();
+                        System.Diagnostics.Debug.WriteLine($"❌ Transaction rolled back for purchase order item acceptance");
+                    }
+                }
+                catch (Exception rollbackEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Error during rollback: {rollbackEx.Message}");
+                }
+                
                 return false;
             }
         }
