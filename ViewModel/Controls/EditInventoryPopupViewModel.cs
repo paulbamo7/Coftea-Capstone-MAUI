@@ -83,11 +83,15 @@ namespace Coftea_Capstone.ViewModel
             _addItemToInventoryViewModel.ItemDescription = fresh.itemDescription;
             
             // Set category FIRST to trigger the category change logic and populate UoM options
-            _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory;
+            // This must be set first to ensure visibility flags (IsPiecesOnlyCategory, IsUoMOnlyCategory) are set correctly
+            _addItemToInventoryViewModel.ItemCategory = fresh.itemCategory ?? string.Empty;
+            
+            // Small delay to ensure category change handlers have executed
+            await Task.Delay(50);
             
             // Now set the quantities and UoM after category is set
             _addItemToInventoryViewModel.UoMQuantity = fresh.itemQuantity;
-            _addItemToInventoryViewModel.SelectedUoM = fresh.unitOfMeasurement;
+            _addItemToInventoryViewModel.SelectedUoM = fresh.unitOfMeasurement ?? "Pieces (pcs)";
             _addItemToInventoryViewModel.MinimumQuantity = fresh.minimumQuantity;
             _addItemToInventoryViewModel.MaximumQuantity = fresh.maximumQuantity;
             

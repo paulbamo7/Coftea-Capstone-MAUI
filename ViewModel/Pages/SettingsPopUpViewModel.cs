@@ -81,6 +81,15 @@ namespace Coftea_Capstone.ViewModel
             
             // Initialize with empty recent orders - will be populated from real data
             RecentOrders = new ObservableCollection<RecentOrderModel>();
+            
+            // Subscribe to inventory changes to refresh alerts
+            MessagingCenter.Subscribe<AddItemToInventoryViewModel>(this, "InventoryChanged", async (sender) =>
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 InventoryChanged message received - refreshing inventory alerts");
+                // Small delay to ensure database is updated
+                await Task.Delay(300);
+                await LoadInventoryAlertsAsync();
+            });
         }
 
         public void AddRecentOrder(int orderNumber, string productName, string productImage, decimal totalAmount)
@@ -442,18 +451,34 @@ namespace Coftea_Capstone.ViewModel
                 // Compute percent of buffer remaining before hitting minimum
                 // Formula: (current - minimum) / (maximum - minimum) × 100
                 // This shows how much "safety buffer" remains before reaching minimum threshold
+                // Also include items that are simply below minimum, even without a maximum set
                 var lowStockItems = inventoryItems
-                    .Where(item => item.minimumQuantity > 0 && item.maximumQuantity > item.minimumQuantity)
+                    .Where(item => item.minimumQuantity > 0)
                     .Select(item => {
-                        var buffer = item.itemQuantity - item.minimumQuantity;
-                        var maxBuffer = item.maximumQuantity - item.minimumQuantity;
-                        var percentRemaining = (buffer / maxBuffer) * 100.0;
-                        return new {
-                            Item = item,
-                            PercentRemaining = percentRemaining
-                        };
+                        // If item has maximum and maximum > minimum, calculate buffer percent
+                        if (item.maximumQuantity > item.minimumQuantity)
+                        {
+                            var buffer = item.itemQuantity - item.minimumQuantity;
+                            var maxBuffer = item.maximumQuantity - item.minimumQuantity;
+                            var percentRemaining = (buffer / maxBuffer) * 100.0;
+                            return new {
+                                Item = item,
+                                PercentRemaining = percentRemaining
+                            };
+                        }
+                        else
+                        {
+                            // If no maximum or maximum <= minimum, just check if below minimum
+                            // Set percent to negative if below minimum, 0 if at minimum, 100+ if above
+                            var buffer = item.itemQuantity - item.minimumQuantity;
+                            var percentRemaining = buffer < 0 ? -1.0 : (buffer == 0 ? 0.0 : 101.0);
+                            return new {
+                                Item = item,
+                                PercentRemaining = percentRemaining
+                            };
+                        }
                     })
-                    .Where(x => x.PercentRemaining <= 100.0) // Show items at or below max
+                    .Where(x => x.PercentRemaining <= 100.0) // Show items at or below max, or below minimum
                     .GroupBy(x => x.Item.itemName)
                     .Select(group => group.OrderBy(x => x.PercentRemaining).First())
                     .OrderBy(x => x.PercentRemaining)

@@ -341,7 +341,7 @@ namespace Coftea_Capstone.ViewModel
                                     amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
                                     unitS: hasSmallSize 
                                         ? (!string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.InputUnitSmall : fallbackUnit)
-                                        : "pcs", // Always provide a valid unit even if product doesn't have small size
+                                        : fallbackUnit, // Use the inventory item's unit if product doesn't have small size
 
                                     amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
                                     unitM: !string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.InputUnitMedium : fallbackUnit,
@@ -466,7 +466,7 @@ namespace Coftea_Capstone.ViewModel
                                         amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
                                         unitS: hasSmallSize 
                                             ? (!string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.InputUnitSmall : fallbackUnit)
-                                            : "pcs", // Always provide a valid unit even if product doesn't have small size
+                                            : fallbackUnit, // Use the inventory item's unit if product doesn't have small size
                                         amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
                                         unitM: !string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.InputUnitMedium : fallbackUnit,
                                         amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),

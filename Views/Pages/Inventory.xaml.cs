@@ -25,7 +25,9 @@ public partial class Inventory : ContentPage
         // Subscribe to inventory change notifications to refresh the list
         MessagingCenter.Subscribe<AddItemToInventoryViewModel>(this, "InventoryChanged", async (sender) =>
         {
-            await vm.LoadDataAsync();
+            System.Diagnostics.Debug.WriteLine("🔄 InventoryChanged message received - forcing inventory refresh");
+            // Force a full reload to ensure fresh data from database
+            await vm.ForceReloadDataAsync();
         });
 
         // RetryConnectionPopup is now handled globally through App.xaml.cs
