@@ -307,7 +307,16 @@
                                     <DataTemplate>
                                         <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
                                             <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
-                                                <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" Color="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" CornerRadius="12"/>
+                                                <Border VerticalOptions="End" 
+                                                        HeightRequest="{Binding ScaledCount}" 
+                                                        WidthRequest="50" 
+                                                        Background="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" 
+                                                        StrokeThickness="0"
+                                                        Stroke="Transparent">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="12"/>
+                                                    </Border.StrokeShape>
+                                                </Border>
                                             </Grid>
                                             <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
                                         </VerticalStackLayout>
@@ -353,7 +362,16 @@
                                     <DataTemplate>
                                         <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
                                             <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
-                                                <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" Color="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" CornerRadius="12"/>
+                                                <Border VerticalOptions="End" 
+                                                        HeightRequest="{Binding ScaledCount}" 
+                                                        WidthRequest="50" 
+                                                        Background="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" 
+                                                        StrokeThickness="0"
+                                                        Stroke="Transparent">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="12"/>
+                                                    </Border.StrokeShape>
+                                                </Border>
                                             </Grid>
                                             <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
                                         </VerticalStackLayout>

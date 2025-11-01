@@ -79,6 +79,14 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSelectedCategoryChanged(string value) // Handle category changes
         {
+            // Validate that selected category is in the Categories list
+            if (!string.IsNullOrWhiteSpace(value) && !Categories.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid category selected: {value}, resetting to null");
+                SelectedCategory = null;
+                return;
+            }
+
             // Notify visibility change for subcategory UI
             OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
             OnPropertyChanged(nameof(IsCoffeeSubcategoryVisible));
@@ -95,6 +103,49 @@ namespace Coftea_Capstone.ViewModel
                 SelectedSubcategory = null;
         }
 
+<<<<<<< Updated upstream
+=======
+        partial void OnSelectedSubcategoryChanged(string value) // Handle subcategory changes
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+
+            // Validate Fruit/Soda subcategory
+            if (string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!FruitSodaSubcategories.Contains(value))
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Invalid Fruit/Soda subcategory selected: {value}, resetting to null");
+                    SelectedSubcategory = null;
+                    return;
+                }
+            }
+            // Validate Coffee subcategory
+            else if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!CoffeeSubcategories.Contains(value))
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Invalid Coffee subcategory selected: {value}, resetting to null");
+                    SelectedSubcategory = null;
+                    return;
+                }
+            }
+        }
+
+        partial void OnIsEditModeChanged(bool value)
+        {
+            // Notify price visibility changes when edit mode changes
+            OnPropertyChanged(nameof(IsSmallPriceVisible));
+            OnPropertyChanged(nameof(IsMediumPriceVisible));
+            OnPropertyChanged(nameof(IsLargePriceVisible));
+            
+            // Update the ConnectPOSToInventoryVM edit mode
+            if (ConnectPOSToInventoryVM != null)
+            {
+                ConnectPOSToInventoryVM.IsEditMode = value;
+            }
+        }
+
+>>>>>>> Stashed changes
         [ObservableProperty]
         private bool isAddItemToPOSVisible;
 
@@ -253,10 +304,10 @@ namespace Coftea_Capstone.ViewModel
                         // Check if this product has Small size (only Coffee category)
                         bool hasSmallSize = IsSmallPriceVisible;
                             
-                        // Treat everything selected in ConnectPOS as ingredients by default,
-                        // except items explicitly chosen in the Addons popup (SelectedAddons)
-                        var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
+                        // Allow items to be saved as BOTH ingredients AND addons
+                        // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
                         var ingredients = selectedIngredientsOnly
+<<<<<<< Updated upstream
                             .Where(i => !addonIds.Contains(i.itemID))
                             .Select(i => (
                                 inventoryItemId: i.itemID,
@@ -272,6 +323,29 @@ namespace Coftea_Capstone.ViewModel
                                 amtL: ConvertUnits(i.InputAmountLarge > 0 ? i.InputAmountLarge : 1, i.InputUnitLarge, i.unitOfMeasurement),
                                 unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
                             ));
+=======
+                            .Select(i => {
+                                // Ensure fallback unit is never null or empty
+                                var fallbackUnit = !string.IsNullOrWhiteSpace(i.unitOfMeasurement) ? i.unitOfMeasurement : "pcs";
+                                
+                                return (
+                                    inventoryItemId: i.itemID,
+                                    amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                    unit: (string?)(i.InputUnit ?? fallbackUnit),
+                                    // Only save Small size data if product has Small size
+                                    amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
+                                    unitS: hasSmallSize 
+                                        ? (!string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.InputUnitSmall : fallbackUnit)
+                                        : fallbackUnit, // Use the inventory item's unit if product doesn't have small size
+
+                                    amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
+                                    unitM: !string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.InputUnitMedium : fallbackUnit,
+
+                                    amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
+                                    unitL: !string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.InputUnitLarge : fallbackUnit
+                                );
+                            });
+>>>>>>> Stashed changes
 
                         var addons = selectedAddonsOnly
                             .Select(i => (
@@ -342,14 +416,8 @@ namespace Coftea_Capstone.ViewModel
 
                     // Build product→inventory links (addons/ingredients)
                     {
-                        var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
-                        var ingredients = selectedIngredientsOnly
-                            .Where(i => !addonIds.Contains(i.itemID))
-                            .Select(i => (
-                                inventoryItemId: i.itemID,
-                                amount: (i.InputAmount > 0 ? i.InputAmount : 1),
-                                unit: (string?)(i.InputUnit ?? i.unitOfMeasurement)
-                            ));
+                        // Allow items to be saved as BOTH ingredients AND addons
+                        // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
 
                         var addons = selectedAddonsOnly
                             .Select(i => {
@@ -378,20 +446,28 @@ namespace Coftea_Capstone.ViewModel
                             bool hasSmallSize = IsSmallPriceVisible;
                             
                             // Rebuild ingredients with per-size values for the overload
+                            // Allow items to be saved as BOTH ingredients AND addons
+                            // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
                             var ingredientsPerSize = selectedIngredientsOnly
-                                .Where(i => !addonIds.Contains(i.itemID))
-                                .Select(i => (
-                                    inventoryItemId: i.itemID,
-                                    amount: (i.InputAmount > 0 ? i.InputAmount : 1),
-                                    unit: (string?)(i.InputUnit ?? i.unitOfMeasurement),
-                                    // Only save Small size data if product has Small size
-                                    amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
-                                    unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
-                                    amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
-                                    unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
-                                    amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
-                                    unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
-                                ));
+                                .Select(i => {
+                                    // Ensure fallback unit is never null or empty
+                                    var fallbackUnit = !string.IsNullOrWhiteSpace(i.unitOfMeasurement) ? i.unitOfMeasurement : "pcs";
+                                    
+                                    return (
+                                        inventoryItemId: i.itemID,
+                                        amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                        unit: (string?)(i.InputUnit ?? fallbackUnit),
+                                        // Only save Small size data if product has Small size
+                                        amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
+                                        unitS: hasSmallSize 
+                                            ? (!string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.InputUnitSmall : fallbackUnit)
+                                            : fallbackUnit, // Use the inventory item's unit if product doesn't have small size
+                                        amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
+                                        unitM: !string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.InputUnitMedium : fallbackUnit,
+                                        amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
+                                        unitL: !string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.InputUnitLarge : fallbackUnit
+                                    );
+                                });
 
                             await _database.SaveProductLinksSplitAsync(newProductId, ingredientsPerSize, addons);
                         }

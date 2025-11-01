@@ -752,24 +752,14 @@ namespace Coftea_Capstone.ViewModel
         {
             if (items == null || items.Count == 0) return;
             
-            // Define a palette of distinct colors
+            // Define a palette for weekly and monthly picks
             var colorPalette = new List<string>
             {
-                "#66BB6A", // Green
-                "#42A5F5", // Blue
-                "#EF5350", // Red
-                "#FFA726", // Orange
-                "#AB47BC", // Purple
-                "#26A69A", // Teal
-                "#FFB74D", // Amber
-                "#78909C", // Blue Grey
-                "#EC407A", // Pink
-                "#5C6BC0", // Indigo
-                "#26C6DA", // Cyan
-                "#AED581", // Light Green
-                "#FFD54F", // Yellow
-                "#9575CD", // Deep Purple
-                "#FF7043"  // Deep Orange
+                "#99E599", // Green (from photo)
+                "#ac94f4", // Purple/Violet
+                "#A3C5D9", // Blue (from image)
+                "#F0E0C1", // Brown/Beige (from photo)
+                "#f5dde0"  // Light pink
             };
             
             // Assign unique colors to each item

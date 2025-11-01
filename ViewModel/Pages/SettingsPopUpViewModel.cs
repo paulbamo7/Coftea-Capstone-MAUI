@@ -63,6 +63,9 @@ namespace Coftea_Capstone.ViewModel
 
         // Permission check for Manage Inventory visibility
         public bool CanManageInventory => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
+        
+        // Permission check for Manage POS visibility
+        public bool CanManagePOS => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessPOS ?? false);
 
         public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel, ManagePOSOptionsViewModel managePOSOptionsViewModel, ManageInventoryOptionsViewModel manageInventoryOptionsViewModel)
         {
@@ -72,6 +75,15 @@ namespace Coftea_Capstone.ViewModel
             
             // Initialize with empty recent orders - will be populated from real data
             RecentOrders = new ObservableCollection<RecentOrderModel>();
+            
+            // Subscribe to inventory changes to refresh alerts
+            MessagingCenter.Subscribe<AddItemToInventoryViewModel>(this, "InventoryChanged", async (sender) =>
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 InventoryChanged message received - refreshing inventory alerts");
+                // Small delay to ensure database is updated
+                await Task.Delay(300);
+                await LoadInventoryAlertsAsync();
+            });
         }
 
         public void AddRecentOrder(int orderNumber, string productName, string productImage, decimal totalAmount)
@@ -109,6 +121,18 @@ namespace Coftea_Capstone.ViewModel
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)); // Increased timeout
                 System.Diagnostics.Debug.WriteLine("🔄 Starting LoadTodaysMetricsAsync...");
+                
+                // Reset all metrics to default values first to prevent showing stale data
+                TotalOrdersToday = 0;
+                TotalSalesToday = 0m;
+                MostBoughtToday = "No data";
+                TrendingToday = "No data";
+                MostBoughtTrend = "";
+                TrendingPercent = "";
+                OrdersTrend = "";
+                RecentOrders.Clear();
+                TopSellingProductsToday.Clear();
+                InventoryAlerts.Clear();
                 
                 // Load top selling products for dashboard
                 await LoadTopSellingProductsAsync();
@@ -205,11 +229,18 @@ namespace Coftea_Capstone.ViewModel
         {
             System.Diagnostics.Debug.WriteLine("OpenManagePOSOptions called");
             IsSettingsPopupVisible = false;
-            if (!(App.CurrentUser?.IsAdmin ?? false))
+            
+            // Check if user is admin OR has been granted POS access
+            var currentUser = App.CurrentUser;
+            bool hasAccess = (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessPOS ?? false);
+            
+            if (!hasAccess)
             {
-                Application.Current?.MainPage?.DisplayAlert("Unauthorized", "Only admins can manage POS settings.", "OK");
+                Application.Current?.MainPage?.DisplayAlert("Access Denied", 
+                    "You don't have permission to manage POS. Please contact an administrator.", "OK");
                 return;
             }
+            
             System.Diagnostics.Debug.WriteLine($"Setting ManagePOSPopup visibility to true. Current value: {_managePOSOptionsViewModel.IsPOSManagementPopupVisible}");
             _managePOSOptionsViewModel.IsPOSManagementPopupVisible = true;
             System.Diagnostics.Debug.WriteLine($"ManagePOSPopup visibility set to: {_managePOSOptionsViewModel.IsPOSManagementPopupVisible}");
@@ -275,6 +306,9 @@ namespace Coftea_Capstone.ViewModel
                     {
                         item.MaxCount = maxCount;
                     }
+                    
+                    // Assign colors using the same palette as Weekly/Monthly picks
+                    AssignUniqueColors(productSales);
                 }
 
                 TopSellingProductsToday = new ObservableCollection<TrendItem>(productSales);
@@ -284,6 +318,27 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"Failed to load top selling products: {ex.Message}");
                 // Initialize with empty collection on error
                 TopSellingProductsToday = new ObservableCollection<TrendItem>();
+            }
+        }
+
+        private void AssignUniqueColors(List<TrendItem> items)
+        {
+            if (items == null || items.Count == 0) return;
+            
+            // Define a palette for weekly and monthly picks
+            var colorPalette = new List<string>
+            {
+                "#99E599", // Green (from photo)
+                "#ac94f4", // Purple/Violet
+                "#A3C5D9", // Blue (from image)
+                "#F0E0C1", // Brown/Beige (from photo)
+                "#f5dde0"  // Light pink
+            };
+            
+            // Assign unique colors to each item
+            for (int i = 0; i < items.Count; i++)
+            {
+                items[i].ColorCode = colorPalette[i % colorPalette.Count];
             }
         }
 
@@ -409,6 +464,7 @@ namespace Coftea_Capstone.ViewModel
                     System.Diagnostics.Debug.WriteLine($"⚠️ Found duplicate item names: {string.Join(", ", duplicateNames)}");
                 }
                 
+<<<<<<< Updated upstream
                 // Compute percent of minimum threshold remaining
                 // percentOfMin = (current / minimum) * 100; if minimum is 0, skip (treated as healthy)
                 var lowStockItems = inventoryItems
@@ -418,6 +474,39 @@ namespace Coftea_Capstone.ViewModel
                         PercentOfMin = (item.itemQuantity / item.minimumQuantity) * 100.0
                     })
                     .Where(x => x.PercentOfMin <= 100.0) // at or below minimum threshold
+=======
+                // Compute percent of buffer remaining before hitting minimum
+                // Formula: (current - minimum) / (maximum - minimum) × 100
+                // This shows how much "safety buffer" remains before reaching minimum threshold
+                // Also include items that are simply below minimum, even without a maximum set
+                var lowStockItems = inventoryItems
+                    .Where(item => item.minimumQuantity > 0)
+                    .Select(item => {
+                        // If item has maximum and maximum > minimum, calculate buffer percent
+                        if (item.maximumQuantity > item.minimumQuantity)
+                        {
+                            var buffer = item.itemQuantity - item.minimumQuantity;
+                            var maxBuffer = item.maximumQuantity - item.minimumQuantity;
+                            var percentRemaining = (buffer / maxBuffer) * 100.0;
+                            return new {
+                                Item = item,
+                                PercentRemaining = percentRemaining
+                            };
+                        }
+                        else
+                        {
+                            // If no maximum or maximum <= minimum, just check if below minimum
+                            // Set percent to negative if below minimum, 0 if at minimum, 100+ if above
+                            var buffer = item.itemQuantity - item.minimumQuantity;
+                            var percentRemaining = buffer < 0 ? -1.0 : (buffer == 0 ? 0.0 : 101.0);
+                            return new {
+                                Item = item,
+                                PercentRemaining = percentRemaining
+                            };
+                        }
+                    })
+                    .Where(x => x.PercentRemaining <= 100.0) // Show items at or below max, or below minimum
+>>>>>>> Stashed changes
                     .GroupBy(x => x.Item.itemName)
                     .Select(group => group.OrderBy(x => x.PercentOfMin).First())
                     .OrderBy(x => x.PercentOfMin)

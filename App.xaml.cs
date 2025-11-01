@@ -291,6 +291,20 @@ namespace Coftea_Capstone
         // Called after logout to reset everything
         public async Task ResetAppAfterLogout()
         {
+            // Close all popups before resetting
+            if (SettingsPopup != null)
+            {
+                SettingsPopup.IsSettingsPopupVisible = false;
+            }
+            if (NotificationPopup != null)
+            {
+                NotificationPopup.IsNotificationVisible = false;
+            }
+            if (ProfilePopup != null)
+            {
+                ProfilePopup.IsProfileVisible = false;
+            }
+            
             SetCurrentUser(null);
             Preferences.Set("IsLoggedIn", false);
             Preferences.Set("IsAdmin", false);
@@ -299,12 +313,31 @@ namespace Coftea_Capstone
             Preferences.Remove("Password");
             Preferences.Remove("RememberMe");
 
+            // Close all popups before disposing
+            if (SettingsPopup != null)
+            {
+                SettingsPopup.IsSettingsPopupVisible = false;
+            }
+            if (NotificationPopup != null)
+            {
+                NotificationPopup.IsNotificationVisible = false;
+            }
+            if (ProfilePopup != null)
+            {
+                ProfilePopup.IsProfileVisible = false;
+            }
+
             // Dispose existing ViewModels before recreating
             DisposeViewModels();
-            InitializeViewModels(); // reset all viewmodels
-
-            // Navigate to login page
+            
+            // Navigate to login page first
             await SimpleNavigationService.NavigateToAsync("//login");
+            
+            // Small delay to ensure navigation completes before reinitializing
+            await Task.Delay(200);
+            
+            // Reinitialize ViewModels - new instances default to IsVisible = false
+            InitializeViewModels();
         }
 
         private void DisposeViewModels()

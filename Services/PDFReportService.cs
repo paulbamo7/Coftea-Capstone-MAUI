@@ -117,6 +117,171 @@ namespace Coftea_Capstone.Services
             }
         }
 
+<<<<<<< Updated upstream
+=======
+        public async Task<string> GeneratePurchaseOrderPDFAsync(int purchaseOrderId, PurchaseOrderModel order, List<PurchaseOrderItemModel> items)
+        {
+            try
+            {
+                // Validate inputs
+                if (order == null)
+                {
+                    throw new ArgumentNullException(nameof(order), "Purchase order cannot be null");
+                }
+                items = items ?? new List<PurchaseOrderItemModel>();
+
+                // Create PDF document
+                using (PdfDocument document = new PdfDocument())
+                {
+                    PdfPage page = document.Pages.Add();
+                    PdfGraphics graphics = page.Graphics;
+
+                    float yPosition = 40;
+                    float pageWidth = page.GetClientSize().Width;
+                    float margin = 40;
+
+                    // Fonts
+                    PdfFont titleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 24, PdfFontStyle.Bold);
+                    PdfFont subTitleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Bold);
+                    PdfFont normalFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10);
+                    PdfFont boldFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold);
+
+                    PdfBrush titleBrush = new PdfSolidBrush(PdfColor.FromArgb(68, 68, 68));
+                    PdfBrush textBrush = new PdfSolidBrush(PdfColor.FromArgb(100, 100, 100));
+
+                    // Header
+                    graphics.DrawString("Purchase Order", titleFont, titleBrush, new PointF(margin, yPosition));
+                    yPosition += 30;
+
+                    graphics.DrawString($"Order #: {purchaseOrderId}", subTitleFont, textBrush, new PointF(margin, yPosition));
+                    yPosition += 20;
+
+                    graphics.DrawString($"Date: {order.OrderDate:MMMM dd, yyyy}", normalFont, textBrush, new PointF(margin, yPosition));
+                    yPosition += 15;
+
+                    graphics.DrawString($"Status: {order.Status}", normalFont, textBrush, new PointF(margin, yPosition));
+                    yPosition += 40;
+
+                    // Order Information
+                    graphics.DrawString("Order Information", boldFont, titleBrush, new PointF(margin, yPosition));
+                    yPosition += 20;
+
+                    graphics.DrawString($"Supplier: {order.SupplierName}", normalFont, titleBrush, new PointF(margin, yPosition));
+                    yPosition += 15;
+
+                    graphics.DrawString($"Requested By: {order.RequestedBy}", normalFont, titleBrush, new PointF(margin, yPosition));
+                    yPosition += 15;
+
+                    if (!string.IsNullOrEmpty(order.ApprovedBy))
+                    {
+                        graphics.DrawString($"Approved By: {order.ApprovedBy}", normalFont, titleBrush, new PointF(margin, yPosition));
+                        yPosition += 15;
+
+                        if (order.ApprovedDate.HasValue)
+                        {
+                            graphics.DrawString($"Approved Date: {order.ApprovedDate.Value:MMMM dd, yyyy HH:mm}", normalFont, titleBrush, new PointF(margin, yPosition));
+                            yPosition += 15;
+                        }
+                    }
+
+                    yPosition += 20;
+
+                    // Items Table
+                    graphics.DrawString("Items Needed to Restock", boldFont, titleBrush, new PointF(margin, yPosition));
+                    yPosition += 20;
+
+                    PdfGrid itemsGrid = new PdfGrid();
+                    itemsGrid.Columns.Add(4);
+                    itemsGrid.Headers.Add(1);
+                    PdfGridRow itemsHeaderRow = itemsGrid.Headers[0];
+                    itemsHeaderRow.Cells[0].Value = "Item Name";
+                    itemsHeaderRow.Cells[1].Value = "Amount";
+                    itemsHeaderRow.Cells[2].Value = "UoM";
+                    itemsHeaderRow.Cells[3].Value = "Quantity";
+                    itemsHeaderRow.Cells[0].Style.Font = boldFont;
+                    itemsHeaderRow.Cells[1].Style.Font = boldFont;
+                    itemsHeaderRow.Cells[2].Style.Font = boldFont;
+                    itemsHeaderRow.Cells[3].Style.Font = boldFont;
+
+                    foreach (var item in items)
+                    {
+                        var qty = item.ApprovedQuantity > 0 ? item.ApprovedQuantity : item.RequestedQuantity;
+                        PdfGridRow row = itemsGrid.Rows.Add();
+                        row.Cells[0].Value = item.ItemName ?? "";
+                        row.Cells[1].Value = qty.ToString();
+                        row.Cells[2].Value = item.UnitOfMeasurement ?? "pcs";
+                        row.Cells[3].Value = qty.ToString(); // Quantity (same as amount - represents total needed)
+                    }
+
+                    if (items.Count == 0)
+                    {
+                        PdfGridRow row = itemsGrid.Rows.Add();
+                        row.Cells[0].Value = "No items in this order";
+                        itemsGrid.Columns[0].Width = pageWidth - margin * 2;
+                    }
+
+                    itemsGrid.Draw(graphics, new RectangleF(margin, yPosition, pageWidth - margin * 2, itemsGrid.Rows.Count * 25 + 30));
+                    yPosition += itemsGrid.Rows.Count * 25 + 50;
+
+                    // Notes
+                    if (!string.IsNullOrEmpty(order.Notes))
+                    {
+                        yPosition += 10;
+                        graphics.DrawString("Notes:", boldFont, titleBrush, new PointF(margin, yPosition));
+                        yPosition += 20;
+                        graphics.DrawString(order.Notes, normalFont, titleBrush, new RectangleF(margin, yPosition, pageWidth - margin * 2, 100));
+                    }
+
+                    // Footer
+                    PdfPage lastPage = document.Pages[document.Pages.Count - 1];
+                    PdfGraphics footerGraphics = lastPage.Graphics;
+                    PdfFont footerFont = new PdfStandardFont(PdfFontFamily.Helvetica, 9);
+                    PdfBrush footerBrush = new PdfSolidBrush(PdfColor.FromArgb(128, 128, 128));
+                    string footerText = $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Management System";
+                    SizeF footerSize = footerFont.MeasureString(footerText);
+                    footerGraphics.DrawString(footerText, footerFont, footerBrush, new PointF((pageWidth - footerSize.Width) / 2, lastPage.GetClientSize().Height - 30));
+
+                    // Save PDF
+                    var fileName = $"Purchase_Order_{purchaseOrderId}_{order.OrderDate:yyyy_MM_dd}.pdf";
+                    string filePath = GetDownloadPath(fileName);
+                    FileStream fileStream = new FileStream(filePath, FileMode.Create);
+                    document.Save(fileStream);
+                    fileStream.Dispose();
+
+                    return filePath;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error generating purchase order PDF: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner stack trace: {ex.InnerException.StackTrace}");
+                }
+                throw new Exception($"Failed to generate PDF: {ex.Message}", ex);
+            }
+        }
+
+        private void DrawStatBox(PdfGraphics graphics, float x, float y, float width, float height, string label, string value, PdfColor backgroundColor)
+        {
+            PdfBrush bgBrush = new PdfSolidBrush(backgroundColor);
+            PdfBrush borderBrush = new PdfSolidBrush(PdfColor.FromArgb(200, 200, 200));
+            PdfPen borderPen = new PdfPen(borderBrush, 1);
+
+            graphics.DrawRectangle(borderPen, new RectangleF(x, y, width, height));
+            graphics.DrawRectangle(bgBrush, new RectangleF(x, y, width, height));
+
+            PdfFont labelFont = new PdfStandardFont(PdfFontFamily.Helvetica, 9);
+            PdfFont valueFont = new PdfStandardFont(PdfFontFamily.Helvetica, 14, PdfFontStyle.Bold);
+            PdfBrush textBrush = new PdfSolidBrush(PdfColor.FromArgb(68, 68, 68));
+
+            graphics.DrawString(label, labelFont, textBrush, new PointF(x + 10, y + 10));
+            graphics.DrawString(value, valueFont, textBrush, new PointF(x + 10, y + 30));
+        }
+
+>>>>>>> Stashed changes
         private async Task<Dictionary<string, double>> GetInventoryDeductionsForPeriodAsync(DateTime startDate, DateTime endDate)
         {
             try

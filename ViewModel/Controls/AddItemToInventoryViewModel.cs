@@ -111,6 +111,7 @@ namespace Coftea_Capstone.ViewModel
             "Fruit Series",
             "Sinkers & etc.",
             "Liquid",
+            "Supplies",
             "Others"
         };
 
@@ -121,11 +122,34 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnItemCategoryChanged(string value) // Triggered when item category changes
         {
+            // Validate that selected category is in the Categories list
+            if (!string.IsNullOrWhiteSpace(value) && !Categories.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid category selected: {value}, resetting to null");
+                ItemCategory = string.Empty;
+                return;
+            }
+
             // Toggle UI sections based on selected category
+<<<<<<< Updated upstream
             // Pieces-only: only quantity field is shown
             IsPiecesOnlyCategory = value == "Others" || value == "Other";
+=======
+            // Pieces-only: only quantity field is shown (includes Supplies for cups/straws)
+            var newIsPiecesOnly = value == "Others" || value == "Other" || value == "Supplies";
+>>>>>>> Stashed changes
             // UoM-only categories: show only UoM fields (e.g., Syrups, Powdered, etc.)
-            IsUoMOnlyCategory = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc." || value == "Liquid";
+            var newIsUoMOnly = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc." || value == "Liquid";
+            
+            // Only update if changed to avoid unnecessary notifications
+            if (IsPiecesOnlyCategory != newIsPiecesOnly)
+            {
+                IsPiecesOnlyCategory = newIsPiecesOnly;
+            }
+            if (IsUoMOnlyCategory != newIsUoMOnly)
+            {
+                IsUoMOnlyCategory = newIsUoMOnly;
+            }
             // Backward compatibility flag for existing bindings using Syrups
             IsSyrupsCategory = value == "Syrups";
 
@@ -155,8 +179,15 @@ namespace Coftea_Capstone.ViewModel
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedUoMChanged(string value) // Triggered when selected UoM changes
+        partial void OnSelectedUoMChanged(string value) // Validate UoM selection
         {
+            // Validate that selected UoM is in the UoMOptions list
+            if (!string.IsNullOrWhiteSpace(value) && !UoMOptions.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid UoM selected: {value}, resetting to null");
+                SelectedUoM = null;
+                return;
+            }
             UpdateConversionDisplays();
         }
 
@@ -165,13 +196,27 @@ namespace Coftea_Capstone.ViewModel
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedMinimumUoMChanged(string value) // Triggered when selected minimum UoM changes
+        partial void OnSelectedMinimumUoMChanged(string value) // Validate minimum UoM selection
         {
+            // Validate that selected minimum UoM is in the UoMOptions list
+            if (!string.IsNullOrWhiteSpace(value) && !UoMOptions.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid minimum UoM selected: {value}, resetting to null");
+                SelectedMinimumUoM = null;
+                return;
+            }
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedMaximumUoMChanged(string value) // Triggered when selected maximum UoM changes
+        partial void OnSelectedMaximumUoMChanged(string value) // Validate maximum UoM selection
         {
+            // Validate that selected maximum UoM is in the UoMOptions list
+            if (!string.IsNullOrWhiteSpace(value) && !UoMOptions.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid maximum UoM selected: {value}, resetting to null");
+                SelectedMaximumUoM = null;
+                return;
+            }
             UpdateConversionDisplays();
         }
 
@@ -376,17 +421,19 @@ namespace Coftea_Capstone.ViewModel
                 finalUnit = UnitConversionService.FormatUnit(convertedUnit);
             }
 
-            // Convert minimum and maximum quantities to the same unit as final quantity for proper comparison
+            // Get minimum and maximum quantities WITHOUT converting them
+            // The values should already be in the same unit as the stock quantity
             var minimumThreshold = MinimumQuantity;
-            var maximumThreshold = MaximumQuantity;
+            var maximumThreshold = IsUoMOnlyCategory ? MaximumUoMQuantity : MaximumQuantity;
             var minimumUnit = SelectedMinimumUoM ?? SelectedUoM;
-            var maximumUnit = SelectedMaximumUoM ?? SelectedUoM;
+            var maximumUnit = IsUoMOnlyCategory ? (SelectedMaximumUoM ?? SelectedUoM) : (SelectedMaximumUoM ?? SelectedUoM);
             
             System.Diagnostics.Debug.WriteLine($"🔧 AddItem validation - Stock: {finalQuantity} {finalUnit}");
             System.Diagnostics.Debug.WriteLine($"🔧 AddItem validation - Min: {minimumThreshold} {minimumUnit}");
             System.Diagnostics.Debug.WriteLine($"🔧 AddItem validation - Max: {maximumThreshold} {maximumUnit}");
 
-            // Convert minimum threshold to final unit if units are different
+            // Only validate unit compatibility - DO NOT convert the values
+            // Ensure minimum unit matches final unit (if set)
             if (minimumThreshold > 0 && !string.IsNullOrWhiteSpace(minimumUnit) && !string.IsNullOrWhiteSpace(finalUnit))
             {
                 var normalizedMinimumUnit = UnitConversionService.Normalize(minimumUnit);
@@ -394,22 +441,23 @@ namespace Coftea_Capstone.ViewModel
                 
                 if (!string.IsNullOrWhiteSpace(normalizedMinimumUnit) && !string.IsNullOrWhiteSpace(normalizedFinalUnit))
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔧 Converting minimum: {minimumThreshold} {normalizedMinimumUnit} -> {normalizedFinalUnit}");
-                    if (UnitConversionService.AreCompatibleUnits(normalizedMinimumUnit, normalizedFinalUnit))
-                    {
-                        minimumThreshold = UnitConversionService.Convert(minimumThreshold, normalizedMinimumUnit, normalizedFinalUnit);
-                        System.Diagnostics.Debug.WriteLine($"🔧 Converted minimum: {minimumThreshold} {normalizedFinalUnit}");
-                    }
-                    else
+                    if (!UnitConversionService.AreCompatibleUnits(normalizedMinimumUnit, normalizedFinalUnit))
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Incompatible minimum units: {normalizedMinimumUnit} vs {normalizedFinalUnit}");
                         await Application.Current.MainPage.DisplayAlert("Error", $"Minimum quantity unit ({minimumUnit}) is not compatible with stock quantity unit ({finalUnit}).", "OK");
                         return;
                     }
+                    // Ensure units match - if they don't, require user to use same unit
+                    if (!string.Equals(normalizedMinimumUnit, normalizedFinalUnit, StringComparison.OrdinalIgnoreCase))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Minimum unit ({normalizedMinimumUnit}) differs from final unit ({normalizedFinalUnit}) - requiring match");
+                        await Application.Current.MainPage.DisplayAlert("Error", $"Minimum quantity must use the same unit as stock quantity ({finalUnit}).", "OK");
+                        return;
+                    }
                 }
             }
 
-            // Convert maximum threshold to final unit if units are different
+            // Only validate unit compatibility for maximum - DO NOT convert the values
             if (maximumThreshold > 0 && !string.IsNullOrWhiteSpace(maximumUnit) && !string.IsNullOrWhiteSpace(finalUnit))
             {
                 var normalizedMaximumUnit = UnitConversionService.Normalize(maximumUnit);
@@ -417,16 +465,17 @@ namespace Coftea_Capstone.ViewModel
                 
                 if (!string.IsNullOrWhiteSpace(normalizedMaximumUnit) && !string.IsNullOrWhiteSpace(normalizedFinalUnit))
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔧 Converting maximum: {maximumThreshold} {normalizedMaximumUnit} -> {normalizedFinalUnit}");
-                    if (UnitConversionService.AreCompatibleUnits(normalizedMaximumUnit, normalizedFinalUnit))
-                    {
-                        maximumThreshold = UnitConversionService.Convert(maximumThreshold, normalizedMaximumUnit, normalizedFinalUnit);
-                        System.Diagnostics.Debug.WriteLine($"🔧 Converted maximum: {maximumThreshold} {normalizedFinalUnit}");
-                    }
-                    else
+                    if (!UnitConversionService.AreCompatibleUnits(normalizedMaximumUnit, normalizedFinalUnit))
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Incompatible maximum units: {normalizedMaximumUnit} vs {normalizedFinalUnit}");
                         await Application.Current.MainPage.DisplayAlert("Error", $"Maximum quantity unit ({maximumUnit}) is not compatible with stock quantity unit ({finalUnit}).", "OK");
+                        return;
+                    }
+                    // Ensure units match - if they don't, require user to use same unit
+                    if (!string.Equals(normalizedMaximumUnit, normalizedFinalUnit, StringComparison.OrdinalIgnoreCase))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Maximum unit ({normalizedMaximumUnit}) differs from final unit ({normalizedFinalUnit}) - requiring match");
+                        await Application.Current.MainPage.DisplayAlert("Error", $"Maximum quantity must use the same unit as stock quantity ({finalUnit}).", "OK");
                         return;
                     }
                 }

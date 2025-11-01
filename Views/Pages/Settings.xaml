@@ -84,12 +84,21 @@
                                TextColor="#5B4F45"/>
                     </VerticalStackLayout>
 
+<<<<<<< Updated upstream
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15" IsVisible="{Binding CanManageInventory}">
                         <Frame CornerRadius="20" HasShadow="True" BackgroundColor="White" Padding="20">
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding OpenManageInventoryOptionsCommand}" />
                             </Frame.GestureRecognizers>
                             <Image Source="manageinventoryicon.png"
+=======
+                        <VerticalStackLayout HorizontalOptions="Center" Spacing="15" Margin="15">
+                            <Frame CornerRadius="20" HasShadow="True" BackgroundColor="#A89580" Padding="20">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenManageInventoryOptionsCommand}" />
+                                </Frame.GestureRecognizers>
+                                <Image Source="manageinventoryicon.png"
+>>>>>>> Stashed changes
                                    HeightRequest="80"
                                    WidthRequest="80"
                                    Aspect="AspectFit"

@@ -130,8 +130,45 @@ namespace Coftea_Capstone.ViewModel
                 // Verify preferences were saved
                 System.Diagnostics.Debug.WriteLine($"🔍 Verification - IsLoggedIn: {Preferences.Get("IsLoggedIn", false)}, RememberMe: {Preferences.Get("RememberMe", false)}");
 
+                // Ensure popups are closed and refreshed after login
+                var app = (App)Application.Current;
+                if (app?.SettingsPopup != null)
+                {
+                    app.SettingsPopup.IsSettingsPopupVisible = false;
+                }
+                if (app?.NotificationPopup != null)
+                {
+                    app.NotificationPopup.IsNotificationVisible = false;
+                }
+                if (app?.ProfilePopup != null)
+                {
+                    app.ProfilePopup.IsProfileVisible = false;
+                    // Immediately clear profile image to prevent showing wrong account's image
+                    app.ProfilePopup.ProfileImageSource = null;
+                    app.ProfilePopup.ProfileImage = "usericon.png";
+                    // Reload profile for new user immediately on main thread
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        await app.ProfilePopup.LoadUserProfile();
+                    });
+                }
+
                 // Navigate to dashboard
                 await SimpleNavigationService.NavigateToAsync("//dashboard");
+                
+                // Small delay to ensure navigation completes
+                await Task.Delay(200);
+                
+                // Force UI refresh after navigation
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    // Force profile image refresh by clearing and reloading
+                    if (app?.ProfilePopup != null)
+                    {
+                        app.ProfilePopup.ProfileImageSource = null;
+                        _ = Task.Run(async () => await app.ProfilePopup.LoadUserProfile());
+                    }
+                });
 
                 ClearEntries();
             }

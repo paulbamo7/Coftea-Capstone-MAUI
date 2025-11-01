@@ -5,6 +5,7 @@ namespace Coftea_Capstone.Models
     public class UserEntry : ObservableObject
     {
         private bool _canAccessInventory;
+        private bool _canAccessPOS;
         private bool _canAccessSalesReport;
         private static Database _database = new();
 
@@ -26,6 +27,20 @@ namespace Coftea_Capstone.Models
                 }
             }
         }
+        
+        public bool CanAccessPOS 
+        { 
+            get => IsAdmin ? true : _canAccessPOS; // Admin always has access
+            set 
+            {
+                if (!IsAdmin && SetProperty(ref _canAccessPOS, value)) // Only update if not admin
+                {
+                    // Update database when property changes
+                    _ = Task.Run(async () => await UpdateDatabaseAsync());
+                }
+            }
+        }
+        
         public bool CanAccessSalesReport 
         { 
             get => IsAdmin ? true : _canAccessSalesReport; // Ensure admin always has access
@@ -45,7 +60,7 @@ namespace Coftea_Capstone.Models
             {
                 if (!IsAdmin)
                 {
-                    await _database.UpdateUserAccessAsync(Id, _canAccessInventory, _canAccessSalesReport);
+                    await _database.UpdateUserAccessAsync(Id, _canAccessInventory, _canAccessPOS, _canAccessSalesReport);
                 }
             }
             catch (Exception ex)

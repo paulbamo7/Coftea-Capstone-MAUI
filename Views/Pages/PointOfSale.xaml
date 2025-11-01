@@ -46,7 +46,12 @@
                         <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
                     </Frame>
                 </Grid>
+<<<<<<< Updated upstream
                 <Grid Grid.Column="3" WidthRequest="35" HeightRequest="35">
+=======
+
+                <Grid Grid.Column="4" WidthRequest="35" HeightRequest="35">
+>>>>>>> Stashed changes
                     <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                            WidthRequest="35" 
                            HeightRequest="35" 
@@ -65,10 +70,11 @@
             <Grid Grid.Row="1" ColumnDefinitions="*, Auto" VerticalOptions="Center" Margin="70,10,0,0">
                 <!-- Categories -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
-                    <StackLayout Orientation="Horizontal" Spacing="10" Margin="25,0,0,0">
-                        <!-- Subcategories for Coffee (leftmost) -->
-                        <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                    <StackLayout Orientation="Horizontal" Spacing="8" Margin="25,0,0,0">
+                        <!-- Subcategories for Coffee (leftmost) - Smaller and distinct style -->
+                        <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="12"
+                                BackgroundColor="#E8D5C4" WidthRequest="90" HeightRequest="36" 
+                                CornerRadius="8"
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano"
                                 IsVisible="{Binding IsCoffeeSubcategoryVisible}">
                             <Button.Triggers>
@@ -78,8 +84,9 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                        <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="12"
+                                BackgroundColor="#E8D5C4" WidthRequest="90" HeightRequest="36"
+                                CornerRadius="8"
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte"
                                 IsVisible="{Binding IsCoffeeSubcategoryVisible}">
                             <Button.Triggers>
@@ -90,9 +97,10 @@
                             </Button.Triggers>
                         </Button>
                         
-                        <!-- Subcategories for Fruit/Soda -->
-                        <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                        <!-- Subcategories for Fruit/Soda - Smaller and distinct style -->
+                        <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="12"
+                                BackgroundColor="#E8D5C4" WidthRequest="90" HeightRequest="36"
+                                CornerRadius="8"
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit"
                                 IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
                             <Button.Triggers>
@@ -102,8 +110,9 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                        <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="12"
+                                BackgroundColor="#E8D5C4" WidthRequest="90" HeightRequest="36"
+                                CornerRadius="8"
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda"
                                 IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
                             <Button.Triggers>
@@ -170,7 +179,12 @@
 
                 <!-- History + Cart (far right) -->
                 <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
+<<<<<<< Updated upstream
                     <Button Text="📝" 
+=======
+                    
+                    <Button Text="🕐" 
+>>>>>>> Stashed changes
                             BackgroundColor="#D4A574" 
                             TextColor="White" 
                             BorderColor="#8B7355"
@@ -181,6 +195,19 @@
                             FontSize="20"
                             Padding="0"
                             Command="{Binding ShowHistoryCommand}" />
+                    
+                    <!-- To Prepare button -->
+                    <Button Text="📋"
+                            BackgroundColor="#BDAEA2"
+                            TextColor="#5B4F45"
+                            BorderColor="#8B7355"
+                            BorderWidth="2"
+                            CornerRadius="25"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            FontSize="20"
+                            Padding="0"
+                            Command="{Binding ShowProcessingQueueCommand}" />
                     
                     <!-- Cart icon with badge -->
                     <Grid>
@@ -676,8 +703,8 @@
         <otherViews:OrderCompletePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:OrderConfirmedPopup BindingContext="{Binding OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
-        <otherViews:NotificationPopup BindingContext="{Binding NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
-        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
+        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
 
     </Grid>
 </ContentPage>

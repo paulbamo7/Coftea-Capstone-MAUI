@@ -51,7 +51,7 @@
                 <!-- Payment Content -->
                 <Grid Grid.Row="1" Padding="30" ColumnDefinitions="*, *" ColumnSpacing="20">
                     <!-- Left Side: Payment Details -->
-                    <ScrollView Grid.Column="0">
+                    <ScrollView Grid.Column="0" Padding="0,0,10,0">
                         <Grid RowDefinitions="Auto, Auto, *">
                             <!-- Payment Method Selector -->
                             <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto" Margin="0,0,0,20">
@@ -97,7 +97,8 @@
                                            FontSize="24" 
                                            FontAttributes="Bold"
                                            TextColor="#5B4F45"
-                                           HorizontalOptions="End" />
+                                           HorizontalOptions="End"
+                                           Margin="0,0,5,0" />
                                 </Grid>
 
                                 <!-- Amount Paid Input -->
@@ -114,6 +115,7 @@
                                            WidthRequest="150"
                                            Placeholder="0.00"
                                            Keyboard="Numeric"
+                                           Margin="0,0,5,0"
                                            TextChanged="OnAmountPaidChanged" />
                                 </Grid>
 
@@ -126,7 +128,8 @@
                                            FontSize="18" 
                                            FontAttributes="Bold"
                                            TextColor="{Binding Change, Converter={StaticResource ChangeColorConverter}}"
-                                           HorizontalOptions="End" />
+                                           HorizontalOptions="End"
+                                           Margin="0,0,5,0" />
                                 </Grid>
 
                                 <!-- Payment Status -->
@@ -139,14 +142,16 @@
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
-                                           VerticalOptions="Center" />
+                                           VerticalOptions="Center"
+                                           Margin="0,0,5,0" />
                                 </Grid>
 
                                 <!-- Quick Amount Buttons -->
-                                <Grid Grid.Row="4" Margin="0,0,0,20">
+                                <VerticalStackLayout Grid.Row="4" Margin="0,0,0,20" Spacing="8">
                                     <Label Text="Quick Amounts:" 
                                            FontSize="14" 
                                            TextColor="Gray" />
+<<<<<<< Updated upstream
                                     <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
                                         <Button Text="₱50" 
                                                 FontSize="12"
@@ -186,6 +191,51 @@
                                                 Clicked="OnQuickAmountClicked" />
                                     </HorizontalStackLayout>
                                 </Grid>
+=======
+                                    <ScrollView Orientation="Horizontal" 
+                                                HorizontalScrollBarVisibility="Never"
+                                                VerticalOptions="Start">
+                                        <HorizontalStackLayout Spacing="2" Padding="0,0,5,0">
+                                            <Button Text="₱50" 
+                                                    FontSize="12" FontFamily="MontserratBlack"
+                                                    BackgroundColor="#E8D5C4"
+                                                    TextColor="Black"
+                                                    CornerRadius="6"
+                                                    Padding="8,4"
+                                                    MinimumWidthRequest="45"
+                                                    HeightRequest="32"
+                                                    Clicked="OnQuickAmountClicked" />
+                                            <Button Text="₱100" 
+                                                    FontSize="12" FontFamily="MontserratBlack"
+                                                    BackgroundColor="#E8D5C4"
+                                                    TextColor="Black"
+                                                    CornerRadius="6"
+                                                    Padding="8,4"
+                                                    MinimumWidthRequest="50"
+                                                    HeightRequest="32"
+                                                    Clicked="OnQuickAmountClicked" />
+                                            <Button Text="₱200" 
+                                                    FontSize="12" FontFamily="MontserratBlack"
+                                                    BackgroundColor="#E8D5C4"
+                                                    TextColor="Black"
+                                                    CornerRadius="6"
+                                                    Padding="8,4"
+                                                    MinimumWidthRequest="50"
+                                                    HeightRequest="32"
+                                                    Clicked="OnQuickAmountClicked" />
+                                            <Button Text="₱500" 
+                                                    FontSize="12" FontFamily="MontserratBlack"
+                                                    BackgroundColor="#E8D5C4"
+                                                    TextColor="Black"
+                                                    CornerRadius="6"
+                                                    Padding="8,4"
+                                                    MinimumWidthRequest="55"
+                                                    HeightRequest="32"
+                                                    Clicked="OnQuickAmountClicked" />
+                                        </HorizontalStackLayout>
+                                    </ScrollView>
+                                </VerticalStackLayout>
+>>>>>>> Stashed changes
 
                                 <!-- Confirm Button -->
                                 <Button Grid.Row="5"

@@ -76,6 +76,8 @@ namespace Coftea_Capstone.ViewModel
 
             try
             {
+                // Invalidate cache first to ensure we get fresh data
+                _database.InvalidateInventoryCache();
                 var inventoryList = await _database.GetInventoryItemsAsyncCached();
                 System.Diagnostics.Debug.WriteLine($"🔍 Loaded {inventoryList?.Count ?? 0} inventory items from database");
                 

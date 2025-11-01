@@ -61,30 +61,32 @@
                            FontAttributes="Bold"
                            FontFamily="Montserrat-Black"
                            TextColor="#5B4F45"/>
-                        <Border Stroke="#8B7355" 
-                                StrokeShape="RoundRectangle 15" 
-                                StrokeThickness="2" 
-                                HeightRequest="45" 
-                                BackgroundColor="White"
-                                WidthRequest="250">
-                            <Entry Placeholder="Search" 
-                                   Text="{Binding SearchText}" 
-                                   PlaceholderColor="#8B7355" 
-                                   TextColor="#5B4F45"
-                                   BackgroundColor="Transparent"
-                                   Margin="15,0"/>
-                        </Border>
-                        <Button Text="⚙ Sort By" 
-                                Command="{Binding SortByCommand}" 
-                                BackgroundColor="#BDAEA2" 
-                                TextColor="#5B4F45" 
-                                BorderColor="#8B7355"
-                                BorderWidth="2"
-                                CornerRadius="20"
-                                FontSize="14"
-                                FontAttributes="Bold"
-                                WidthRequest="120"
-                                HeightRequest="45"/>
+                        <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
+                            <Border Stroke="#8B7355" 
+                                    StrokeShape="RoundRectangle 15" 
+                                    StrokeThickness="2" 
+                                    HeightRequest="45" 
+                                    BackgroundColor="White"
+                                    WidthRequest="250">
+                                <Entry Placeholder="Search" 
+                                       Text="{Binding SearchText}" 
+                                       PlaceholderColor="#8B7355" 
+                                       TextColor="#5B4F45"
+                                       BackgroundColor="Transparent"
+                                       Margin="15,0"/>
+                            </Border>
+                            <Button Text="⚙ Sort By" 
+                                    Command="{Binding SortByCommand}" 
+                                    BackgroundColor="#BDAEA2" 
+                                    TextColor="#5B4F45" 
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
+                                    CornerRadius="20"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    WidthRequest="120"
+                                    HeightRequest="45"/>
+                        </HorizontalStackLayout>
                     </FlexLayout>
 
                     <!-- Users Table -->
@@ -114,6 +116,12 @@
                                                         <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
                                                             <Label Text="Inventory Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
                                                             <Switch IsToggled="{Binding CanAccessInventory}"/>
+                                                        </HorizontalStackLayout>
+                                                        
+                                                        <!-- Manage POS Access -->
+                                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                            <Label Text="Manage POS Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
+                                                            <Switch IsToggled="{Binding CanAccessPOS}"/>
                                                         </HorizontalStackLayout>
                                                         
                                                         <!-- Sales Report Access -->

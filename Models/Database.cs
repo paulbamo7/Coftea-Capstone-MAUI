@@ -68,10 +68,25 @@ namespace Coftea_Capstone.Models
         }
         private async Task<MySqlConnection> GetOpenConnectionAsync(CancellationToken cancellationToken = default)
         {
-            // Use the configured connection string directly
-            var conn = new MySqlConnection(_db);
-            await conn.OpenAsync(cancellationToken);
-            return conn;
+            try
+            {
+                // Use the configured connection string directly
+                var conn = new MySqlConnection(_db);
+                await conn.OpenAsync(cancellationToken);
+                return conn;
+            }
+            catch (MySqlException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ MySQL connection error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error code: {ex.Number}, SQL state: {ex.SqlState}");
+                throw new Exception($"Database connection failed: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Database connection error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         private static string GetDefaultHostForPlatform() // Detects which platform the app is running on
@@ -214,6 +229,11 @@ namespace Coftea_Capstone.Models
                     FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
                     FOREIGN KEY (itemID) REFERENCES inventory(itemID) ON DELETE CASCADE
                 );
+                
+                -- Fix existing NULL or empty values in unit columns
+                UPDATE product_ingredients SET unit_small = 'pcs' WHERE unit_small IS NULL OR unit_small = '';
+                UPDATE product_ingredients SET unit_medium = 'pcs' WHERE unit_medium IS NULL OR unit_medium = '';
+                UPDATE product_ingredients SET unit_large = 'pcs' WHERE unit_large IS NULL OR unit_large = '';
     
                 CREATE TABLE IF NOT EXISTS product_addons (
                   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -257,6 +277,26 @@ namespace Coftea_Capstone.Models
                     CONSTRAINT fk_tx_items_product FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE SET NULL ON UPDATE CASCADE
                 );
                 
+<<<<<<< Updated upstream
+=======
+                CREATE TABLE IF NOT EXISTS processing_queue (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    productID INT NOT NULL,
+                    productName VARCHAR(255) NOT NULL,
+                    size VARCHAR(50) NOT NULL,
+                    sizeDisplay VARCHAR(50),
+                    quantity INT NOT NULL,
+                    unitPrice DECIMAL(10,2) NOT NULL,
+                    addonPrice DECIMAL(10,2) DEFAULT 0.00,
+                    ingredients JSON,
+                    addons JSON,
+                    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (productID) REFERENCES products(productID) ON DELETE CASCADE,
+                    INDEX idx_productID (productID),
+                    INDEX idx_createdAt (createdAt)
+                );
+                
+>>>>>>> Stashed changes
                 CREATE TABLE IF NOT EXISTS pending_registrations (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     email VARCHAR(255) NOT NULL,
@@ -434,6 +474,7 @@ namespace Coftea_Capstone.Models
                 double sharedAmt = reader.IsDBNull(reader.GetOrdinal("amount")) ? 0d : reader.GetDouble("amount");
                 string sharedUnit = reader.IsDBNull(reader.GetOrdinal("unit")) ? item.unitOfMeasurement : reader.GetString("unit");
 
+<<<<<<< Updated upstream
                 // Per-size amounts/units: DO NOT fall back here; leave 0/empty when NULL so callers can decide
                 item.InputAmountSmall = (HasColumn(reader, "amount_small") && !reader.IsDBNull(reader.GetOrdinal("amount_small")))
                     ? reader.GetDouble("amount_small") : 0d;
@@ -441,6 +482,16 @@ namespace Coftea_Capstone.Models
                     ? reader.GetDouble("amount_medium") : 0d;
                 item.InputAmountLarge = (HasColumn(reader, "amount_large") && !reader.IsDBNull(reader.GetOrdinal("amount_large")))
                     ? reader.GetDouble("amount_large") : 0d;
+=======
+                // Handle NULL values and ensure defaults - use 'pcs' if NULL or empty
+                var unitSmall = reader.IsDBNull(reader.GetOrdinal("unit_small")) ? null : reader.GetString("unit_small");
+                var unitMedium = reader.IsDBNull(reader.GetOrdinal("unit_medium")) ? null : reader.GetString("unit_medium");
+                var unitLarge = reader.IsDBNull(reader.GetOrdinal("unit_large")) ? null : reader.GetString("unit_large");
+                
+                item.InputUnitSmall = string.IsNullOrWhiteSpace(unitSmall) ? (item.unitOfMeasurement ?? "pcs") : unitSmall;
+                item.InputUnitMedium = string.IsNullOrWhiteSpace(unitMedium) ? (item.unitOfMeasurement ?? "pcs") : unitMedium;
+                item.InputUnitLarge = string.IsNullOrWhiteSpace(unitLarge) ? (item.unitOfMeasurement ?? "pcs") : unitLarge;
+>>>>>>> Stashed changes
 
                 item.InputUnitSmall = (HasColumn(reader, "unit_small") && !reader.IsDBNull(reader.GetOrdinal("unit_small")))
                     ? reader.GetString("unit_small") : string.Empty;
@@ -464,6 +515,103 @@ namespace Coftea_Capstone.Models
             return results;
         }
 
+<<<<<<< Updated upstream
+=======
+        // Validate and fix product-ingredient connections to ensure consistent deduction behavior
+        public async Task<bool> ValidateAndFixProductIngredientsAsync(int productId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                
+                // Get current ingredient connections
+                var ingredients = await GetProductIngredientsAsync(productId);
+                
+                if (!ingredients.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Product {productId} has no ingredients - this is normal for products without inventory requirements");
+                    return true;
+                }
+                
+                bool needsUpdate = false;
+                var updateCommands = new List<string>();
+                
+                foreach (var (ingredient, amount, unit, role) in ingredients)
+                {
+                    // Check if per-size amounts are missing (0 or NULL) but shared amount exists
+                    if (amount > 0 && ingredient.InputAmountSmall == 0 && ingredient.InputAmountMedium == 0 && ingredient.InputAmountLarge == 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 Product {productId}: Ingredient {ingredient.itemName} has shared amount {amount} but no per-size amounts - fixing");
+                        
+                        // Update per-size amounts to match shared amount
+                        var updateSql = @"
+                            UPDATE product_ingredients 
+                            SET amount_small = @Amount, 
+                                amount_medium = @Amount, 
+                                amount_large = @Amount,
+                                unit_small = @Unit,
+                                unit_medium = @Unit,
+                                unit_large = @Unit
+                            WHERE productID = @ProductID AND itemID = @ItemID";
+                        
+                        await using var updateCmd = new MySqlCommand(updateSql, conn);
+                        updateCmd.Parameters.AddWithValue("@Amount", amount);
+                        // Ensure unit is never null or empty - use 'pcs' as fallback for NOT NULL columns
+                        var unitValue = string.IsNullOrWhiteSpace(unit) ? "pcs" : unit;
+                        updateCmd.Parameters.AddWithValue("@Unit", unitValue);
+                        updateCmd.Parameters.AddWithValue("@ProductID", productId);
+                        updateCmd.Parameters.AddWithValue("@ItemID", ingredient.itemID);
+                        
+                        await updateCmd.ExecuteNonQueryAsync();
+                        needsUpdate = true;
+                        
+                        System.Diagnostics.Debug.WriteLine($"✅ Fixed per-size amounts for {ingredient.itemName}: {amount} {unit}");
+                    }
+                }
+                
+                if (needsUpdate)
+                {
+                    InvalidateProductLinksCache(productId);
+                    System.Diagnostics.Debug.WriteLine($"✅ Product {productId} ingredient connections validated and fixed");
+                }
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error validating product ingredients for {productId}: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Validate and fix all product-ingredient connections
+        public async Task<bool> ValidateAllProductIngredientsAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🔧 Starting validation of all product-ingredient connections...");
+                
+                // Get all products
+                var products = await GetProductsAsyncCached();
+                int fixedCount = 0;
+                
+                foreach (var product in products)
+                {
+                    var result = await ValidateAndFixProductIngredientsAsync(product.ProductID);
+                    if (result) fixedCount++;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Validated {products.Count} products, fixed {fixedCount} products with ingredient issues");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error validating all product ingredients: {ex.Message}");
+                return false;
+            }
+        }
+
+>>>>>>> Stashed changes
         // Get add-ons (linked inventory items) for a product from product_addons
         public async Task<List<InventoryPageModel>> GetProductAddonsAsync(int productId)
         {
@@ -528,7 +676,13 @@ namespace Coftea_Capstone.Models
                       "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
+<<<<<<< Updated upstream
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
+=======
+            // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
+            bool isCoffeeCategory = string.Equals(product.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
+            cmd.Parameters.AddWithValue("@SmallPrice", isCoffeeCategory && product.SmallPrice.HasValue && product.SmallPrice.Value > 0 ? (object)product.SmallPrice.Value : DBNull.Value);
+>>>>>>> Stashed changes
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -551,7 +705,13 @@ namespace Coftea_Capstone.Models
                       "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
+<<<<<<< Updated upstream
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
+=======
+            // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
+            bool isCoffeeCategory = string.Equals(product.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
+            cmd.Parameters.AddWithValue("@SmallPrice", isCoffeeCategory && product.SmallPrice.HasValue && product.SmallPrice.Value > 0 ? (object)product.SmallPrice.Value : DBNull.Value);
+>>>>>>> Stashed changes
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -605,14 +765,16 @@ namespace Coftea_Capstone.Models
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
                     cmd.Parameters.AddWithValue("@Amount", link.amount);
-                    cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
+                    // Ensure unit is never null or empty - use 'pcs' as fallback for NOT NULL columns
+                    var unitValue = string.IsNullOrWhiteSpace(link.unit) ? "pcs" : link.unit;
+                    cmd.Parameters.AddWithValue("@Unit", unitValue);
                     // Default per-size to shared value unless caller added explicit params
                     cmd.Parameters.AddWithValue("@AmtS", link.amount);
-                    cmd.Parameters.AddWithValue("@UnitS", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitS", unitValue);
                     cmd.Parameters.AddWithValue("@AmtM", link.amount);
-                    cmd.Parameters.AddWithValue("@UnitM", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitM", unitValue);
                     cmd.Parameters.AddWithValue("@AmtL", link.amount);
-                    cmd.Parameters.AddWithValue("@UnitL", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitL", unitValue);
                     var affected = await cmd.ExecuteNonQueryAsync();
                     total += affected;
                 }
@@ -677,11 +839,15 @@ namespace Coftea_Capstone.Models
                     cmd.Parameters.AddWithValue("@Amount", link.amount);
                     cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@AmtS", link.amtS);
-                    cmd.Parameters.AddWithValue("@UnitS", (object?)link.unitS ?? DBNull.Value);
+                    // Ensure units are never null or empty - use 'pcs' as fallback for NOT NULL columns
+                    var unitS = string.IsNullOrWhiteSpace(link.unitS) ? "pcs" : link.unitS;
+                    var unitM = string.IsNullOrWhiteSpace(link.unitM) ? "pcs" : link.unitM;
+                    var unitL = string.IsNullOrWhiteSpace(link.unitL) ? "pcs" : link.unitL;
+                    cmd.Parameters.AddWithValue("@UnitS", unitS);
                     cmd.Parameters.AddWithValue("@AmtM", link.amtM);
-                    cmd.Parameters.AddWithValue("@UnitM", (object?)link.unitM ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitM", unitM);
                     cmd.Parameters.AddWithValue("@AmtL", link.amtL);
-                    cmd.Parameters.AddWithValue("@UnitL", (object?)link.unitL ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitL", unitL);
                     total += await cmd.ExecuteNonQueryAsync();
                 }
 
@@ -720,7 +886,8 @@ namespace Coftea_Capstone.Models
                 {
                     ProductID = reader.GetInt32("productID"),
                     ProductName = reader.GetString("productName"),
-                    SmallPrice = reader.GetDecimal("smallPrice"),
+                    SmallPrice = reader.IsDBNull(reader.GetOrdinal("smallPrice")) ? null : reader.GetDecimal("smallPrice"),
+                    MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
                     LargePrice = reader.GetDecimal("largePrice"),
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
@@ -751,7 +918,8 @@ namespace Coftea_Capstone.Models
                 {
                     ProductID = reader.GetInt32("productID"),
                     ProductName = reader.GetString("productName"),
-                    SmallPrice = reader.GetDecimal("smallPrice"),
+                    SmallPrice = reader.IsDBNull(reader.GetOrdinal("smallPrice")) ? null : reader.GetDecimal("smallPrice"),
+                    MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
                     LargePrice = reader.GetDecimal("largePrice"),
                     ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
                     Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
@@ -771,7 +939,13 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductID", product.ProductID);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
+<<<<<<< Updated upstream
             cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
+=======
+            // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
+            bool isCoffeeCategory = string.Equals(product.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
+            cmd.Parameters.AddWithValue("@SmallPrice", isCoffeeCategory && product.SmallPrice.HasValue && product.SmallPrice.Value > 0 ? (object)product.SmallPrice.Value : DBNull.Value);
+>>>>>>> Stashed changes
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -1017,30 +1191,39 @@ namespace Coftea_Capstone.Models
         }
         public async Task<int> SaveInventoryItemAsync(InventoryPageModel inventory) // Saves a new inventory item to the database
         {
-            await using var conn = await GetOpenConnectionAsync();
-
-            // Set default UoM based on category if not specified
-            var unitOfMeasurement = inventory.unitOfMeasurement;
-            if (string.IsNullOrWhiteSpace(unitOfMeasurement))
+            try
             {
-                unitOfMeasurement = GetDefaultUnitForCategory(inventory.itemCategory);
+                await using var conn = await GetOpenConnectionAsync();
+
+                // Set default UoM based on category if not specified
+                var unitOfMeasurement = inventory.unitOfMeasurement;
+                if (string.IsNullOrWhiteSpace(unitOfMeasurement))
+                {
+                    unitOfMeasurement = GetDefaultUnitForCategory(inventory.itemCategory);
+                }
+
+                var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity, maximumQuantity) " +
+                          "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity, @MaximumQuantity);";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
+                cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
+                cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
+                cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
+                cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@UnitOfMeasurement", unitOfMeasurement);
+                cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
+                cmd.Parameters.AddWithValue("@MaximumQuantity", inventory.maximumQuantity);
+
+                var rows = await cmd.ExecuteNonQueryAsync();
+                InvalidateInventoryCache();
+                return rows;
             }
-
-            var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity, maximumQuantity) " +
-                      "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity, @MaximumQuantity);";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
-            cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
-            cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
-            cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
-            cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@UnitOfMeasurement", unitOfMeasurement);
-            cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
-            cmd.Parameters.AddWithValue("@MaximumQuantity", inventory.maximumQuantity);
-
-            var rows = await cmd.ExecuteNonQueryAsync();
-            InvalidateInventoryCache();
-            return rows;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error saving inventory item '{inventory.itemName}': {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public async Task<int> UpdateInventoryItemAsync(InventoryPageModel inventory) // Updates an existing inventory item in the database
@@ -1640,7 +1823,29 @@ namespace Coftea_Capstone.Models
 
         public async Task<List<UserInfoModel>> GetAllUsersAsync() 
         {
+<<<<<<< Updated upstream
             var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
+=======
+            // Check if can_access_pos column exists
+            bool hasPOSColumn = false;
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var checkSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'can_access_pos';";
+                await using var checkCmd = new MySqlCommand(checkSql, conn);
+                hasPOSColumn = await checkCmd.ExecuteScalarAsync() != null;
+            }
+            catch
+            {
+                // If check fails, assume column doesn't exist
+                hasPOSColumn = false;
+            }
+            
+            var sql = hasPOSColumn
+                ? "SELECT id, email, password, firstName, lastName, phoneNumber, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;"
+                : "SELECT id, email, password, firstName, lastName, phoneNumber, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
+            
+>>>>>>> Stashed changes
             return await QueryAsync(sql, reader => new UserInfoModel
             {
                 ID = reader.GetInt32("id"),
@@ -1653,7 +1858,9 @@ namespace Coftea_Capstone.Models
                 Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : reader.GetString("address"),
                 IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
                 Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
+                ProfileImage = reader.IsDBNull(reader.GetOrdinal("profileImage")) ? "usericon.png" : reader.GetString("profileImage"),
                 CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
+                CanAccessPOS = hasPOSColumn && !reader.IsDBNull(reader.GetOrdinal("can_access_pos")) && reader.GetBoolean("can_access_pos"),
                 CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report")
             });
         }
@@ -1907,12 +2114,37 @@ namespace Coftea_Capstone.Models
         }
 
         // Update user access flags
-        public async Task<int> UpdateUserAccessAsync(int userId, bool canAccessInventory, bool canAccessSalesReport)
+        public async Task<int> UpdateUserAccessAsync(int userId, bool canAccessInventory, bool canAccessPOS, bool canAccessSalesReport)
         {
             await using var conn = await GetOpenConnectionAsync();
-            var sql = "UPDATE users SET can_access_inventory = @Inv, can_access_sales_report = @Sales WHERE id = @Id;";
+            
+            try
+            {
+                // Check if can_access_pos column exists, if not, add it
+                var checkSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'can_access_pos';";
+                await using var checkCmd = new MySqlCommand(checkSql, conn);
+                var posColumnExists = await checkCmd.ExecuteScalarAsync() != null;
+                
+                if (!posColumnExists)
+                {
+                    // Add the can_access_pos column if it doesn't exist
+                    var addColumnSql = "ALTER TABLE users ADD COLUMN can_access_pos BOOLEAN DEFAULT FALSE;";
+                    await using var addColumnCmd = new MySqlCommand(addColumnSql, conn);
+                    await addColumnCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Added can_access_pos column to users table");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error checking/adding can_access_pos column: {ex.Message}");
+                // Continue with update even if column check fails
+            }
+            
+            // Update with all three access flags
+            var sql = "UPDATE users SET can_access_inventory = @Inv, can_access_pos = @POS, can_access_sales_report = @Sales WHERE id = @Id;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Inv", canAccessInventory);
+            cmd.Parameters.AddWithValue("@POS", canAccessPOS);
             cmd.Parameters.AddWithValue("@Sales", canAccessSalesReport);
             cmd.Parameters.AddWithValue("@Id", userId);
             return await cmd.ExecuteNonQueryAsync();
@@ -2061,13 +2293,22 @@ namespace Coftea_Capstone.Models
 
         public async Task<int> RejectPendingRegistrationAsync(int requestId)
         {
-            await using var conn = await GetOpenConnectionAsync();
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "DELETE FROM pending_registrations WHERE id = @RequestId;";
-            await using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@RequestId", requestId);
+                var sql = "DELETE FROM pending_registrations WHERE id = @RequestId;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@RequestId", requestId);
 
-            return await cmd.ExecuteNonQueryAsync();
+                return await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error rejecting pending registration (ID: {requestId}): {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public async Task<List<UserPendingRequest>> GetPendingRegistrationsAsync()
@@ -2265,10 +2506,27 @@ namespace Coftea_Capstone.Models
                 
                 var rowsAffected = await cmd.ExecuteNonQueryAsync();
                 
-                if (status == "Approved")
+                if (status == "Approved" && rowsAffected > 0)
                 {
+<<<<<<< Updated upstream
                     // Update inventory quantities
                     await UpdateInventoryFromPurchaseOrderAsync(purchaseOrderId);
+=======
+                    try
+                    {
+                        // Update inventory quantities with custom items if provided
+                        await UpdateInventoryFromPurchaseOrderAsync(purchaseOrderId, customItems);
+                        System.Diagnostics.Debug.WriteLine($"✅ Inventory updated for purchase order {purchaseOrderId}");
+                    }
+                    catch (Exception invEx)
+                    {
+                        // If inventory update fails, log it but don't fail the status update
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Purchase order {purchaseOrderId} status updated to Approved, but inventory update failed: {invEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Stack trace: {invEx.StackTrace}");
+                        // Status is already "Approved" in database, but inventory wasn't updated
+                        // This is logged but doesn't fail the operation
+                    }
+>>>>>>> Stashed changes
                 }
                 
                 System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} status updated to {status}");
@@ -2276,7 +2534,12 @@ namespace Coftea_Capstone.Models
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error updating purchase order status: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error updating purchase order status (ID: {purchaseOrderId}): {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
                 return false;
             }
         }
@@ -2286,10 +2549,11 @@ namespace Coftea_Capstone.Models
         /// </summary>
         private async Task UpdateInventoryFromPurchaseOrderAsync(int purchaseOrderId)
         {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+            
             try
             {
-                await using var conn = await GetOpenConnectionAsync();
-                await using var tx = await conn.BeginTransactionAsync();
                 
                 // First, get the items and their current quantities before update
                 var getItemsSql = @"
@@ -2361,7 +2625,9 @@ namespace Coftea_Capstone.Models
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error updating inventory from purchase order: {ex.Message}");
+                await tx.RollbackAsync();
+                System.Diagnostics.Debug.WriteLine($"❌ Error updating inventory from purchase order {purchaseOrderId}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 throw;
             }
         }

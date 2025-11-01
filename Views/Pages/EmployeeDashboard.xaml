@@ -4,9 +4,16 @@
              x:Class="Coftea_Capstone.Views.Pages.EmployeeDashboard"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              BackgroundColor="#C1A892">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:StringToColorConverter x:Key="StringToColorConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
         <!-- Sidebar Navigation -->
@@ -20,7 +27,8 @@
                 <Label Text="Home" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="#3E2723"/>
                 <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                 <Grid Grid.Column="2" WidthRequest="40" HeightRequest="40">
-                    <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
+                    <Image x:Name="ProfileImage" 
+                           Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                            WidthRequest="40" 
                            HeightRequest="40" 
                            Aspect="AspectFill" 
@@ -137,17 +145,20 @@
                         <CollectionView ItemsSource="{Binding TopSellingProductsToday}" HeightRequest="180" ItemsLayout="HorizontalList">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
-                                    <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" VerticalOptions="End" Spacing="6">
-                                        <Grid HeightRequest="150" VerticalOptions="End" RowDefinitions="*,Auto">
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
-                                                <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" Color="#4CAF50" CornerRadius="8"/>
-                                                <Label Text="{Binding Count}" FontSize="10" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" FontAttributes="Bold"/>
-                                            </Grid>
-                                            <Label Grid.Row="1" Text="{Binding Name}" FontSize="10" LineBreakMode="WordWrap" HorizontalTextAlignment="Center" MaxLines="2" Margin="0,5,0,0"/>
+                                    <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
+                                        <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
+                                            <Border VerticalOptions="End" 
+                                                    HeightRequest="{Binding ScaledCount}" 
+                                                    WidthRequest="50" 
+                                                    Background="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" 
+                                                    StrokeThickness="0"
+                                                    Stroke="Transparent">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="12"/>
+                                                </Border.StrokeShape>
+                                            </Border>
                                         </Grid>
+                                        <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
                                     </VerticalStackLayout>
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
@@ -171,7 +182,10 @@
         </VerticalStackLayout>
 
         <!-- Popups -->
-        <views:Settings BindingContext="{Binding .}" Grid.ColumnSpan="2"/>
+        <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
+        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
+        <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="2700"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2" ZIndex="1900"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
@@ -189,9 +203,6 @@
         <!-- Removed OrderCompletePopup here; it should only appear on POS -->
         <otherViews:OrderConfirmedPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
-        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
-        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
-        <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="1700"/>
 
     </Grid>
 </ContentPage>

@@ -25,6 +25,7 @@
 
                 <!-- Left Column -->
                 <Frame MaximumHeightRequest="550" HeightRequest="600" WidthRequest="440" BackgroundColor="#F8E8D7" CornerRadius="20">
+<<<<<<< Updated upstream
                     <VerticalStackLayout Spacing="15" Padding="20">
                         <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,20">
                             <Label Grid.Column="1" Text="Update Item from Inventory" FontAttributes="Bold" FontSize="28" HorizontalOptions="Start" TextColor="Black"/>
@@ -97,9 +98,15 @@
                                         IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToInvertedBoolConverter}}"
                                         HorizontalOptions="Fill"
                                         VerticalOptions="Fill" />
+=======
+                    <ScrollView>
+                        <VerticalStackLayout Spacing="15" Padding="20">
+                            <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,20">
+                                <Label Grid.Column="1" Text="Update Item from Inventory" FontAttributes="Bold" FontSize="28" FontFamily="MontserratBlack" HorizontalOptions="Start" TextColor="Black"/>
+>>>>>>> Stashed changes
                             </Grid>
-                        </Frame>
 
+<<<<<<< Updated upstream
                         <Label Text="PRODUCT CATEGORY" FontSize="18" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,0"/>
                         <Picker Title="Select Category" 
                                 ItemsSource="{Binding Categories}" 
@@ -107,6 +114,86 @@
                                 FontSize="16"                  
                                 TextColor="Black"/>
                     </VerticalStackLayout>
+=======
+                            <Label Text="STOCK NAME" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#8B4513"/>
+                            <Entry Placeholder="Enter stock name" PlaceholderColor="Gray" Text="{Binding ItemName}" 
+                                   TextColor="Black" FontSize="16" FontFamily="MontserratBlack"/>
+
+                            <Label Text="STOCK IMAGE" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,0"/>
+                            <Frame BorderColor="#D0D0D0" 
+                                   CornerRadius="15" 
+                                   HeightRequest="180" 
+                                   WidthRequest="350" 
+                                   BackgroundColor="White" 
+                                   HorizontalOptions="Center" 
+                                   HasShadow="True"
+                                   Padding="0">
+                                <Grid>
+                                    <!-- Selected Image Display -->
+                                    <Image Source="{Binding SelectedImageSource}" 
+                                           Aspect="AspectFill"
+                                           IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToBoolConverter}}" />
+
+                                    <!-- Remove Image Button (X) -->
+                                    <ImageButton Source="close.png" 
+                                                 WidthRequest="28"
+                                                 HeightRequest="28"
+                                                 BackgroundColor="#80000000"
+                                                 CornerRadius="14"
+                                                 HorizontalOptions="End"
+                                                 VerticalOptions="Start"
+                                                 Margin="6"
+                                                 IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToBoolConverter}}"
+                                                 Command="{Binding ClearImageCommand}" />
+
+                                    <!-- Upload Placeholder (visible when no image selected) -->
+                                    <VerticalStackLayout HorizontalOptions="Center"
+                                                       VerticalOptions="Center"
+                                                       Spacing="10"
+                                                       IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToInvertedBoolConverter}}">
+                                        <Image Source="uploadicon.png"
+                                               WidthRequest="40"
+                                               HeightRequest="40"
+                                               Opacity="0.85" />
+                                        <Label Text="Choose a file or drag and drop it here"
+                                               FontSize="14" FontFamily="MontserratBlack"
+                                               FontAttributes="Bold"
+                                               TextColor="#6B5B3E"
+                                               HorizontalTextAlignment="Center" />
+                                        <Label Text="JPEG, PNG (max 3MB)"
+                                               FontSize="12" FontFamily="MontserratBlack"
+                                               TextColor="#9A8A6A"
+                                               HorizontalTextAlignment="Center" />
+                                        <Button Text="Browse File"
+                                                Command="{Binding PickImageCommand}"
+                                                WidthRequest="120"
+                                                HeightRequest="36"
+                                                CornerRadius="18"
+                                                FontSize="14" FontFamily="MontserratBlack"
+                                                Padding="0"
+                                                BackgroundColor="#E0E0E0"
+                                                TextColor="#333333"
+                                                FontAttributes="Bold" />
+                                    </VerticalStackLayout>
+
+                                    <!-- Invisible overlay so whole area is clickable -->
+                                    <Button BackgroundColor="Transparent"
+                                            Command="{Binding PickImageCommand}"
+                                            IsVisible="{Binding SelectedImageSource, Converter={StaticResource NullToInvertedBoolConverter}}"
+                                            HorizontalOptions="Fill"
+                                            VerticalOptions="Fill" />
+                                </Grid>
+                            </Frame>
+
+                            <Label Text="PRODUCT CATEGORY" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#8B4513" Margin="0,20,0,0"/>
+                            <Picker Title="Select Category" 
+                                    ItemsSource="{Binding Categories}" 
+                                    SelectedItem="{Binding ItemCategory}"
+                                    FontSize="16" FontFamily="MontserratBlack"                  
+                                    TextColor="Black"/>
+                        </VerticalStackLayout>
+                    </ScrollView>
+>>>>>>> Stashed changes
                 </Frame>
 
                 <!-- Right Column -->

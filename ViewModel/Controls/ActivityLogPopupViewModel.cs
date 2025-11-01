@@ -34,11 +34,99 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ObservableCollection<InventoryActivityLog> filteredActivityLog = new();
 
+<<<<<<< Updated upstream
+=======
+        [ObservableProperty]
+        private ObservableCollection<InventoryActivityLog> pagedActivityLog = new();
+
+        [ObservableProperty]
+        private int currentPage = 1;
+
+        [ObservableProperty]
+        private int pageSize = 30;
+
+        public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)(FilteredActivityLog?.Count ?? 0) / PageSize));
+
+        public bool CanGoToPreviousPage => CurrentPage > 1;
+        
+        public bool CanGoToNextPage => CurrentPage < TotalPages;
+
+        [ObservableProperty]
+        private bool isDateFilterVisible = false;
+
+        [ObservableProperty]
+        private DateTime filterStartDate = DateTime.Now.AddDays(-7);
+
+        [ObservableProperty]
+        private DateTime filterEndDate = DateTime.Now;
+
+        private bool _hasDateFilter = false;
+
+        public bool HasDateFilter => _hasDateFilter;
+        
+        public string DateFilterText => _hasDateFilter 
+            ? $"Filtered: {FilterStartDate:MMM dd, yyyy} - {FilterEndDate:MMM dd, yyyy}"
+            : string.Empty;
+
+>>>>>>> Stashed changes
         public ActivityLogPopupViewModel()
         {
             _database = new Database();
         }
 
+<<<<<<< Updated upstream
+=======
+        private void UpdatePagedItems()
+        {
+            try
+            {
+                if (FilteredActivityLog == null)
+                {
+                    PagedActivityLog = new ObservableCollection<InventoryActivityLog>();
+                    StatusMessage = "No entries";
+                    return;
+                }
+
+                var total = FilteredActivityLog.Count;
+                var totalPages = TotalPages;
+                var page = Math.Max(1, Math.Min(CurrentPage, totalPages));
+                var skip = (page - 1) * PageSize;
+                var pageItems = FilteredActivityLog.Skip(skip).Take(PageSize).ToList();
+
+                // Re-number rows for the current page view
+                for (int i = 0; i < pageItems.Count; i++)
+                {
+                    pageItems[i].RowNumber = skip + i + 1;
+                }
+
+                PagedActivityLog = new ObservableCollection<InventoryActivityLog>(pageItems);
+                StatusMessage = $"Showing {skip + pageItems.Count} of {total} entries (Page {page}/{totalPages})";
+                
+                // Notify pagination button states
+                OnPropertyChanged(nameof(CanGoToPreviousPage));
+                OnPropertyChanged(nameof(CanGoToNextPage));
+                OnPropertyChanged(nameof(TotalPages));
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error paginating: {ex.Message}";
+            }
+        }
+
+        partial void OnCurrentPageChanged(int value)
+        {
+            UpdatePagedItems();
+            OnPropertyChanged(nameof(CanGoToPreviousPage));
+            OnPropertyChanged(nameof(CanGoToNextPage));
+        }
+
+        partial void OnPageSizeChanged(int value)
+        {
+            if (value <= 0) PageSize = 30;
+            UpdatePagedItems();
+        }
+
+>>>>>>> Stashed changes
         [RelayCommand]
         public async Task LoadActivityLogAsync()
         {
@@ -103,7 +191,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Apply action filter
                 if (!string.IsNullOrEmpty(SelectedFilter) && SelectedFilter != "All")
                 {
-                    query = query.Where(log => log.Action == SelectedFilter);
+                    if (SelectedFilter == "PURCHASE_ORDER")
+                    {
+                        // Filter by Reason for purchase orders (items added from purchase orders)
+                        query = query.Where(log => log.Reason == "PURCHASE_ORDER");
+                    }
+                    else
+                    {
+                        // Filter by Action for other types (DEDUCTED, ADDED, etc.)
+                        query = query.Where(log => log.Action == SelectedFilter);
+                    }
                 }
 
                 // Apply search filter
@@ -126,5 +223,64 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"❌ Error applying filters: {ex.Message}");
             }
         }
+<<<<<<< Updated upstream
+=======
+
+        [RelayCommand]
+        private void ShowDateFilter()
+        {
+            IsDateFilterVisible = true;
+        }
+
+        [RelayCommand]
+        private void ApplyDateFilter()
+        {
+            _hasDateFilter = true;
+            IsDateFilterVisible = false;
+            OnPropertyChanged(nameof(HasDateFilter));
+            OnPropertyChanged(nameof(DateFilterText));
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        private void ClearDateFilter()
+        {
+            _hasDateFilter = false;
+            FilterStartDate = DateTime.Now.AddDays(-7);
+            FilterEndDate = DateTime.Now;
+            IsDateFilterVisible = false;
+            OnPropertyChanged(nameof(HasDateFilter));
+            OnPropertyChanged(nameof(DateFilterText));
+            ApplyFilters();
+        }
+
+        [RelayCommand]
+        private void SetToday()
+        {
+            FilterStartDate = DateTime.Now.Date;
+            FilterEndDate = DateTime.Now.Date;
+        }
+
+        [RelayCommand]
+        private void SetYesterday()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-1).Date;
+            FilterEndDate = DateTime.Now.AddDays(-1).Date;
+        }
+
+        [RelayCommand]
+        private void SetLast7Days()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-7).Date;
+            FilterEndDate = DateTime.Now.Date;
+        }
+
+        [RelayCommand]
+        private void SetLast30Days()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-30).Date;
+            FilterEndDate = DateTime.Now.Date;
+        }
+>>>>>>> Stashed changes
     }
 }

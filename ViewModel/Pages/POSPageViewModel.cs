@@ -516,29 +516,94 @@ namespace Coftea_Capstone.ViewModel
                     foreach (var tuple in ingredients)
                     {
                         var item = tuple.item;
-                        var sharedAmount = tuple.amount;
-                        var sharedUnit = tuple.unit;
                         
-                        System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: Quantity={item.itemQuantity}, Amount needed={sharedAmount}, Unit={sharedUnit}");
-
-                        // Use the shared amount and unit from the database query
-                        // The per-size amounts are not available in this context since we're checking
-                        // from the database query, not from UI input
-                        double chosenAmt = sharedAmount;
-                        string chosenUnit = sharedUnit;
-
-                        // Normalize units and convert to inventory unit for comparison
+                        // Get the MAXIMUM amount needed across all sizes (Small, Medium, Large)
+                        // This ensures we have enough inventory for ANY size order
+                        var maxAmount = Math.Max(item.InputAmountSmall, Math.Max(item.InputAmountMedium, item.InputAmountLarge));
+                        var maxUnit = item.InputAmountLarge > 0 && item.InputAmountLarge >= maxAmount ? item.InputUnitLarge :
+                                     item.InputAmountMedium > 0 && item.InputAmountMedium >= maxAmount ? item.InputUnitMedium :
+                                     item.InputAmountSmall > 0 ? item.InputUnitSmall :
+                                     item.InputUnitMedium; // If small is 0 (product without small size), prefer medium
+                        
+                        // If maxAmount is still 0, try to find any non-zero size
+                        if (maxAmount <= 0)
+                        {
+                            if (item.InputAmountLarge > 0)
+                            {
+                                maxAmount = item.InputAmountLarge;
+                                maxUnit = item.InputUnitLarge;
+                            }
+                            else if (item.InputAmountMedium > 0)
+                            {
+                                maxAmount = item.InputAmountMedium;
+                                maxUnit = item.InputUnitMedium;
+                            }
+                            else
+                            {
+                                // All amounts are 0, fall back to database tuple
+                                maxAmount = tuple.amount;
+                                maxUnit = tuple.unit;
+                                
+                                // If tuple.amount is also 0, but we have a unit from medium/large, use that
+                                if (maxAmount <= 0 && !string.IsNullOrWhiteSpace(item.InputUnitMedium) && item.InputUnitMedium != "pcs")
+                                {
+                                    maxUnit = item.InputUnitMedium;
+                                }
+                                else if (maxAmount <= 0 && !string.IsNullOrWhiteSpace(item.InputUnitLarge) && item.InputUnitLarge != "pcs")
+                                {
+                                    maxUnit = item.InputUnitLarge;
+                                }
+                            }
+                        }
+                        
+                        // If amount is still 0 or negative, skip this ingredient (no requirement = sufficient)
+                        if (maxAmount <= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: No amount requirement (0 or negative), skipping check");
+                            continue;
+                        }
+                        
+                        // If unit is empty or default "pcs" but doesn't match inventory unit, try to use inventory unit
                         var inventoryUnit = UnitConversionService.Normalize(item.unitOfMeasurement);
-                        var recipeUnit = UnitConversionService.Normalize(chosenUnit);
+                        var recipeUnit = UnitConversionService.Normalize(maxUnit);
+                        
+                        // If recipe unit is "pcs" but inventory is not, and we have compatible units, try to infer the correct unit
+                        if (recipeUnit == "pcs" && inventoryUnit != "pcs" && !string.IsNullOrWhiteSpace(inventoryUnit))
+                        {
+                            // Check if there's a per-size unit that matches inventory better
+                            if (!string.IsNullOrWhiteSpace(item.InputUnitLarge) && UnitConversionService.AreCompatibleUnits(item.InputUnitLarge, inventoryUnit))
+                            {
+                                maxUnit = item.InputUnitLarge;
+                                recipeUnit = UnitConversionService.Normalize(maxUnit);
+                            }
+                            else if (!string.IsNullOrWhiteSpace(item.InputUnitMedium) && UnitConversionService.AreCompatibleUnits(item.InputUnitMedium, inventoryUnit))
+                            {
+                                maxUnit = item.InputUnitMedium;
+                                recipeUnit = UnitConversionService.Normalize(maxUnit);
+                            }
+                            else if (!string.IsNullOrWhiteSpace(item.InputUnitSmall) && UnitConversionService.AreCompatibleUnits(item.InputUnitSmall, inventoryUnit))
+                            {
+                                maxUnit = item.InputUnitSmall;
+                                recipeUnit = UnitConversionService.Normalize(maxUnit);
+                            }
+                            // If still incompatible, try using inventory unit directly (assume 1:1 conversion for now)
+                            else if (UnitConversionService.AreCompatibleUnits("pcs", inventoryUnit))
+                            {
+                                // This shouldn't happen, but if it does, just proceed
+                            }
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: Quantity={item.itemQuantity}, Max amount needed (across all sizes)={maxAmount} {maxUnit}");
 
                         double requiredInInventoryUnit;
                         if (string.IsNullOrWhiteSpace(inventoryUnit) || string.IsNullOrWhiteSpace(recipeUnit))
                         {
-                            requiredInInventoryUnit = chosenAmt;
+                            requiredInInventoryUnit = maxAmount;
                         }
                         else if (!UnitConversionService.AreCompatibleUnits(recipeUnit, inventoryUnit))
                         {
-                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Incompatible units - recipe: {recipeUnit}, inventory: {inventoryUnit}");
+                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Incompatible units - recipe: {recipeUnit} ({maxUnit}), inventory: {inventoryUnit} ({item.unitOfMeasurement})");
+                            System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Per-size units - Small: {item.InputUnitSmall}, Medium: {item.InputUnitMedium}, Large: {item.InputUnitLarge}");
                             insufficientForRecipe = true;
                             break;
                         }
@@ -546,21 +611,21 @@ namespace Coftea_Capstone.ViewModel
                         {
                             // Convert both the required amount and available stock to a common unit for comparison
                             var commonUnit = UnitConversionService.GetCommonUnit(recipeUnit, inventoryUnit);
-                            var requiredInCommonUnit = UnitConversionService.Convert(chosenAmt, recipeUnit, commonUnit);
+                            var requiredInCommonUnit = UnitConversionService.Convert(maxAmount, recipeUnit, commonUnit);
                             var availableInCommonUnit = UnitConversionService.Convert(item.itemQuantity, inventoryUnit, commonUnit);
                             
                             System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}, Ingredient {item.itemName}: " +
-                                $"Need {requiredInCommonUnit} {commonUnit} (from {chosenAmt} {recipeUnit}), " +
+                                $"Need {requiredInCommonUnit} {commonUnit} (max across all sizes: {maxAmount} {maxUnit}), " +
                                 $"Have {availableInCommonUnit} {commonUnit} (from {item.itemQuantity} {inventoryUnit})");
                             
                             if (requiredInCommonUnit > availableInCommonUnit)
                             {
-                                System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Insufficient {item.itemName}");
+                                System.Diagnostics.Debug.WriteLine($"Product {product.ProductName}: Insufficient {item.itemName} - need {requiredInCommonUnit} {commonUnit}, have {availableInCommonUnit} {commonUnit}");
                                 insufficientForRecipe = true;
                                 break;
                             }
                             
-                            // If we get here, we have enough of this ingredient
+                            // If we get here, we have enough of this ingredient for any size
                             continue;
                         }
                     }
