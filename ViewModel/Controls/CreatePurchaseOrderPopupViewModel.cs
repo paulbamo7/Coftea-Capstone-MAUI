@@ -25,6 +25,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private string infoText = string.Empty;
 
+        [ObservableProperty]
+        private int? createdPurchaseOrderId;
+
+        [ObservableProperty]
+        private bool showSuccessView;
+
         public bool IsAdmin { get; set; }
 
         public CreatePurchaseOrderPopupViewModel()
@@ -35,6 +41,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             IsAdmin = isAdmin;
             EditableItems.Clear();
+            ShowSuccessView = false;
+            CreatedPurchaseOrderId = null;
 
             foreach (var item in lowStockItems)
             {
@@ -45,7 +53,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     ItemName = item.itemName,
                     ItemCategory = item.itemCategory ?? "",
                     RequestedQuantity = neededQuantity,
-                    ApprovedQuantity = neededQuantity, // Default to needed quantity
+                    ApprovedQuantity = neededQuantity, // Default unit amount to needed quantity
+                    Quantity = 1, // Default to 1 unit
                     ApprovedUoM = item.unitOfMeasurement ?? "pcs",
                     OriginalUoM = item.unitOfMeasurement ?? "pcs",
                     UnitPrice = 10.0m, // Default unit price
@@ -108,35 +117,44 @@ namespace Coftea_Capstone.ViewModel.Controls
                             ApprovedUoM = ei.ApprovedUoM
                         }).ToList();
 
-                        var approved = await _database.UpdatePurchaseOrderStatusAsync(
-                            purchaseOrderId,
-                            "Approved",
-                            currentUser,
-                            new { Items = customItemsList });
+                        bool approved = false;
+                        try
+                        {
+                            approved = await _database.UpdatePurchaseOrderStatusAsync(
+                                purchaseOrderId,
+                                "Approved",
+                                currentUser,
+                                new { Items = customItemsList });
+                        }
+                        catch (Exception approvalEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"❌ Exception during auto-approval: {approvalEx.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Stack trace: {approvalEx.StackTrace}");
+                            approved = false;
+                        }
+
+                        // Store the created purchase order ID
+                        CreatedPurchaseOrderId = purchaseOrderId;
 
                         if (approved)
                         {
                             // Send SMS to supplier
                             var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, itemsForDb);
 
-                            await Application.Current.MainPage.DisplayAlert(
-                                "Purchase Order Created & Approved",
-                                $"Purchase order #{purchaseOrderId} has been created and auto-approved with your custom amounts!\n\n" +
-                                $"📱 SMS app should have opened.\n" +
-                                $"Please press 'Send' to notify the supplier.\n\n" +
-                                $"Inventory has been updated.",
-                                "OK");
-
-                            IsVisible = false;
+                            // Show success view with PDF button
+                            ShowSuccessView = true;
+                            InfoText = $"✅ Purchase order #{purchaseOrderId} has been created and auto-approved!\n\n📱 SMS app should have opened. Please press 'Send' to notify the supplier.\n\nInventory has been updated.";
+                            
                             System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} auto-approved by admin");
                         }
                         else
                         {
-                            await Application.Current.MainPage.DisplayAlert(
-                                "Purchase Order Creation Error",
-                                $"Purchase order #{purchaseOrderId} was created but could not be auto-approved.\n\n" +
-                                $"Please check the purchase order in the system and approve it manually.",
-                                "OK");
+                            // Order was created successfully, but auto-approval failed
+                            // Show success view with PDF button
+                            ShowSuccessView = true;
+                            InfoText = $"✅ Purchase order #{purchaseOrderId} has been created successfully!\n\n⚠️ Auto-approval was not completed, but the order is ready for manual approval.\n\nYou can view and approve it in 'Manage Purchase Order'.";
+                            
+                            System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created successfully, but auto-approval failed");
                         }
                     }
                     else
@@ -144,20 +162,18 @@ namespace Coftea_Capstone.ViewModel.Controls
                         // Regular user - requires admin approval
                         System.Diagnostics.Debug.WriteLine("👤 Regular user detected - purchase order requires admin approval");
 
+                        // Store the created purchase order ID
+                        CreatedPurchaseOrderId = purchaseOrderId;
+
                         // Send SMS to supplier
                         var smsSent = await PurchaseOrderSMSService.SendPurchaseOrderToSupplierAsync(purchaseOrderId, itemsForDb);
 
                         // Notify admin via SMS
                         var adminNotified = await PurchaseOrderSMSService.NotifyAdminOfPurchaseOrderAsync(purchaseOrderId, currentUser);
 
-                        await Application.Current.MainPage.DisplayAlert(
-                            "Purchase Order Created",
-                            $"Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\n" +
-                            $"📱 SMS app should have opened.\n" +
-                            $"Please press 'Send' to notify the supplier and admin.",
-                            "OK");
-
-                        IsVisible = false;
+                        // Show success view with PDF button
+                        ShowSuccessView = true;
+                        InfoText = $"✅ Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\n📱 SMS app should have opened. Please press 'Send' to notify the supplier and admin.\n\nAdmin approval is required.";
                     }
                 }
                 else
@@ -183,8 +199,99 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private async Task ExportPDFAsync()
+        {
+            if (!CreatedPurchaseOrderId.HasValue)
+                return;
+
+            try
+            {
+                IsLoading = true;
+                
+                // Get purchase order and items
+                var orders = await _database.GetAllPurchaseOrdersAsync(100);
+                var order = orders.FirstOrDefault(o => o.PurchaseOrderId == CreatedPurchaseOrderId.Value);
+                
+                if (order == null)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Error",
+                        "Purchase order not found.",
+                        "OK");
+                    return;
+                }
+
+                var items = await _database.GetPurchaseOrderItemsAsync(CreatedPurchaseOrderId.Value);
+                
+                // Generate PDF
+                var pdfService = new PDFReportService();
+                var filePath = await pdfService.GeneratePurchaseOrderPDFAsync(
+                    CreatedPurchaseOrderId.Value,
+                    order,
+                    items);
+
+                await Application.Current.MainPage.DisplayAlert(
+                    "PDF Generated",
+                    $"Purchase Order PDF has been saved successfully!\n\nFile location: {filePath}\n\nTo find the file:\n1. Open File Manager\n2. Go to Download folder\n3. Look for Purchase_Order_{CreatedPurchaseOrderId.Value}_*.pdf",
+                    "OK");
+
+                System.Diagnostics.Debug.WriteLine($"✅ PDF exported successfully: {filePath}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error exporting PDF: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error",
+                    $"Failed to export PDF:\n\n{ex.Message}",
+                    "OK");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private void IncreaseUnitAmount(CreateOrderEditableItem item)
+        {
+            if (item != null)
+            {
+                item.ApprovedQuantity += 1;
+            }
+        }
+
+        [RelayCommand]
+        private void DecreaseUnitAmount(CreateOrderEditableItem item)
+        {
+            if (item != null && item.ApprovedQuantity > 0)
+            {
+                item.ApprovedQuantity -= 1;
+            }
+        }
+
+        [RelayCommand]
+        private void IncreaseQuantity(CreateOrderEditableItem item)
+        {
+            if (item != null)
+            {
+                item.Quantity += 1;
+            }
+        }
+
+        [RelayCommand]
+        private void DecreaseQuantity(CreateOrderEditableItem item)
+        {
+            if (item != null && item.Quantity > 1)
+            {
+                item.Quantity -= 1;
+            }
+        }
+
+        [RelayCommand]
         private void Close()
         {
+            ShowSuccessView = false;
+            CreatedPurchaseOrderId = null;
             IsVisible = false;
         }
     }
@@ -205,10 +312,28 @@ namespace Coftea_Capstone.ViewModel.Controls
         private int requestedQuantity;
 
         [ObservableProperty]
-        private double approvedQuantity;
+        private double approvedQuantity; // Unit amount (e.g., 3 L per unit)
+
+        partial void OnApprovedQuantityChanged(double value)
+        {
+            OnPropertyChanged(nameof(TotalAmount));
+        }
+
+        [ObservableProperty]
+        private int quantity = 1; // Quantity multiplier (e.g., x3 units)
+
+        partial void OnQuantityChanged(int value)
+        {
+            OnPropertyChanged(nameof(TotalAmount));
+        }
 
         [ObservableProperty]
         private string approvedUoM = string.Empty;
+
+        partial void OnApprovedUoMChanged(string value)
+        {
+            OnPropertyChanged(nameof(TotalAmount));
+        }
 
         [ObservableProperty]
         private decimal unitPrice;
@@ -218,6 +343,8 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         [ObservableProperty]
         private string originalUoM = string.Empty;
+
+        public double TotalAmount => ApprovedQuantity * Quantity; // Total = Unit Amount × Quantity
 
         public List<string> AvailableUoMs { get; set; } = new() { "pcs", "kg", "g", "L", "ml" };
     }

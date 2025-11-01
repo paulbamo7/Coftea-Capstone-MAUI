@@ -297,8 +297,8 @@
                                         Spacing="10">
                                 
                                 <!-- Purchase Order Button -->
-                                <Button Text="📋 Purchase Order" 
-                                        BackgroundColor="#BDAEA2" 
+                                <Button Text="📋 CREATE PURCHASE ORDER" 
+                                        BackgroundColor="#28a745" 
                                         TextColor="#5B4F45" 
                                         FontSize="14" 
                                         FontAttributes="Bold"
@@ -311,7 +311,7 @@
                                         IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
                                 
                                 <!-- View Purchase Orders Button (Admin Only) -->
-                                <Button Text="📦 Purchase Orders" 
+                                <Button Text="📦 MANAGE PURCHASE ORDER" 
                                         BackgroundColor="#4A90E2" 
                                         TextColor="White" 
                                         FontSize="14" 
@@ -326,7 +326,7 @@
                                 
                                 <!-- Activity Log Button -->
                                 <Button Text="📝 Activity Log" 
-                                        BackgroundColor="#BDAEA2" 
+                                        BackgroundColor="White" 
                                         TextColor="#5B4F45" 
                                         FontSize="14" 
                                         FontAttributes="Bold"

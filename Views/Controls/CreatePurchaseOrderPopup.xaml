@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Coftea_Capstone.Views.Controls.CreatePurchaseOrderPopup"
+    x:Name="CreatePurchaseOrderPopupView"
     xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel.Controls"
     xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
     x:DataType="vm:CreatePurchaseOrderPopupViewModel"
@@ -61,6 +62,32 @@
                 <!-- Content Area -->
                 <ScrollView Grid.Row="1" Padding="20">
                     <VerticalStackLayout Spacing="15">
+                        <!-- Success View -->
+                        <VerticalStackLayout Spacing="20" IsVisible="{Binding ShowSuccessView}" VerticalOptions="Center" HorizontalOptions="Center">
+                            <Border BackgroundColor="#E8F5E9"
+                                   StrokeThickness="2"
+                                   Stroke="#4CAF50"
+                                   StrokeShape="RoundRectangle 15,15,15,15"
+                                   Padding="25"
+                                   WidthRequest="600">
+                                <VerticalStackLayout Spacing="20">
+                                    <Label Text="✅ Success!"
+                                           FontSize="24"
+                                           FontAttributes="Bold"
+                                           TextColor="#2E7D32"
+                                           HorizontalOptions="Center"/>
+                                    
+                                    <Label Text="{Binding InfoText}"
+                                           FontSize="14"
+                                           TextColor="#5B4F45"
+                                           LineBreakMode="WordWrap"
+                                           HorizontalTextAlignment="Center"/>
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Create Order Form -->
+                        <VerticalStackLayout Spacing="15" IsVisible="{Binding ShowSuccessView, Converter={StaticResource InvertBoolConverter}}">
                         <!-- Info Text -->
                         <Frame BackgroundColor="#FFF8E1"
                                CornerRadius="10"
@@ -91,13 +118,12 @@
                             </CollectionView.EmptyView>
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="vm:CreateOrderEditableItem">
-                                    <Frame BackgroundColor="White"
+                                        <Frame BackgroundColor="#edeff0"
                                            CornerRadius="10"
                                            Padding="15"
                                            Margin="0,0,0,12"
-                                           BorderColor="#E0E0E0"
                                            HasShadow="True">
-                                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="10">
+                                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10" ColumnSpacing="10">
                                             <!-- Item Name -->
                                             <Label Grid.Row="0" Grid.Column="0"
                                                    Text="{Binding ItemName}"
@@ -122,83 +148,136 @@
                                                 </Label.FormattedText>
                                             </Label>
                                             
-                                            <!-- Quantity Input -->
+                                            <!-- Unit Amount and Quantity Input -->
                                             <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                                                  ColumnDefinitions="Auto,*,Auto,*" 
-                                                  ColumnSpacing="10"
+                                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,*" 
+                                                  ColumnSpacing="8"
                                                   VerticalOptions="Center">
+                                                <!-- Amount Label -->
                                                 <Label Grid.Column="0"
-                                                       Text="Order Amount:"
+                                                       Text="Amount:"
                                                        FontSize="13"
                                                        FontAttributes="Bold"
                                                        TextColor="#5B4F45"
                                                        VerticalOptions="Center"/>
-                                                <Frame Grid.Column="1"
-                                                       BackgroundColor="#F8F8F8"
-                                                       BorderColor="#E0E0E0"
-                                                       CornerRadius="8"
-                                                       Padding="10,0"
-                                                       HeightRequest="40"
-                                                       VerticalOptions="Center">
+                                                <!-- Amount Entry (no +/- buttons) -->
+                                                <Border Grid.Column="1"
+                                                        BackgroundColor="White"
+                                                        StrokeThickness="0"
+                                                        StrokeShape="RoundRectangle 8,8,8,8"
+                                                        HeightRequest="45"
+                                                        Padding="0">
                                                     <Entry Text="{Binding ApprovedQuantity, Mode=TwoWay}"
                                                            Keyboard="Numeric"
                                                            Placeholder="0"
-                                                           BackgroundColor="Transparent"
-                                                           TextColor="#333"
-                                                           FontSize="14"
-                                                           HeightRequest="38"/>
-                                                </Frame>
+                                                           PlaceholderColor="#8B7355"
+                                                           BackgroundColor="White"
+                                                           TextColor="#5B4F45"
+                                                           FontSize="18"
+                                                           FontAttributes="Bold"
+                                                           HorizontalTextAlignment="Center"
+                                                           VerticalTextAlignment="Center"
+                                                           Margin="0"/>
+                                                </Border>
+                                                <!-- UoM Label -->
                                                 <Label Grid.Column="2"
                                                        Text="UoM:"
                                                        FontSize="13"
                                                        FontAttributes="Bold"
                                                        TextColor="#5B4F45"
                                                        VerticalOptions="Center"
-                                                       Margin="10,0,0,0"/>
-                                                <Frame Grid.Column="3"
-                                                       BackgroundColor="#F8F8F8"
-                                                       BorderColor="#E0E0E0"
-                                                       CornerRadius="8"
-                                                       Padding="10,0"
-                                                       HeightRequest="40"
-                                                       VerticalOptions="Center">
+                                                       Margin="8,0,0,0"/>
+                                                <!-- UoM Picker -->
+                                                <Border Grid.Column="3"
+                                                        BackgroundColor="White"
+                                                        StrokeThickness="0"
+                                                        StrokeShape="RoundRectangle 8,8,8,8"
+                                                        HeightRequest="50"
+                                                        WidthRequest="70"
+                                                        Padding="5,0"
+                                                        VerticalOptions="Center">
                                                     <Picker ItemsSource="{Binding AvailableUoMs}"
                                                             SelectedItem="{Binding ApprovedUoM, Mode=TwoWay}"
                                                             BackgroundColor="Transparent"
-                                                            TextColor="#333"
-                                                            FontSize="14"
-                                                            Title="Select UoM"/>
-                                                </Frame>
+                                                            TextColor="#5B4F45"
+                                                            FontSize="16"
+                                                            FontAttributes="Bold"
+                                                            HorizontalOptions="Center"
+                                                            VerticalOptions="Center"
+                                                            Title=""/>
+                                                </Border>
+                                                <!-- Quantity Label -->
+                                                <Label Grid.Column="4"
+                                                       Text="Quantity:"
+                                                       FontSize="13"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#5B4F45"
+                                                       VerticalOptions="Center"
+                                                       Margin="8,0,0,0"/>
+                                                <!-- Quantity Entry with +/- buttons -->
+                                                <Border Grid.Column="5"
+                                                        BackgroundColor="White"
+                                                        StrokeThickness="0"
+                                                        StrokeShape="RoundRectangle 8,8,8,8"
+                                                        HeightRequest="45"
+                                                        Padding="0">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto"
+                                                          VerticalOptions="Center">
+                                                        <Button Grid.Column="0"
+                                                                Text="−"
+                                                                BackgroundColor="Transparent"
+                                                                TextColor="#5B4F45"
+                                                                FontSize="20"
+                                                                FontAttributes="Bold"
+                                                                Padding="0"
+                                                                WidthRequest="30"
+                                                                HeightRequest="45"
+                                                                Command="{Binding BindingContext.DecreaseQuantityCommand, Source={x:Reference CreatePurchaseOrderPopupView}}"
+                                                                CommandParameter="{Binding .}"/>
+                                                        <Entry Grid.Column="1"
+                                                               Text="{Binding Quantity, Mode=TwoWay}"
+                                                               Keyboard="Numeric"
+                                                               Placeholder="1"
+                                                               PlaceholderColor="#8B7355"
+                                                               BackgroundColor="Transparent"
+                                                               TextColor="#5B4F45"
+                                                               FontSize="16"
+                                                               FontAttributes="Bold"
+                                                               HorizontalTextAlignment="Center"
+                                                               VerticalTextAlignment="Center"
+                                                               HeightRequest="45"
+                                                               Margin="10,0,10,0"/>
+                                                        <Button Grid.Column="2"
+                                                                Text="+"
+                                                                BackgroundColor="Transparent"
+                                                                TextColor="#5B4F45"
+                                                                FontSize="20"
+                                                                FontAttributes="Bold"
+                                                                Padding="0"
+                                                                WidthRequest="30"
+                                                                HeightRequest="45"
+                                                                Command="{Binding BindingContext.IncreaseQuantityCommand, Source={x:Reference CreatePurchaseOrderPopupView}}"
+                                                                CommandParameter="{Binding .}"/>
+                                                    </Grid>
+                                                </Border>
+                                                <!-- Total Display -->
+                                                <Label Grid.Column="6"
+                                                       FontSize="13"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#D4A574"
+                                                       VerticalOptions="Center"
+                                                       Margin="8,0,0,0">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="Total: " FontAttributes="None" TextColor="#5B4F45"/>
+                                                            <Span Text="{Binding TotalAmount, StringFormat='{0:F1}'}" TextColor="#D4A574" FontAttributes="Bold"/>
+                                                            <Span Text=" " FontAttributes="None"/>
+                                                            <Span Text="{Binding ApprovedUoM}" TextColor="#D4A574"/>
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
                                             </Grid>
 
-                                            <!-- Info Display -->
-                                            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                                                  ColumnDefinitions="*,*"
-                                                  ColumnSpacing="10">
-                                                <Label Grid.Column="0"
-                                                       FontSize="11"
-                                                       TextColor="#999"
-                                                       VerticalOptions="Center">
-                                                    <Label.FormattedText>
-                                                        <FormattedString>
-                                                            <Span Text="Original UoM: " FontAttributes="None"/>
-                                                            <Span Text="{Binding OriginalUoM}" FontAttributes="Bold"/>
-                                                        </FormattedString>
-                                                    </Label.FormattedText>
-                                                </Label>
-                                                <Label Grid.Column="1"
-                                                       FontSize="11"
-                                                       TextColor="#999"
-                                                       HorizontalOptions="End"
-                                                       VerticalOptions="Center">
-                                                    <Label.FormattedText>
-                                                        <FormattedString>
-                                                            <Span Text="Min Qty Needed: " FontAttributes="None"/>
-                                                            <Span Text="{Binding RequestedQuantity}" FontAttributes="Bold"/>
-                                                        </FormattedString>
-                                                    </Label.FormattedText>
-                                                </Label>
-                                            </Grid>
                                         </Grid>
                                     </Frame>
                                 </DataTemplate>
@@ -211,30 +290,57 @@
                                          Color="#D4A574"
                                          HeightRequest="50"
                                          Margin="0,20,0,0"/>
+                        </VerticalStackLayout>
                     </VerticalStackLayout>
                 </ScrollView>
 
                 <!-- Footer with Action Buttons -->
-                <Grid Grid.Row="2" Padding="20" BackgroundColor="#F5F5F5" ColumnDefinitions="*,*" ColumnSpacing="15">
-                    <Button Grid.Column="0"
-                            Text="CANCEL"
-                            BackgroundColor="#BDAEA2"
-                            TextColor="White"
-                            CornerRadius="10"
-                            HeightRequest="45"
-                            FontSize="14"
-                            FontAttributes="Bold"
-                            Command="{Binding CloseCommand}"/>
-                    <Button Grid.Column="1"
-                            Text="CREATE ORDER"
-                            BackgroundColor="#4CAF50"
-                            TextColor="White"
-                            CornerRadius="10"
-                            HeightRequest="45"
-                            FontSize="14"
-                            FontAttributes="Bold"
-                            Command="{Binding CreateOrderCommand}"
-                            IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}"/>
+                <Grid Grid.Row="2" Padding="20" BackgroundColor="#F5F5F5">
+                    <!-- Success View Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15" IsVisible="{Binding ShowSuccessView}">
+                        <Button Grid.Column="0"
+                                Text="📄 PRINT PDF"
+                                BackgroundColor="#2196F3"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="45"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Command="{Binding ExportPDFCommand}"
+                                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}"/>
+                        <Button Grid.Column="1"
+                                Text="CLOSE"
+                                BackgroundColor="#BDAEA2"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="45"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Command="{Binding CloseCommand}"/>
+                    </Grid>
+                    
+                    <!-- Create Order Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15" IsVisible="{Binding ShowSuccessView, Converter={StaticResource InvertBoolConverter}}">
+                        <Button Grid.Column="0"
+                                Text="CANCEL"
+                                BackgroundColor="#BDAEA2"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="45"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Command="{Binding CloseCommand}"/>
+                        <Button Grid.Column="1"
+                                Text="CREATE ORDER"
+                                BackgroundColor="#4CAF50"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="45"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Command="{Binding CreateOrderCommand}"
+                                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}"/>
+                    </Grid>
                 </Grid>
             </Grid>
         </Frame>

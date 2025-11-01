@@ -402,6 +402,42 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private void IncreaseItemUnitAmount(EditablePurchaseOrderItem item)
+        {
+            if (item != null && item.IsPending)
+            {
+                item.ApprovedQuantity += 1;
+            }
+        }
+
+        [RelayCommand]
+        private void DecreaseItemUnitAmount(EditablePurchaseOrderItem item)
+        {
+            if (item != null && item.IsPending && item.ApprovedQuantity > 0)
+            {
+                item.ApprovedQuantity -= 1;
+            }
+        }
+
+        [RelayCommand]
+        private void IncreaseItemQuantity(EditablePurchaseOrderItem item)
+        {
+            if (item != null && item.IsPending)
+            {
+                item.Quantity += 1;
+            }
+        }
+
+        [RelayCommand]
+        private void DecreaseItemQuantity(EditablePurchaseOrderItem item)
+        {
+            if (item != null && item.IsPending && item.Quantity > 1)
+            {
+                item.Quantity -= 1;
+            }
+        }
+
+        [RelayCommand]
         private void Close()
         {
             IsVisible = false;
@@ -436,10 +472,28 @@ namespace Coftea_Capstone.ViewModel.Controls
         private int requestedQuantity;
 
         [ObservableProperty]
-        private double approvedQuantity;
+        private double approvedQuantity; // Unit amount (e.g., 3 L per unit)
+
+        partial void OnApprovedQuantityChanged(double value)
+        {
+            OnPropertyChanged(nameof(TotalAmount));
+        }
+
+        [ObservableProperty]
+        private int quantity = 1; // Quantity multiplier (e.g., x3 units)
+
+        partial void OnQuantityChanged(int value)
+        {
+            OnPropertyChanged(nameof(TotalAmount));
+        }
 
         [ObservableProperty]
         private string approvedUoM = string.Empty;
+
+        partial void OnApprovedUoMChanged(string value)
+        {
+            OnPropertyChanged(nameof(TotalAmount));
+        }
 
         [ObservableProperty]
         private decimal unitPrice;
@@ -459,6 +513,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         public bool IsPending => ItemStatus == "Pending";
         public bool IsAccepted => ItemStatus == "Accepted";
         public bool IsCanceled => ItemStatus == "Canceled";
+
+        public double TotalAmount => ApprovedQuantity * Quantity; // Total = Unit Amount × Quantity
 
         public List<string> AvailableUoMs { get; set; } = new() { "pcs", "kg", "g", "L", "ml" };
 
@@ -480,7 +536,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             else
             {
-                ApprovedQuantity = item.RequestedQuantity; // Default to requested quantity
+                ApprovedQuantity = item.RequestedQuantity; // Default unit amount to requested quantity
+                Quantity = 1; // Default to 1 unit
                 ItemStatus = "Pending";
             }
             
