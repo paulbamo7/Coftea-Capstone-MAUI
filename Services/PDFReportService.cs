@@ -437,23 +437,21 @@ namespace Coftea_Capstone.Services
                     yPosition += 20;
 
                     // Items Table
-                    graphics.DrawString("Items", boldFont, titleBrush, new PointF(margin, yPosition));
+                    graphics.DrawString("Items Needed to Restock", boldFont, titleBrush, new PointF(margin, yPosition));
                     yPosition += 20;
 
                     PdfGrid itemsGrid = new PdfGrid();
-                    itemsGrid.Columns.Add(5);
+                    itemsGrid.Columns.Add(4);
                     itemsGrid.Headers.Add(1);
                     PdfGridRow itemsHeaderRow = itemsGrid.Headers[0];
                     itemsHeaderRow.Cells[0].Value = "Item Name";
-                    itemsHeaderRow.Cells[1].Value = "Qty";
+                    itemsHeaderRow.Cells[1].Value = "Amount";
                     itemsHeaderRow.Cells[2].Value = "UoM";
-                    itemsHeaderRow.Cells[3].Value = "Unit Price";
-                    itemsHeaderRow.Cells[4].Value = "Total";
+                    itemsHeaderRow.Cells[3].Value = "Quantity";
                     itemsHeaderRow.Cells[0].Style.Font = boldFont;
                     itemsHeaderRow.Cells[1].Style.Font = boldFont;
                     itemsHeaderRow.Cells[2].Style.Font = boldFont;
                     itemsHeaderRow.Cells[3].Style.Font = boldFont;
-                    itemsHeaderRow.Cells[4].Style.Font = boldFont;
 
                     foreach (var item in items)
                     {
@@ -462,8 +460,7 @@ namespace Coftea_Capstone.Services
                         row.Cells[0].Value = item.ItemName ?? "";
                         row.Cells[1].Value = qty.ToString();
                         row.Cells[2].Value = item.UnitOfMeasurement ?? "pcs";
-                        row.Cells[3].Value = $"₱{item.UnitPrice:N2}";
-                        row.Cells[4].Value = $"₱{item.TotalPrice:N2}";
+                        row.Cells[3].Value = qty.ToString(); // Quantity (same as amount - represents total needed)
                     }
 
                     if (items.Count == 0)
@@ -475,11 +472,6 @@ namespace Coftea_Capstone.Services
 
                     itemsGrid.Draw(graphics, new RectangleF(margin, yPosition, pageWidth - margin * 2, itemsGrid.Rows.Count * 25 + 30));
                     yPosition += itemsGrid.Rows.Count * 25 + 50;
-
-                    // Total Amount
-                    graphics.DrawString("Total Amount:", boldFont, titleBrush, new PointF(pageWidth - margin - 200, yPosition));
-                    graphics.DrawString($"₱{order.TotalAmount:N2}", boldFont, titleBrush, new PointF(pageWidth - margin - 100, yPosition));
-                    yPosition += 30;
 
                     // Notes
                     if (!string.IsNullOrEmpty(order.Notes))
