@@ -45,6 +45,10 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)(FilteredActivityLog?.Count ?? 0) / PageSize));
 
+        public bool CanGoToPreviousPage => CurrentPage > 1;
+        
+        public bool CanGoToNextPage => CurrentPage < TotalPages;
+
         [ObservableProperty]
         private bool isDateFilterVisible = false;
 
@@ -55,6 +59,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         private DateTime filterEndDate = DateTime.Now;
 
         private bool _hasDateFilter = false;
+
+        public bool HasDateFilter => _hasDateFilter;
+        
+        public string DateFilterText => _hasDateFilter 
+            ? $"Filtered: {FilterStartDate:MMM dd, yyyy} - {FilterEndDate:MMM dd, yyyy}"
+            : string.Empty;
 
         public ActivityLogPopupViewModel()
         {
@@ -86,6 +96,11 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 PagedActivityLog = new ObservableCollection<InventoryActivityLog>(pageItems);
                 StatusMessage = $"Showing {skip + pageItems.Count} of {total} entries (Page {page}/{totalPages})";
+                
+                // Notify pagination button states
+                OnPropertyChanged(nameof(CanGoToPreviousPage));
+                OnPropertyChanged(nameof(CanGoToNextPage));
+                OnPropertyChanged(nameof(TotalPages));
             }
             catch (Exception ex)
             {
@@ -96,6 +111,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         partial void OnCurrentPageChanged(int value)
         {
             UpdatePagedItems();
+            OnPropertyChanged(nameof(CanGoToPreviousPage));
+            OnPropertyChanged(nameof(CanGoToNextPage));
         }
 
         partial void OnPageSizeChanged(int value)
@@ -186,7 +203,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Apply action filter
                 if (!string.IsNullOrEmpty(SelectedFilter) && SelectedFilter != "All")
                 {
-                    query = query.Where(log => log.Action == SelectedFilter);
+                    if (SelectedFilter == "PURCHASE_ORDER")
+                    {
+                        // Filter by Reason for purchase orders (items added from purchase orders)
+                        query = query.Where(log => log.Reason == "PURCHASE_ORDER");
+                    }
+                    else
+                    {
+                        // Filter by Action for other types (DEDUCTED, ADDED, etc.)
+                        query = query.Where(log => log.Action == SelectedFilter);
+                    }
                 }
 
                 // Apply search filter
@@ -238,6 +264,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             _hasDateFilter = true;
             IsDateFilterVisible = false;
+            OnPropertyChanged(nameof(HasDateFilter));
+            OnPropertyChanged(nameof(DateFilterText));
             ApplyFilters();
         }
 
@@ -248,6 +276,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             FilterStartDate = DateTime.Now.AddDays(-7);
             FilterEndDate = DateTime.Now;
             IsDateFilterVisible = false;
+            OnPropertyChanged(nameof(HasDateFilter));
+            OnPropertyChanged(nameof(DateFilterText));
             ApplyFilters();
         }
 

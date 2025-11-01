@@ -5,6 +5,7 @@ using Coftea_Capstone.Views;
 using Microsoft.Maui.ApplicationModel.Communication;
 using Coftea_Capstone.Views;
 using Coftea_Capstone.Services;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -15,7 +16,53 @@ public partial class EmployeeDashboard : ContentPage
 		InitializeComponent();
 		
 		// Update navigation state for indicator
-		Appearing += (_, __) => NavigationStateService.SetCurrentPageType(typeof(EmployeeDashboard));
+		Appearing += async (_, __) => 
+		{
+			NavigationStateService.SetCurrentPageType(typeof(EmployeeDashboard));
+			// Refresh binding context to ensure we have the latest SettingsPopup instance
+			var app = (App)Application.Current;
+			if (app?.SettingsPopup != null)
+			{
+				BindingContext = app.SettingsPopup;
+				// Reload metrics when dashboard appears (important after account switching)
+				await LoadTodaysMetricsAsync();
+			}
+			// Force profile image refresh when dashboard appears
+			if (app?.ProfilePopup != null)
+			{
+				// Remove binding temporarily and force manual refresh
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					if (ProfileImage != null)
+					{
+						// Clear the binding
+						ProfileImage.RemoveBinding(Image.SourceProperty);
+						ProfileImage.Source = null;
+					}
+				});
+				
+				// Clear profile image source in ViewModel
+				app.ProfilePopup.ProfileImageSource = null;
+				
+				// Reload profile for new user
+				await app.ProfilePopup.LoadUserProfile();
+				
+				// Restore binding after reload
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					if (ProfileImage != null)
+					{
+						// Restore binding
+						ProfileImage.SetBinding(Image.SourceProperty, 
+							new Binding 
+							{ 
+								Source = app.ProfilePopup, 
+								Path = nameof(app.ProfilePopup.ProfileImageSource) 
+							});
+					}
+				});
+			}
+		};
 		
 	// Use shared SettingsPopup from App directly
 		BindingContext = ((App)Application.Current).SettingsPopup;

@@ -59,8 +59,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         public async void ShowProfile() // Open the profile popup
         {
             System.Diagnostics.Debug.WriteLine("ShowProfile called - starting to load user profile");
+            // Always reload fresh profile data before showing
             await LoadUserProfile();
-            System.Diagnostics.Debug.WriteLine($"ShowProfile completed - IsProfileVisible set to true. Current data - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
+            System.Diagnostics.Debug.WriteLine($"ShowProfile completed - IsProfileVisible set to true. Current data - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, ProfileImage: {ProfileImage}");
             IsProfileVisible = true;
         }
 
@@ -313,9 +314,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                         PhoneNumber = user.PhoneNumber ?? string.Empty;
                         IsAdmin = user.IsAdmin;
                         ProfileImage = user.ProfileImage ?? "usericon.png";
+                        // Clear first to force image reload, then set new source
+                        ProfileImageSource = null;
                         ProfileImageSource = GetProfileImageSource(ProfileImage);
                         
-                        System.Diagnostics.Debug.WriteLine($"Profile data set - Username: '{Username}', ProfileImage: '{ProfileImage}'");
+                        System.Diagnostics.Debug.WriteLine($"Profile data set - Username: '{Username}', ProfileImage: '{ProfileImage}', ProfileImageSource reloaded");
                     });
                     
                     // For admin users, always set access to true (admin has all permissions)
@@ -432,8 +435,10 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 System.Diagnostics.Debug.WriteLine("RefreshProfileDisplay called");
                 
-                // Force UI update by setting the ProfileImageSource again
+                // Force UI update by clearing and setting the ProfileImageSource again
+                // This forces MAUI to reload the image instead of using cached version
                 var tempImage = ProfileImage;
+                ProfileImageSource = null; // Clear first to force reload
                 ProfileImageSource = GetProfileImageSource(tempImage);
                 
                 // Trigger property change notifications for this popup
@@ -447,7 +452,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(CanAccessInventory));
                 OnPropertyChanged(nameof(CanAccessSalesReport));
                 
-                System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: '{Username}', ProfileImage: '{ProfileImage}'");
+                System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: '{Username}', ProfileImage: '{ProfileImage}', ProfileImageSource updated");
                 System.Diagnostics.Debug.WriteLine($"Full details - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, IsAdmin: {IsAdmin}");
                 
                 // Notify App.CurrentUser changes to trigger UI updates across all pages

@@ -286,7 +286,6 @@
                                     Padding="20,10"
                                     HeightRequest="45"
                                     Command="{Binding ManageInventoryCommand}"
-                                    IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"
                                     HorizontalOptions="Start"/>
                             
                             <!-- Purchase Order and Activity Log Buttons - Right -->
@@ -363,9 +362,9 @@
         <!-- Removed OrderCompletePopup here; it should only appear on POS -->
         <otherViews:OrderConfirmedPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
-        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
-        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
-        <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="1700"/>
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
+        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
+        <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="2700"/>
         <otherViews:ActivityLogPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ActivityLogPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:PurchaseOrderApprovalPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PurchaseOrderApprovalPopup}" Grid.ColumnSpan="2" ZIndex="1850"/>
         <otherViews:CreatePurchaseOrderPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=CreatePurchaseOrderPopup}" Grid.ColumnSpan="2" ZIndex="1850"/>

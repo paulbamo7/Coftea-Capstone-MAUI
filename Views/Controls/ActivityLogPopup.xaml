@@ -148,8 +148,8 @@
 
                     <!-- Filter Controls -->
                     <Grid IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}" 
-                          RowDefinitions="Auto, Auto, *" 
-                          RowSpacing="15">
+                          RowDefinitions="Auto, Auto, Auto, *" 
+                          RowSpacing="10">
                         
                         <!-- Filter Buttons -->
                         <StackLayout Grid.Row="0" Orientation="Horizontal" Spacing="10" HorizontalOptions="Start">
@@ -259,7 +259,15 @@
                                     WidthRequest="55" 
                                     HeightRequest="45"
                                     CornerRadius="20"
-                                    Command="{Binding ShowDateFilterCommand}"/>
+                                    Command="{Binding ShowDateFilterCommand}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding HasDateFilter}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderWidth" Value="0" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
                             <Button Grid.Column="2" 
                                     Text="🔍" 
                                     BackgroundColor="#BDAEA2" 
@@ -281,12 +289,37 @@
                                     CornerRadius="20"
                                     Command="{Binding RefreshCommand}"/>
                         </Grid>
+                        
+                        <!-- Date Filter Indicator -->
+                        <Grid Grid.Row="2" IsVisible="{Binding HasDateFilter}" ColumnDefinitions="*" Margin="0,5,0,0">
+                            <Border BackgroundColor="#E8F5E9" 
+                                    Stroke="#4CAF50" 
+                                    StrokeShape="RoundRectangle 8" 
+                                    StrokeThickness="1" 
+                                    Padding="10,5">
+                                <HorizontalStackLayout Spacing="8" HorizontalOptions="Start">
+                                    <Label Text="📅" FontSize="14" VerticalOptions="Center"/>
+                                    <Label Text="{Binding DateFilterText}" 
+                                           FontSize="12" 
+                                           TextColor="#2E7D32" 
+                                           FontAttributes="Bold"
+                                           VerticalOptions="Center"/>
+                                    <Button Text="✕" 
+                                            BackgroundColor="Transparent" 
+                                            TextColor="#2E7D32" 
+                                            FontSize="16"
+                                            Padding="5,0"
+                                            Command="{Binding ClearDateFilterCommand}"/>
+                                </HorizontalStackLayout>
+                            </Border>
+                        </Grid>
 
                         <!-- Activity Log Table -->
-                        <ScrollView Grid.Row="2">
-                            <VerticalStackLayout Spacing="0">
-                                <!-- Table Header -->
-                                <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12">
+                        <ScrollView Grid.Row="3" Orientation="Vertical">
+                            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
+                                <VerticalStackLayout Spacing="0">
+                                    <!-- Table Header -->
+                                    <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12" WidthRequest="1200">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="40"/>   <!-- # -->
                                         <ColumnDefinition Width="120"/>  <!-- Date & Time -->
@@ -320,7 +353,7 @@
                                 <CollectionView ItemsSource="{Binding PagedActivityLog}">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}" ColumnSpacing="12">
+                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}" ColumnSpacing="12" WidthRequest="1200">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="40"/>   <!-- # -->
                                                     <ColumnDefinition Width="120"/>  <!-- Date & Time -->
@@ -355,16 +388,18 @@
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
-                                <!-- Pagination Controls -->
-                                <Grid Padding="10" BackgroundColor="#FFF" ColumnDefinitions="Auto,*,Auto" Margin="0,5,0,0">
-                                    <Button Grid.Column="0" Text="Prev" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
-                                            IsEnabled="{Binding CurrentPage, Converter={StaticResource StringToBoolConverter}}"
-                                            Command="{Binding PrevPageCommand}"/>
-                                    <Label Grid.Column="1" Text="{Binding CurrentPage, StringFormat='Page {0}'}" HorizontalOptions="Center" VerticalOptions="Center"/>
-                                    <Button Grid.Column="2" Text="Next" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
-                                            Command="{Binding NextPageCommand}"/>
-                                </Grid>
-                            </VerticalStackLayout>
+                                    <!-- Pagination Controls -->
+                                    <Grid Padding="10" BackgroundColor="#FFF" ColumnDefinitions="Auto,*,Auto" Margin="0,5,0,0" WidthRequest="1200">
+                                        <Button Grid.Column="0" Text="Prev" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
+                                                IsEnabled="{Binding CanGoToPreviousPage}"
+                                                Command="{Binding PrevPageCommand}"/>
+                                        <Label Grid.Column="1" Text="{Binding CurrentPage, StringFormat='Page {0}'}" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                        <Button Grid.Column="2" Text="Next" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
+                                                IsEnabled="{Binding CanGoToNextPage}"
+                                                Command="{Binding NextPageCommand}"/>
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </ScrollView>
                         </ScrollView>
                     </Grid>
                 </Grid>

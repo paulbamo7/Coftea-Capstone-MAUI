@@ -74,6 +74,58 @@ namespace Coftea_Capstone.Services
             }
         }
 
+        public async Task<bool> SendEmailVerificationAsync(string email, string verificationCode)
+        {
+            try
+            {
+                // Localhost-first behavior for MailHog
+                // Priority: Manual MailHog host > Configured MailHog host > localhost
+                var host = _manualMailHogHost
+                           ?? _mailHogHost
+                           ?? "localhost"; // Default to localhost for MailHog
+                System.Diagnostics.Debug.WriteLine($"Attempting to send email verification to: {email}");
+                System.Diagnostics.Debug.WriteLine($"Using MailHog host: {host}:{_mailHogPort}");
+                System.Diagnostics.Debug.WriteLine($"Verification code: {verificationCode}");
+
+                using var client = new SmtpClient(host, _mailHogPort);
+                client.EnableSsl = false; // MailHog doesn't use SSL
+                client.UseDefaultCredentials = false;
+
+                var htmlBody = CreateEmailVerificationBodyWithCode(verificationCode);
+                var plainTextBody = CreateEmailVerificationPlainTextWithCode(verificationCode);
+
+                var message = new MailMessage
+                {
+                    From = new MailAddress("noreply@coftea.com", "Coftea System"),
+                    Subject = "Verify Your Email Address",
+                    Body = htmlBody,
+                    IsBodyHtml = true,
+                    BodyEncoding = Encoding.UTF8,
+                    SubjectEncoding = Encoding.UTF8
+                };
+
+                // Provide both MIME parts explicitly so MailHog shows the HTML tab
+                var htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, Encoding.UTF8, "text/html");
+                var plainTextView = AlternateView.CreateAlternateViewFromString(plainTextBody, Encoding.UTF8, "text/plain");
+                message.AlternateViews.Add(htmlView);
+                message.AlternateViews.Add(plainTextView);
+
+                message.To.Add(email);
+
+                System.Diagnostics.Debug.WriteLine($"Sending verification email to {email}...");
+                await client.SendMailAsync(message);
+                System.Diagnostics.Debug.WriteLine("Verification email sent successfully!");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to send verification email: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Exception type: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return false;
+            }
+        }
+
         public string GetEmailBodyForTesting(string code) => CreatePasswordResetEmailBodyWithCode(code);
 
         public void SetManualMailHogHost(string host)
@@ -98,6 +150,76 @@ namespace Coftea_Capstone.Services
         public void SetManualEmailHost(string host) => SetManualMailHogHost(host);
         public void ClearManualEmailHost() => ClearManualMailHogHost();
         public string GetCurrentEmailHost() => GetCurrentMailHogHost();
+
+        private string CreateEmailVerificationPlainTextWithCode(string code)
+        {
+            return $@"
+Coftea Email Verification
+
+Thank you for registering with Coftea!
+
+To complete your registration, please verify your email address by entering the verification code below in the app:
+
+Your verification code: {code}
+
+This code will expire in 24 hours for security reasons.
+
+If you did not register for a Coftea account, please ignore this email.
+
+This is a test email sent via MailHog for development purposes.
+Coftea Management System
+";
+        }
+
+        private string CreateEmailVerificationBodyWithCode(string code)
+        {
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Verify Your Email - Coftea</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background-color: #5B4F45; color: white; padding: 20px; text-align: center; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; }}
+        .button {{ display: inline-block; padding: 12px 24px; background-color: #5B4F45; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #666; }}
+        .note {{ background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 15px 0; }}
+        .code {{ font-size: 24px; font-weight: bold; letter-spacing: 4px; background-color: #fff; display: inline-block; padding: 15px 20px; border-radius: 6px; margin: 15px 0; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>Coftea Email Verification</h1>
+        </div>
+        <div class='content'>
+            <h2>Verify Your Email Address</h2>
+            <p>Thank you for registering with Coftea!</p>
+            <p>To complete your registration, please verify your email address by entering the verification code below in the app:</p>
+            
+            <div class='note'>
+                <strong>For Development Testing:</strong><br>
+                Enter this verification code in the app to verify your email:
+            </div>
+            
+            <p style='text-align: center;'>
+                <span class='code'>{code}</span>
+            </p>
+            
+            <p>This code will expire in 24 hours for security reasons.</p>
+            <p>If you did not register for a Coftea account, please ignore this email.</p>
+        </div>
+        <div class='footer'>
+            <p>This is a test email sent via MailHog for development purposes.</p>
+            <p>Coftea Management System</p>
+        </div>
+    </div>
+</body>
+</html>";
+        }
 
         private string CreatePasswordResetEmailPlainTextWithCode(string code)
         {

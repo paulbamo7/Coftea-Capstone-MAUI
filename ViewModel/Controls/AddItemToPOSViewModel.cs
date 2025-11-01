@@ -79,6 +79,14 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSelectedCategoryChanged(string value) // Handle category changes
         {
+            // Validate that selected category is in the Categories list
+            if (!string.IsNullOrWhiteSpace(value) && !Categories.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid category selected: {value}, resetting to null");
+                SelectedCategory = null;
+                return;
+            }
+
             // Notify visibility change for subcategory UI
             OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
             OnPropertyChanged(nameof(IsCoffeeSubcategoryVisible));
@@ -93,6 +101,32 @@ namespace Coftea_Capstone.ViewModel
                 !string.Equals(value, "Fruit/Soda", StringComparison.OrdinalIgnoreCase) && 
                 !string.Equals(value, "Coffee", StringComparison.OrdinalIgnoreCase))
                 SelectedSubcategory = null;
+        }
+
+        partial void OnSelectedSubcategoryChanged(string value) // Handle subcategory changes
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+
+            // Validate Fruit/Soda subcategory
+            if (string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!FruitSodaSubcategories.Contains(value))
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Invalid Fruit/Soda subcategory selected: {value}, resetting to null");
+                    SelectedSubcategory = null;
+                    return;
+                }
+            }
+            // Validate Coffee subcategory
+            else if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!CoffeeSubcategories.Contains(value))
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Invalid Coffee subcategory selected: {value}, resetting to null");
+                    SelectedSubcategory = null;
+                    return;
+                }
+            }
         }
 
         partial void OnIsEditModeChanged(bool value)
@@ -292,11 +326,9 @@ namespace Coftea_Capstone.ViewModel
                         // Check if this product has Small size (only Coffee category)
                         bool hasSmallSize = IsSmallPriceVisible;
                             
-                        // Treat everything selected in ConnectPOS as ingredients by default,
-                        // except items explicitly chosen in the Addons popup (SelectedAddons)
-                        var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
+                        // Allow items to be saved as BOTH ingredients AND addons
+                        // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
                         var ingredients = selectedIngredientsOnly
-                            .Where(i => !addonIds.Contains(i.itemID))
                             .Select(i => (
                                 inventoryItemId: i.itemID,
                                 amount: (i.InputAmount > 0 ? i.InputAmount : 1),
@@ -382,14 +414,8 @@ namespace Coftea_Capstone.ViewModel
 
                     // Build product→inventory links (addons/ingredients)
                     {
-                        var addonIds = new HashSet<int>(selectedAddonsOnly.Select(a => a.itemID));
-                        var ingredients = selectedIngredientsOnly
-                            .Where(i => !addonIds.Contains(i.itemID))
-                            .Select(i => (
-                                inventoryItemId: i.itemID,
-                                amount: (i.InputAmount > 0 ? i.InputAmount : 1),
-                                unit: (string?)(i.InputUnit ?? i.unitOfMeasurement)
-                            ));
+                        // Allow items to be saved as BOTH ingredients AND addons
+                        // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
 
                         var addons = selectedAddonsOnly
                             .Select(i => {
@@ -418,8 +444,9 @@ namespace Coftea_Capstone.ViewModel
                             bool hasSmallSize = IsSmallPriceVisible;
                             
                             // Rebuild ingredients with per-size values for the overload
+                            // Allow items to be saved as BOTH ingredients AND addons
+                            // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
                             var ingredientsPerSize = selectedIngredientsOnly
-                                .Where(i => !addonIds.Contains(i.itemID))
                                 .Select(i => (
                                     inventoryItemId: i.itemID,
                                     amount: (i.InputAmount > 0 ? i.InputAmount : 1),

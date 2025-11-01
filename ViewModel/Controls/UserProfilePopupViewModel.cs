@@ -29,6 +29,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         [ObservableProperty]
         private bool canEditPOSMenu = false;
+        
+        // Sales Report is access-only, not editable, so we just store it privately for updates
+        private bool _canAccessSalesReport = false;
 
         [ObservableProperty]
         private int userId = 0;
@@ -51,7 +54,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             Email = MaskEmail(user.Email);
             PhoneNumber = user.PhoneNumber;
             CanEditInventory = user.CanAccessInventory;
-            CanEditPOSMenu = user.CanAccessSalesReport;
+            CanEditPOSMenu = user.CanAccessPOS;
+            _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
             
             // Load profile image from database
             ProfileImage = !string.IsNullOrWhiteSpace(user.ProfileImage) ? user.ProfileImage : "usericon.png";
@@ -62,10 +66,48 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         private ImageSource GetProfileImageSource(string imageName)
         {
-            if (string.IsNullOrWhiteSpace(imageName))
-                return "usericon.png";
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"GetProfileImageSource called with: {imageName}");
+                
+                if (string.IsNullOrWhiteSpace(imageName) || imageName == "usericon.png")
+                {
+                    System.Diagnostics.Debug.WriteLine("Using default usericon.png");
+                    return ImageSource.FromFile("usericon.png");
+                }
 
-            return ImageSource.FromFile(imageName);
+                // Check if it's a custom profile image in app data
+                var appDataPath = System.IO.Path.Combine(Microsoft.Maui.Storage.FileSystem.AppDataDirectory, imageName);
+                System.Diagnostics.Debug.WriteLine($"Checking for image at: {appDataPath}");
+                
+                if (System.IO.File.Exists(appDataPath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Custom profile image found at: {appDataPath}");
+                    return ImageSource.FromFile(appDataPath);
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Custom image not found, checking if it's a resource file");
+                
+                // Check if it's a bundled resource file (e.g., avatar1.png, avatar2.png)
+                try
+                {
+                    var resourceImage = ImageSource.FromFile(imageName);
+                    System.Diagnostics.Debug.WriteLine($"Using resource image: {imageName}");
+                    return resourceImage;
+                }
+                catch
+                {
+                    System.Diagnostics.Debug.WriteLine($"Resource image not found, using default");
+                }
+
+                // Fallback to default user icon
+                return ImageSource.FromFile("usericon.png");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in GetProfileImageSource: {ex.Message}");
+                return ImageSource.FromFile("usericon.png");
+            }
         }
 
         public void ShowUserProfile(UserEntry user) 
@@ -78,7 +120,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             Email = "N/A"; // UserEntry doesn't have email
             PhoneNumber = "N/A"; // UserEntry doesn't have phone
             CanEditInventory = user.CanAccessInventory;
-            CanEditPOSMenu = user.CanAccessSalesReport;
+            CanEditPOSMenu = user.CanAccessPOS;
+            _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
 
             IsVisible = true;
         }
@@ -102,7 +145,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 var newValue = !CanEditInventory;
-                await _database.UpdateUserAccessAsync(UserId, newValue, CanEditPOSMenu);
+                await _database.UpdateUserAccessAsync(UserId, newValue, CanEditPOSMenu, _canAccessSalesReport);
                 CanEditInventory = newValue;
             }
             catch (Exception ex)
@@ -117,7 +160,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 var newValue = !CanEditPOSMenu;
-                await _database.UpdateUserAccessAsync(UserId, CanEditInventory, newValue);
+                await _database.UpdateUserAccessAsync(UserId, CanEditInventory, newValue, _canAccessSalesReport);
                 CanEditPOSMenu = newValue;
             }
             catch (Exception ex)

@@ -121,6 +121,14 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnItemCategoryChanged(string value) // Triggered when item category changes
         {
+            // Validate that selected category is in the Categories list
+            if (!string.IsNullOrWhiteSpace(value) && !Categories.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid category selected: {value}, resetting to null");
+                ItemCategory = string.Empty;
+                return;
+            }
+
             // Toggle UI sections based on selected category
             // Pieces-only: only quantity field is shown (includes Supplies for cups/straws)
             IsPiecesOnlyCategory = value == "Others" || value == "Other" || value == "Supplies";
@@ -155,8 +163,15 @@ namespace Coftea_Capstone.ViewModel
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedUoMChanged(string value) // Triggered when selected UoM changes
+        partial void OnSelectedUoMChanged(string value) // Validate UoM selection
         {
+            // Validate that selected UoM is in the UoMOptions list
+            if (!string.IsNullOrWhiteSpace(value) && !UoMOptions.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid UoM selected: {value}, resetting to null");
+                SelectedUoM = null;
+                return;
+            }
             UpdateConversionDisplays();
         }
 
@@ -165,13 +180,27 @@ namespace Coftea_Capstone.ViewModel
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedMinimumUoMChanged(string value) // Triggered when selected minimum UoM changes
+        partial void OnSelectedMinimumUoMChanged(string value) // Validate minimum UoM selection
         {
+            // Validate that selected minimum UoM is in the UoMOptions list
+            if (!string.IsNullOrWhiteSpace(value) && !UoMOptions.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid minimum UoM selected: {value}, resetting to null");
+                SelectedMinimumUoM = null;
+                return;
+            }
             UpdateConversionDisplays();
         }
 
-        partial void OnSelectedMaximumUoMChanged(string value) // Triggered when selected maximum UoM changes
+        partial void OnSelectedMaximumUoMChanged(string value) // Validate maximum UoM selection
         {
+            // Validate that selected maximum UoM is in the UoMOptions list
+            if (!string.IsNullOrWhiteSpace(value) && !UoMOptions.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid maximum UoM selected: {value}, resetting to null");
+                SelectedMaximumUoM = null;
+                return;
+            }
             UpdateConversionDisplays();
         }
 

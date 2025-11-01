@@ -132,7 +132,7 @@
                                                    TextColor="#5B4F45"
                                                    VerticalOptions="Center"/>
                                             
-                                            <!-- Needed Info -->
+                                            <!-- Current Stock Info -->
                                             <Label Grid.Row="0" Grid.Column="1"
                                                    FontSize="12"
                                                    TextColor="#999"
@@ -140,8 +140,8 @@
                                                    VerticalOptions="Center">
                                                 <Label.FormattedText>
                                                     <FormattedString>
-                                                        <Span Text="Needed: " FontAttributes="None" FontSize="12"/>
-                                                        <Span Text="{Binding RequestedQuantity}" FontSize="12" FontAttributes="Bold"/>
+                                                        <Span Text="Current Stock: " FontAttributes="None" FontSize="12"/>
+                                                        <Span Text="{Binding CurrentStockQuantity, StringFormat='{0:F1}'}" FontSize="12" FontAttributes="Bold"/>
                                                         <Span Text=" " FontAttributes="None"/>
                                                         <Span Text="{Binding OriginalUoM}" FontSize="12"/>
                                                     </FormattedString>

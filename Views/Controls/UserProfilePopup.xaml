@@ -27,12 +27,12 @@
                VerticalOptions="Center"
                HorizontalOptions="Center"
                WidthRequest="600"
-               HeightRequest="400">
+               MinimumHeightRequest="450">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer/>
             </Frame.GestureRecognizers>
             
-            <Grid RowDefinitions="Auto, *" ColumnDefinitions="*, *">
+            <Grid RowDefinitions="Auto" ColumnDefinitions="*, *">
                 
                 <!-- Close Button - Top Right Corner -->
                 <Button Text="✕"
@@ -61,11 +61,14 @@
                                WidthRequest="120"
                                HeightRequest="120"
                                HasShadow="True"
-                               HorizontalOptions="Center">
+                               HorizontalOptions="Center"
+                               IsClippedToBounds="True">
                             <Image Source="{Binding ProfileImageSource}"
-                                   WidthRequest="100"
-                                   HeightRequest="100"
-                                   Aspect="AspectFill"/>
+                                   WidthRequest="120"
+                                   HeightRequest="120"
+                                   Aspect="AspectFill"
+                                   HorizontalOptions="Fill"
+                                   VerticalOptions="Fill"/>
                         </Frame>
                         
                         <!-- User Name -->
@@ -73,7 +76,7 @@
                                FontSize="24" FontFamily="MontserratBlack"
                                FontAttributes="Bold"
                                HorizontalOptions="Center"
-                               TextColor="Black"/>
+                               TextColor="#000000"/>
                     </VerticalStackLayout>
                 </Grid>
                 
@@ -85,22 +88,25 @@
                         <Label Text="Details"
                                FontSize="24" FontFamily="MontserratBlack"
                                FontAttributes="Bold"
-                               TextColor="Black"
+                               TextColor="#000000"
                                Margin="0,0,0,10"/>
                         
                         <!-- User Information -->
                         <VerticalStackLayout Spacing="8">
                             <Label Text="{Binding FullName, StringFormat='Full Name: {0}'}"
                                    FontSize="16" FontFamily="MontserratBlack"
-                                   TextColor="Black"/>
+                                   FontAttributes="Bold"
+                                   TextColor="#000000"/>
                             
                             <Label Text="{Binding Email, StringFormat='Email: {0}'}"
                                    FontSize="16" FontFamily="MontserratBlack"
-                                   TextColor="Black"/>
+                                   FontAttributes="Bold"
+                                   TextColor="#000000"/>
                             
                             <Label Text="{Binding PhoneNumber, StringFormat='Phone Number: {0}'}"
                                    FontSize="16" FontFamily="MontserratBlack"
-                                   TextColor="Black"/>
+                                   FontAttributes="Bold"
+                                   TextColor="#000000"/>
                         </VerticalStackLayout>
                         
                         <!-- Permissions Section -->
@@ -108,21 +114,23 @@
                             <Label Text="Permissions:"
                                    FontSize="16" FontFamily="MontserratBlack"
                                    FontAttributes="Bold"
-                                   TextColor="Black"/>
+                                   TextColor="#000000"/>
                             
                             <HorizontalStackLayout Spacing="10">
-                                <Button Text="Edit Inventory"
+                                <Button Text="EDIT INVENTORY"
                                         BackgroundColor="#FFB6C1"
                                         TextColor="White"
+                                        FontAttributes="Bold"
                                         CornerRadius="15"
                                         Padding="15,8"
                                         FontSize="14" FontFamily="MontserratBlack"
                                         IsEnabled="{Binding CanEditInventory}"
                                         Command="{Binding ToggleInventoryPermissionCommand}"/>
                                 
-                                <Button Text="Edit POS Menu"
+                                <Button Text="EDIT POS"
                                         BackgroundColor="#90EE90"
                                         TextColor="White"
+                                        FontAttributes="Bold"
                                         CornerRadius="15"
                                         Padding="15,8"
                                         FontSize="14" FontFamily="MontserratBlack"
@@ -132,21 +140,6 @@
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Grid>
-                
-                <!-- Close Button -->
-                <Button Text="✕ Close"
-                        BackgroundColor="#FF6B6B"
-                        TextColor="White"
-                        CornerRadius="20"
-                        Padding="25,12"
-                        FontSize="16" FontFamily="MontserratBlack"
-                        FontAttributes="Bold"
-                        Grid.Row="1"
-                        Grid.ColumnSpan="2"
-                        HorizontalOptions="End"
-                        VerticalOptions="End"
-                        Margin="0,20,30,30"
-                        Command="{Binding CloseCommand}"/>
             </Grid>
         </Frame>
     </Grid>

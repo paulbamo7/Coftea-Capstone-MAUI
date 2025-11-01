@@ -69,6 +69,9 @@ namespace Coftea_Capstone.ViewModel
 
         // Permission check for Manage Inventory visibility
         public bool CanManageInventory => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
+        
+        // Permission check for Manage POS visibility
+        public bool CanManagePOS => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessPOS ?? false);
 
         public SettingsPopUpViewModel(AddItemToPOSViewModel addItemToPOSViewModel, ManagePOSOptionsViewModel managePOSOptionsViewModel, ManageInventoryOptionsViewModel manageInventoryOptionsViewModel)
         {
@@ -115,6 +118,18 @@ namespace Coftea_Capstone.ViewModel
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)); // Increased timeout
                 System.Diagnostics.Debug.WriteLine("🔄 Starting LoadTodaysMetricsAsync...");
+                
+                // Reset all metrics to default values first to prevent showing stale data
+                TotalOrdersToday = 0;
+                TotalSalesToday = 0m;
+                MostBoughtToday = "No data";
+                TrendingToday = "No data";
+                MostBoughtTrend = "";
+                TrendingPercent = "";
+                OrdersTrend = "";
+                RecentOrders.Clear();
+                TopSellingProductsToday.Clear();
+                InventoryAlerts.Clear();
                 
                 // Load top selling products for dashboard
                 await LoadTopSellingProductsAsync();
@@ -213,11 +228,18 @@ namespace Coftea_Capstone.ViewModel
         {
             System.Diagnostics.Debug.WriteLine("OpenManagePOSOptions called");
             IsSettingsPopupVisible = false;
-            if (!(App.CurrentUser?.IsAdmin ?? false))
+            
+            // Check if user is admin OR has been granted POS access
+            var currentUser = App.CurrentUser;
+            bool hasAccess = (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessPOS ?? false);
+            
+            if (!hasAccess)
             {
-                Application.Current?.MainPage?.DisplayAlert("Unauthorized", "Only admins can manage POS settings.", "OK");
+                Application.Current?.MainPage?.DisplayAlert("Access Denied", 
+                    "You don't have permission to manage POS. Please contact an administrator.", "OK");
                 return;
             }
+            
             System.Diagnostics.Debug.WriteLine($"Setting ManagePOSPopup visibility to true. Current value: {_managePOSOptionsViewModel.IsPOSManagementPopupVisible}");
             _managePOSOptionsViewModel.IsPOSManagementPopupVisible = true;
             System.Diagnostics.Debug.WriteLine($"ManagePOSPopup visibility set to: {_managePOSOptionsViewModel.IsPOSManagementPopupVisible}");

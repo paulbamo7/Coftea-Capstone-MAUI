@@ -166,9 +166,11 @@ namespace Coftea_Capstone.ViewModel
                     Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
                     LastActive = GetLastActiveText(u.ID), // Get real last active data
                     DateAdded = GetDateAddedText(u.ID), // Get real date added data
-                    // Admin users (ID = 1) always have full access, regular users use database values
-                    CanAccessInventory = u.ID == 1 ? true : u.CanAccessInventory,
-                    CanAccessSalesReport = u.ID == 1 ? true : u.CanAccessSalesReport
+                    IsAdmin = u.IsAdmin,
+                    // Admin users always have full access, regular users use database values
+                    CanAccessInventory = u.IsAdmin ? true : u.CanAccessInventory,
+                    CanAccessPOS = u.IsAdmin ? true : u.CanAccessPOS, // Default to false if not set
+                    CanAccessSalesReport = u.IsAdmin ? true : u.CanAccessSalesReport
                 }));
 
                 System.Diagnostics.Debug.WriteLine($"🔧 Created {Users.Count} UserEntry objects");

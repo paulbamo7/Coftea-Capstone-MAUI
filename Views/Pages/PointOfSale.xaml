@@ -691,8 +691,8 @@
         <otherViews:OrderConfirmedPopup BindingContext="{Binding OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:ProcessingQueuePopup BindingContext="{Binding ProcessingQueuePopup}" Grid.ColumnSpan="2" ZIndex="1900"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
-        <otherViews:NotificationPopup BindingContext="{Binding NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
-        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
+        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
+        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
 
     </Grid>
 </ContentPage>

@@ -53,6 +53,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     ItemName = item.itemName,
                     ItemCategory = item.itemCategory ?? "",
                     RequestedQuantity = neededQuantity,
+                    CurrentStockQuantity = item.itemQuantity, // Store current stock quantity
                     ApprovedQuantity = neededQuantity, // Default unit amount to needed quantity
                     Quantity = 1, // Default to 1 unit
                     ApprovedUoM = item.unitOfMeasurement ?? "pcs",
@@ -332,6 +333,13 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         partial void OnApprovedUoMChanged(string value)
         {
+            // Validate that selected UoM is in the AvailableUoMs list
+            if (!string.IsNullOrWhiteSpace(value) && !AvailableUoMs.Contains(value))
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Invalid UoM selected: {value}, resetting to original UoM");
+                ApprovedUoM = OriginalUoM ?? "pcs";
+                return;
+            }
             OnPropertyChanged(nameof(TotalAmount));
         }
 
@@ -343,6 +351,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         [ObservableProperty]
         private string originalUoM = string.Empty;
+
+        [ObservableProperty]
+        private double currentStockQuantity; // Current stock quantity in inventory
 
         public double TotalAmount => ApprovedQuantity * Quantity; // Total = Unit Amount × Quantity
 
