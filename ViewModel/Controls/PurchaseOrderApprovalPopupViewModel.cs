@@ -307,12 +307,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var currentUser = App.CurrentUser?.Email ?? "Admin";
                 
                 // Accept this specific item - add to inventory
+                System.Diagnostics.Debug.WriteLine($"🔍 Calling AcceptPurchaseOrderItemAsync with: PO={item.PurchaseOrderId}, ItemID={item.InventoryItemId}, Qty={item.ApprovedQuantity}, UoM='{item.ApprovedUoM}', User='{currentUser}'");
+                
                 var success = await _database.AcceptPurchaseOrderItemAsync(
                     item.PurchaseOrderId,
                     item.InventoryItemId,
                     item.ApprovedQuantity,
                     item.ApprovedUoM,
                     currentUser);
+
+                System.Diagnostics.Debug.WriteLine($"🔍 AcceptPurchaseOrderItemAsync returned: {success}");
 
                 if (success)
                 {
@@ -334,9 +338,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
                 else
                 {
+                    System.Diagnostics.Debug.WriteLine($"❌ AcceptPurchaseOrderItemAsync returned false for {item.ItemName}");
                     await Application.Current.MainPage.DisplayAlert(
                         "Error",
-                        "Failed to accept item. Please try again.",
+                        $"Failed to accept item {item.ItemName}. Please check:\n\n- Item exists in inventory (ID: {item.InventoryItemId})\n- Purchase order item exists (PO: {item.PurchaseOrderId})\n- Check debug console for details",
                         "OK");
                 }
             }

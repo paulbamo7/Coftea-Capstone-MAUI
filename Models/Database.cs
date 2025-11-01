@@ -3206,11 +3206,16 @@ namespace Coftea_Capstone.Models
         /// </summary>
         public async Task<bool> AcceptPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, double approvedQuantity, string approvedUoM, string approvedBy)
         {
+            MySqlConnection? conn = null;
             MySqlTransaction? tx = null;
             try
             {
-                await using var conn = await GetOpenConnectionAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 AcceptPurchaseOrderItemAsync START: PO={purchaseOrderId}, ItemID={inventoryItemId}, Qty={approvedQuantity}, UoM='{approvedUoM}', User='{approvedBy}'");
+                
+                conn = await GetOpenConnectionAsync();
                 tx = await conn.BeginTransactionAsync();
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Connection opened and transaction started");
 
                 // Get current inventory item info
                 var getItemSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
@@ -3223,14 +3228,21 @@ namespace Coftea_Capstone.Models
                 string inventoryUoM = "";
 
                 await using var reader = await getItemCmd.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                if (!await reader.ReadAsync())
                 {
-                    currentQuantity = reader.GetDouble("itemQuantity");
-                    itemName = reader.GetString("itemName");
-                    itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory");
-                    inventoryUoM = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
+                    await reader.CloseAsync();
+                    await tx.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ Inventory item {inventoryItemId} not found");
+                    return false;
                 }
+                
+                currentQuantity = reader.GetDouble("itemQuantity");
+                itemName = reader.GetString("itemName");
+                itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory");
+                inventoryUoM = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
                 await reader.CloseAsync();
+                
+                System.Diagnostics.Debug.WriteLine($"🔍 Accepting item: {itemName} (ID: {inventoryItemId}), Current Qty: {currentQuantity} {inventoryUoM}, Adding: {approvedQuantity} {approvedUoM}");
 
                 // Convert approved quantity to inventory UoM if needed
                 double quantityToAdd = approvedQuantity;
@@ -3255,14 +3267,28 @@ namespace Coftea_Capstone.Models
                 }
 
                 // Update inventory
-                var updateSql = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity, updatedAt = @updatedAt WHERE itemID = @ItemID;";
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 1: About to update inventory - ItemID={inventoryItemId}, QuantityToAdd={quantityToAdd}");
+                var updateSql = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity WHERE itemID = @ItemID;";
                 await using var updateCmd = new MySqlCommand(updateSql, conn, tx);
                 updateCmd.Parameters.AddWithValue("@Quantity", quantityToAdd);
-                updateCmd.Parameters.AddWithValue("@updatedAt", DateTime.Now);
                 updateCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
-                await updateCmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 2: Executing UPDATE command...");
+                var rowsAffected = await updateCmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 3: UPDATE executed - rowsAffected={rowsAffected}");
+                
+                if (rowsAffected == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌❌❌ CRITICAL: Failed to update inventory - no rows affected for itemID={inventoryItemId}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Attempted to add {quantityToAdd} {inventoryUoM} to item: {itemName}");
+                    await tx.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ Transaction rolled back due to inventory update failure");
+                    return false;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Updated inventory: Added {quantityToAdd} {inventoryUoM} to {itemName}");
 
                 // Update the purchase_order_items table with approved quantity and UoM
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 4: Updating purchase_order_items table...");
                 var updatePOItemSql = @"UPDATE purchase_order_items 
                                        SET approvedQuantity = @ApprovedQuantity, 
                                            unitOfMeasurement = @ApprovedUoM
@@ -3270,16 +3296,39 @@ namespace Coftea_Capstone.Models
                                          AND inventoryItemId = @InventoryItemId;";
                 await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, tx);
                 updatePOItemCmd.Parameters.AddWithValue("@ApprovedQuantity", (int)Math.Round(approvedQuantity));
-                updatePOItemCmd.Parameters.AddWithValue("@ApprovedUoM", approvedUoM);
+                updatePOItemCmd.Parameters.AddWithValue("@ApprovedUoM", approvedUoM ?? "");
                 updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                 updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
-                await updatePOItemCmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 5: Executing purchase_order_items UPDATE...");
+                var poRowsAffected = await updatePOItemCmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 6: purchase_order_items UPDATE executed - rowsAffected={poRowsAffected}");
+                
+                if (poRowsAffected == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Warning: No purchase_order_items row found for PO={purchaseOrderId}, ItemID={inventoryItemId}. Continuing anyway.");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"✅ Updated purchase_order_items: {poRowsAffected} row(s) affected");
+                }
 
                 // Get new quantity after update
-                var getNewSql = "SELECT itemQuantity FROM inventory WHERE itemID = @ItemID;";
-                await using var getNewCmd = new MySqlCommand(getNewSql, conn, tx);
-                getNewCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
-                var newQuantity = Convert.ToDouble(await getNewCmd.ExecuteScalarAsync());
+                double newQuantity = currentQuantity + quantityToAdd;
+                try
+                {
+                    var getNewSql = "SELECT itemQuantity FROM inventory WHERE itemID = @ItemID;";
+                    await using var getNewCmd = new MySqlCommand(getNewSql, conn, tx);
+                    getNewCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
+                    var result = await getNewCmd.ExecuteScalarAsync();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        newQuantity = Convert.ToDouble(result);
+                    }
+                }
+                catch (Exception qtyEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Could not get new quantity: {qtyEx.Message}. Using calculated value: {newQuantity}");
+                }
 
                 // Log the addition
                 var logEntry = new InventoryActivityLog
@@ -3298,7 +3347,16 @@ namespace Coftea_Capstone.Models
                     Notes = $"Accepted item from purchase order #{purchaseOrderId}: {approvedQuantity} {approvedUoM} (converted to {quantityToAdd} {inventoryUoM})"
                 };
 
-                await LogInventoryActivityAsync(logEntry, conn, tx);
+                // Log the addition (non-critical, continue even if logging fails)
+                try
+                {
+                    await LogInventoryActivityAsync(logEntry, conn, tx);
+                }
+                catch (Exception logEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Failed to log inventory activity: {logEx.Message}");
+                    // Continue anyway - the inventory update is more important than logging
+                }
 
                 // Check if all items in the purchase order are accepted or canceled
                 var checkAllItemsSql = @"SELECT 
@@ -3332,34 +3390,53 @@ namespace Coftea_Capstone.Models
                     updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedDate", DateTime.Now);
                     updateOrderStatusCmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
                     updateOrderStatusCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
-                    await updateOrderStatusCmd.ExecuteNonQueryAsync();
+                    var statusRowsAffected = await updateOrderStatusCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine($"📊 Updated purchase order status: {statusRowsAffected} row(s) affected");
                 }
 
                 await tx.CommitAsync();
-                System.Diagnostics.Debug.WriteLine($"✅ Item {itemName} accepted from purchase order {purchaseOrderId}");
+                System.Diagnostics.Debug.WriteLine($"✅ Item {itemName} accepted from purchase order {purchaseOrderId} - Added {quantityToAdd} {inventoryUoM} to inventory");
                 return true;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error accepting purchase order item: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                // Log error FIRST before any rollback attempts
+                System.Diagnostics.Debug.WriteLine($"");
+                System.Diagnostics.Debug.WriteLine($"❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
+                System.Diagnostics.Debug.WriteLine($"❌ EXCEPTION CAUGHT in AcceptPurchaseOrderItemAsync");
+                System.Diagnostics.Debug.WriteLine($"❌ Error message: {ex.Message ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error type: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error source: {ex.Source ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace ?? "(null)"}");
                 if (ex.InnerException != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message ?? "(null)"}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception type: {ex.InnerException.GetType().Name}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception source: {ex.InnerException.Source ?? "(null)"}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner stack trace: {ex.InnerException.StackTrace ?? "(null)"}");
                 }
+                System.Diagnostics.Debug.WriteLine($"❌ Parameters: PO={purchaseOrderId}, ItemID={inventoryItemId}, Qty={approvedQuantity}, UoM='{approvedUoM}', User='{approvedBy}'");
+                System.Diagnostics.Debug.WriteLine($"❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
+                System.Diagnostics.Debug.WriteLine($"");
                 
                 // Try to rollback transaction if it's still open
                 try
                 {
                     if (tx != null)
                     {
+                        System.Diagnostics.Debug.WriteLine($"🔍 Attempting to rollback transaction...");
                         await tx.RollbackAsync();
-                        System.Diagnostics.Debug.WriteLine($"❌ Transaction rolled back for purchase order item acceptance");
+                        System.Diagnostics.Debug.WriteLine($"❌ Transaction rolled back successfully");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Transaction was null, cannot rollback");
                     }
                 }
                 catch (Exception rollbackEx)
                 {
                     System.Diagnostics.Debug.WriteLine($"❌ Error during rollback: {rollbackEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Rollback stack trace: {rollbackEx.StackTrace}");
                 }
                 
                 return false;
