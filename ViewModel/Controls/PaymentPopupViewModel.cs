@@ -669,6 +669,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                     }
                     foreach (var (ingredient, amount, unit, role) in ingredients)
                     {
+                        // Only process items with role='ingredient', skip items with role='addon'
+                        // Items with role='addon' should only be processed in the addon section below
+                        if (role?.Equals("addon", StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"🔧 Skipping {ingredient.itemName} in AddSizeDeductions - has role='addon', will be processed as addon");
+                            continue;
+                        }
+                        
                         // Choose per-size amount/unit when available; fall back to shared
                         // Use per-size amounts if they exist and are greater than 0, otherwise use shared amount
                         double perServing = size switch

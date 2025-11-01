@@ -719,12 +719,26 @@ namespace Coftea_Capstone.ViewModel
                     {
                         // Update existing item with addon data but DO NOT set IsSelected
                         // Keep IsSelected as false so it doesn't appear in ingredient UI
-                        existingInAll.InputAmount = addon.InputAmount;
-                        existingInAll.InputUnit = addon.InputUnit;
+                        // BUT: If item is also an ingredient (IsSelected == true), preserve ingredient amounts
                         existingInAll.AddonPrice = addon.AddonPrice;
-                        // Explicitly ensure IsSelected remains false for addons
-                        existingInAll.IsSelected = false;
-                        System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Updated {existingInAll.itemName} in AllInventoryItems (IsSelected=false)");
+                        
+                        // Only update InputAmount/InputUnit if the item is NOT also an ingredient
+                        // If it's an ingredient (IsSelected == true), preserve the ingredient amounts
+                        if (!existingInAll.IsSelected)
+                        {
+                            // Item is only an addon, not an ingredient - update InputAmount
+                            existingInAll.InputAmount = addon.InputAmount;
+                            existingInAll.InputUnit = addon.InputUnit;
+                            // Explicitly ensure IsSelected remains false for addons
+                            existingInAll.IsSelected = false;
+                            System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: Updated {existingInAll.itemName} in AllInventoryItems as addon only (InputAmount={addon.InputAmount})");
+                        }
+                        else
+                        {
+                            // Item is BOTH ingredient and addon - preserve ingredient InputAmount/InputUnit
+                            // Addon amount is stored separately in SelectedAddons collection
+                            System.Diagnostics.Debug.WriteLine($"🔧 LoadAddonDataForEdit: {existingInAll.itemName} is both ingredient and addon - preserving ingredient amounts (InputAmount={existingInAll.InputAmount}, Addon amount={addon.InputAmount})");
+                        }
                     }
                 }
                 

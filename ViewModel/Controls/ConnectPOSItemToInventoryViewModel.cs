@@ -59,8 +59,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                     // But do NOT mark it as IsSelected in AllInventoryItems (that's only for ingredients)
                     existingInAll.AddonPrice = addon.AddonPrice;
                     existingInAll.AddonUnit = addon.AddonUnit;
-                    existingInAll.InputAmount = addon.InputAmount > 0 ? addon.InputAmount : 1;
-                    existingInAll.InputUnit = string.IsNullOrWhiteSpace(addon.InputUnit) ? addon.DefaultUnit : addon.InputUnit;
+                    
+                    // Only update InputAmount/InputUnit if the item is NOT also an ingredient
+                    // If it's an ingredient (IsSelected == true), preserve the ingredient amounts
+                    // so both ingredient and addon amounts are maintained separately
+                    if (!existingInAll.IsSelected)
+                    {
+                        // Item is only an addon, not an ingredient - update InputAmount
+                        existingInAll.InputAmount = addon.InputAmount > 0 ? addon.InputAmount : 1;
+                        existingInAll.InputUnit = string.IsNullOrWhiteSpace(addon.InputUnit) ? addon.DefaultUnit : addon.InputUnit;
+                    }
+                    else
+                    {
+                        // Item is BOTH ingredient and addon - preserve ingredient InputAmount/InputUnit
+                        // Addon amount is stored separately in SelectedAddons collection
+                        System.Diagnostics.Debug.WriteLine($"🔧 {existingInAll.itemName} is both ingredient and addon - preserving ingredient amounts (InputAmount={existingInAll.InputAmount})");
+                    }
                 }
             }
             
