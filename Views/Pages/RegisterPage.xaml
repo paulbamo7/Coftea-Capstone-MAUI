@@ -164,19 +164,7 @@
                                 <Label Text="Passwords match" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
 
-                            <!-- Fifth Row: Birthday -->
-                            <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="370" BackgroundColor="#F5F1ED">
-                                <DatePicker Date="{Binding Birthday}" 
-                                           Format="MM/dd/yyyy"
-                                           MinimumDate="01/01/1900"
-                                           TextColor="#5B4F45"
-                                           FontFamily="MontserratBlack"
-                                           FontSize="16"
-                                           Margin="20,0"
-                                           x:Name="BirthdayDatePicker"/>
-                            </Border>
-
-                            <!-- Sixth Row: Phone Number -->
+                            <!-- Fifth Row: Phone Number -->
                             <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="370" BackgroundColor="#F5F1ED">
                                 <Entry Placeholder="Phone Number" 
                                        Keyboard="Telephone" 

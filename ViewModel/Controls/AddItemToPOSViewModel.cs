@@ -329,20 +329,27 @@ namespace Coftea_Capstone.ViewModel
                         // Allow items to be saved as BOTH ingredients AND addons
                         // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
                         var ingredients = selectedIngredientsOnly
-                            .Select(i => (
-                                inventoryItemId: i.itemID,
-                                amount: (i.InputAmount > 0 ? i.InputAmount : 1),
-                                unit: (string?)(i.InputUnit ?? i.unitOfMeasurement),
-                                // Only save Small size data if product has Small size
-                                amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
-                                unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
+                            .Select(i => {
+                                // Ensure fallback unit is never null or empty
+                                var fallbackUnit = !string.IsNullOrWhiteSpace(i.unitOfMeasurement) ? i.unitOfMeasurement : "pcs";
+                                
+                                return (
+                                    inventoryItemId: i.itemID,
+                                    amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                    unit: (string?)(i.InputUnit ?? fallbackUnit),
+                                    // Only save Small size data if product has Small size
+                                    amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
+                                    unitS: hasSmallSize 
+                                        ? (!string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.InputUnitSmall : fallbackUnit)
+                                        : "pcs", // Always provide a valid unit even if product doesn't have small size
 
-                                amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
-                                unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
+                                    amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
+                                    unitM: !string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.InputUnitMedium : fallbackUnit,
 
-                                amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
-                                unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
-                            ));
+                                    amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
+                                    unitL: !string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.InputUnitLarge : fallbackUnit
+                                );
+                            });
 
                         var addons = selectedAddonsOnly
                             .Select(i => (
@@ -447,18 +454,25 @@ namespace Coftea_Capstone.ViewModel
                             // Allow items to be saved as BOTH ingredients AND addons
                             // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
                             var ingredientsPerSize = selectedIngredientsOnly
-                                .Select(i => (
-                                    inventoryItemId: i.itemID,
-                                    amount: (i.InputAmount > 0 ? i.InputAmount : 1),
-                                    unit: (string?)(i.InputUnit ?? i.unitOfMeasurement),
-                                    // Only save Small size data if product has Small size
-                                    amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
-                                    unitS: hasSmallSize ? (string?)(string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.unitOfMeasurement : i.InputUnitSmall) : null,
-                                    amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
-                                    unitM: (string?)(string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.unitOfMeasurement : i.InputUnitMedium),
-                                    amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
-                                    unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
-                                ));
+                                .Select(i => {
+                                    // Ensure fallback unit is never null or empty
+                                    var fallbackUnit = !string.IsNullOrWhiteSpace(i.unitOfMeasurement) ? i.unitOfMeasurement : "pcs";
+                                    
+                                    return (
+                                        inventoryItemId: i.itemID,
+                                        amount: (i.InputAmount > 0 ? i.InputAmount : 1),
+                                        unit: (string?)(i.InputUnit ?? fallbackUnit),
+                                        // Only save Small size data if product has Small size
+                                        amtS: hasSmallSize ? (i.InputAmountSmall > 0 ? i.InputAmountSmall : 1) : 0,
+                                        unitS: hasSmallSize 
+                                            ? (!string.IsNullOrWhiteSpace(i.InputUnitSmall) ? i.InputUnitSmall : fallbackUnit)
+                                            : "pcs", // Always provide a valid unit even if product doesn't have small size
+                                        amtM: (i.InputAmountMedium > 0 ? i.InputAmountMedium : 1),
+                                        unitM: !string.IsNullOrWhiteSpace(i.InputUnitMedium) ? i.InputUnitMedium : fallbackUnit,
+                                        amtL: (i.InputAmountLarge > 0 ? i.InputAmountLarge : 1),
+                                        unitL: !string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.InputUnitLarge : fallbackUnit
+                                    );
+                                });
 
                             await _database.SaveProductLinksSplitAsync(newProductId, ingredientsPerSize, addons);
                         }

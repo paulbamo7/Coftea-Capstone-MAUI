@@ -347,6 +347,11 @@ namespace Coftea_Capstone.Models
                     INDEX idx_productID (productID),
                     INDEX idx_itemID (itemID)
                 );
+                
+                -- Fix existing NULL or empty values in unit columns
+                UPDATE product_ingredients SET unit_small = 'pcs' WHERE unit_small IS NULL OR unit_small = '';
+                UPDATE product_ingredients SET unit_medium = 'pcs' WHERE unit_medium IS NULL OR unit_medium = '';
+                UPDATE product_ingredients SET unit_large = 'pcs' WHERE unit_large IS NULL OR unit_large = '';
     
                 CREATE TABLE IF NOT EXISTS product_addons (
                   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -406,107 +411,6 @@ namespace Coftea_Capstone.Models
                     INDEX idx_productID (productID),
                     INDEX idx_createdAt (createdAt)
                 );
-                
-                -- Drop unused columns from product_ingredients table if they exist
-                SET @tablename = 'product_ingredients';
-                SET @columnname = 'amount';
-                SET @preparedStatement = (SELECT IF(
-                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE (TABLE_SCHEMA = DATABASE())
-                   AND (TABLE_NAME = @tablename)
-                   AND (COLUMN_NAME = @columnname)) > 0,
-                  CONCAT('ALTER TABLE ', @tablename, ' DROP COLUMN ', @columnname, ';'),
-                  'SELECT 1'
-                ));
-                PREPARE dropIfExists FROM @preparedStatement;
-                EXECUTE dropIfExists;
-                DEALLOCATE PREPARE dropIfExists;
-                
-                SET @columnname = 'unit';
-                SET @preparedStatement = (SELECT IF(
-                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE (TABLE_SCHEMA = DATABASE())
-                   AND (TABLE_NAME = @tablename)
-                   AND (COLUMN_NAME = @columnname)) > 0,
-                  CONCAT('ALTER TABLE ', @tablename, ' DROP COLUMN ', @columnname, ';'),
-                  'SELECT 1'
-                ));
-                PREPARE dropIfExists FROM @preparedStatement;
-                EXECUTE dropIfExists;
-                DEALLOCATE PREPARE dropIfExists;
-                
-                -- Alter existing inventory_activity_log table to add new columns if they don't exist
-                -- Add userFullName column if it doesn't exist
-                SET @dbname = DATABASE();
-                SET @tablename = 'inventory_activity_log';
-                SET @columnname = 'userFullName';
-                SET @preparedStatement = (SELECT IF(
-                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE (TABLE_SCHEMA = @dbname)
-                   AND (TABLE_NAME = @tablename)
-                   AND (COLUMN_NAME = @columnname)) > 0,
-                  'SELECT 1',
-                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' VARCHAR(255);')
-                ));
-                PREPARE alterIfNotExists FROM @preparedStatement;
-                EXECUTE alterIfNotExists;
-                DEALLOCATE PREPARE alterIfNotExists;
-                
-                -- Add userId column if it doesn't exist  
-                SET @columnname = 'userId';
-                SET @preparedStatement = (SELECT IF(
-                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE (TABLE_SCHEMA = @dbname)
-                   AND (TABLE_NAME = @tablename)
-                   AND (COLUMN_NAME = @columnname)) > 0,
-                  'SELECT 1',
-                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' INT;')
-                ));
-                PREPARE alterIfNotExists FROM @preparedStatement;
-                EXECUTE alterIfNotExists;
-                DEALLOCATE PREPARE alterIfNotExists;
-                
-                -- Add productName column if it doesn't exist
-                SET @columnname = 'productName';
-                SET @preparedStatement = (SELECT IF(
-                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE (TABLE_SCHEMA = @dbname)
-                   AND (TABLE_NAME = @tablename)
-                   AND (COLUMN_NAME = @columnname)) > 0,
-                  'SELECT 1',
-                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' VARCHAR(255) DEFAULT NULL COMMENT ''POS product name that used this ingredient'';')
-                ));
-                PREPARE alterIfNotExists FROM @preparedStatement;
-                EXECUTE alterIfNotExists;
-                DEALLOCATE PREPARE alterIfNotExists;
-                
-                -- Add changedBy column if it doesn't exist
-                SET @columnname = 'changedBy';
-                SET @preparedStatement = (SELECT IF(
-                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE (TABLE_SCHEMA = @dbname)
-                   AND (TABLE_NAME = @tablename)
-                   AND (COLUMN_NAME = @columnname)) > 0,
-                  'SELECT 1',
-                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' VARCHAR(50) DEFAULT ''USER'';')
-                ));
-                PREPARE alterIfNotExists FROM @preparedStatement;
-                EXECUTE alterIfNotExists;
-                DEALLOCATE PREPARE alterIfNotExists;
-                
-                -- Add cost column if it doesn't exist
-                SET @columnname = 'cost';
-                SET @preparedStatement = (SELECT IF(
-                  (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE (TABLE_SCHEMA = @dbname)
-                   AND (TABLE_NAME = @tablename)
-                   AND (COLUMN_NAME = @columnname)) > 0,
-                  'SELECT 1',
-                  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' DECIMAL(10,2) DEFAULT NULL;')
-                ));
-                PREPARE alterIfNotExists FROM @preparedStatement;
-                EXECUTE alterIfNotExists;
-                DEALLOCATE PREPARE alterIfNotExists;
                 
                 CREATE TABLE IF NOT EXISTS pending_registrations (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -683,9 +587,14 @@ namespace Coftea_Capstone.Models
                 item.InputAmountMedium = reader.IsDBNull(reader.GetOrdinal("amount_medium")) ? 0d : reader.GetDouble("amount_medium");
                 item.InputAmountLarge = reader.IsDBNull(reader.GetOrdinal("amount_large")) ? 0d : reader.GetDouble("amount_large");
 
-                item.InputUnitSmall = reader.IsDBNull(reader.GetOrdinal("unit_small")) ? item.unitOfMeasurement : reader.GetString("unit_small");
-                item.InputUnitMedium = reader.IsDBNull(reader.GetOrdinal("unit_medium")) ? item.unitOfMeasurement : reader.GetString("unit_medium");
-                item.InputUnitLarge = reader.IsDBNull(reader.GetOrdinal("unit_large")) ? item.unitOfMeasurement : reader.GetString("unit_large");
+                // Handle NULL values and ensure defaults - use 'pcs' if NULL or empty
+                var unitSmall = reader.IsDBNull(reader.GetOrdinal("unit_small")) ? null : reader.GetString("unit_small");
+                var unitMedium = reader.IsDBNull(reader.GetOrdinal("unit_medium")) ? null : reader.GetString("unit_medium");
+                var unitLarge = reader.IsDBNull(reader.GetOrdinal("unit_large")) ? null : reader.GetString("unit_large");
+                
+                item.InputUnitSmall = string.IsNullOrWhiteSpace(unitSmall) ? (item.unitOfMeasurement ?? "pcs") : unitSmall;
+                item.InputUnitMedium = string.IsNullOrWhiteSpace(unitMedium) ? (item.unitOfMeasurement ?? "pcs") : unitMedium;
+                item.InputUnitLarge = string.IsNullOrWhiteSpace(unitLarge) ? (item.unitOfMeasurement ?? "pcs") : unitLarge;
 
                 // Initialize the InputUnit based on the current selected size
                 item.InitializeInputUnit();
@@ -745,7 +654,9 @@ namespace Coftea_Capstone.Models
                         
                         await using var updateCmd = new MySqlCommand(updateSql, conn);
                         updateCmd.Parameters.AddWithValue("@Amount", amount);
-                        updateCmd.Parameters.AddWithValue("@Unit", unit);
+                        // Ensure unit is never null or empty - use 'pcs' as fallback for NOT NULL columns
+                        var unitValue = string.IsNullOrWhiteSpace(unit) ? "pcs" : unit;
+                        updateCmd.Parameters.AddWithValue("@Unit", unitValue);
                         updateCmd.Parameters.AddWithValue("@ProductID", productId);
                         updateCmd.Parameters.AddWithValue("@ItemID", ingredient.itemID);
                         
@@ -947,14 +858,16 @@ namespace Coftea_Capstone.Models
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
                     cmd.Parameters.AddWithValue("@Amount", link.amount);
-                    cmd.Parameters.AddWithValue("@Unit", (object?)link.unit ?? DBNull.Value);
+                    // Ensure unit is never null or empty - use 'pcs' as fallback for NOT NULL columns
+                    var unitValue = string.IsNullOrWhiteSpace(link.unit) ? "pcs" : link.unit;
+                    cmd.Parameters.AddWithValue("@Unit", unitValue);
                     // Default per-size to shared value unless caller added explicit params
                     cmd.Parameters.AddWithValue("@AmtS", link.amount);
-                    cmd.Parameters.AddWithValue("@UnitS", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitS", unitValue);
                     cmd.Parameters.AddWithValue("@AmtM", link.amount);
-                    cmd.Parameters.AddWithValue("@UnitM", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitM", unitValue);
                     cmd.Parameters.AddWithValue("@AmtL", link.amount);
-                    cmd.Parameters.AddWithValue("@UnitL", (object?)link.unit ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitL", unitValue);
                     var affected = await cmd.ExecuteNonQueryAsync();
                     total += affected;
                 }
@@ -1017,11 +930,15 @@ namespace Coftea_Capstone.Models
                     cmd.Parameters.AddWithValue("@ProductID", productId);
                     cmd.Parameters.AddWithValue("@ItemID", link.inventoryItemId);
                     cmd.Parameters.AddWithValue("@AmtS", link.amtS);
-                    cmd.Parameters.AddWithValue("@UnitS", (object?)link.unitS ?? DBNull.Value);
+                    // Ensure units are never null or empty - use 'pcs' as fallback for NOT NULL columns
+                    var unitS = string.IsNullOrWhiteSpace(link.unitS) ? "pcs" : link.unitS;
+                    var unitM = string.IsNullOrWhiteSpace(link.unitM) ? "pcs" : link.unitM;
+                    var unitL = string.IsNullOrWhiteSpace(link.unitL) ? "pcs" : link.unitL;
+                    cmd.Parameters.AddWithValue("@UnitS", unitS);
                     cmd.Parameters.AddWithValue("@AmtM", link.amtM);
-                    cmd.Parameters.AddWithValue("@UnitM", (object?)link.unitM ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitM", unitM);
                     cmd.Parameters.AddWithValue("@AmtL", link.amtL);
-                    cmd.Parameters.AddWithValue("@UnitL", (object?)link.unitL ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@UnitL", unitL);
                     total += await cmd.ExecuteNonQueryAsync();
                 }
 

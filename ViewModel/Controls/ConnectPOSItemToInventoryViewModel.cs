@@ -854,6 +854,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (string.IsNullOrWhiteSpace(size)) return;
             
             System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Switching from {SelectedSize} to {size}");
+            System.Diagnostics.Debug.WriteLine($"🔧 IsEditMode: {IsEditMode}");
             
             // FIRST: Save current input values to the appropriate size properties before switching
             foreach (var item in SelectedIngredientsOnly)
@@ -897,13 +898,66 @@ namespace Coftea_Capstone.ViewModel.Controls
                 };
                 
                 var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
-                var newUnit = size switch
+                
+                // Get the new unit - if not set, inherit from current size in add mode
+                string newUnit;
+                switch (size)
                 {
-                    "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : fallbackUnit,
-                    "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : fallbackUnit,
-                    "Large" => !string.IsNullOrWhiteSpace(item.InputUnitLarge) ? item.InputUnitLarge : fallbackUnit,
-                    _ => fallbackUnit
-                };
+                    case "Small":
+                        if (!string.IsNullOrWhiteSpace(item.InputUnitSmall))
+                        {
+                            newUnit = item.InputUnitSmall;
+                        }
+                        else if (!IsEditMode && !string.IsNullOrWhiteSpace(item.InputUnit))
+                        {
+                            // In add mode, inherit from current size if target size is empty
+                            newUnit = item.InputUnit;
+                            item.InputUnitSmall = newUnit; // Set it for future use
+                            System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Inherited Small unit from current: {newUnit}");
+                        }
+                        else
+                        {
+                            newUnit = fallbackUnit;
+                        }
+                        break;
+                    case "Medium":
+                        if (!string.IsNullOrWhiteSpace(item.InputUnitMedium))
+                        {
+                            newUnit = item.InputUnitMedium;
+                        }
+                        else if (!IsEditMode && !string.IsNullOrWhiteSpace(item.InputUnit))
+                        {
+                            // In add mode, inherit from current size if target size is empty
+                            newUnit = item.InputUnit;
+                            item.InputUnitMedium = newUnit; // Set it for future use
+                            System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Inherited Medium unit from current: {newUnit}");
+                        }
+                        else
+                        {
+                            newUnit = fallbackUnit;
+                        }
+                        break;
+                    case "Large":
+                        if (!string.IsNullOrWhiteSpace(item.InputUnitLarge))
+                        {
+                            newUnit = item.InputUnitLarge;
+                        }
+                        else if (!IsEditMode && !string.IsNullOrWhiteSpace(item.InputUnit))
+                        {
+                            // In add mode, inherit from current size if target size is empty
+                            newUnit = item.InputUnit;
+                            item.InputUnitLarge = newUnit; // Set it for future use
+                            System.Diagnostics.Debug.WriteLine($"🔧 SetSize: Inherited Large unit from current: {newUnit}");
+                        }
+                        else
+                        {
+                            newUnit = fallbackUnit;
+                        }
+                        break;
+                    default:
+                        newUnit = fallbackUnit;
+                        break;
+                }
                 
                 // Set the new values
                 item.InputAmount = newAmount;

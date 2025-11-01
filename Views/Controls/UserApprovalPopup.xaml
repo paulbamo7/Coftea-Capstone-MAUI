@@ -80,10 +80,6 @@
                                                FontSize="13" 
                                                FontFamily="OpenSans-Regular"
                                                TextColor="#8B7355"/>
-                                        <Label Text="{Binding Birthday, StringFormat='Birthday: {0:MMM dd, yyyy}'}" 
-                                               FontSize="13" 
-                                               FontFamily="OpenSans-Regular"
-                                               TextColor="#8B7355"/>
                                         <Label Text="{Binding RegistrationDate, StringFormat='Registered: {0:MMM dd, yyyy HH:mm}'}" 
                                                FontSize="13" 
                                                FontFamily="OpenSans-Regular"
