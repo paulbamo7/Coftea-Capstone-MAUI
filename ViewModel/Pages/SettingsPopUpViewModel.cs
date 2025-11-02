@@ -314,6 +314,9 @@ namespace Coftea_Capstone.ViewModel
                     {
                         item.MaxCount = maxCount;
                     }
+                    
+                    // Assign colors using the same palette as Weekly/Monthly picks
+                    AssignUniqueColors(productSales);
                 }
 
                 TopSellingProductsToday = new ObservableCollection<TrendItem>(productSales);
@@ -323,6 +326,27 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"Failed to load top selling products: {ex.Message}");
                 // Initialize with empty collection on error
                 TopSellingProductsToday = new ObservableCollection<TrendItem>();
+            }
+        }
+
+        private void AssignUniqueColors(List<TrendItem> items)
+        {
+            if (items == null || items.Count == 0) return;
+            
+            // Define a palette for weekly and monthly picks
+            var colorPalette = new List<string>
+            {
+                "#99E599", // Green (from photo)
+                "#ac94f4", // Purple/Violet
+                "#A3C5D9", // Blue (from image)
+                "#F0E0C1", // Brown/Beige (from photo)
+                "#f5dde0"  // Light pink
+            };
+            
+            // Assign unique colors to each item
+            for (int i = 0; i < items.Count; i++)
+            {
+                items[i].ColorCode = colorPalette[i % colorPalette.Count];
             }
         }
 

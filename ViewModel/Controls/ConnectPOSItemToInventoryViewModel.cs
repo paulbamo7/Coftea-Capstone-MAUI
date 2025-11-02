@@ -898,10 +898,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 };
                 
                 var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
-                
-                // Get the new unit - if not set, inherit from current size in add mode
-                string newUnit;
-                switch (size)
+                item.InputUnit = size switch
                 {
                     case "Small":
                         if (!string.IsNullOrWhiteSpace(item.InputUnitSmall))
@@ -959,13 +956,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                         break;
                 }
                 
-                // Set the new values
-                item.InputAmount = newAmount;
-                item.InputUnit = newUnit;
-                
-                // Debug: Log the size switching and per-size values
-                System.Diagnostics.Debug.WriteLine($"🔧 SetSize: {item.itemName} loaded {size} values: {item.InputAmount} {item.InputUnit}");
-                System.Diagnostics.Debug.WriteLine($"🔧   All per-size values - Small: {item.InputAmountSmall} {item.InputUnitSmall}, Medium: {item.InputAmountMedium} {item.InputUnitMedium}, Large: {item.InputAmountLarge} {item.InputUnitLarge}");
+                // Explicitly notify UI that the text binding should update
+                OnPropertyChanged(nameof(item.InputAmountText));
+                OnPropertyChanged(nameof(item.InputUnit));
             }
             
             // Preserve addon selections when switching sizes

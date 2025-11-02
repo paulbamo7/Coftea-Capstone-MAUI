@@ -110,6 +110,52 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+        private ImageSource GetProfileImageSource(string imageName)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"GetProfileImageSource called with: {imageName}");
+                
+                if (string.IsNullOrWhiteSpace(imageName) || imageName == "usericon.png")
+                {
+                    System.Diagnostics.Debug.WriteLine("Using default usericon.png");
+                    return ImageSource.FromFile("usericon.png");
+                }
+
+                // Check if it's a custom profile image in app data
+                var appDataPath = System.IO.Path.Combine(Microsoft.Maui.Storage.FileSystem.AppDataDirectory, imageName);
+                System.Diagnostics.Debug.WriteLine($"Checking for image at: {appDataPath}");
+                
+                if (System.IO.File.Exists(appDataPath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Custom profile image found at: {appDataPath}");
+                    return ImageSource.FromFile(appDataPath);
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Custom image not found, checking if it's a resource file");
+                
+                // Check if it's a bundled resource file (e.g., avatar1.png, avatar2.png)
+                try
+                {
+                    var resourceImage = ImageSource.FromFile(imageName);
+                    System.Diagnostics.Debug.WriteLine($"Using resource image: {imageName}");
+                    return resourceImage;
+                }
+                catch
+                {
+                    System.Diagnostics.Debug.WriteLine($"Resource image not found, using default");
+                }
+
+                // Fallback to default user icon
+                return ImageSource.FromFile("usericon.png");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in GetProfileImageSource: {ex.Message}");
+                return ImageSource.FromFile("usericon.png");
+            }
+        }
+
         public void ShowUserProfile(UserEntry user) 
         {
             if (user == null) return;

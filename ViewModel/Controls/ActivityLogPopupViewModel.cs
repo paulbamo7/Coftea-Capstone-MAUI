@@ -34,38 +34,6 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ObservableCollection<InventoryActivityLog> filteredActivityLog = new();
 
-        [ObservableProperty]
-        private ObservableCollection<InventoryActivityLog> pagedActivityLog = new();
-
-        [ObservableProperty]
-        private int currentPage = 1;
-
-        [ObservableProperty]
-        private int pageSize = 30;
-
-        public int TotalPages => Math.Max(1, (int)Math.Ceiling((double)(FilteredActivityLog?.Count ?? 0) / PageSize));
-
-        public bool CanGoToPreviousPage => CurrentPage > 1;
-        
-        public bool CanGoToNextPage => CurrentPage < TotalPages;
-
-        [ObservableProperty]
-        private bool isDateFilterVisible = false;
-
-        [ObservableProperty]
-        private DateTime filterStartDate = DateTime.Now.AddDays(-7);
-
-        [ObservableProperty]
-        private DateTime filterEndDate = DateTime.Now;
-
-        private bool _hasDateFilter = false;
-
-        public bool HasDateFilter => _hasDateFilter;
-        
-        public string DateFilterText => _hasDateFilter 
-            ? $"Filtered: {FilterStartDate:MMM dd, yyyy} - {FilterEndDate:MMM dd, yyyy}"
-            : string.Empty;
-
         public ActivityLogPopupViewModel()
         {
             _database = new Database();
@@ -251,62 +219,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 StatusMessage = $"Error applying filters: {ex.Message}";
                 System.Diagnostics.Debug.WriteLine($"❌ Error applying filters: {ex.Message}");
             }
-        }
-
-        [RelayCommand]
-        private void ShowDateFilter()
-        {
-            IsDateFilterVisible = true;
-        }
-
-        [RelayCommand]
-        private void ApplyDateFilter()
-        {
-            _hasDateFilter = true;
-            IsDateFilterVisible = false;
-            OnPropertyChanged(nameof(HasDateFilter));
-            OnPropertyChanged(nameof(DateFilterText));
-            ApplyFilters();
-        }
-
-        [RelayCommand]
-        private void ClearDateFilter()
-        {
-            _hasDateFilter = false;
-            FilterStartDate = DateTime.Now.AddDays(-7);
-            FilterEndDate = DateTime.Now;
-            IsDateFilterVisible = false;
-            OnPropertyChanged(nameof(HasDateFilter));
-            OnPropertyChanged(nameof(DateFilterText));
-            ApplyFilters();
-        }
-
-        [RelayCommand]
-        private void SetToday()
-        {
-            FilterStartDate = DateTime.Now.Date;
-            FilterEndDate = DateTime.Now.Date;
-        }
-
-        [RelayCommand]
-        private void SetYesterday()
-        {
-            FilterStartDate = DateTime.Now.AddDays(-1).Date;
-            FilterEndDate = DateTime.Now.AddDays(-1).Date;
-        }
-
-        [RelayCommand]
-        private void SetLast7Days()
-        {
-            FilterStartDate = DateTime.Now.AddDays(-7).Date;
-            FilterEndDate = DateTime.Now.Date;
-        }
-
-        [RelayCommand]
-        private void SetLast30Days()
-        {
-            FilterStartDate = DateTime.Now.AddDays(-30).Date;
-            FilterEndDate = DateTime.Now.Date;
         }
     }
 }

@@ -34,38 +34,57 @@
                    VerticalScrollBarVisibility="Default">
             <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
                 
-                <!-- Left Frame: Registration Form -->
-                <Frame BackgroundColor="#BDAEA2"
-                       Padding="25,60,25,25"
-                       CornerRadius="0"
-                       BorderColor="#8B7355"
-                       HasShadow="True"
-                       WidthRequest="420"
-                       HeightRequest="620">
+                <!-- Logo and Welcome Section -->
+                <StackLayout HorizontalOptions="Center" Spacing="20">
+                    <Image Source="coftea_logo.png"
+                           HeightRequest="180"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Welcome to Coftea" 
+                           FontSize="32" 
+                           FontFamily="Montserrat-Black" 
+                           TextColor="#5B4F45" 
+                           HorizontalOptions="Center"/>
+                </StackLayout>
 
-                    <ScrollView Orientation="Vertical" VerticalScrollBarVisibility="Default">
-                        <VerticalStackLayout Spacing="12">
-                            <!-- First Row: Name Fields -->
-                            <HorizontalStackLayout Spacing="10">
-                                <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="179" BackgroundColor="#F5F1ED">
-                                    <Entry Placeholder="First Name" 
-                                           PlaceholderColor="#8B7355" 
-                                           TextColor="#5B4F45"
-                                           FontFamily="MontserratBlack"
-                                           FontSize="16"
-                                           Margin="20,0"
-                                           Text="{Binding FirstName}"/>
-                                </Border>
-                                <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="179" BackgroundColor="#F5F1ED">
-                                    <Entry Placeholder="Last Name" 
-                                           PlaceholderColor="#8B7355" 
-                                           TextColor="#5B4F45"
-                                           FontFamily="MontserratBlack"
-                                           FontSize="16"
-                                           Margin="20,0"
-                                           Text="{Binding LastName}" />
-                                </Border>
-                            </HorizontalStackLayout>
+            <!-- Registration Form -->
+            <Frame BackgroundColor="#BDAEA2"
+                   Padding="35,35,35,35"
+                   CornerRadius="20"
+                   BorderColor="#8B7355"
+                   HasShadow="True"
+                   WidthRequest="500"
+                   MinimumHeightRequest="500">
+
+                <VerticalStackLayout Spacing="20">
+                    <!-- Title -->
+                    <Label Text="Create Account" 
+                           FontSize="28" 
+                           FontFamily="Montserrat-Black" 
+                           TextColor="#5B4F45" 
+                           HorizontalOptions="Center" 
+                           Margin="0,0,0,20"/>
+                    
+                    <!-- First Row: Name Fields -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="20" RowDefinitions="Auto">
+                        <Border Grid.Column="0" Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" BackgroundColor="#F5F1ED">
+                            <Entry Placeholder="First Name" 
+                                   PlaceholderColor="#8B7355" 
+                                   TextColor="#5B4F45"
+                                   FontFamily="OpenSans-Regular"
+                                   FontSize="16"
+                                   Margin="20,0"
+                                   Text="{Binding FirstName}"/>
+                        </Border>
+                        <Border Grid.Column="1" Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" BackgroundColor="#F5F1ED">
+                            <Entry Placeholder="Last Name" 
+                                   PlaceholderColor="#8B7355" 
+                                   TextColor="#5B4F45"
+                                   FontFamily="OpenSans-Regular"
+                                   FontSize="16"
+                                   Margin="20,0"
+                                   Text="{Binding LastName}" />
+                        </Border>
+                    </Grid>
 
                             <!-- Second Row: Email -->
                             <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="370" Margin="15" BackgroundColor="#F5F1ED">

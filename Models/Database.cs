@@ -78,25 +78,10 @@ namespace Coftea_Capstone.Models
         }
         private async Task<MySqlConnection> GetOpenConnectionAsync(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                // Use the configured connection string directly
-                var conn = new MySqlConnection(_db);
-                await conn.OpenAsync(cancellationToken);
-                return conn;
-            }
-            catch (MySqlException ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ MySQL connection error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"❌ Error code: {ex.Number}, SQL state: {ex.SqlState}");
-                throw new Exception($"Database connection failed: {ex.Message}", ex);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Database connection error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
-                throw;
-            }
+            // Use the configured connection string directly
+            var conn = new MySqlConnection(_db);
+            await conn.OpenAsync(cancellationToken);
+            return conn;
         }
 
         private static string GetDefaultHostForPlatform() // Detects which platform the app is running on
@@ -587,17 +572,20 @@ namespace Coftea_Capstone.Models
                 item.InputAmountMedium = reader.IsDBNull(reader.GetOrdinal("amount_medium")) ? 0d : reader.GetDouble("amount_medium");
                 item.InputAmountLarge = reader.IsDBNull(reader.GetOrdinal("amount_large")) ? 0d : reader.GetDouble("amount_large");
 
-                // Handle NULL values and ensure defaults - use 'pcs' if NULL or empty
-                var unitSmall = reader.IsDBNull(reader.GetOrdinal("unit_small")) ? null : reader.GetString("unit_small");
-                var unitMedium = reader.IsDBNull(reader.GetOrdinal("unit_medium")) ? null : reader.GetString("unit_medium");
-                var unitLarge = reader.IsDBNull(reader.GetOrdinal("unit_large")) ? null : reader.GetString("unit_large");
-                
-                item.InputUnitSmall = string.IsNullOrWhiteSpace(unitSmall) ? (item.unitOfMeasurement ?? "pcs") : unitSmall;
-                item.InputUnitMedium = string.IsNullOrWhiteSpace(unitMedium) ? (item.unitOfMeasurement ?? "pcs") : unitMedium;
-                item.InputUnitLarge = string.IsNullOrWhiteSpace(unitLarge) ? (item.unitOfMeasurement ?? "pcs") : unitLarge;
+                // Per-size amounts/units: DO NOT fall back here; leave 0/empty when NULL so callers can decide
+                item.InputAmountSmall = (HasColumn(reader, "amount_small") && !reader.IsDBNull(reader.GetOrdinal("amount_small")))
+                    ? reader.GetDouble("amount_small") : 0d;
+                item.InputAmountMedium = (HasColumn(reader, "amount_medium") && !reader.IsDBNull(reader.GetOrdinal("amount_medium")))
+                    ? reader.GetDouble("amount_medium") : 0d;
+                item.InputAmountLarge = (HasColumn(reader, "amount_large") && !reader.IsDBNull(reader.GetOrdinal("amount_large")))
+                    ? reader.GetDouble("amount_large") : 0d;
 
-                // Initialize the InputUnit based on the current selected size
-                item.InitializeInputUnit();
+                item.InputUnitSmall = (HasColumn(reader, "unit_small") && !reader.IsDBNull(reader.GetOrdinal("unit_small")))
+                    ? reader.GetString("unit_small") : string.Empty;
+                item.InputUnitMedium = (HasColumn(reader, "unit_medium") && !reader.IsDBNull(reader.GetOrdinal("unit_medium")))
+                    ? reader.GetString("unit_medium") : string.Empty;
+                item.InputUnitLarge = (HasColumn(reader, "unit_large") && !reader.IsDBNull(reader.GetOrdinal("unit_large")))
+                    ? reader.GetString("unit_large") : string.Empty;
 
                 // If you later add cost computation, populate PriceUsed* here
                 item.PriceUsedSmall = 0;
@@ -777,9 +765,7 @@ namespace Coftea_Capstone.Models
                       "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
-            // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
-            bool isCoffeeCategory = string.Equals(product.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
-            cmd.Parameters.AddWithValue("@SmallPrice", isCoffeeCategory && product.SmallPrice.HasValue && product.SmallPrice.Value > 0 ? (object)product.SmallPrice.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -802,9 +788,7 @@ namespace Coftea_Capstone.Models
                       "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
-            // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
-            bool isCoffeeCategory = string.Equals(product.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
-            cmd.Parameters.AddWithValue("@SmallPrice", isCoffeeCategory && product.SmallPrice.HasValue && product.SmallPrice.Value > 0 ? (object)product.SmallPrice.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -1030,9 +1014,7 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductID", product.ProductID);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
-            // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
-            bool isCoffeeCategory = string.Equals(product.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
-            cmd.Parameters.AddWithValue("@SmallPrice", isCoffeeCategory && product.SmallPrice.HasValue && product.SmallPrice.Value > 0 ? (object)product.SmallPrice.Value : DBNull.Value);
+            cmd.Parameters.AddWithValue("@SmallPrice", product.SmallPrice);
             cmd.Parameters.AddWithValue("@MediumPrice", product.MediumPrice);
             cmd.Parameters.AddWithValue("@LargePrice", product.LargePrice);
             cmd.Parameters.AddWithValue("@Category", product.Category);
@@ -2001,25 +1983,7 @@ namespace Coftea_Capstone.Models
 
         public async Task<List<UserInfoModel>> GetAllUsersAsync() 
         {
-            // Check if can_access_pos column exists
-            bool hasPOSColumn = false;
-            try
-            {
-                await using var conn = await GetOpenConnectionAsync();
-                var checkSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'can_access_pos';";
-                await using var checkCmd = new MySqlCommand(checkSql, conn);
-                hasPOSColumn = await checkCmd.ExecuteScalarAsync() != null;
-            }
-            catch
-            {
-                // If check fails, assume column doesn't exist
-                hasPOSColumn = false;
-            }
-            
-            var sql = hasPOSColumn
-                ? "SELECT id, email, password, firstName, lastName, phoneNumber, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;"
-                : "SELECT id, email, password, firstName, lastName, phoneNumber, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
-            
+            var sql = "SELECT id, email, password, firstName, lastName, birthday, phoneNumber, address, isAdmin, status, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report FROM users ORDER BY id ASC;";
             return await QueryAsync(sql, reader => new UserInfoModel
             {
                 ID = reader.GetInt32("id"),
@@ -2952,20 +2916,8 @@ namespace Coftea_Capstone.Models
                 
                 if (status == "Approved" && rowsAffected > 0)
                 {
-                    try
-                    {
-                        // Update inventory quantities with custom items if provided
-                        await UpdateInventoryFromPurchaseOrderAsync(purchaseOrderId, customItems);
-                        System.Diagnostics.Debug.WriteLine($"✅ Inventory updated for purchase order {purchaseOrderId}");
-                    }
-                    catch (Exception invEx)
-                    {
-                        // If inventory update fails, log it but don't fail the status update
-                        System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Purchase order {purchaseOrderId} status updated to Approved, but inventory update failed: {invEx.Message}");
-                        System.Diagnostics.Debug.WriteLine($"⚠️ Stack trace: {invEx.StackTrace}");
-                        // Status is already "Approved" in database, but inventory wasn't updated
-                        // This is logged but doesn't fail the operation
-                    }
+                    // Update inventory quantities
+                    await UpdateInventoryFromPurchaseOrderAsync(purchaseOrderId);
                 }
                 
                 System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} status updated to {status}");
@@ -2986,120 +2938,14 @@ namespace Coftea_Capstone.Models
         /// <summary>
         /// Updates inventory quantities when purchase order is approved
         /// </summary>
-        private async Task UpdateInventoryFromPurchaseOrderAsync(int purchaseOrderId, object? customItems = null)
+        private async Task UpdateInventoryFromPurchaseOrderAsync(int purchaseOrderId)
         {
-            await using var conn = await GetOpenConnectionAsync();
-            await using var tx = await conn.BeginTransactionAsync();
-            
             try
             {
+                await using var conn = await GetOpenConnectionAsync();
+                await using var tx = await conn.BeginTransactionAsync();
                 
-                // If custom items are provided, use them; otherwise use requested quantities
-                if (customItems != null)
-                {
-                    // Use reflection to access the custom items list
-                    var itemsProperty = customItems.GetType().GetProperty("Items");
-                    if (itemsProperty != null)
-                    {
-                        var itemsList = itemsProperty.GetValue(customItems) as System.Collections.IEnumerable;
-                        if (itemsList != null)
-                        {
-                            foreach (var customItem in itemsList)
-                            {
-                                var inventoryItemIdProp = customItem.GetType().GetProperty("InventoryItemId");
-                                var itemNameProp = customItem.GetType().GetProperty("ItemName");
-                                var approvedQuantityProp = customItem.GetType().GetProperty("ApprovedQuantity");
-                                var approvedUoMProp = customItem.GetType().GetProperty("ApprovedUoM");
-
-                                if (inventoryItemIdProp == null || itemNameProp == null || approvedQuantityProp == null || approvedUoMProp == null)
-                                    continue;
-
-                                var inventoryItemId = Convert.ToInt32(inventoryItemIdProp.GetValue(customItem));
-                                var itemName = itemNameProp.GetValue(customItem)?.ToString() ?? "";
-                                var approvedQuantity = Convert.ToDouble(approvedQuantityProp.GetValue(customItem));
-                                var approvedUoM = approvedUoMProp.GetValue(customItem)?.ToString() ?? "";
-
-                                // Get current inventory item info
-                                var getItemSqlCustom = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
-                                await using var getItemCmdCustom = new MySqlCommand(getItemSqlCustom, conn, (MySqlTransaction)tx);
-                                getItemCmdCustom.Parameters.AddWithValue("@ItemID", inventoryItemId);
-
-                                double currentQuantity = 0;
-                                string itemCategory = "";
-                                string inventoryUoM = "";
-
-                                await using var readerCustom = await getItemCmdCustom.ExecuteReaderAsync();
-                                if (await readerCustom.ReadAsync())
-                                {
-                                    currentQuantity = readerCustom.GetDouble("itemQuantity");
-                                    itemCategory = readerCustom.IsDBNull(readerCustom.GetOrdinal("itemCategory")) ? "" : readerCustom.GetString("itemCategory");
-                                    inventoryUoM = readerCustom.IsDBNull(readerCustom.GetOrdinal("unitOfMeasurement")) ? "" : readerCustom.GetString("unitOfMeasurement");
-                                }
-                                await readerCustom.CloseAsync();
-
-                                // Convert approved quantity to inventory UoM if needed
-                                double quantityToAdd = approvedQuantity;
-                                if (approvedUoM != inventoryUoM)
-                                {
-                                    quantityToAdd = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
-                                }
-
-                                // Update inventory
-                                var updateSqlCustom = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity, updatedAt = @updatedAt WHERE itemID = @ItemID;";
-                                await using var updateCmdCustom = new MySqlCommand(updateSqlCustom, conn, (MySqlTransaction)tx);
-                                updateCmdCustom.Parameters.AddWithValue("@Quantity", quantityToAdd);
-                                updateCmdCustom.Parameters.AddWithValue("@updatedAt", DateTime.Now);
-                                updateCmdCustom.Parameters.AddWithValue("@ItemID", inventoryItemId);
-                                await updateCmdCustom.ExecuteNonQueryAsync();
-
-                                // Update the purchase_order_items table with approved quantity and UoM
-                                var updatePOItemSql = @"UPDATE purchase_order_items 
-                                                       SET approvedQuantity = @ApprovedQuantity, 
-                                                           unitOfMeasurement = @ApprovedUoM
-                                                       WHERE purchaseOrderId = @PurchaseOrderId 
-                                                         AND inventoryItemId = @InventoryItemId;";
-                                await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, (MySqlTransaction)tx);
-                                updatePOItemCmd.Parameters.AddWithValue("@ApprovedQuantity", (int)Math.Round(approvedQuantity));
-                                updatePOItemCmd.Parameters.AddWithValue("@ApprovedUoM", approvedUoM);
-                                updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
-                                updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
-                                await updatePOItemCmd.ExecuteNonQueryAsync();
-
-                                // Get new quantity after update
-                                var getNewSqlCustom = "SELECT itemQuantity FROM inventory WHERE itemID = @ItemID;";
-                                await using var getNewCmdCustom = new MySqlCommand(getNewSqlCustom, conn, (MySqlTransaction)tx);
-                                getNewCmdCustom.Parameters.AddWithValue("@ItemID", inventoryItemId);
-                                var newQuantity = Convert.ToDouble(await getNewCmdCustom.ExecuteScalarAsync());
-
-                                // Log the addition
-                                var logEntry = new InventoryActivityLog
-                                {
-                                    ItemId = inventoryItemId,
-                                    ItemName = itemName,
-                                    ItemCategory = itemCategory,
-                                    Action = "ADDED",
-                                    QuantityChanged = quantityToAdd,
-                                    PreviousQuantity = currentQuantity,
-                                    NewQuantity = newQuantity,
-                                    UnitOfMeasurement = inventoryUoM,
-                                    Reason = "PURCHASE_ORDER",
-                                    UserEmail = App.CurrentUser?.Email ?? "System",
-                                    OrderId = purchaseOrderId.ToString(),
-                                    Notes = $"Added {approvedQuantity} {approvedUoM} (converted to {quantityToAdd} {inventoryUoM}) from purchase order #{purchaseOrderId}"
-                                };
-
-                                await LogInventoryActivityAsync(logEntry, conn, tx);
-                                System.Diagnostics.Debug.WriteLine($"📝 Logged addition: {itemName} - {currentQuantity} → {newQuantity} ({quantityToAdd} {inventoryUoM})");
-                            }
-
-                            await tx.CommitAsync();
-                            System.Diagnostics.Debug.WriteLine($"✅ Inventory updated for purchase order {purchaseOrderId} with custom amounts");
-                            return;
-                        }
-                    }
-                }
-
-                // Fallback to original logic if no custom items provided
+                // First, get the items and their current quantities before update
                 var getItemsSql = @"
                     SELECT i.itemID, i.itemName, i.itemCategory, i.itemQuantity, i.unitOfMeasurement, poi.requestedQuantity
                     FROM inventory i

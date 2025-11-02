@@ -140,6 +140,21 @@
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Grid>
+                
+                <!-- Close Button -->
+                <Button Text="✕ Close"
+                        BackgroundColor="#FF6B6B"
+                        TextColor="White"
+                        CornerRadius="20"
+                        Padding="25,12"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        HorizontalOptions="End"
+                        VerticalOptions="End"
+                        Margin="0,20,30,30"
+                        Command="{Binding CloseCommand}"/>
             </Grid>
         </Frame>
     </Grid>

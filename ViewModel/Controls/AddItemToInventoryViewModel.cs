@@ -131,8 +131,8 @@ namespace Coftea_Capstone.ViewModel
             }
 
             // Toggle UI sections based on selected category
-            // Pieces-only: only quantity field is shown (includes Supplies for cups/straws)
-            var newIsPiecesOnly = value == "Others" || value == "Other" || value == "Supplies";
+            // Pieces-only: only quantity field is shown
+            IsPiecesOnlyCategory = value == "Others" || value == "Other";
             // UoM-only categories: show only UoM fields (e.g., Syrups, Powdered, etc.)
             var newIsUoMOnly = value == "Syrups" || value == "Powdered" || value == "Fruit Series" || value == "Sinkers & etc." || value == "Liquid";
             

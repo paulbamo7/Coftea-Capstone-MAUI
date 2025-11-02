@@ -452,17 +452,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(CanAccessInventory));
                 OnPropertyChanged(nameof(CanAccessSalesReport));
                 
-                System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: '{Username}', ProfileImage: '{ProfileImage}', ProfileImageSource updated");
-                System.Diagnostics.Debug.WriteLine($"Full details - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, IsAdmin: {IsAdmin}");
+                System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: {Username}, Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, IsAdmin: {IsAdmin}");
                 
                 // Notify App.CurrentUser changes to trigger UI updates across all pages
                 if (App.CurrentUser != null)
-                {
                     // Trigger property change on App.CurrentUser if it has OnPropertyChanged method
-                    try
-                    {
-                        var userType = App.CurrentUser.GetType();
-                        var method = userType.GetMethod("OnPropertyChanged", 
                             System.Reflection.BindingFlags.Instance | 
                             System.Reflection.BindingFlags.NonPublic | 
                             System.Reflection.BindingFlags.Public,
