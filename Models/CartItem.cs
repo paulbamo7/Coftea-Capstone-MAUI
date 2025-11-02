@@ -62,8 +62,13 @@ namespace Coftea_Capstone.Models
         
         public decimal TotalPrice => Price; // Price already includes addon costs from CartPopupViewModel
 
-        // Carry selected addon items with their quantities to checkout
+        // Carry selected addon items with their quantities to checkout (legacy - kept for backward compatibility)
         public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
+        
+        // Separate addon collections for Small, Medium, and Large sizes
+        public ObservableCollection<InventoryPageModel> SmallAddons { get; set; } = new();
+        public ObservableCollection<InventoryPageModel> MediumAddons { get; set; } = new();
+        public ObservableCollection<InventoryPageModel> LargeAddons { get; set; } = new();
 
         private string GetSizeDisplay() // Displays quantities for each size
         {

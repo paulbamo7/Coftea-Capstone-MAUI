@@ -3202,6 +3202,223 @@ namespace Coftea_Capstone.Models
         }
 
         /// <summary>
+        /// Retracts an accepted purchase order item - removes the quantity that was added to inventory
+        /// </summary>
+        public async Task<bool> RetractPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, string retractedBy)
+        {
+            MySqlConnection? conn = null;
+            MySqlTransaction? tx = null;
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🔍 RetractPurchaseOrderItemAsync START: PO={purchaseOrderId}, ItemID={inventoryItemId}, User='{retractedBy}'");
+                
+                conn = await GetOpenConnectionAsync();
+                tx = await conn.BeginTransactionAsync();
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Connection opened and transaction started");
+
+                // Get the approved quantity from purchase_order_items to know how much to subtract
+                var getPOItemSql = @"SELECT approvedQuantity, unitOfMeasurement, itemName 
+                                    FROM purchase_order_items 
+                                    WHERE purchaseOrderId = @PurchaseOrderId 
+                                      AND inventoryItemId = @InventoryItemId;";
+                await using var getPOItemCmd = new MySqlCommand(getPOItemSql, conn, tx);
+                getPOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                getPOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
+                
+                await using var poReader = await getPOItemCmd.ExecuteReaderAsync();
+                if (!await poReader.ReadAsync())
+                {
+                    await poReader.CloseAsync();
+                    await tx.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ Purchase order item not found for PO={purchaseOrderId}, ItemID={inventoryItemId}");
+                    return false;
+                }
+                
+                int approvedQuantityDb = poReader.GetInt32("approvedQuantity");
+                string approvedUoM = poReader.IsDBNull(poReader.GetOrdinal("unitOfMeasurement")) ? "" : poReader.GetString("unitOfMeasurement");
+                string itemName = poReader.GetString("itemName");
+                await poReader.CloseAsync();
+                
+                if (approvedQuantityDb <= 0)
+                {
+                    await tx.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ Item {itemName} was not accepted (approvedQuantity={approvedQuantityDb}), cannot retract");
+                    return false;
+                }
+                
+                double approvedQuantity = approvedQuantityDb;
+
+                // Get current inventory item info
+                var getItemSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
+                await using var getItemCmd = new MySqlCommand(getItemSql, conn, tx);
+                getItemCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
+
+                double currentQuantity = 0;
+                string itemCategory = "";
+                string inventoryUoM = "";
+
+                await using var reader = await getItemCmd.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                {
+                    await reader.CloseAsync();
+                    await tx.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ Inventory item {inventoryItemId} not found");
+                    return false;
+                }
+                
+                currentQuantity = reader.GetDouble("itemQuantity");
+                itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory");
+                inventoryUoM = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
+                await reader.CloseAsync();
+                
+                System.Diagnostics.Debug.WriteLine($"🔍 Retracting item: {itemName} (ID: {inventoryItemId}), Current Qty: {currentQuantity} {inventoryUoM}, Removing: {approvedQuantity} {approvedUoM}");
+
+                // Convert approved quantity to inventory UoM if needed (same conversion as accept)
+                double quantityToSubtract = approvedQuantity;
+                if (!string.IsNullOrWhiteSpace(approvedUoM) && !string.IsNullOrWhiteSpace(inventoryUoM) && approvedUoM != inventoryUoM)
+                {
+                    var normalizedApproved = UnitConversionService.Normalize(approvedUoM);
+                    var normalizedInventory = UnitConversionService.Normalize(inventoryUoM);
+                    
+                    if (UnitConversionService.AreCompatibleUnits(normalizedApproved, normalizedInventory))
+                    {
+                        quantityToSubtract = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
+                        System.Diagnostics.Debug.WriteLine($"✅ Converted {approvedQuantity} {approvedUoM} to {quantityToSubtract} {inventoryUoM} for retraction");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Incompatible units for item {itemName}: approved {approvedUoM} vs inventory {inventoryUoM}. Using approved quantity as-is.");
+                        quantityToSubtract = approvedQuantity;
+                    }
+                }
+
+                // Check if inventory has enough quantity to subtract
+                if (currentQuantity < quantityToSubtract)
+                {
+                    await tx.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ Cannot retract: Current quantity ({currentQuantity}) is less than quantity to subtract ({quantityToSubtract})");
+                    return false;
+                }
+
+                // Update inventory - subtract the quantity
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 1: About to update inventory - ItemID={inventoryItemId}, QuantityToSubtract={quantityToSubtract}");
+                var updateSql = "UPDATE inventory SET itemQuantity = itemQuantity - @Quantity WHERE itemID = @ItemID;";
+                await using var updateCmd = new MySqlCommand(updateSql, conn, tx);
+                updateCmd.Parameters.AddWithValue("@Quantity", quantityToSubtract);
+                updateCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 2: Executing UPDATE command...");
+                var rowsAffected = await updateCmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 3: UPDATE executed - rowsAffected={rowsAffected}");
+                
+                if (rowsAffected == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌❌❌ CRITICAL: Failed to update inventory - no rows affected for itemID={inventoryItemId}");
+                    await tx.RollbackAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ Transaction rolled back due to inventory update failure");
+                    return false;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Updated inventory: Removed {quantityToSubtract} {inventoryUoM} from {itemName}");
+
+                // Reset the purchase_order_items table - set approvedQuantity to 0
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 4: Resetting purchase_order_items table...");
+                var updatePOItemSql = @"UPDATE purchase_order_items 
+                                       SET approvedQuantity = 0, 
+                                           unitOfMeasurement = @OriginalUoM
+                                       WHERE purchaseOrderId = @PurchaseOrderId 
+                                         AND inventoryItemId = @InventoryItemId;";
+                await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, tx);
+                updatePOItemCmd.Parameters.AddWithValue("@OriginalUoM", approvedUoM ?? "");
+                updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 5: Executing purchase_order_items UPDATE...");
+                var poRowsAffected = await updatePOItemCmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 6: purchase_order_items UPDATE executed - rowsAffected={poRowsAffected}");
+
+                // Get new quantity after update
+                double newQuantity = currentQuantity - quantityToSubtract;
+                try
+                {
+                    var getNewSql = "SELECT itemQuantity FROM inventory WHERE itemID = @ItemID;";
+                    await using var getNewCmd = new MySqlCommand(getNewSql, conn, tx);
+                    getNewCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
+                    var result = await getNewCmd.ExecuteScalarAsync();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        newQuantity = Convert.ToDouble(result);
+                    }
+                }
+                catch (Exception qtyEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Could not get new quantity: {qtyEx.Message}. Using calculated value: {newQuantity}");
+                }
+
+                // Log the retraction
+                var logEntry = new InventoryActivityLog
+                {
+                    ItemId = inventoryItemId,
+                    ItemName = itemName,
+                    ItemCategory = itemCategory,
+                    Action = "RETRACTED",
+                    QuantityChanged = -quantityToSubtract,
+                    PreviousQuantity = currentQuantity,
+                    NewQuantity = newQuantity,
+                    UnitOfMeasurement = inventoryUoM,
+                    Reason = "PURCHASE_ORDER_RETRACT",
+                    UserEmail = retractedBy,
+                    OrderId = purchaseOrderId.ToString(),
+                    Notes = $"Retracted accepted item from purchase order #{purchaseOrderId}: {approvedQuantity} {approvedUoM} (converted to {quantityToSubtract} {inventoryUoM})"
+                };
+
+                // Log the retraction (non-critical, continue even if logging fails)
+                try
+                {
+                    await LogInventoryActivityAsync(logEntry, conn, tx);
+                }
+                catch (Exception logEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Failed to log inventory activity: {logEx.Message}");
+                }
+
+                await tx.CommitAsync();
+                System.Diagnostics.Debug.WriteLine($"✅ Item {itemName} retracted from purchase order {purchaseOrderId} - Removed {quantityToSubtract} {inventoryUoM} from inventory");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
+                System.Diagnostics.Debug.WriteLine($"❌ EXCEPTION CAUGHT in RetractPurchaseOrderItemAsync");
+                System.Diagnostics.Debug.WriteLine($"❌ Error message: {ex.Message ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error type: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error source: {ex.Source ?? "(null)"}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace ?? "(null)"}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message ?? "(null)"}");
+                }
+                System.Diagnostics.Debug.WriteLine($"❌ Parameters: PO={purchaseOrderId}, ItemID={inventoryItemId}, User='{retractedBy}'");
+                System.Diagnostics.Debug.WriteLine($"❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
+                System.Diagnostics.Debug.WriteLine($"");
+                
+                try
+                {
+                    if (tx != null)
+                    {
+                        await tx.RollbackAsync();
+                        System.Diagnostics.Debug.WriteLine($"❌ Transaction rolled back successfully");
+                    }
+                }
+                catch (Exception rollbackEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Error during rollback: {rollbackEx.Message}");
+                }
+                
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Accepts a single purchase order item and adds it to inventory
         /// </summary>
         public async Task<bool> AcceptPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, double approvedQuantity, string approvedUoM, string approvedBy)

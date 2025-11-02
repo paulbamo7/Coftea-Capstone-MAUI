@@ -70,7 +70,7 @@
                     
                     <!-- Fixed Table Header -->
                     <Grid Grid.Row="0" BackgroundColor="#BDAEA2" Padding="10" Margin="0,0,0,10">
-                        <Grid ColumnDefinitions="40, 80, *, 150, 130, 80, 80">
+                        <Grid ColumnDefinitions="40, 80, *, 200, 130, 80, 80">
                             <Label Grid.Column="0" Text="#" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                             <Label Grid.Column="1" Text="Image" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                             <Label Grid.Column="2" Text="Drink Details" FontAttributes="Bold" FontSize="13" TextColor="#5B4F45" HorizontalOptions="Start" HorizontalTextAlignment="Start"/>
@@ -91,7 +91,7 @@
                                             <ColumnDefinition Width="40" />
                                             <ColumnDefinition Width="80" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="200" />
                                             <ColumnDefinition Width="130" />
                                             <ColumnDefinition Width="80" />
                                             <ColumnDefinition Width="80" />
@@ -135,11 +135,13 @@
                                         <!-- Add-ons -->
                                         <VerticalStackLayout Grid.Column="3" Spacing="2" Padding="5,0" VerticalOptions="Center" HorizontalOptions="Start">
                                             <Label Text="{Binding AddOnsDisplay}" 
-                                                   FontSize="11" FontFamily="MontserratBlack" 
+                                                   FontSize="10" FontFamily="MontserratBlack" 
                                                    TextColor="Black"
                                                    VerticalOptions="Center"
                                                    HorizontalOptions="Start"
-                                                   HorizontalTextAlignment="Start" />
+                                                   HorizontalTextAlignment="Start"
+                                                   LineBreakMode="WordWrap"
+                                                   MaxLines="5" />
                                         </VerticalStackLayout>
 
                                         <!-- Size -->

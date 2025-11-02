@@ -350,130 +350,24 @@
 
                                 <Label Text="{Binding SelectedProduct.ProductName, StringFormat='Product Name: {0}'}"
                                    FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" TextColor="Black"/>
-                                <Label Text="Add-ons" FontAttributes="Bold" FontSize="18" HorizontalOptions="Start" TextColor="Black" Margin="0,0,0,6"/>
-                                <!-- Add-ons list: compact 2-column grid layout (non-scrollable, expands to fit content) -->
-                                <FlexLayout BindableLayout.ItemsSource="{Binding SelectedProduct.InventoryItems}" 
-                                            Wrap="Wrap"
-                                            JustifyContent="Start"
-                                            AlignItems="Start"
-                                            Margin="0,0,0,0">
-                                    <BindableLayout.EmptyViewTemplate>
-                                        <DataTemplate>
-                                            <Label Text="No add-ons available for this product" 
-                                                   TextColor="Gray" 
-                                                   FontSize="14" 
-                                                   HorizontalTextAlignment="Center"
-                                                   Margin="0,5,0,15"
-                                                   WidthRequest="300"/>
-                                        </DataTemplate>
-                                    </BindableLayout.EmptyViewTemplate>
-                                    <BindableLayout.ItemTemplate>
-                                        <DataTemplate>
-                                            <Frame Padding="6" Margin="3" BackgroundColor="White" CornerRadius="10" HasShadow="False" BorderColor="#E0E0E0" WidthRequest="140" HeightRequest="80">
-                                                <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
-                                                    <Grid.GestureRecognizers>
-                                                        <TapGestureRecognizer Command="{Binding ToggleSelectedCommand}" />
-                                                    </Grid.GestureRecognizers>
-
-                                                    <!-- Top Row: Checkbox and Name -->
-                                                    <StackLayout Grid.Row="0" Orientation="Horizontal" Spacing="4">
-                                                        <CheckBox IsChecked="{Binding IsSelected}"
-                                                                 Color="#2B2B2B"
-                                                                 BackgroundColor="Transparent"
-                                                                 WidthRequest="18"
-                                                                 HeightRequest="18"
-                                                                 VerticalOptions="Center" />
-                                                        <Label Text="{Binding itemName}" 
-                                                               TextColor="Black" 
-                                                               FontSize="12" 
-                                                               FontAttributes="Bold"
-                                                               LineBreakMode="TailTruncation"
-                                                               VerticalOptions="Center"
-                                                               HorizontalOptions="StartAndExpand" />
-                                                    </StackLayout>
-
-                                                    <!-- Bottom Row: Controls and Price -->
-                                                    <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="4">
-                                                        <!-- Decrease Button -->
-                                                        <Frame Grid.Column="0" 
-                                                               BackgroundColor="#C5AD98" 
-                                                               CornerRadius="6" 
-                                                               Padding="4" 
-                                                               HasShadow="False"
-                                                               WidthRequest="24"
-                                                               HeightRequest="24">
-                                                            <Frame.GestureRecognizers>
-                                                                <TapGestureRecognizer Command="{Binding DecreaseAddonQtyCommand}" CommandParameter="{Binding .}" />
-                                                            </Frame.GestureRecognizers>
-                                                            <Label Text="−" 
-                                                                   TextColor="White" 
-                                                                   FontSize="12" 
-                                                                   FontAttributes="Bold"
-                                                                   HorizontalOptions="Center" 
-                                                                   VerticalOptions="Center" />
-                                                        </Frame>
-
-                                                        <!-- Quantity Display -->
-                                                        <Frame Grid.Column="1" 
-                                                               BackgroundColor="#E7E3DE" 
-                                                               CornerRadius="6"
-                                                               Padding="6,2" 
-                                                               HasShadow="False"
-                                                               WidthRequest="28"
-                                                               HeightRequest="24">
-                                                            <Label Text="{Binding AddonQuantity}" 
-                                                                   TextColor="Black" 
-                                                                   FontSize="11" 
-                                                                   FontAttributes="Bold"
-                                                                   HorizontalOptions="Center" 
-                                                                   VerticalOptions="Center" />
-                                                        </Frame>
-
-                                                        <!-- Increase Button -->
-                                                        <Frame Grid.Column="2" 
-                                                               BackgroundColor="#C5AD98" 
-                                                               CornerRadius="6" 
-                                                               Padding="4" 
-                                                               HasShadow="False"
-                                                               WidthRequest="24"
-                                                               HeightRequest="24">
-                                                            <Frame.GestureRecognizers>
-                                                                <TapGestureRecognizer Command="{Binding IncreaseAddonQtyCommand}" CommandParameter="{Binding .}" />
-                                                            </Frame.GestureRecognizers>
-                                                            <Label Text="+" 
-                                                                   TextColor="White" 
-                                                                   FontSize="12" 
-                                                                   FontAttributes="Bold"
-                                                                   HorizontalOptions="Center" 
-                                                                   VerticalOptions="Center" />
-                                                        </Frame>
-
-                                                        <!-- Price -->
-                                                        <Label Grid.Column="4" 
-                                                               Text="{Binding AddonTotalPrice, StringFormat='₱{0:F0}'}" 
-                                                               TextColor="#666" 
-                                                               FontSize="11"
-                                                               FontAttributes="Bold"
-                                                               VerticalOptions="Center"
-                                                               HorizontalOptions="End" />
-                                                    </Grid>
-                                                </Grid>
-                                            </Frame>
-                                        </DataTemplate>
-                                    </BindableLayout.ItemTemplate>
-                                </FlexLayout>
 
                                 <!-- Select Size Section -->
                                 <Label Text="Select Size:" TextColor="Black" FontSize="20" FontAttributes="Bold" HorizontalOptions="Start" Margin="0,25,0,0"/>
 
-                                <Grid Margin="25,0,0,0" RowSpacing="10">
+                                <Grid Margin="25,0,0,0" RowSpacing="5">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <!-- Small -->
                                         <RowDefinition Height="Auto"/>
+                                        <!-- Small Addons -->
+                                        <RowDefinition Height="Auto"/>
                                         <!-- Medium -->
                                         <RowDefinition Height="Auto"/>
+                                        <!-- Medium Addons -->
+                                        <RowDefinition Height="Auto"/>
                                         <!-- Large -->
+                                        <RowDefinition Height="Auto"/>
+                                        <!-- Large Addons -->
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -520,9 +414,136 @@
                                             </Label>
                                         </Frame>
 
+                                        <!-- Small Addons Dropdown -->
+                                        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Spacing="3" Margin="0,2,0,0" IsVisible="{Binding IsSmallSizeVisibleInCart}">
+                                            <Label Text="Add-ons ▼" 
+                                                   TextColor="#5B4F45" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold"
+                                                   VerticalOptions="Start"
+                                                   HorizontalOptions="Start"
+                                                   HeightRequest="20">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding ToggleSmallAddonsDropdownCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                            <Frame IsVisible="{Binding SelectedProduct.IsSmallAddonsDropdownVisible}" 
+                                                   BackgroundColor="#F5E6D8" 
+                                                   CornerRadius="10" 
+                                                   Padding="6" 
+                                                   HasShadow="True"
+                                                   BorderColor="#D4A574"
+                                                   HorizontalOptions="FillAndExpand"
+                                                   WidthRequest="300"
+                                                   MaximumHeightRequest="200">
+                                                <ScrollView>
+                                                    <FlexLayout BindableLayout.ItemsSource="{Binding SelectedProduct.SmallAddons}" 
+                                                                Wrap="Wrap"
+                                                                JustifyContent="Start"
+                                                                AlignItems="Start"
+                                                                Direction="Row">
+                                                        <BindableLayout.EmptyViewTemplate>
+                                                            <DataTemplate>
+                                                                <Label Text="No add-ons available" 
+                                                                       TextColor="Gray" 
+                                                                       FontSize="12" 
+                                                                       HorizontalTextAlignment="Center"/>
+                                                            </DataTemplate>
+                                                        </BindableLayout.EmptyViewTemplate>
+                                                        <BindableLayout.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Frame Padding="3" Margin="3" BackgroundColor="White" CornerRadius="6" HasShadow="False" BorderColor="#E0E0E0" WidthRequest="135" HeightRequest="65">
+                                                                    <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                                                                        <!-- Top Row: Checkbox and Name -->
+                                                                        <StackLayout Grid.Row="0" Orientation="Horizontal" Spacing="4">
+                                                                            <CheckBox IsChecked="{Binding IsSelected}"
+                                                                                     Color="#2B2B2B"
+                                                                                     BackgroundColor="Transparent"
+                                                                                     WidthRequest="16"
+                                                                                     HeightRequest="16"
+                                                                                     VerticalOptions="Center" />
+                                                                            <Label Text="{Binding itemName}" 
+                                                                                   TextColor="Black" 
+                                                                                   FontSize="11" 
+                                                                                   FontAttributes="Bold"
+                                                                                   LineBreakMode="TailTruncation"
+                                                                                   VerticalOptions="Center"
+                                                                                   HorizontalOptions="StartAndExpand" />
+                                                                        </StackLayout>
+                                                                        <!-- Bottom Row: Controls and Price -->
+                                                                        <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="3">
+                                                                            <!-- Decrease Button -->
+                                                                            <Frame Grid.Column="0" 
+                                                                                   BackgroundColor="#C5AD98" 
+                                                                                   CornerRadius="5" 
+                                                                                   Padding="3" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="20"
+                                                                                   HeightRequest="20">
+                                                                                <Frame.GestureRecognizers>
+                                                                                    <TapGestureRecognizer Command="{Binding DecreaseAddonQtyCommand}" />
+                                                                                </Frame.GestureRecognizers>
+                                                                                <Label Text="−" 
+                                                                                       TextColor="White" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Quantity Display -->
+                                                                            <Frame Grid.Column="1" 
+                                                                                   BackgroundColor="#E7E3DE" 
+                                                                                   CornerRadius="5"
+                                                                                   Padding="4,2" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="24"
+                                                                                   HeightRequest="20">
+                                                                                <Label Text="{Binding AddonQuantity}" 
+                                                                                       TextColor="Black" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Increase Button -->
+                                                                            <Frame Grid.Column="2" 
+                                                                                   BackgroundColor="#C5AD98" 
+                                                                                   CornerRadius="5" 
+                                                                                   Padding="3" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="20"
+                                                                                   HeightRequest="20">
+                                                                                <Frame.GestureRecognizers>
+                                                                                    <TapGestureRecognizer Command="{Binding IncreaseAddonQtyCommand}" />
+                                                                                </Frame.GestureRecognizers>
+                                                                                <Label Text="+" 
+                                                                                       TextColor="White" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Price -->
+                                                                            <Label Grid.Column="4" 
+                                                                                   Text="{Binding AddonTotalPrice, StringFormat='₱{0:F0}'}" 
+                                                                                   TextColor="#666" 
+                                                                                   FontSize="10"
+                                                                                   FontAttributes="Bold"
+                                                                                   VerticalOptions="Center"
+                                                                                   HorizontalOptions="End" />
+                                                                        </Grid>
+                                                                    </Grid>
+                                                                </Frame>
+                                                            </DataTemplate>
+                                                        </BindableLayout.ItemTemplate>
+                                                    </FlexLayout>
+                                                </ScrollView>
+                                            </Frame>
+                                        </VerticalStackLayout>
+
                                         <!-- Medium Size -->
-                                        <Label Text="Medium:" TextColor="Black" Grid.Row="1" Grid.Column="0" VerticalOptions="Center" FontSize="14" Margin="0,0,12,0" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
-                                        <Frame Grid.Row="1" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                        <Label Text="Medium:" TextColor="Black" Grid.Row="3" Grid.Column="0" VerticalOptions="Center" FontSize="14" Margin="0,0,12,0" IsVisible="{Binding IsMediumSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="3" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsMediumSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseMediumQtyCommand}"/>
                                             </Frame.GestureRecognizers>
@@ -532,7 +553,7 @@
                                                 </Label.GestureRecognizers>
                                             </Label>
                                         </Frame>
-                                        <Frame Grid.Row="1" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="0" HasShadow="False" HeightRequest="40" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                        <Frame Grid.Row="3" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="0" HasShadow="False" HeightRequest="40" IsVisible="{Binding IsMediumSizeVisibleInCart}">
                                             <Entry Text="{Binding SelectedProduct.MediumQuantity, Mode=TwoWay, StringFormat='{0}'}" 
                                                    TextColor="#000000" 
                                                    FontSize="12" 
@@ -547,7 +568,7 @@
                                                    Placeholder="0"
                                                    PlaceholderColor="#666666"/>
                                         </Frame>
-                                        <Frame Grid.Row="1" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                        <Frame Grid.Row="3" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsMediumSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding IncreaseMediumQtyCommand}"/>
                                             </Frame.GestureRecognizers>
@@ -558,9 +579,136 @@
                                             </Label>
                                         </Frame>
 
+                                        <!-- Medium Addons Dropdown -->
+                                        <VerticalStackLayout Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" Spacing="3" Margin="0,2,0,0" IsVisible="{Binding IsMediumSizeVisibleInCart}">
+                                            <Label Text="Add-ons ▼" 
+                                                   TextColor="#5B4F45" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold"
+                                                   VerticalOptions="Start"
+                                                   HorizontalOptions="Start"
+                                                   HeightRequest="20">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding ToggleMediumAddonsDropdownCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                            <Frame IsVisible="{Binding SelectedProduct.IsMediumAddonsDropdownVisible}" 
+                                                   BackgroundColor="#F5E6D8" 
+                                                   CornerRadius="10" 
+                                                   Padding="6" 
+                                                   HasShadow="True"
+                                                   BorderColor="#D4A574"
+                                                   HorizontalOptions="FillAndExpand"
+                                                   WidthRequest="300"
+                                                   MaximumHeightRequest="200">
+                                                <ScrollView>
+                                                    <FlexLayout BindableLayout.ItemsSource="{Binding SelectedProduct.MediumAddons}" 
+                                                                Wrap="Wrap"
+                                                                JustifyContent="Start"
+                                                                AlignItems="Start"
+                                                                Direction="Row">
+                                                        <BindableLayout.EmptyViewTemplate>
+                                                            <DataTemplate>
+                                                                <Label Text="No add-ons available" 
+                                                                       TextColor="Gray" 
+                                                                       FontSize="12" 
+                                                                       HorizontalTextAlignment="Center"/>
+                                                            </DataTemplate>
+                                                        </BindableLayout.EmptyViewTemplate>
+                                                        <BindableLayout.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Frame Padding="3" Margin="3" BackgroundColor="White" CornerRadius="6" HasShadow="False" BorderColor="#E0E0E0" WidthRequest="135" HeightRequest="65">
+                                                                    <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                                                                        <!-- Top Row: Checkbox and Name -->
+                                                                        <StackLayout Grid.Row="0" Orientation="Horizontal" Spacing="4">
+                                                                            <CheckBox IsChecked="{Binding IsSelected}"
+                                                                                     Color="#2B2B2B"
+                                                                                     BackgroundColor="Transparent"
+                                                                                     WidthRequest="16"
+                                                                                     HeightRequest="16"
+                                                                                     VerticalOptions="Center" />
+                                                                            <Label Text="{Binding itemName}" 
+                                                                                   TextColor="Black" 
+                                                                                   FontSize="11" 
+                                                                                   FontAttributes="Bold"
+                                                                                   LineBreakMode="TailTruncation"
+                                                                                   VerticalOptions="Center"
+                                                                                   HorizontalOptions="StartAndExpand" />
+                                                                        </StackLayout>
+                                                                        <!-- Bottom Row: Controls and Price -->
+                                                                        <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="3">
+                                                                            <!-- Decrease Button -->
+                                                                            <Frame Grid.Column="0" 
+                                                                                   BackgroundColor="#C5AD98" 
+                                                                                   CornerRadius="5" 
+                                                                                   Padding="3" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="20"
+                                                                                   HeightRequest="20">
+                                                                                <Frame.GestureRecognizers>
+                                                                                    <TapGestureRecognizer Command="{Binding DecreaseAddonQtyCommand}" />
+                                                                                </Frame.GestureRecognizers>
+                                                                                <Label Text="−" 
+                                                                                       TextColor="White" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Quantity Display -->
+                                                                            <Frame Grid.Column="1" 
+                                                                                   BackgroundColor="#E7E3DE" 
+                                                                                   CornerRadius="5"
+                                                                                   Padding="4,2" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="24"
+                                                                                   HeightRequest="20">
+                                                                                <Label Text="{Binding AddonQuantity}" 
+                                                                                       TextColor="Black" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Increase Button -->
+                                                                            <Frame Grid.Column="2" 
+                                                                                   BackgroundColor="#C5AD98" 
+                                                                                   CornerRadius="5" 
+                                                                                   Padding="3" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="20"
+                                                                                   HeightRequest="20">
+                                                                                <Frame.GestureRecognizers>
+                                                                                    <TapGestureRecognizer Command="{Binding IncreaseAddonQtyCommand}" />
+                                                                                </Frame.GestureRecognizers>
+                                                                                <Label Text="+" 
+                                                                                       TextColor="White" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Price -->
+                                                                            <Label Grid.Column="4" 
+                                                                                   Text="{Binding AddonTotalPrice, StringFormat='₱{0:F0}'}" 
+                                                                                   TextColor="#666" 
+                                                                                   FontSize="10"
+                                                                                   FontAttributes="Bold"
+                                                                                   VerticalOptions="Center"
+                                                                                   HorizontalOptions="End" />
+                                                                        </Grid>
+                                                                    </Grid>
+                                                                </Frame>
+                                                            </DataTemplate>
+                                                        </BindableLayout.ItemTemplate>
+                                                    </FlexLayout>
+                                                </ScrollView>
+                                            </Frame>
+                                        </VerticalStackLayout>
+
                                         <!-- Large Size -->
-                                        <Label Text="Large:" TextColor="Black" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" FontSize="14" Margin="0,0,12,0" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
-                                        <Frame Grid.Row="2" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                        <Label Text="Large:" TextColor="Black" Grid.Row="6" Grid.Column="0" VerticalOptions="Center" FontSize="14" Margin="0,0,12,0" IsVisible="{Binding IsLargeSizeVisibleInCart}"/>
+                                        <Frame Grid.Row="6" Grid.Column="1" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsLargeSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding DecreaseLargeQtyCommand}"/>
                                             </Frame.GestureRecognizers>
@@ -570,7 +718,7 @@
                                                 </Label.GestureRecognizers>
                                             </Label>
                                         </Frame>
-                                        <Frame Grid.Row="2" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="0" HasShadow="False" HeightRequest="40" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                        <Frame Grid.Row="6" Grid.Column="2" BackgroundColor="#E7E3DE" Padding="0" HasShadow="False" HeightRequest="40" IsVisible="{Binding IsLargeSizeVisibleInCart}">
                                             <Entry Text="{Binding SelectedProduct.LargeQuantity, Mode=TwoWay, StringFormat='{0}'}" 
                                                    TextColor="#000000" 
                                                    FontSize="12" 
@@ -585,7 +733,7 @@
                                                    Placeholder="0"
                                                    PlaceholderColor="#666666"/>
                                         </Frame>
-                                        <Frame Grid.Row="2" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                        <Frame Grid.Row="6" Grid.Column="3" BackgroundColor="#C5AD98" CornerRadius="10" Padding="0" HasShadow="False" WidthRequest="32" HeightRequest="32" IsVisible="{Binding IsLargeSizeVisibleInCart}">
                                             <Frame.GestureRecognizers>
                                                 <TapGestureRecognizer Command="{Binding IncreaseLargeQtyCommand}"/>
                                             </Frame.GestureRecognizers>
@@ -595,6 +743,133 @@
                                                 </Label.GestureRecognizers>
                                             </Label>
                                         </Frame>
+                                        
+                                        <!-- Large Addons Dropdown -->
+                                        <VerticalStackLayout Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4" Spacing="3" Margin="0,2,0,0" IsVisible="{Binding IsLargeSizeVisibleInCart}">
+                                            <Label Text="Add-ons ▼" 
+                                                   TextColor="#5B4F45" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold"
+                                                   VerticalOptions="Start"
+                                                   HorizontalOptions="Start"
+                                                   HeightRequest="20">
+                                                <Label.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding ToggleLargeAddonsDropdownCommand}"/>
+                                                </Label.GestureRecognizers>
+                                            </Label>
+                                            <Frame IsVisible="{Binding SelectedProduct.IsLargeAddonsDropdownVisible}" 
+                                                   BackgroundColor="#F5E6D8" 
+                                                   CornerRadius="10" 
+                                                   Padding="6" 
+                                                   HasShadow="True"
+                                                   BorderColor="#D4A574"
+                                                   HorizontalOptions="FillAndExpand"
+                                                   WidthRequest="300"
+                                                   MaximumHeightRequest="200">
+                                                <ScrollView>
+                                                    <FlexLayout BindableLayout.ItemsSource="{Binding SelectedProduct.LargeAddons}" 
+                                                                Wrap="Wrap"
+                                                                JustifyContent="Start"
+                                                                AlignItems="Start"
+                                                                Direction="Row">
+                                                        <BindableLayout.EmptyViewTemplate>
+                                                            <DataTemplate>
+                                                                <Label Text="No add-ons available" 
+                                                                       TextColor="Gray" 
+                                                                       FontSize="12" 
+                                                                       HorizontalTextAlignment="Center"/>
+                                                            </DataTemplate>
+                                                        </BindableLayout.EmptyViewTemplate>
+                                                        <BindableLayout.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Frame Padding="3" Margin="3" BackgroundColor="White" CornerRadius="6" HasShadow="False" BorderColor="#E0E0E0" WidthRequest="135" HeightRequest="65">
+                                                                    <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                                                                        <!-- Top Row: Checkbox and Name -->
+                                                                        <StackLayout Grid.Row="0" Orientation="Horizontal" Spacing="4">
+                                                                            <CheckBox IsChecked="{Binding IsSelected}"
+                                                                                     Color="#2B2B2B"
+                                                                                     BackgroundColor="Transparent"
+                                                                                     WidthRequest="16"
+                                                                                     HeightRequest="16"
+                                                                                     VerticalOptions="Center" />
+                                                                            <Label Text="{Binding itemName}" 
+                                                                                   TextColor="Black" 
+                                                                                   FontSize="11" 
+                                                                                   FontAttributes="Bold"
+                                                                                   LineBreakMode="TailTruncation"
+                                                                                   VerticalOptions="Center"
+                                                                                   HorizontalOptions="StartAndExpand" />
+                                                                        </StackLayout>
+                                                                        <!-- Bottom Row: Controls and Price -->
+                                                                        <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="3">
+                                                                            <!-- Decrease Button -->
+                                                                            <Frame Grid.Column="0" 
+                                                                                   BackgroundColor="#C5AD98" 
+                                                                                   CornerRadius="5" 
+                                                                                   Padding="3" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="20"
+                                                                                   HeightRequest="20">
+                                                                                <Frame.GestureRecognizers>
+                                                                                    <TapGestureRecognizer Command="{Binding DecreaseAddonQtyCommand}" />
+                                                                                </Frame.GestureRecognizers>
+                                                                                <Label Text="−" 
+                                                                                       TextColor="White" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Quantity Display -->
+                                                                            <Frame Grid.Column="1" 
+                                                                                   BackgroundColor="#E7E3DE" 
+                                                                                   CornerRadius="5"
+                                                                                   Padding="4,2" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="24"
+                                                                                   HeightRequest="20">
+                                                                                <Label Text="{Binding AddonQuantity}" 
+                                                                                       TextColor="Black" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Increase Button -->
+                                                                            <Frame Grid.Column="2" 
+                                                                                   BackgroundColor="#C5AD98" 
+                                                                                   CornerRadius="5" 
+                                                                                   Padding="3" 
+                                                                                   HasShadow="False"
+                                                                                   WidthRequest="20"
+                                                                                   HeightRequest="20">
+                                                                                <Frame.GestureRecognizers>
+                                                                                    <TapGestureRecognizer Command="{Binding IncreaseAddonQtyCommand}" />
+                                                                                </Frame.GestureRecognizers>
+                                                                                <Label Text="+" 
+                                                                                       TextColor="White" 
+                                                                                       FontSize="10" 
+                                                                                       FontAttributes="Bold"
+                                                                                       HorizontalOptions="Center" 
+                                                                                       VerticalOptions="Center" />
+                                                                            </Frame>
+                                                                            <!-- Price -->
+                                                                            <Label Grid.Column="4" 
+                                                                                   Text="{Binding AddonTotalPrice, StringFormat='₱{0:F0}'}" 
+                                                                                   TextColor="#666" 
+                                                                                   FontSize="10"
+                                                                                   FontAttributes="Bold"
+                                                                                   VerticalOptions="Center"
+                                                                                   HorizontalOptions="End" />
+                                                                        </Grid>
+                                                                    </Grid>
+                                                                </Frame>
+                                                            </DataTemplate>
+                                                        </BindableLayout.ItemTemplate>
+                                                    </FlexLayout>
+                                                </ScrollView>
+                                            </Frame>
+                                        </VerticalStackLayout>
                                     </Grid>
 
 

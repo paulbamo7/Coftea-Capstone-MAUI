@@ -534,6 +534,71 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
         
         [RelayCommand]
+        private async Task RetractItem(EditablePurchaseOrderItem item)
+        {
+            try
+            {
+                if (!item.IsAccepted)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Cannot Retract",
+                        $"This item is not accepted. Only accepted items can be retracted.",
+                        "OK");
+                    return;
+                }
+
+                var confirm = await Application.Current.MainPage.DisplayAlert(
+                    "Retract Item",
+                    $"Retract {item.ItemName}?\n\nThis will remove the item from inventory that was previously added when accepting this purchase order item.",
+                    "Retract", "Cancel");
+
+                if (!confirm) return;
+
+                System.Diagnostics.Debug.WriteLine($"🔙 Retracting item: {item.ItemName}");
+
+                var currentUser = App.CurrentUser?.Email ?? "Admin";
+                
+                // Retract this specific item - remove from inventory
+                var success = await _database.RetractPurchaseOrderItemAsync(
+                    item.PurchaseOrderId,
+                    item.InventoryItemId,
+                    currentUser);
+
+                if (success)
+                {
+                    item.ItemStatus = "Pending";
+                    item.ApprovedQuantity = item.RequestedQuantity; // Reset to requested quantity
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Retracted",
+                        $"{item.ItemName} has been retracted and removed from inventory.",
+                        "OK");
+
+                    // Reload orders to refresh the display
+                    await LoadPendingOrders();
+
+                    // Refresh inventory if the ViewModel is available
+                    var app = (App)Application.Current;
+                    if (app?.InventoryVM != null)
+                    {
+                        await app.InventoryVM.ForceReloadDataAsync();
+                    }
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Error",
+                        "Failed to retract item. Please try again.",
+                        "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error retracting item: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to retract item: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
         private async Task CancelItem(EditablePurchaseOrderItem item)
         {
             try

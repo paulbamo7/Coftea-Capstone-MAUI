@@ -68,38 +68,91 @@ namespace Coftea_Capstone.ViewModel.Controls
                         decimal addonTotalPrice = 0;
                         var addonNames = new ObservableCollection<string>();
                         
-                        if (it.InventoryItems != null)
+                        // Collect addons from Small, Medium, Large collections and legacy InventoryItems
+                        var allSelectedAddons = new List<(InventoryPageModel addon, string size)>();
+                        
+                        // Add Small addons
+                        if (it.SmallAddons != null && it.SmallQuantity > 0)
                         {
-                            System.Diagnostics.Debug.WriteLine($"🛒 Processing product: {it.ProductName}, InventoryItems count: {it.InventoryItems.Count}");
-                            foreach (var addon in it.InventoryItems)
+                            foreach (var addon in it.SmallAddons)
                             {
-                                System.Diagnostics.Debug.WriteLine($"🛒 Addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
-                            }
-                            
-                            var selectedAddons = it.InventoryItems.Where(a => a.IsSelected && a.AddonQuantity > 0).ToList();
-                            System.Diagnostics.Debug.WriteLine($"🛒 Selected addons count: {selectedAddons.Count}");
-                            
-                            // Also check for any addons with quantity > 0 regardless of IsSelected
-                            var addonsWithQuantity = it.InventoryItems.Where(a => a.AddonQuantity > 0).ToList();
-                            System.Diagnostics.Debug.WriteLine($"🛒 Addons with quantity > 0: {addonsWithQuantity.Count}");
-                            foreach (var addon in addonsWithQuantity)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"🛒 Addon with quantity: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
-                            }
-                            
-                            foreach (var addon in selectedAddons)
-                            {
-                                var addonPrice = addon.AddonTotalPrice;
-                                addonTotalPrice += addonPrice;
-                                var addonName = $"{addon.itemName} (x{addon.AddonQuantity})";
-                                addonNames.Add(addonName);
-                                System.Diagnostics.Debug.WriteLine($"🛒 Selected Addon: {addon.itemName}, Quantity: {addon.AddonQuantity}, Unit Price: {addon.AddonPrice}, Total: {addonPrice}");
-                                System.Diagnostics.Debug.WriteLine($"🛒 Addon name added to collection: '{addonName}'");
+                                if (addon != null && addon.IsSelected && addon.AddonQuantity > 0)
+                                {
+                                    allSelectedAddons.Add((addon, "Small"));
+                                    System.Diagnostics.Debug.WriteLine($"🛒 Small addon found: {addon.itemName}, Quantity: {addon.AddonQuantity}");
+                                }
                             }
                         }
-                        else
+                        
+                        // Add Medium addons
+                        if (it.MediumAddons != null && it.MediumQuantity > 0)
                         {
-                            System.Diagnostics.Debug.WriteLine($"🛒 Product {it.ProductName} has no InventoryItems");
+                            foreach (var addon in it.MediumAddons)
+                            {
+                                if (addon != null && addon.IsSelected && addon.AddonQuantity > 0)
+                                {
+                                    allSelectedAddons.Add((addon, "Medium"));
+                                    System.Diagnostics.Debug.WriteLine($"🛒 Medium addon found: {addon.itemName}, Quantity: {addon.AddonQuantity}");
+                                }
+                            }
+                        }
+                        
+                        // Add Large addons
+                        if (it.LargeAddons != null && it.LargeQuantity > 0)
+                        {
+                            foreach (var addon in it.LargeAddons)
+                            {
+                                if (addon != null && addon.IsSelected && addon.AddonQuantity > 0)
+                                {
+                                    allSelectedAddons.Add((addon, "Large"));
+                                    System.Diagnostics.Debug.WriteLine($"🛒 Large addon found: {addon.itemName}, Quantity: {addon.AddonQuantity}");
+                                }
+                            }
+                        }
+                        
+                        // Legacy: Add old InventoryItems if any (for backward compatibility)
+                        if (it.InventoryItems != null)
+                        {
+                            foreach (var addon in it.InventoryItems)
+                            {
+                                if (addon != null && addon.IsSelected && addon.AddonQuantity > 0)
+                                {
+                                    allSelectedAddons.Add((addon, ""));
+                                    System.Diagnostics.Debug.WriteLine($"🛒 Legacy addon found: {addon.itemName}, Quantity: {addon.AddonQuantity}");
+                                }
+                            }
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"🛒 Total selected addons: {allSelectedAddons.Count}");
+                        
+                        foreach (var (addon, size) in allSelectedAddons)
+                        {
+                            // Calculate price based on size quantity
+                            decimal addonPriceForSize = addon.AddonPrice * addon.AddonQuantity;
+                            
+                            // Multiply by size quantity if applicable
+                            if (size == "Small" && it.SmallQuantity > 0)
+                            {
+                                addonPriceForSize *= it.SmallQuantity;
+                            }
+                            else if (size == "Medium" && it.MediumQuantity > 0)
+                            {
+                                addonPriceForSize *= it.MediumQuantity;
+                            }
+                            else if (size == "Large" && it.LargeQuantity > 0)
+                            {
+                                addonPriceForSize *= it.LargeQuantity;
+                            }
+                            
+                            addonTotalPrice += addonPriceForSize;
+                            
+                            // Format addon name with size prefix
+                            string addonName = string.IsNullOrEmpty(size)
+                                ? $"{addon.itemName} (x{addon.AddonQuantity})"
+                                : $"{size}: {addon.itemName} (x{addon.AddonQuantity})";
+                            
+                            addonNames.Add(addonName);
+                            System.Diagnostics.Debug.WriteLine($"🛒 Selected Addon: {addonName}, Quantity: {addon.AddonQuantity}, Unit Price: {addon.AddonPrice}, Total: {addonPriceForSize}");
                         }
                         
                         System.Diagnostics.Debug.WriteLine($"Product: {it.ProductName}, Addon Total: {addonTotalPrice}");
@@ -124,10 +177,69 @@ namespace Coftea_Capstone.ViewModel.Controls
                         };
 
                         // Carry addon items with quantities to checkout for proper deductions
+                        // Copy Small size addons (only selected ones)
+                        if (it.SmallAddons != null && it.SmallQuantity > 0)
+                        {
+                            foreach (var addon in it.SmallAddons)
+                            {
+                                if (addon == null || !addon.IsSelected) continue;
+                                cartItem.SmallAddons.Add(new InventoryPageModel
+                                {
+                                    itemID = addon.itemID,
+                                    itemName = addon.itemName,
+                                    unitOfMeasurement = addon.unitOfMeasurement,
+                                    AddonQuantity = addon.AddonQuantity,
+                                    IsSelected = addon.IsSelected,
+                                    AddonPrice = addon.AddonPrice,
+                                    AddonUnit = addon.AddonUnit
+                                });
+                            }
+                        }
+                        
+                        // Copy Medium size addons (only selected ones)
+                        if (it.MediumAddons != null && it.MediumQuantity > 0)
+                        {
+                            foreach (var addon in it.MediumAddons)
+                            {
+                                if (addon == null || !addon.IsSelected) continue;
+                                cartItem.MediumAddons.Add(new InventoryPageModel
+                                {
+                                    itemID = addon.itemID,
+                                    itemName = addon.itemName,
+                                    unitOfMeasurement = addon.unitOfMeasurement,
+                                    AddonQuantity = addon.AddonQuantity,
+                                    IsSelected = addon.IsSelected,
+                                    AddonPrice = addon.AddonPrice,
+                                    AddonUnit = addon.AddonUnit
+                                });
+                            }
+                        }
+                        
+                        // Copy Large size addons (only selected ones)
+                        if (it.LargeAddons != null && it.LargeQuantity > 0)
+                        {
+                            foreach (var addon in it.LargeAddons)
+                            {
+                                if (addon == null || !addon.IsSelected) continue;
+                                cartItem.LargeAddons.Add(new InventoryPageModel
+                                {
+                                    itemID = addon.itemID,
+                                    itemName = addon.itemName,
+                                    unitOfMeasurement = addon.unitOfMeasurement,
+                                    AddonQuantity = addon.AddonQuantity,
+                                    IsSelected = addon.IsSelected,
+                                    AddonPrice = addon.AddonPrice,
+                                    AddonUnit = addon.AddonUnit
+                                });
+                            }
+                        }
+                        
+                        // Legacy: Copy old InventoryItems if any (for backward compatibility)
                         if (it.InventoryItems != null)
                         {
                             foreach (var addon in it.InventoryItems)
                             {
+                                if (addon == null || !addon.IsSelected) continue;
                                 cartItem.InventoryItems.Add(new InventoryPageModel
                                 {
                                     itemID = addon.itemID,

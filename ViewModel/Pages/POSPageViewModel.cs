@@ -204,14 +204,100 @@ namespace Coftea_Capstone.ViewModel
                     SmallQuantity = product.SmallQuantity,
                     MediumQuantity = product.MediumQuantity,
                     LargeQuantity = product.LargeQuantity,
-                    InventoryItems = new ObservableCollection<InventoryPageModel>() // Create new collection
+                    InventoryItems = new ObservableCollection<InventoryPageModel>(), // Create new collection
+                    SmallAddons = new ObservableCollection<InventoryPageModel>(),
+                    MediumAddons = new ObservableCollection<InventoryPageModel>(),
+                    LargeAddons = new ObservableCollection<InventoryPageModel>()
                 };
 
+                // Copy Small size addons (only selected ones)
+                if (product.SmallAddons != null && product.SmallQuantity > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🛒 Copying {product.SmallAddons.Count} small addons...");
+                    foreach (var addon in product.SmallAddons)
+                    {
+                        if (addon == null || !addon.IsSelected) continue;
+                        var addonCopy = new InventoryPageModel
+                        {
+                            itemID = addon.itemID,
+                            itemName = addon.itemName,
+                            itemCategory = addon.itemCategory,
+                            itemDescription = addon.itemDescription,
+                            itemQuantity = addon.itemQuantity,
+                            unitOfMeasurement = addon.unitOfMeasurement,
+                            minimumQuantity = addon.minimumQuantity,
+                            ImageSet = addon.ImageSet,
+                            IsSelected = addon.IsSelected,
+                            AddonQuantity = addon.AddonQuantity,
+                            AddonPrice = addon.AddonPrice,
+                            AddonUnit = addon.AddonUnit
+                        };
+                        copy.SmallAddons.Add(addonCopy);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Copied small addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                    }
+                }
+
+                // Copy Medium size addons (only selected ones)
+                if (product.MediumAddons != null && product.MediumQuantity > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🛒 Copying {product.MediumAddons.Count} medium addons...");
+                    foreach (var addon in product.MediumAddons)
+                    {
+                        if (addon == null || !addon.IsSelected) continue;
+                        var addonCopy = new InventoryPageModel
+                        {
+                            itemID = addon.itemID,
+                            itemName = addon.itemName,
+                            itemCategory = addon.itemCategory,
+                            itemDescription = addon.itemDescription,
+                            itemQuantity = addon.itemQuantity,
+                            unitOfMeasurement = addon.unitOfMeasurement,
+                            minimumQuantity = addon.minimumQuantity,
+                            ImageSet = addon.ImageSet,
+                            IsSelected = addon.IsSelected,
+                            AddonQuantity = addon.AddonQuantity,
+                            AddonPrice = addon.AddonPrice,
+                            AddonUnit = addon.AddonUnit
+                        };
+                        copy.MediumAddons.Add(addonCopy);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Copied medium addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                    }
+                }
+                
+                // Copy Large size addons (only selected ones)
+                if (product.LargeAddons != null && product.LargeQuantity > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🛒 Copying {product.LargeAddons.Count} large addons...");
+                    foreach (var addon in product.LargeAddons)
+                    {
+                        if (addon == null || !addon.IsSelected) continue;
+                        var addonCopy = new InventoryPageModel
+                        {
+                            itemID = addon.itemID,
+                            itemName = addon.itemName,
+                            itemCategory = addon.itemCategory,
+                            itemDescription = addon.itemDescription,
+                            itemQuantity = addon.itemQuantity,
+                            unitOfMeasurement = addon.unitOfMeasurement,
+                            minimumQuantity = addon.minimumQuantity,
+                            ImageSet = addon.ImageSet,
+                            IsSelected = addon.IsSelected,
+                            AddonQuantity = addon.AddonQuantity,
+                            AddonPrice = addon.AddonPrice,
+                            AddonUnit = addon.AddonUnit
+                        };
+                        copy.LargeAddons.Add(addonCopy);
+                        System.Diagnostics.Debug.WriteLine($"🔧 Copied large addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                    }
+                }
+
+                // Legacy: Copy old InventoryItems if any (for backward compatibility)
                 if (product.InventoryItems != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"🛒 Copying {product.InventoryItems.Count} addons...");
+                    System.Diagnostics.Debug.WriteLine($"🛒 Copying {product.InventoryItems.Count} legacy addons...");
                     foreach (var addon in product.InventoryItems)
                     {
+                        if (addon == null || !addon.IsSelected) continue;
                         var addonCopy = new InventoryPageModel
                         {
                             itemID = addon.itemID,
@@ -230,7 +316,7 @@ namespace Coftea_Capstone.ViewModel
                             InputUnit = addon.InputUnit
                         };
                         copy.InventoryItems.Add(addonCopy);
-                        System.Diagnostics.Debug.WriteLine($"🔧 Copied addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
+                        System.Diagnostics.Debug.WriteLine($"🔧 Copied legacy addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
                     }
                 }
                 
@@ -246,7 +332,40 @@ namespace Coftea_Capstone.ViewModel
                 product.MediumQuantity = 0;
                 product.LargeQuantity = 0;
 
+                // Close addon dropdowns
+                product.IsSmallAddonsDropdownVisible = false;
+                product.IsMediumAddonsDropdownVisible = false;
+                product.IsLargeAddonsDropdownVisible = false;
+                
                 // Reset addons to 0
+                if (product.SmallAddons != null)
+                {
+                    foreach (var addon in product.SmallAddons)
+                    {
+                        addon.AddonQuantity = 0;
+                        addon.IsSelected = false;
+                    }
+                }
+                
+                if (product.MediumAddons != null)
+                {
+                    foreach (var addon in product.MediumAddons)
+                    {
+                        addon.AddonQuantity = 0;
+                        addon.IsSelected = false;
+                    }
+                }
+                
+                if (product.LargeAddons != null)
+                {
+                    foreach (var addon in product.LargeAddons)
+                    {
+                        addon.AddonQuantity = 0;
+                        addon.IsSelected = false;
+                    }
+                }
+                
+                // Legacy: Reset old InventoryItems
                 if (product.InventoryItems != null)
                 {
                     foreach (var addon in product.InventoryItems)
@@ -480,6 +599,9 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"🔧 Database returned {addons?.Count ?? 0} addons");
                 
                 SelectedProduct.InventoryItems.Clear();
+                SelectedProduct.SmallAddons.Clear();
+                SelectedProduct.MediumAddons.Clear();
+                SelectedProduct.LargeAddons.Clear();
                 
                 if (addons != null && addons.Any())
                 {
@@ -491,7 +613,62 @@ namespace Coftea_Capstone.ViewModel
                         // Keep the AddonPrice from database
                         a.AddonUnit = a.DefaultUnit;
                         System.Diagnostics.Debug.WriteLine($"🔧 Loaded addon: {a.itemName}, IsSelected: {a.IsSelected}, AddonQuantity: {a.AddonQuantity}, AddonPrice: {a.AddonPrice}");
+                        
+                        // Add to legacy InventoryItems for backward compatibility
                         SelectedProduct.InventoryItems.Add(a);
+                        
+                        // Also add to Small, Medium, and Large addon collections (for size-specific selection)
+                        var smallAddonCopy = new InventoryPageModel
+                        {
+                            itemID = a.itemID,
+                            itemName = a.itemName,
+                            itemCategory = a.itemCategory,
+                            itemDescription = a.itemDescription,
+                            itemQuantity = a.itemQuantity,
+                            unitOfMeasurement = a.unitOfMeasurement,
+                            minimumQuantity = a.minimumQuantity,
+                            ImageSet = a.ImageSet,
+                            IsSelected = false,
+                            AddonQuantity = 0,
+                            AddonPrice = a.AddonPrice,
+                            AddonUnit = a.AddonUnit
+                        };
+                        
+                        var mediumAddonCopy = new InventoryPageModel
+                        {
+                            itemID = a.itemID,
+                            itemName = a.itemName,
+                            itemCategory = a.itemCategory,
+                            itemDescription = a.itemDescription,
+                            itemQuantity = a.itemQuantity,
+                            unitOfMeasurement = a.unitOfMeasurement,
+                            minimumQuantity = a.minimumQuantity,
+                            ImageSet = a.ImageSet,
+                            IsSelected = false,
+                            AddonQuantity = 0,
+                            AddonPrice = a.AddonPrice,
+                            AddonUnit = a.AddonUnit
+                        };
+                        
+                        var largeAddonCopy = new InventoryPageModel
+                        {
+                            itemID = a.itemID,
+                            itemName = a.itemName,
+                            itemCategory = a.itemCategory,
+                            itemDescription = a.itemDescription,
+                            itemQuantity = a.itemQuantity,
+                            unitOfMeasurement = a.unitOfMeasurement,
+                            minimumQuantity = a.minimumQuantity,
+                            ImageSet = a.ImageSet,
+                            IsSelected = false,
+                            AddonQuantity = 0,
+                            AddonPrice = a.AddonPrice,
+                            AddonUnit = a.AddonUnit
+                        };
+                        
+                        SelectedProduct.SmallAddons.Add(smallAddonCopy);
+                        SelectedProduct.MediumAddons.Add(mediumAddonCopy);
+                        SelectedProduct.LargeAddons.Add(largeAddonCopy);
                     }
                     System.Diagnostics.Debug.WriteLine($"🔧 Successfully loaded {addons.Count} addons for product: {SelectedProduct.ProductName}");
                 }
@@ -503,12 +680,39 @@ namespace Coftea_Capstone.ViewModel
                 // Force UI update
                 OnPropertyChanged(nameof(SelectedProduct));
                 OnPropertyChanged(nameof(SelectedProduct.InventoryItems));
+                OnPropertyChanged(nameof(SelectedProduct.SmallAddons));
+                OnPropertyChanged(nameof(SelectedProduct.MediumAddons));
+                OnPropertyChanged(nameof(SelectedProduct.LargeAddons));
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Failed to load addons: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
             }
+        }
+        
+        [RelayCommand]
+        private void ToggleSmallAddonsDropdown()
+        {
+            if (SelectedProduct == null) return;
+            SelectedProduct.IsSmallAddonsDropdownVisible = !SelectedProduct.IsSmallAddonsDropdownVisible;
+            System.Diagnostics.Debug.WriteLine($"🔧 Small addons dropdown toggled: {SelectedProduct.IsSmallAddonsDropdownVisible}");
+        }
+        
+        [RelayCommand]
+        private void ToggleMediumAddonsDropdown()
+        {
+            if (SelectedProduct == null) return;
+            SelectedProduct.IsMediumAddonsDropdownVisible = !SelectedProduct.IsMediumAddonsDropdownVisible;
+            System.Diagnostics.Debug.WriteLine($"🔧 Medium addons dropdown toggled: {SelectedProduct.IsMediumAddonsDropdownVisible}");
+        }
+        
+        [RelayCommand]
+        private void ToggleLargeAddonsDropdown()
+        {
+            if (SelectedProduct == null) return;
+            SelectedProduct.IsLargeAddonsDropdownVisible = !SelectedProduct.IsLargeAddonsDropdownVisible;
+            System.Diagnostics.Debug.WriteLine($"🔧 Large addons dropdown toggled: {SelectedProduct.IsLargeAddonsDropdownVisible}");
         }
 
         

@@ -373,6 +373,21 @@
                                                                                     Command="{Binding BindingContext.CancelItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                     CommandParameter="{Binding .}"
                                                                                     IsVisible="{Binding IsPending}"/>
+                                                                            
+                                                                            <!-- Retract Button (for accepted items) -->
+                                                                            <Button Grid.Column="1"
+                                                                                    Text="RETRACT"
+                                                                                    Padding="0"
+                                                                                    BackgroundColor="#FF9800"
+                                                                                    TextColor="White"
+                                                                                    CornerRadius="8"
+                                                                                    HeightRequest="35"
+                                                                                    WidthRequest="90"
+                                                                                    FontSize="12"
+                                                                                    FontAttributes="Bold"
+                                                                                    Command="{Binding BindingContext.RetractItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                                                                    CommandParameter="{Binding .}"
+                                                                                    IsVisible="{Binding IsAccepted}"/>
                                                                         </Grid>
                                                                     </Grid>
                                                                 </Frame>

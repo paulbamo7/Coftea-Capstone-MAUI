@@ -7,6 +7,7 @@ using Microsoft.Maui.Controls;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Models.Service;
+using System.Collections.ObjectModel;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -733,23 +734,32 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var addonLinks = await database.GetProductAddonsAsync(product.ProductID);
                 System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Found {addonLinks?.Count ?? 0} addon links for product {product.ProductName}");
                 
-                if (addonLinks != null && addonLinks.Count > 0 && cartItem.InventoryItems != null)
+                // Helper function to process addons for a specific size
+                void ProcessAddonsForSize(string size, ObservableCollection<InventoryPageModel> sizeAddons, int sizeQuantity)
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Cart has {cartItem.InventoryItems.Count} inventory items");
-                    
-                    foreach (var linkedAddon in addonLinks)
+                    if (sizeQuantity <= 0 || sizeAddons == null || sizeAddons.Count == 0)
                     {
-                        System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Processing linked addon: {linkedAddon.itemName} (ID: {linkedAddon.itemID})");
+                        System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Skipping {size} size - quantity is {sizeQuantity} or no addons");
+                        return;
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Processing {size} addons for {sizeQuantity} drink(s)");
+                    
+                    foreach (var cartAddon in sizeAddons)
+                    {
+                        if (cartAddon == null || !cartAddon.IsSelected) continue;
                         
-                        // Find this addon in the cart with user-selected quantity
-                        var cartAddon = cartItem.InventoryItems.FirstOrDefault(ai => ai.itemID == linkedAddon.itemID);
-                        if (cartAddon == null)
+                        System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: Processing {size} addon: {cartAddon.itemName} (ID: {cartAddon.itemID})");
+                        
+                        // Find the addon link to get per-serving amount/unit
+                        var linkedAddon = addonLinks?.FirstOrDefault(al => al.itemID == cartAddon.itemID);
+                        if (linkedAddon == null)
                         {
-                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon not found in cart inventory items");
+                            System.Diagnostics.Debug.WriteLine($"   ⚠️ Addon link not found for {cartAddon.itemName}");
                             continue;
                         }
                         
-                        System.Diagnostics.Debug.WriteLine($"   ✅ Found in cart: IsSelected={cartAddon.IsSelected}, AddonQuantity={cartAddon.AddonQuantity}");
+                        System.Diagnostics.Debug.WriteLine($"   ✅ Found addon link: IsSelected={cartAddon.IsSelected}, AddonQuantity={cartAddon.AddonQuantity}");
                         
                         // Treat checked addons with no explicit quantity as 1
                         if (cartAddon.IsSelected && cartAddon.AddonQuantity <= 0)
@@ -763,25 +773,25 @@ namespace Coftea_Capstone.ViewModel.Controls
                             continue;
                         }
 
-                        // Use the amount/unit from product_addons table (stored in InputAmountMedium/InputUnitMedium)
-                        // InputAmountMedium is set from the 'amount' column in product_addons
-                        // InputUnitMedium is set from the 'unit' column in product_addons
-                        var perServingAmount = linkedAddon.InputAmountMedium > 0
-                            ? linkedAddon.InputAmountMedium
-                            : (linkedAddon.InputAmount > 0 
-                                ? linkedAddon.InputAmount 
-                                : (linkedAddon.InputAmountSmall > 0 ? linkedAddon.InputAmountSmall : 0));
+                        // Use the amount/unit from product_addons table
+                        // For Medium and Large, use the configured amount/unit (stored in InputAmountMedium/InputUnitMedium typically)
+                        var perServingAmount = size switch
+                        {
+                            "Small" => (linkedAddon.InputAmountSmall > 0) ? linkedAddon.InputAmountSmall : (linkedAddon.InputAmount > 0 ? linkedAddon.InputAmount : 0),
+                            "Medium" => (linkedAddon.InputAmountMedium > 0) ? linkedAddon.InputAmountMedium : (linkedAddon.InputAmount > 0 ? linkedAddon.InputAmount : 0),
+                            "Large" => (linkedAddon.InputAmountLarge > 0) ? linkedAddon.InputAmountLarge : (linkedAddon.InputAmount > 0 ? linkedAddon.InputAmount : 0),
+                            _ => (linkedAddon.InputAmount > 0 ? linkedAddon.InputAmount : 0)
+                        };
                         
-                        // Use the saved InputUnitMedium from the addon configuration (from product_addons.unit)
-                        var perServingUnit = !string.IsNullOrWhiteSpace(linkedAddon.InputUnitMedium)
-                            ? linkedAddon.InputUnitMedium
-                            : (!string.IsNullOrWhiteSpace(linkedAddon.InputUnit)
-                                ? linkedAddon.InputUnit
-                                : (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitSmall)
-                                    ? linkedAddon.InputUnitSmall
-                                    : cartAddon.unitOfMeasurement));
+                        var perServingUnit = size switch
+                        {
+                            "Small" => (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitSmall)) ? linkedAddon.InputUnitSmall : (linkedAddon.InputUnit ?? cartAddon.unitOfMeasurement),
+                            "Medium" => (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitMedium)) ? linkedAddon.InputUnitMedium : (linkedAddon.InputUnit ?? cartAddon.unitOfMeasurement),
+                            "Large" => (!string.IsNullOrWhiteSpace(linkedAddon.InputUnitLarge)) ? linkedAddon.InputUnitLarge : (linkedAddon.InputUnit ?? cartAddon.unitOfMeasurement),
+                            _ => (linkedAddon.InputUnit ?? cartAddon.unitOfMeasurement)
+                        };
 
-                        System.Diagnostics.Debug.WriteLine($"   📊 Per-serving: {perServingAmount} {perServingUnit}");
+                        System.Diagnostics.Debug.WriteLine($"   📊 Per-serving ({size}): {perServingAmount} {perServingUnit}");
 
                         if (perServingAmount <= 0)
                         {
@@ -790,39 +800,79 @@ namespace Coftea_Capstone.ViewModel.Controls
                         }
 
                         // Convert to inventory base unit for deduction
-                        // (Database stores inventory in base units like L, kg, etc.)
                         var inventoryBaseUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
                         var convertedAmount = ConvertUnits(perServingAmount, perServingUnit, inventoryBaseUnit);
 
                         System.Diagnostics.Debug.WriteLine($"   🔄 Converting: {perServingAmount} {perServingUnit} → {convertedAmount} {inventoryBaseUnit}");
 
-                        // Deduct addon based on total quantity ordered across all sizes
-                        // AddonQuantity is per drink, so multiply by total drinks ordered
-                        var totalDrinks = cartItem.SmallQuantity + cartItem.MediumQuantity + cartItem.LargeQuantity;
-                        System.Diagnostics.Debug.WriteLine($"   📦 Total drinks: {totalDrinks}, Addon quantity per drink: {cartAddon.AddonQuantity}");
+                        // Deduct addon ONLY for this specific size
+                        // AddonQuantity is per drink, so multiply by size quantity only
+                        System.Diagnostics.Debug.WriteLine($"   📦 {size} drinks: {sizeQuantity}, Addon quantity per drink: {cartAddon.AddonQuantity}");
                         
-                        if (totalDrinks > 0)
+                        var sizeAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)sizeQuantity;
+                        System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING for {size}: {sizeAddonDeduction} {inventoryBaseUnit} ({convertedAmount} x {cartAddon.AddonQuantity} x {sizeQuantity})");
+                        
+                        // Accumulate addon amounts for the same ingredient
+                        if (deductionsDict.ContainsKey(cartAddon.itemName))
                         {
-                            var totalAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)totalDrinks;
-                            System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING: {totalAddonDeduction} {inventoryBaseUnit} ({convertedAmount} x {cartAddon.AddonQuantity} x {totalDrinks})");
-                            
-                            // Accumulate addon amounts for the same ingredient
-                            if (deductionsDict.ContainsKey(cartAddon.itemName))
-                            {
-                                deductionsDict[cartAddon.itemName] += totalAddonDeduction;
-                                System.Diagnostics.Debug.WriteLine($"   📝 Accumulated total for {cartAddon.itemName}: {deductionsDict[cartAddon.itemName]}");
-                            }
-                            else
-                            {
-                                deductionsDict[cartAddon.itemName] = totalAddonDeduction;
-                                System.Diagnostics.Debug.WriteLine($"   📝 First deduction for {cartAddon.itemName}: {totalAddonDeduction}");
-                            }
+                            deductionsDict[cartAddon.itemName] += sizeAddonDeduction;
+                            System.Diagnostics.Debug.WriteLine($"   📝 Accumulated total for {cartAddon.itemName}: {deductionsDict[cartAddon.itemName]}");
+                        }
+                        else
+                        {
+                            deductionsDict[cartAddon.itemName] = sizeAddonDeduction;
+                            System.Diagnostics.Debug.WriteLine($"   📝 First deduction for {cartAddon.itemName}: {sizeAddonDeduction}");
                         }
                     }
                 }
-                else
+                
+                // Process Small addons separately
+                if (cartItem.SmallAddons != null && cartItem.SmallQuantity > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION: No addons to deduct (addonLinks={addonLinks?.Count ?? 0}, cartItems={cartItem.InventoryItems?.Count ?? 0})");
+                    ProcessAddonsForSize("Small", cartItem.SmallAddons, cartItem.SmallQuantity);
+                }
+                
+                // Process Medium addons separately
+                if (cartItem.MediumAddons != null && cartItem.MediumQuantity > 0)
+                {
+                    ProcessAddonsForSize("Medium", cartItem.MediumAddons, cartItem.MediumQuantity);
+                }
+                
+                // Process Large addons separately
+                if (cartItem.LargeAddons != null && cartItem.LargeQuantity > 0)
+                {
+                    ProcessAddonsForSize("Large", cartItem.LargeAddons, cartItem.LargeQuantity);
+                }
+                
+                // Legacy: Process old InventoryItems if any (for backward compatibility - applies to all sizes)
+                if (addonLinks != null && addonLinks.Count > 0 && cartItem.InventoryItems != null && cartItem.InventoryItems.Count > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧 ADDON DEDUCTION (Legacy): Processing old InventoryItems");
+                    
+                    foreach (var linkedAddon in addonLinks)
+                    {
+                        var cartAddon = cartItem.InventoryItems.FirstOrDefault(ai => ai.itemID == linkedAddon.itemID);
+                        if (cartAddon == null || !cartAddon.IsSelected || cartAddon.AddonQuantity <= 0) continue;
+                        
+                        var perServingAmount = linkedAddon.InputAmount > 0 ? linkedAddon.InputAmount : 0;
+                        var perServingUnit = linkedAddon.InputUnit ?? cartAddon.unitOfMeasurement;
+                        
+                        if (perServingAmount <= 0) continue;
+                        
+                        var inventoryBaseUnit = UnitConversionService.Normalize(cartAddon.unitOfMeasurement);
+                        var convertedAmount = ConvertUnits(perServingAmount, perServingUnit, inventoryBaseUnit);
+                        
+                        // Legacy: multiply by total drinks (old behavior)
+                        var totalDrinks = cartItem.SmallQuantity + cartItem.MediumQuantity + cartItem.LargeQuantity;
+                        if (totalDrinks > 0)
+                        {
+                            var totalAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)totalDrinks;
+                            if (deductionsDict.ContainsKey(cartAddon.itemName))
+                                deductionsDict[cartAddon.itemName] += totalAddonDeduction;
+                            else
+                                deductionsDict[cartAddon.itemName] = totalAddonDeduction;
+                        }
+                    }
                 }
 
                 // Add automatic cups and straws per size (1 per serving)
