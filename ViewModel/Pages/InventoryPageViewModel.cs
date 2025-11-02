@@ -11,6 +11,7 @@ using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Networking;
 using Coftea_Capstone.Services;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -40,6 +41,19 @@ namespace Coftea_Capstone.ViewModel
         {
             _database = new Database(); 
             SettingsPopup = settingsPopup;
+            
+            // Subscribe to inventory change notifications
+            MessagingCenter.Subscribe<AddItemToInventoryViewModel>(this, "InventoryChanged", async (sender) =>
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 Received InventoryChanged message, refreshing inventory...");
+                await ForceReloadDataAsync();
+            });
+            
+            MessagingCenter.Subscribe<EditInventoryPopupViewModel>(this, "InventoryChanged", async (sender) =>
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 Received InventoryChanged message from EditInventory, refreshing inventory...");
+                await ForceReloadDataAsync();
+            });
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup() => ((App)Application.Current).RetryConnectionPopup;
@@ -112,6 +126,8 @@ namespace Coftea_Capstone.ViewModel
 
         public async Task ForceReloadDataAsync() // Force reload data from database 
         {
+            System.Diagnostics.Debug.WriteLine("🔄 ForceReloadDataAsync called - invalidating cache and reloading...");
+            _database.InvalidateInventoryCache(); // Invalidate cache to ensure fresh data
             _hasLoadedData = false; // Reset the flag to show loading
             await LoadDataAsync();
         }

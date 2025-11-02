@@ -31,7 +31,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         private string profileImage = "usericon.png";
 
         [ObservableProperty]
-        private ImageSource profileImageSource = "usericon.png";
+        private ImageSource profileImageSource = ImageSource.FromFile("usericon.png");
 
         [ObservableProperty]
         private bool isLoading = false;

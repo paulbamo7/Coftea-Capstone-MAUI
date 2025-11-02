@@ -528,6 +528,26 @@ namespace Coftea_Capstone.Models
 
             await using var seedCmd = new MySqlCommand(seedSql, conn);
             await seedCmd.ExecuteNonQueryAsync();
+            
+            // Add quantity column to purchase_order_items if it doesn't exist (migration)
+            try
+            {
+                var checkQuantityColumnSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'purchase_order_items' AND COLUMN_NAME = 'quantity';";
+                await using var checkQuantityColumnCmd = new MySqlCommand(checkQuantityColumnSql, conn);
+                var quantityColumnExists = await checkQuantityColumnCmd.ExecuteScalarAsync() != null;
+                
+                if (!quantityColumnExists)
+                {
+                    var addQuantityColumnSql = "ALTER TABLE purchase_order_items ADD COLUMN quantity INT DEFAULT 1;";
+                    await using var addQuantityColumnCmd = new MySqlCommand(addQuantityColumnSql, conn);
+                    await addQuantityColumnCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Added quantity column to purchase_order_items table");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error checking/adding quantity column: {ex.Message}");
+            }
         }
 
         private static object DbValue(object? value) // Handles null values for database parameters
@@ -2892,9 +2912,9 @@ namespace Coftea_Capstone.Models
                     
                     var insertItemSql = @"
                         INSERT INTO purchase_order_items (purchaseOrderId, inventoryItemId, itemName, itemCategory, 
-                                                        requestedQuantity, unitPrice, totalPrice, unitOfMeasurement)
+                                                        requestedQuantity, unitPrice, totalPrice, unitOfMeasurement, quantity)
                         VALUES (@purchaseOrderId, @inventoryItemId, @itemName, @itemCategory, 
-                                @requestedQuantity, @unitPrice, @totalPrice, @unitOfMeasurement);";
+                                @requestedQuantity, @unitPrice, @totalPrice, @unitOfMeasurement, @quantity);";
                     
                     await using var itemCmd = new MySqlCommand(insertItemSql, conn);
                     AddParameters(itemCmd, new Dictionary<string, object?>
@@ -2906,7 +2926,8 @@ namespace Coftea_Capstone.Models
                         ["@requestedQuantity"] = requestedQuantity,
                         ["@unitPrice"] = unitPrice,
                         ["@totalPrice"] = totalPrice,
-                        ["@unitOfMeasurement"] = item.unitOfMeasurement
+                        ["@unitOfMeasurement"] = item.unitOfMeasurement,
+                        ["@quantity"] = 1 // Default quantity multiplier
                     });
                     
                     await itemCmd.ExecuteNonQueryAsync();
@@ -3037,11 +3058,40 @@ namespace Coftea_Capstone.Models
                     
                     System.Diagnostics.Debug.WriteLine($"📦 Adding item: {item.itemName} - Qty: {quantity} {uom}, Price: {totalPrice:C}");
                     
+                    // Get quantity multiplier from editableItems if available, default to 1
+                    int quantityMultiplier = 1;
+                    if (customQuantities.ContainsKey(itemId) && editableItems != null)
+                    {
+                        var itemsProperty = editableItems.GetType().GetProperty("Items");
+                        if (itemsProperty != null)
+                        {
+                            var itemsList = itemsProperty.GetValue(editableItems) as System.Collections.IEnumerable;
+                            if (itemsList != null)
+                            {
+                                foreach (var editableItem in itemsList)
+                                {
+                                    var inventoryItemIdProp = editableItem.GetType().GetProperty("InventoryItemId");
+                                    var quantityProp = editableItem.GetType().GetProperty("Quantity");
+                                    
+                                    if (inventoryItemIdProp != null && quantityProp != null)
+                                    {
+                                        var edItemId = Convert.ToInt32(inventoryItemIdProp.GetValue(editableItem));
+                                        if (edItemId == itemId)
+                                        {
+                                            quantityMultiplier = Convert.ToInt32(quantityProp.GetValue(editableItem));
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
                     var insertItemSql = @"
                         INSERT INTO purchase_order_items (purchaseOrderId, inventoryItemId, itemName, itemCategory, 
-                                                        requestedQuantity, unitPrice, totalPrice, unitOfMeasurement)
+                                                        requestedQuantity, unitPrice, totalPrice, unitOfMeasurement, quantity)
                         VALUES (@purchaseOrderId, @inventoryItemId, @itemName, @itemCategory, 
-                                @requestedQuantity, @unitPrice, @totalPrice, @unitOfMeasurement);";
+                                @requestedQuantity, @unitPrice, @totalPrice, @unitOfMeasurement, @quantity);";
                     
                     await using var itemCmd = new MySqlCommand(insertItemSql, conn);
                     AddParameters(itemCmd, new Dictionary<string, object?>
@@ -3053,7 +3103,8 @@ namespace Coftea_Capstone.Models
                         ["@requestedQuantity"] = requestedQuantity,
                         ["@unitPrice"] = unitPrice,
                         ["@totalPrice"] = totalPrice,
-                        ["@unitOfMeasurement"] = uom
+                        ["@unitOfMeasurement"] = uom,
+                        ["@quantity"] = quantityMultiplier
                     });
                     
                     await itemCmd.ExecuteNonQueryAsync();
@@ -3207,6 +3258,8 @@ namespace Coftea_Capstone.Models
                     // If canceled (-1), set to 0 for display purposes
                     if (approvedQty < 0) approvedQty = 0;
                     
+                    var quantity = reader.IsDBNull(reader.GetOrdinal("quantity")) ? 1 : reader.GetInt32("quantity");
+                    
                     items.Add(new PurchaseOrderItemModel
                     {
                         PurchaseOrderItemId = reader.GetInt32("purchaseOrderItemId"),
@@ -3218,7 +3271,8 @@ namespace Coftea_Capstone.Models
                         ApprovedQuantity = approvedQty,
                         UnitPrice = reader.GetDecimal("unitPrice"),
                         TotalPrice = reader.GetDecimal("totalPrice"),
-                        UnitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement")
+                        UnitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
+                        Quantity = quantity
                     });
                 }
                 
@@ -3524,9 +3578,9 @@ namespace Coftea_Capstone.Models
                 
                 System.Diagnostics.Debug.WriteLine($"✅ Connection opened and transaction started");
 
-                // Get the approved quantity from purchase_order_items to know how much to subtract
+                // Get the approved quantity and quantity multiplier from purchase_order_items to know how much to subtract
                 // Also get the original requested UoM from the inventory table (since unitOfMeasurement might have been overwritten when accepting)
-                var getPOItemSql = @"SELECT poi.approvedQuantity, poi.unitOfMeasurement, poi.itemName, i.unitOfMeasurement as inventoryUoM
+                var getPOItemSql = @"SELECT poi.approvedQuantity, poi.unitOfMeasurement, poi.itemName, poi.quantity, i.unitOfMeasurement as inventoryUoM
                                     FROM purchase_order_items poi
                                     INNER JOIN inventory i ON poi.inventoryItemId = i.itemID
                                     WHERE poi.purchaseOrderId = @PurchaseOrderId 
@@ -3547,6 +3601,10 @@ namespace Coftea_Capstone.Models
                 int approvedQuantityDb = poReader.GetInt32("approvedQuantity");
                 string approvedUoM = poReader.IsDBNull(poReader.GetOrdinal("unitOfMeasurement")) ? "" : poReader.GetString("unitOfMeasurement");
                 string itemName = poReader.GetString("itemName");
+                // Get quantity multiplier - check both quantity column and use 1 as fallback if null or 0
+                int quantityOrdinal = poReader.GetOrdinal("quantity");
+                int quantityMultiplier = poReader.IsDBNull(quantityOrdinal) ? 1 : Math.Max(1, poReader.GetInt32(quantityOrdinal));
+                System.Diagnostics.Debug.WriteLine($"🔍 Retract: Got quantity={quantityMultiplier} from database for item {itemName}");
                 // Get the original requested UoM from inventory (this is what was used when creating the purchase order)
                 string originalRequestedUoM = poReader.IsDBNull(poReader.GetOrdinal("inventoryUoM")) ? "" : poReader.GetString("inventoryUoM");
                 await poReader.CloseAsync();
@@ -3559,6 +3617,8 @@ namespace Coftea_Capstone.Models
                 }
                 
                 double approvedQuantity = approvedQuantityDb;
+                // Calculate total quantity to subtract: approvedQuantity (units per package) * quantity (number of packages)
+                double totalApprovedQuantity = approvedQuantity * quantityMultiplier;
 
                 // Get current inventory item info
                 var getItemSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
@@ -3583,10 +3643,10 @@ namespace Coftea_Capstone.Models
                 inventoryUoM = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
                 await reader.CloseAsync();
                 
-                System.Diagnostics.Debug.WriteLine($"🔍 Retracting item: {itemName} (ID: {inventoryItemId}), Current Qty: {currentQuantity} {inventoryUoM}, Removing: {approvedQuantity} {approvedUoM}");
+                System.Diagnostics.Debug.WriteLine($"🔍 Retracting item: {itemName} (ID: {inventoryItemId}), Current Qty: {currentQuantity} {inventoryUoM}, Removing: {totalApprovedQuantity} {approvedUoM} (Approved: {approvedQuantity} x Quantity: {quantityMultiplier})");
 
                 // Convert approved quantity to inventory UoM if needed (same conversion as accept)
-                double quantityToSubtract = approvedQuantity;
+                double quantityToSubtract = totalApprovedQuantity;
                 if (!string.IsNullOrWhiteSpace(approvedUoM) && !string.IsNullOrWhiteSpace(inventoryUoM) && approvedUoM != inventoryUoM)
                 {
                     var normalizedApproved = UnitConversionService.Normalize(approvedUoM);
@@ -3594,13 +3654,13 @@ namespace Coftea_Capstone.Models
                     
                     if (UnitConversionService.AreCompatibleUnits(normalizedApproved, normalizedInventory))
                     {
-                        quantityToSubtract = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
-                        System.Diagnostics.Debug.WriteLine($"✅ Converted {approvedQuantity} {approvedUoM} to {quantityToSubtract} {inventoryUoM} for retraction");
+                        quantityToSubtract = UnitConversionService.Convert(totalApprovedQuantity, approvedUoM, inventoryUoM);
+                        System.Diagnostics.Debug.WriteLine($"✅ Converted {totalApprovedQuantity} {approvedUoM} to {quantityToSubtract} {inventoryUoM} for retraction");
                     }
                     else
                     {
                         System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Incompatible units for item {itemName}: approved {approvedUoM} vs inventory {inventoryUoM}. Using approved quantity as-is.");
-                        quantityToSubtract = approvedQuantity;
+                        quantityToSubtract = totalApprovedQuantity;
                     }
                 }
 
@@ -3813,7 +3873,7 @@ namespace Coftea_Capstone.Models
         /// <summary>
         /// Accepts a single purchase order item and adds it to inventory
         /// </summary>
-        public async Task<bool> AcceptPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, double approvedQuantity, string approvedUoM, string approvedBy)
+        public async Task<bool> AcceptPurchaseOrderItemAsync(int purchaseOrderId, int inventoryItemId, double approvedQuantity, string approvedUoM, string approvedBy, int quantity = 1)
         {
             MySqlConnection? conn = null;
             MySqlTransaction? tx = null;
@@ -3851,10 +3911,12 @@ namespace Coftea_Capstone.Models
                 inventoryUoM = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
                 await reader.CloseAsync();
                 
-                System.Diagnostics.Debug.WriteLine($"🔍 Accepting item: {itemName} (ID: {inventoryItemId}), Current Qty: {currentQuantity} {inventoryUoM}, Adding: {approvedQuantity} {approvedUoM}");
+                // Calculate total quantity to add: approvedQuantity (units per package) * quantity (number of packages)
+                double totalApprovedQuantity = approvedQuantity * quantity;
+                System.Diagnostics.Debug.WriteLine($"🔍 Accepting item: {itemName} (ID: {inventoryItemId}), Current Qty: {currentQuantity} {inventoryUoM}, Adding: {totalApprovedQuantity} {approvedUoM} (Approved: {approvedQuantity} x Quantity: {quantity})");
 
                 // Convert approved quantity to inventory UoM if needed
-                double quantityToAdd = approvedQuantity;
+                double quantityToAdd = totalApprovedQuantity;
                 if (!string.IsNullOrWhiteSpace(approvedUoM) && !string.IsNullOrWhiteSpace(inventoryUoM) && approvedUoM != inventoryUoM)
                 {
                     // Check if units are compatible before converting
@@ -3863,15 +3925,15 @@ namespace Coftea_Capstone.Models
                     
                     if (UnitConversionService.AreCompatibleUnits(normalizedApproved, normalizedInventory))
                     {
-                        quantityToAdd = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
-                        System.Diagnostics.Debug.WriteLine($"✅ Converted {approvedQuantity} {approvedUoM} to {quantityToAdd} {inventoryUoM}");
+                        quantityToAdd = UnitConversionService.Convert(totalApprovedQuantity, approvedUoM, inventoryUoM);
+                        System.Diagnostics.Debug.WriteLine($"✅ Converted {totalApprovedQuantity} {approvedUoM} to {quantityToAdd} {inventoryUoM}");
                     }
                     else
                     {
                         // Units are incompatible, but for purchase orders, we might allow direct addition
                         // Log a warning but proceed with the approved quantity (assuming 1:1 for incompatible units)
                         System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Incompatible units for item {itemName}: approved {approvedUoM} vs inventory {inventoryUoM}. Using approved quantity as-is.");
-                        quantityToAdd = approvedQuantity;
+                        quantityToAdd = totalApprovedQuantity;
                     }
                 }
 
@@ -3900,12 +3962,14 @@ namespace Coftea_Capstone.Models
                 System.Diagnostics.Debug.WriteLine($"🔍 Step 4: Updating purchase_order_items table...");
                 var updatePOItemSql = @"UPDATE purchase_order_items 
                                        SET approvedQuantity = @ApprovedQuantity, 
-                                           unitOfMeasurement = @ApprovedUoM
+                                           unitOfMeasurement = @ApprovedUoM,
+                                           quantity = @Quantity
                                        WHERE purchaseOrderId = @PurchaseOrderId 
                                          AND inventoryItemId = @InventoryItemId;";
                 await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, tx);
                 updatePOItemCmd.Parameters.AddWithValue("@ApprovedQuantity", (int)Math.Round(approvedQuantity));
                 updatePOItemCmd.Parameters.AddWithValue("@ApprovedUoM", approvedUoM ?? "");
+                updatePOItemCmd.Parameters.AddWithValue("@Quantity", quantity);
                 updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                 updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
                 System.Diagnostics.Debug.WriteLine($"🔍 Step 5: Executing purchase_order_items UPDATE...");

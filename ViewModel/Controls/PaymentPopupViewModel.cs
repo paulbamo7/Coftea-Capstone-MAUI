@@ -225,7 +225,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                         {
                             ProductID = cartItem.ProductId,
                             ProductName = cartItem.ProductName,
-                            ImageSet = cartItem.ImageSource,
+                            ImageSet = cartItem.ImageSet,
                             SmallQuantity = cartItem.SmallQuantity,
                             MediumQuantity = cartItem.MediumQuantity,
                             LargeQuantity = cartItem.LargeQuantity,

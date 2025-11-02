@@ -416,9 +416,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                     }
                 }
 
+                var totalQuantity = item.ApprovedQuantity * item.Quantity;
                 var confirm = await Application.Current.MainPage.DisplayAlert(
                     "Accept Item",
-                    $"Accept {item.ItemName}?\n\nApproved Quantity: {item.ApprovedQuantity} {item.ApprovedUoM}\n\nThis will immediately add the item to inventory.",
+                    $"Accept {item.ItemName}?\n\nAmount: {item.ApprovedQuantity} {item.ApprovedUoM}\nQuantity: x{item.Quantity}\nTotal: {totalQuantity} {item.ApprovedUoM}\n\nThis will immediately add the item to inventory.",
                     "Accept", "Cancel");
 
                 if (!confirm) return;
@@ -435,7 +436,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     item.InventoryItemId,
                     item.ApprovedQuantity,
                     item.ApprovedUoM,
-                    currentUser);
+                    currentUser,
+                    item.Quantity);
 
                 System.Diagnostics.Debug.WriteLine($"🔍 AcceptPurchaseOrderItemAsync returned: {success}");
 
@@ -539,7 +541,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                             item.InventoryItemId,
                             item.ApprovedQuantity,
                             item.ApprovedUoM,
-                            currentUser);
+                            currentUser,
+                            item.Quantity);
                         
                         if (success)
                         {
@@ -710,10 +713,15 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 if (success)
                 {
+                    // Reload the item from database to get the original quantity value
+                    var items = await _database.GetPurchaseOrderItemsAsync(item.PurchaseOrderId);
+                    var dbItem = items.FirstOrDefault(i => i.InventoryItemId == item.InventoryItemId);
+                    
                     item.ItemStatus = "Pending";
                     item.ApprovedQuantity = item.RequestedQuantity; // Reset to requested quantity
                     item.ApprovedUoM = item.OriginalUoM; // Restore to original requested UoM
-                    item.Quantity = 1; // Reset quantity multiplier to 1
+                    // Restore original quantity from database (default to 1 if not found)
+                    item.Quantity = dbItem?.Quantity > 0 ? dbItem.Quantity : 1;
                     
                     // Find the parent order and notify property change for HasAcceptedItems
                     var parentOrder = PendingOrders.FirstOrDefault(o => o.EditableItems.Contains(item));
@@ -1040,9 +1048,11 @@ namespace Coftea_Capstone.ViewModel.Controls
             else
             {
                 ApprovedQuantity = item.RequestedQuantity; // Default unit amount to requested quantity
-                Quantity = 1; // Default to 1 unit
                 ItemStatus = "Pending";
             }
+            
+            // Load quantity from database model (default to 1 if not set)
+            Quantity = item.Quantity > 0 ? item.Quantity : 1;
             
             // Check database for canceled status (approvedQuantity = -1)
             // This will be set after we load from database

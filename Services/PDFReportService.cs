@@ -506,10 +506,8 @@ namespace Coftea_Capstone.Services
                     foreach (var item in items)
                     {
                         var amount = item.ApprovedQuantity > 0 ? item.ApprovedQuantity : item.RequestedQuantity;
-                        // Quantity (packages) - if ApprovedQuantity is the amount per package, 
-                        // then Quantity should default to 1 (since it's not stored in DB)
-                        // For now, we'll show Quantity as 1 (number of packages)
-                        var quantity = 1; // Default to 1 package since Quantity field is not stored in DB
+                        // Quantity (packages) - now stored in database
+                        var quantity = item.Quantity > 0 ? item.Quantity : 1; // Use stored quantity, default to 1 if not set
                         PdfGridRow row = itemsGrid.Rows.Add();
                         row.Cells[0].Value = item.ItemName ?? "";
                         row.Cells[1].Value = amount.ToString(); // Amount: how many units are being purchased

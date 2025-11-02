@@ -52,6 +52,8 @@ namespace Coftea_Capstone.Models
         
         public string UnitOfMeasurement { get; set; } = string.Empty;
         
+        public int Quantity { get; set; } = 1; // Quantity multiplier (packages)
+        
         public string Notes { get; set; } = string.Empty;
     }
 }

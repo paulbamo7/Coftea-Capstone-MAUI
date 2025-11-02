@@ -283,8 +283,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void SetYesterday()
         {
-            FilterStartDate = DateTime.Now.AddDays(-1).Date;
-            FilterEndDate = DateTime.Now.AddDays(-1).Date;
+            var yesterday = DateTime.Now.AddDays(-1).Date;
+            FilterStartDate = yesterday;
+            FilterEndDate = yesterday;
         }
 
         [RelayCommand]
