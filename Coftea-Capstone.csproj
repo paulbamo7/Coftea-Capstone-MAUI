@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;</TargetFrameworks>
+		<TargetFrameworks>net8.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
 		<EnableSourceControlManager>false</EnableSourceControlManager>
 		<EnableSourceLink>false</EnableSourceLink>
@@ -51,14 +51,43 @@
 		<EnableGitInfo>false</EnableGitInfo>
 		<GitInfoReportImportance>low</GitInfoReportImportance>
 		<GitInfoSkipCache>true</GitInfoSkipCache>
+		<GenerateAppInstallerFile>True</GenerateAppInstallerFile>
+		<AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+		<AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+		<AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+		<GenerateTestArtifacts>True</GenerateTestArtifacts>
+		<AppInstallerUri>D:\CapstoneAPP</AppInstallerUri>
+		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.png" />
-		<!-- Images -->
-		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+		<!-- Images - Explicitly include each image to ensure they're embedded in Release builds -->
+		<MauiImage Include="Resources\Images\carticon.png" />
+		<MauiImage Include="Resources\Images\usericon.png" />
+		<MauiImage Include="Resources\Images\notification.png" />
+		<MauiImage Include="Resources\Images\coftea_logo.png" />
+		<MauiImage Include="Resources\Images\home.png" />
+		<MauiImage Include="Resources\Images\pos.png" />
+		<MauiImage Include="Resources\Images\inventory.png" />
+		<MauiImage Include="Resources\Images\sales_report.png" />
+		<MauiImage Include="Resources\Images\settings.png" />
+		<MauiImage Include="Resources\Images\settings2.png" />
+		<MauiImage Include="Resources\Images\historyicon.png" />
+		<MauiImage Include="Resources\Images\usermanagementicon.png" />
+		<MauiImage Include="Resources\Images\uploadicon.png" />
+		<MauiImage Include="Resources\Images\manageposicon.png" />
+		<MauiImage Include="Resources\Images\manageinventoryicon.png" />
+		<MauiImage Include="Resources\Images\drink.png" />
+		<MauiImage Include="Resources\Images\close.png" />
+		<MauiImage Include="Resources\Images\down.png" />
+		<MauiImage Include="Resources\Images\up.png" />
+		<MauiImage Include="Resources\Images\show.png" />
+		<MauiImage Include="Resources\Images\hidden.png" />
+		<MauiImage Include="Resources\Images\logouticon.png" />
+		<MauiImage Include="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*.ttf" />

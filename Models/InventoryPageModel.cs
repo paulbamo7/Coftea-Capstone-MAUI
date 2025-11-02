@@ -510,7 +510,7 @@ namespace Coftea_Capstone.Models
                     if (File.Exists(appDataPath))
                         return ImageSource.FromFile(appDataPath);
 
-                    // Fallback to bundled resource
+                    // Fallback to bundled resource (restoration from database happens when items are loaded)
                     return ImageSource.FromFile(ImageSet);
                 }
                 catch

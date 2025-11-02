@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Maui.Devices;
+using System.IO;
 
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Services;
@@ -253,6 +254,39 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync(cancellationToken);
 
+            // Add imageData column to existing tables if it doesn't exist (for migration)
+            try
+            {
+                // Check if column exists first (MySQL doesn't support IF NOT EXISTS for ALTER TABLE)
+                var checkProductsSql = @"SELECT COUNT(*) FROM information_schema.COLUMNS 
+                                         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'imageData';";
+                await using var checkProductsCmd = new MySqlCommand(checkProductsSql, conn);
+                var productsHasColumn = Convert.ToInt32(await checkProductsCmd.ExecuteScalarAsync()) > 0;
+                
+                if (!productsHasColumn)
+                {
+                    var alterProductsSql = "ALTER TABLE products ADD COLUMN imageData LONGBLOB;";
+                    await using var alterProductsCmd = new MySqlCommand(alterProductsSql, conn);
+                    await alterProductsCmd.ExecuteNonQueryAsync();
+                }
+
+                var checkInventorySql = @"SELECT COUNT(*) FROM information_schema.COLUMNS 
+                                          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'inventory' AND COLUMN_NAME = 'imageData';";
+                await using var checkInventoryCmd = new MySqlCommand(checkInventorySql, conn);
+                var inventoryHasColumn = Convert.ToInt32(await checkInventoryCmd.ExecuteScalarAsync()) > 0;
+                
+                if (!inventoryHasColumn)
+                {
+                    var alterInventorySql = "ALTER TABLE inventory ADD COLUMN imageData LONGBLOB;";
+                    await using var alterInventoryCmd = new MySqlCommand(alterInventorySql, conn);
+                    await alterInventoryCmd.ExecuteNonQueryAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error checking/adding imageData columns: {ex.Message}");
+            }
+
             // Create tables if they don't exist
             var createTablesSql = @"
                 CREATE TABLE IF NOT EXISTS users (
@@ -283,6 +317,7 @@ namespace Coftea_Capstone.Models
                     category VARCHAR(100),
                     subcategory VARCHAR(100),
                     imageSet VARCHAR(255),
+                    imageData LONGBLOB,
                     description TEXT,
                     colorCode VARCHAR(20) DEFAULT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -294,6 +329,7 @@ namespace Coftea_Capstone.Models
                     itemQuantity DECIMAL(10,2) NOT NULL DEFAULT 0,
                     itemCategory VARCHAR(100),
                     imageSet VARCHAR(255),
+                    imageData LONGBLOB,
                     itemDescription TEXT,
                     unitOfMeasurement VARCHAR(50),
                     minimumQuantity DECIMAL(10,2) DEFAULT 0,
@@ -524,7 +560,7 @@ namespace Coftea_Capstone.Models
 		public async Task<List<POSPageModel>> GetProductsAsync() // Gets all products from the database
         {
 			var sql = "SELECT * FROM products;";
-			return await QueryAsync(sql, reader => new POSPageModel
+			var products = await QueryAsync(sql, reader => new POSPageModel
 			{
 				ProductID = reader.GetInt32("productID"),
 				ProductName = reader.GetString("productName"),
@@ -537,6 +573,24 @@ namespace Coftea_Capstone.Models
 				ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description"),
 				ColorCode = reader.IsDBNull(reader.GetOrdinal("colorCode")) ? "" : reader.GetString("colorCode")
 			});
+
+			// Restore images from database for products where app data file is missing (background task)
+			_ = Task.Run(async () =>
+			{
+				foreach (var product in products)
+				{
+					if (!string.IsNullOrWhiteSpace(product.ImageSet))
+					{
+						var imagePath = Services.ImagePersistenceService.GetImagePath(product.ImageSet);
+						if (!File.Exists(imagePath))
+						{
+							await GetProductImageAsync(product.ProductID);
+						}
+					}
+				}
+			});
+
+			return products;
 		}
 		public async Task<List<POSPageModel>> GetProductsAsyncCached() // Gets all products with caching
         {
@@ -774,8 +828,19 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, description, colorCode) " +
-                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
+            // Get image bytes if imageSet is provided
+            byte[]? imageBytes = null;
+            if (!string.IsNullOrWhiteSpace(product.ImageSet))
+            {
+                var imagePath = Services.ImagePersistenceService.GetImagePath(product.ImageSet);
+                if (File.Exists(imagePath))
+                {
+                    imageBytes = await File.ReadAllBytesAsync(imagePath);
+                }
+            }
+
+            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, imageData, description, colorCode) " +
+                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @ImageData, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
             // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
@@ -786,6 +851,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Category", product.Category);
             cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
+            cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ColorCode", (object?)product.ColorCode ?? DBNull.Value);
 
@@ -799,8 +865,19 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, description, colorCode) " +
-                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @Description, @ColorCode);";
+            // Get image bytes if imageSet is provided
+            byte[]? imageBytes = null;
+            if (!string.IsNullOrWhiteSpace(product.ImageSet))
+            {
+                var imagePath = Services.ImagePersistenceService.GetImagePath(product.ImageSet);
+                if (File.Exists(imagePath))
+                {
+                    imageBytes = await File.ReadAllBytesAsync(imagePath);
+                }
+            }
+
+            var sql = "INSERT INTO products (productName, smallPrice, mediumPrice, largePrice, category, subcategory, imageSet, imageData, description, colorCode) " +
+                      "VALUES (@ProductName, @SmallPrice, @MediumPrice, @LargePrice, @Category, @Subcategory, @Image, @ImageData, @Description, @ColorCode);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
             // Save NULL for smallPrice for all categories except Coffee (only Coffee category needs small size)
@@ -811,6 +888,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Category", product.Category);
             cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
+            cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ColorCode", (object?)product.ColorCode ?? DBNull.Value);
 
@@ -1026,8 +1104,19 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
+            // Get image bytes if imageSet is provided
+            byte[]? imageBytes = null;
+            if (!string.IsNullOrWhiteSpace(product.ImageSet))
+            {
+                var imagePath = Services.ImagePersistenceService.GetImagePath(product.ImageSet);
+                if (File.Exists(imagePath))
+                {
+                    imageBytes = await File.ReadAllBytesAsync(imagePath);
+                }
+            }
+
             var sql = "UPDATE products SET productName = @ProductName, smallPrice = @SmallPrice, mediumPrice = @MediumPrice, largePrice = @LargePrice, " +
-                      "category = @Category, subcategory = @Subcategory, imageSet = @Image, description = @Description WHERE productID = @ProductID;";
+                      "category = @Category, subcategory = @Subcategory, imageSet = @Image, imageData = @ImageData, description = @Description, colorCode = @ColorCode WHERE productID = @ProductID;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ProductID", product.ProductID);
             cmd.Parameters.AddWithValue("@ProductName", product.ProductName);
@@ -1039,6 +1128,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Category", product.Category);
             cmd.Parameters.AddWithValue("@Subcategory", (object?)product.Subcategory ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Image", product.ImageSet);
+            cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
             cmd.Parameters.AddWithValue("@Description", (object?)product.ProductDescription ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ColorCode", (object?)product.ColorCode ?? DBNull.Value);
 
@@ -1089,7 +1179,7 @@ namespace Coftea_Capstone.Models
 		public async Task<List<InventoryPageModel>> GetInventoryItemsAsync() // Gets all inventory items from the database
         {
 			var sql = "SELECT * FROM inventory;";
-			return await QueryAsync(sql, reader => new InventoryPageModel
+			var items = await QueryAsync(sql, reader => new InventoryPageModel
 			{
 				itemID = reader.GetInt32("itemID"),
 				itemName = reader.GetString("itemName"),
@@ -1102,6 +1192,24 @@ namespace Coftea_Capstone.Models
 				maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0,
 				CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
 			});
+
+			// Restore images from database for inventory items where app data file is missing (background task)
+			_ = Task.Run(async () =>
+			{
+				foreach (var item in items)
+				{
+					if (!string.IsNullOrWhiteSpace(item.ImageSet))
+					{
+						var imagePath = Services.ImagePersistenceService.GetImagePath(item.ImageSet);
+						if (!File.Exists(imagePath))
+						{
+							await GetInventoryImageAsync(item.itemID);
+						}
+					}
+				}
+			});
+
+			return items;
 		}
 		private static bool HasColumn(System.Data.Common.DbDataReader reader, string columnName) // Checks if a column exists in the data reader
         {
@@ -1306,13 +1414,25 @@ namespace Coftea_Capstone.Models
                     unitOfMeasurement = GetDefaultUnitForCategory(inventory.itemCategory);
                 }
 
-                var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, itemDescription, unitOfMeasurement, minimumQuantity, maximumQuantity) " +
-                          "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity, @MaximumQuantity);";
+                // Get image bytes if imageSet is provided
+                byte[]? imageBytes = null;
+                if (!string.IsNullOrWhiteSpace(inventory.ImageSet))
+                {
+                    var imagePath = Services.ImagePersistenceService.GetImagePath(inventory.ImageSet);
+                    if (File.Exists(imagePath))
+                    {
+                        imageBytes = await File.ReadAllBytesAsync(imagePath);
+                    }
+                }
+
+                var sql = "INSERT INTO inventory (itemName, itemQuantity, itemCategory, imageSet, imageData, itemDescription, unitOfMeasurement, minimumQuantity, maximumQuantity) " +
+                          "VALUES (@ItemName, @ItemQuantity, @ItemCategory, @ImageSet, @ImageData, @ItemDescription, @UnitOfMeasurement, @MinimumQuantity, @MaximumQuantity);";
                 await using var cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ItemName", inventory.itemName);
                 cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
                 cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
                 cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
+                cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
                 cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@UnitOfMeasurement", unitOfMeasurement);
                 cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
@@ -1361,8 +1481,19 @@ namespace Coftea_Capstone.Models
                 }
                 await reader.CloseAsync();
 
+                // Get image bytes if imageSet is provided
+                byte[]? imageBytes = null;
+                if (!string.IsNullOrWhiteSpace(inventory.ImageSet))
+                {
+                    var imagePath = Services.ImagePersistenceService.GetImagePath(inventory.ImageSet);
+                    if (File.Exists(imagePath))
+                    {
+                        imageBytes = await File.ReadAllBytesAsync(imagePath);
+                    }
+                }
+
                 var sql = "UPDATE inventory SET itemName = @ItemName, itemQuantity = @ItemQuantity, itemCategory = @ItemCategory, " +
-                          "imageSet = @ImageSet, itemDescription = @ItemDescription, unitOfMeasurement = @UnitOfMeasurement, " +
+                          "imageSet = @ImageSet, imageData = @ImageData, itemDescription = @ItemDescription, unitOfMeasurement = @UnitOfMeasurement, " +
                           "minimumQuantity = @MinimumQuantity, maximumQuantity = @MaximumQuantity WHERE itemID = @ItemID;";
                 await using var cmd = new MySqlCommand(sql, conn, (MySqlTransaction)tx);
                 cmd.Parameters.AddWithValue("@ItemID", inventory.itemID);
@@ -1370,6 +1501,7 @@ namespace Coftea_Capstone.Models
                 cmd.Parameters.AddWithValue("@ItemQuantity", inventory.itemQuantity);
                 cmd.Parameters.AddWithValue("@ItemCategory", inventory.itemCategory);
                 cmd.Parameters.AddWithValue("@ImageSet", inventory.ImageSet);
+                cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
                 cmd.Parameters.AddWithValue("@ItemDescription", (object?)inventory.itemDescription ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@UnitOfMeasurement", (object?)inventory.unitOfMeasurement ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@MinimumQuantity", inventory.minimumQuantity);
@@ -3969,6 +4101,99 @@ namespace Coftea_Capstone.Models
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error deleting processing item: {ex.Message}");
                 return false;
+            }
+        }
+
+        // ===================== Image Storage =====================
+        /// <summary>
+        /// Gets product image bytes from database and restores to app data directory if missing
+        /// </summary>
+        public async Task<byte[]?> GetProductImageAsync(int productId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = "SELECT imageData, imageSet FROM products WHERE productID = @ProductID;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ProductID", productId);
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var imageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? null : reader.GetString("imageSet");
+                    
+                    // If imageData exists in database, return it and restore to app data directory
+                    if (!reader.IsDBNull(reader.GetOrdinal("imageData")))
+                    {
+                        var imageBytes = (byte[])reader["imageData"];
+                        
+                        // Restore to app data directory if file doesn't exist
+                        if (!string.IsNullOrWhiteSpace(imageSet))
+                        {
+                            var imagePath = Services.ImagePersistenceService.GetImagePath(imageSet);
+                            if (!File.Exists(imagePath) && imageBytes != null && imageBytes.Length > 0)
+                            {
+                                await Services.ImagePersistenceService.EnsureImagesDirectoryExistsAsync();
+                                await File.WriteAllBytesAsync(imagePath, imageBytes);
+                                System.Diagnostics.Debug.WriteLine($"✅ Restored product image to app data: {imageSet}");
+                            }
+                        }
+                        
+                        return imageBytes;
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting product image: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets inventory item image bytes from database and restores to app data directory if missing
+        /// </summary>
+        public async Task<byte[]?> GetInventoryImageAsync(int itemId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = "SELECT imageData, imageSet FROM inventory WHERE itemID = @ItemID;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@ItemID", itemId);
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var imageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? null : reader.GetString("imageSet");
+                    
+                    // If imageData exists in database, return it and restore to app data directory
+                    if (!reader.IsDBNull(reader.GetOrdinal("imageData")))
+                    {
+                        var imageBytes = (byte[])reader["imageData"];
+                        
+                        // Restore to app data directory if file doesn't exist
+                        if (!string.IsNullOrWhiteSpace(imageSet))
+                        {
+                            var imagePath = Services.ImagePersistenceService.GetImagePath(imageSet);
+                            if (!File.Exists(imagePath) && imageBytes != null && imageBytes.Length > 0)
+                            {
+                                await Services.ImagePersistenceService.EnsureImagesDirectoryExistsAsync();
+                                await File.WriteAllBytesAsync(imagePath, imageBytes);
+                                System.Diagnostics.Debug.WriteLine($"✅ Restored inventory image to app data: {imageSet}");
+                            }
+                        }
+                        
+                        return imageBytes;
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting inventory image: {ex.Message}");
+                return null;
             }
         }
     }

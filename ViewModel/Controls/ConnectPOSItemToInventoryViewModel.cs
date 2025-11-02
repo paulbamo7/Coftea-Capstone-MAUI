@@ -1166,7 +1166,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             else
             {
                 // Initialize defaults ONLY if no prior values exist (preserve last saved values)
-                var initUnit = allItem.HasUnit ? allItem.unitOfMeasurement : "pcs";
+                // Use the inventory item's actual unitOfMeasurement, or DefaultUnit if not set
+                var initUnit = !string.IsNullOrWhiteSpace(allItem.unitOfMeasurement) ? allItem.unitOfMeasurement : allItem.DefaultUnit;
 
                 if (allItem.InputAmountSmall <= 0) allItem.InputAmountSmall = allItem.InputAmountSmall > 0 ? allItem.InputAmountSmall : 1;
                 if (allItem.InputAmountMedium <= 0) allItem.InputAmountMedium = allItem.InputAmountMedium > 0 ? allItem.InputAmountMedium : 1;

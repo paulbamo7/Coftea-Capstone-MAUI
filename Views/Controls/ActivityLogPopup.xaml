@@ -18,7 +18,7 @@
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
         <!-- Background overlay that closes on tap -->
-        <BoxView BackgroundColor="#80000000" InputTransparent="False">
+        <BoxView BackgroundColor="#80000000" InputTransparent="False" ZIndex="500">
             <BoxView.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding CloseCommand}" />
             </BoxView.GestureRecognizers>
@@ -34,7 +34,8 @@
                HorizontalOptions="Center"
                VerticalOptions="Center"
                HasShadow="True"
-               InputTransparent="False">
+               InputTransparent="False"
+               ZIndex="4000">
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="15">
                 <!-- Header -->
                 <Label Grid.Row="0" 
@@ -92,11 +93,7 @@
         </Frame>
 
         <!-- Main popup content -->
-        <Frame Grid.Row="0" 
-               Grid.Column="0" 
-               Grid.RowSpan="2" 
-               Grid.ColumnSpan="2"
-               BackgroundColor="White" 
+        <Frame BackgroundColor="White" 
                CornerRadius="20" 
                Padding="0" 
                HasShadow="True"
@@ -105,7 +102,8 @@
                HorizontalOptions="Center"
                WidthRequest="920"
                HeightRequest="700"
-               InputTransparent="False">
+               InputTransparent="False"
+               ZIndex="1000">
 
             <Grid RowDefinitions="Auto, *, Auto">
                 <!-- Header -->
@@ -207,26 +205,6 @@
                                     CornerRadius="20">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="ADDED">
-                                        <Setter Property="BackgroundColor" Value="#D4A574" />
-                                        <Setter Property="TextColor" Value="White" />
-                                        <Setter Property="BorderWidth" Value="0" />
-                                    </DataTrigger>
-                                </Button.Triggers>
-                            </Button>
-                            <Button Text="Purchase Orders" 
-                                    Command="{Binding FilterByActionCommand}" 
-                                    CommandParameter="PURCHASE_ORDER"
-                                    BackgroundColor="#BDAEA2"
-                                    TextColor="#5B4F45"
-                                    BorderColor="#8B7355"
-                                    BorderWidth="2"
-                                    FontAttributes="Bold"
-                                    FontSize="14"
-                                    HeightRequest="45"
-                                    WidthRequest="160"
-                                    CornerRadius="20">
-                                <Button.Triggers>
-                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedFilter}" Value="PURCHASE_ORDER">
                                         <Setter Property="BackgroundColor" Value="#D4A574" />
                                         <Setter Property="TextColor" Value="White" />
                                         <Setter Property="BorderWidth" Value="0" />

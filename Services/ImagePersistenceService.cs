@@ -99,6 +99,29 @@ namespace Coftea_Capstone.Services
         }
 
         /// <summary>
+        /// Restores image from database bytes to app data directory
+        /// </summary>
+        public static async Task<bool> RestoreImageFromBytesAsync(string fileName, byte[] imageBytes)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || imageBytes == null || imageBytes.Length == 0)
+                return false;
+
+            try
+            {
+                await EnsureImagesDirectoryExistsAsync();
+                var imagePath = GetImagePath(fileName);
+                await File.WriteAllBytesAsync(imagePath, imageBytes);
+                System.Diagnostics.Debug.WriteLine($"✅ Restored image to app data: {fileName}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error restoring image: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Migrates old image paths to the new system
         /// This method can be called during app startup to handle existing data
         /// </summary>

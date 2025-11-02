@@ -203,16 +203,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Apply action filter
                 if (!string.IsNullOrEmpty(SelectedFilter) && SelectedFilter != "All")
                 {
-                    if (SelectedFilter == "PURCHASE_ORDER")
-                    {
-                        // Filter by Reason for purchase orders (items added from purchase orders)
-                        query = query.Where(log => log.Reason == "PURCHASE_ORDER");
-                    }
-                    else
-                    {
-                        // Filter by Action for other types (DEDUCTED, ADDED, etc.)
-                        query = query.Where(log => log.Action == SelectedFilter);
-                    }
+                    // Filter by Action (DEDUCTED, ADDED, etc.)
+                    query = query.Where(log => log.Action == SelectedFilter);
                 }
 
                 // Apply search filter
