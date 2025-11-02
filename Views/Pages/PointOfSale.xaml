@@ -34,7 +34,7 @@
         <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto, Auto, *">
 
             <!-- Top Bar -->
-            <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
+            <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="15" Grid.Row="0">
                 <Label Text="Point Of Sale" FontSize="28" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                 <Label x:Name="TimerLabel" Grid.Column="1" VerticalOptions="Center" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
                 <!-- Connectivity Status Indicator -->
@@ -48,18 +48,8 @@
                         <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
                     </Frame>
                 </Grid>
-                <!-- To Prepare button -->
-                <Button Grid.Column="4"
-                        Text="📋 To Prepare"
-                        BackgroundColor="#BDAEA2"
-                        TextColor="#5B4F45"
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        CornerRadius="18"
-                        Padding="12,6"
-                        Command="{Binding ShowProcessingQueueCommand}" />
-
-                <Grid Grid.Column="5" WidthRequest="35" HeightRequest="35">
+                
+                <Grid Grid.Column="4" WidthRequest="35" HeightRequest="35">
                     <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                            WidthRequest="35" 
                            HeightRequest="35" 
@@ -184,6 +174,7 @@
                 <!-- History + Cart (far right) -->
                 <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
                     
+                    <!-- History button -->
                     <Button Text="📝" 
                             BackgroundColor="#D4A574" 
                             TextColor="White" 
@@ -195,6 +186,19 @@
                             FontSize="20"
                             Padding="0"
                             Command="{Binding ShowHistoryCommand}" />
+                    
+                    <!-- Replace button (formerly To Prepare) -->
+                    <Button Text="📋"
+                            BackgroundColor="#BDAEA2"
+                            TextColor="#5B4F45"
+                            BorderColor="#8B7355"
+                            BorderWidth="2"
+                            CornerRadius="25"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            FontSize="20"
+                            Padding="0"
+                            Command="{Binding ShowProcessingQueueCommand}" />
                     
                     <!-- Cart icon with badge -->
                     <Grid>
