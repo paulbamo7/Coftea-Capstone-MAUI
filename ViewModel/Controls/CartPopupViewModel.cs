@@ -178,7 +178,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                         {
                             ProductId = it.ProductID,
                             ProductName = it.ProductName ?? "Unknown Product",
-                            ImageSource = it.ImageSet ?? "dotnet_bot.png",
+                            ImageSet = it.ImageSet ?? "coftea_logo.png",
                             CustomerName = CustomerName,
                             SugarLevel = "100%",
                             AddOns = addonNames,

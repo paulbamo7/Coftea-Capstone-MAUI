@@ -165,7 +165,8 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task BackToLogin() // Navigate back to Login page
         {
-            // Don't clear fields - just navigate back
+            // Clear all fields before navigating back
+            ClearFields();
             await Shell.Current.GoToAsync("//login");
         }
 
@@ -237,13 +238,6 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            // Check if email validation failed
-            if (!string.IsNullOrWhiteSpace(EmailValidationMessage))
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", EmailValidationMessage, "OK");
-                return;
-            }
-
             try
             {
             // Require internet for registration
@@ -252,8 +246,10 @@ namespace Coftea_Capstone.ViewModel
                 try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
                 return;
             }
-                // Final check: Check if email already exists in approved users
-                var existingUser = await _database.GetUserByEmailAsync(Email);
+                
+                // Final email availability check - do this synchronously before registration
+                // Check if email already exists in approved users
+                var existingUser = await _database.GetUserByEmailAsync(Email.Trim());
                 if (existingUser != null)
                 {
                     IsEmailAvailable = false;
@@ -308,6 +304,9 @@ namespace Coftea_Capstone.ViewModel
                     await Application.Current.MainPage.DisplayAlert("Success", "Registration request submitted! An admin will review and approve your account.", "OK");
                 }
                 
+                // Clear all fields after successful registration
+                ClearFields();
+                
                 // Navigate back to Login page
                 await Shell.Current.GoToAsync("//login");
             }
@@ -315,6 +314,28 @@ namespace Coftea_Capstone.ViewModel
             {
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to register: {ex.Message}", "OK");
             }
+        }
+
+        private void ClearFields()
+        {
+            FirstName = string.Empty;
+            LastName = string.Empty;
+            Email = string.Empty;
+            Password = string.Empty;
+            ConfirmPassword = string.Empty;
+            PhoneNumber = string.Empty;
+            IsTermsAccepted = false;
+            
+            // Reset validation states
+            IsEmailValid = true;
+            IsEmailAvailable = true;
+            EmailValidationMessage = "";
+            HasUppercase = false;
+            HasLowercase = false;
+            HasNumber = false;
+            HasSpecialChar = false;
+            HasMinLength = false;
+            PasswordsMatch = false;
         }
     }
 }

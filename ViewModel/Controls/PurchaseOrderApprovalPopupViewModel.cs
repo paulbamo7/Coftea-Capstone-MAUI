@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -127,6 +129,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                         Items = items,
                         EditableItems = editableItems
                     };
+                    
+                    // Subscribe to item property changes after collection is set
+                    displayOrder.InitializeItemSubscriptions();
                     
                     allDisplayOrders.Add(displayOrder);
                     System.Diagnostics.Debug.WriteLine($"📦 [VM] Added order #{displayOrder.PurchaseOrderId} to display list");
@@ -318,6 +323,16 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                // Check if any items are already accepted - if so, cannot reject
+                if (order.HasAcceptedItems)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Cannot Reject",
+                        $"Cannot reject Purchase Order #{order.PurchaseOrderId} because some items have already been accepted.\n\nPlease retract the accepted items first if you want to reject the order.",
+                        "OK");
+                    return;
+                }
+
                 var reason = await Application.Current.MainPage.DisplayPromptAsync(
                     "Reject Purchase Order",
                     $"Enter reason for rejecting Purchase Order #{order.PurchaseOrderId}:",
@@ -427,6 +442,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (success)
                 {
                     item.ItemStatus = "Accepted";
+                    
+                    // Find the parent order and notify property change for HasAcceptedItems
+                    var parentOrder = PendingOrders.FirstOrDefault(o => o.EditableItems.Contains(item));
+                    if (parentOrder != null)
+                    {
+                        parentOrder.OnPropertyChanged(nameof(PurchaseOrderDisplayModel.HasAcceptedItems));
+                        parentOrder.OnPropertyChanged(nameof(PurchaseOrderDisplayModel.HasPendingItems));
+                    }
+                    
                     await Application.Current.MainPage.DisplayAlert(
                         "Success",
                         $"{item.ItemName} has been accepted and added to inventory!",
@@ -688,6 +712,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     item.ItemStatus = "Pending";
                     item.ApprovedQuantity = item.RequestedQuantity; // Reset to requested quantity
+                    item.ApprovedUoM = item.OriginalUoM; // Restore to original requested UoM
+                    item.Quantity = 1; // Reset quantity multiplier to 1
+                    
+                    // Find the parent order and notify property change for HasAcceptedItems
+                    var parentOrder = PendingOrders.FirstOrDefault(o => o.EditableItems.Contains(item));
+                    if (parentOrder != null)
+                    {
+                        parentOrder.OnPropertyChanged(nameof(PurchaseOrderDisplayModel.HasAcceptedItems));
+                        parentOrder.OnPropertyChanged(nameof(PurchaseOrderDisplayModel.HasPendingItems));
+                    }
+                    
                     await Application.Current.MainPage.DisplayAlert(
                         "Retracted",
                         $"{item.ItemName} has been retracted and removed from inventory.",
@@ -846,12 +881,72 @@ namespace Coftea_Capstone.ViewModel.Controls
     }
 
     // Display model with items preview
-    public class PurchaseOrderDisplayModel : PurchaseOrderModel
+    public class PurchaseOrderDisplayModel : PurchaseOrderModel, INotifyPropertyChanged
     {
         public string ItemsPreview { get; set; } = string.Empty;
         public ObservableCollection<EditablePurchaseOrderItem> EditableItems { get; set; } = new();
         public List<PurchaseOrderItemModel> Items { get; set; } = new();
         public bool IsExpanded { get; set; } = false;
+        
+        public PurchaseOrderDisplayModel()
+        {
+            // Subscribe to item collection changes
+            EditableItems.CollectionChanged += (sender, e) =>
+            {
+                OnPropertyChanged(nameof(HasAcceptedItems));
+                OnPropertyChanged(nameof(HasPendingItems));
+                
+                // Subscribe to new items
+                if (e.NewItems != null)
+                {
+                    foreach (EditablePurchaseOrderItem item in e.NewItems)
+                    {
+                        item.PropertyChanged += Item_PropertyChanged;
+                    }
+                }
+                
+                // Unsubscribe from removed items
+                if (e.OldItems != null)
+                {
+                    foreach (EditablePurchaseOrderItem item in e.OldItems)
+                    {
+                        item.PropertyChanged -= Item_PropertyChanged;
+                    }
+                }
+            };
+        }
+        
+        public void InitializeItemSubscriptions()
+        {
+            // Subscribe to each existing item's status changes
+            foreach (var item in EditableItems)
+            {
+                item.PropertyChanged -= Item_PropertyChanged; // Remove existing to avoid duplicates
+                item.PropertyChanged += Item_PropertyChanged;
+            }
+        }
+        
+        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(EditablePurchaseOrderItem.ItemStatus))
+            {
+                OnPropertyChanged(nameof(HasAcceptedItems));
+                OnPropertyChanged(nameof(HasPendingItems));
+            }
+        }
+        
+        // Check if any items in this order are accepted
+        public bool HasAcceptedItems => EditableItems?.Any(item => item.IsAccepted) ?? false;
+        
+        // Check if any items in this order are pending
+        public bool HasPendingItems => EditableItems?.Any(item => item.IsPending) ?? false;
+        
+        public event PropertyChangedEventHandler? PropertyChanged;
+        
+        public void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     // Editable item model with custom amount and UoM

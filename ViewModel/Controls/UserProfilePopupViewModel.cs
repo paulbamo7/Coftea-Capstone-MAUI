@@ -58,10 +58,27 @@ namespace Coftea_Capstone.ViewModel.Controls
             FullName = $"{user.FirstName} {user.LastName}".Trim();
             Email = MaskEmail(user.Email);
             PhoneNumber = user.PhoneNumber;
-            CanEditInventory = user.CanAccessInventory;
-            CanEditPOSMenu = user.CanAccessPOS;
-            _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
-            CanAccessSalesReport = user.CanAccessSalesReport; // For display
+            
+            // If user is admin, set all permissions to true
+            if (user.IsAdmin)
+            {
+                CanEditInventory = true;
+                CanEditPOSMenu = true;
+                CanAccessSalesReport = true;
+                _canAccessSalesReport = true;
+            }
+            else
+            {
+                CanEditInventory = user.CanAccessInventory;
+                CanEditPOSMenu = user.CanAccessPOS;
+                _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
+                CanAccessSalesReport = user.CanAccessSalesReport; // For display
+            }
+            
+            // Explicitly notify property changes to ensure DataTriggers fire
+            OnPropertyChanged(nameof(CanEditInventory));
+            OnPropertyChanged(nameof(CanEditPOSMenu));
+            OnPropertyChanged(nameof(CanAccessSalesReport));
             
             // Notify computed properties changed
             OnPropertyChanged(nameof(InventoryAccessText));
@@ -76,6 +93,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                 ProfileImage = !string.IsNullOrWhiteSpace(profileImageName) ? profileImageName : "usericon.png";
                 
                 System.Diagnostics.Debug.WriteLine($"ShowUserProfile - UserId: {UserId}, ProfileImage from DB: {profileImageName}, Using: {ProfileImage}");
+                
+                // Try to restore profile image from database if file is missing
+                if (!string.IsNullOrWhiteSpace(ProfileImage) && ProfileImage != "usericon.png")
+                {
+                    var imagePath = System.IO.Path.Combine(Microsoft.Maui.Storage.FileSystem.AppDataDirectory, ProfileImage);
+                    if (!System.IO.File.Exists(imagePath))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Profile image file missing, attempting to restore from database: {ProfileImage}");
+                        await _database.GetUserProfileImageAsync(UserId);
+                    }
+                }
                 
                 // Clear first to force image reload, then set new source on main thread
                 await MainThread.InvokeOnMainThreadAsync(() =>
@@ -157,10 +185,27 @@ namespace Coftea_Capstone.ViewModel.Controls
             FullName = user.Username;
             Email = "N/A"; // UserEntry doesn't have email
             PhoneNumber = "N/A"; // UserEntry doesn't have phone
-            CanEditInventory = user.CanAccessInventory;
-            CanEditPOSMenu = user.CanAccessPOS;
-            _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
-            CanAccessSalesReport = user.CanAccessSalesReport; // For display
+            
+            // If user is admin, set all permissions to true
+            if (user.IsAdmin)
+            {
+                CanEditInventory = true;
+                CanEditPOSMenu = true;
+                CanAccessSalesReport = true;
+                _canAccessSalesReport = true;
+            }
+            else
+            {
+                CanEditInventory = user.CanAccessInventory;
+                CanEditPOSMenu = user.CanAccessPOS;
+                _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
+                CanAccessSalesReport = user.CanAccessSalesReport; // For display
+            }
+            
+            // Explicitly notify property changes to ensure DataTriggers fire
+            OnPropertyChanged(nameof(CanEditInventory));
+            OnPropertyChanged(nameof(CanEditPOSMenu));
+            OnPropertyChanged(nameof(CanAccessSalesReport));
             
             // Notify computed properties changed
             OnPropertyChanged(nameof(InventoryAccessText));

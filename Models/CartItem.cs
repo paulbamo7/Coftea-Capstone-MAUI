@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls;
 using Coftea_Capstone.C_;
 
 namespace Coftea_Capstone.Models
@@ -13,7 +14,39 @@ namespace Coftea_Capstone.Models
         private string productName;
 
         [ObservableProperty]
-        private string imageSource;
+        private string imageSet; // Store as string (filename)
+
+        public ImageSource ImageSource // Convert to ImageSource for binding
+        {
+            get
+            {
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(ImageSet))
+                        return ImageSource.FromFile("coftea_logo.png");
+                    
+                    // Handle HTTP URLs
+                    if (ImageSet.StartsWith("http"))
+                        return ImageSource.FromUri(new Uri(ImageSet));
+
+                    // Handle local file paths (legacy support)
+                    if (System.IO.Path.IsPathRooted(ImageSet) && System.IO.File.Exists(ImageSet))
+                        return ImageSource.FromFile(ImageSet);
+
+                    // Handle app data directory images (new system)
+                    var appDataPath = Services.ImagePersistenceService.GetImagePath(ImageSet);
+                    if (System.IO.File.Exists(appDataPath))
+                        return ImageSource.FromFile(appDataPath);
+
+                    // Fallback to bundled resource
+                    return ImageSource.FromFile(ImageSet);
+                }
+                catch
+                {
+                    return ImageSource.FromFile("coftea_logo.png");
+                }
+            }
+        }
 
         [ObservableProperty]
         private string customerName;

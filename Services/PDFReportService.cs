@@ -505,12 +505,16 @@ namespace Coftea_Capstone.Services
 
                     foreach (var item in items)
                     {
-                        var quantity = item.ApprovedQuantity > 0 ? item.ApprovedQuantity : item.RequestedQuantity;
+                        var amount = item.ApprovedQuantity > 0 ? item.ApprovedQuantity : item.RequestedQuantity;
+                        // Quantity (packages) - if ApprovedQuantity is the amount per package, 
+                        // then Quantity should default to 1 (since it's not stored in DB)
+                        // For now, we'll show Quantity as 1 (number of packages)
+                        var quantity = 1; // Default to 1 package since Quantity field is not stored in DB
                         PdfGridRow row = itemsGrid.Rows.Add();
                         row.Cells[0].Value = item.ItemName ?? "";
-                        row.Cells[1].Value = quantity.ToString(); // Amount: how many units are being purchased
+                        row.Cells[1].Value = amount.ToString(); // Amount: how many units are being purchased
                         row.Cells[2].Value = item.UnitOfMeasurement ?? "pcs";
-                        row.Cells[3].Value = $"x{quantity}"; // Quantity: display as x + number
+                        row.Cells[3].Value = $"x{quantity}"; // Quantity: display as x + number of packages
                     }
 
                     if (items.Count == 0)
@@ -711,12 +715,66 @@ namespace Coftea_Capstone.Services
 
                 if (platform == DevicePlatform.Android)
                 {
-                    // Android: Use external storage Downloads folder
-                    downloadPath = "/storage/emulated/0/Download";
-                    if (!Directory.Exists(downloadPath))
+                    // Android: Try to use Downloads folder first
+                    // Multiple possible paths for different Android versions/devices
+                    var possiblePaths = new[]
                     {
-                        // Fallback to app's external files directory
+                        "/storage/emulated/0/Download",
+                        "/storage/emulated/0/Downloads",
+                        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Download",
+                        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Downloads"
+                    };
+                    
+                    downloadPath = null;
+                    foreach (var path in possiblePaths)
+                    {
+                        try
+                        {
+                            if (Directory.Exists(path))
+                            {
+                                downloadPath = path;
+                                break;
+                            }
+                            else
+                            {
+                                // Try to create the directory
+                                Directory.CreateDirectory(path);
+                                if (Directory.Exists(path))
+                                {
+                                    downloadPath = path;
+                                    break;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Continue to next path
+                            continue;
+                        }
+                    }
+                    
+                    // Fallback to app data directory if Downloads folder is not accessible
+                    if (string.IsNullOrEmpty(downloadPath))
+                    {
                         downloadPath = Path.Combine(FileSystem.AppDataDirectory, "Downloads");
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Android: Could not access Downloads folder, using app data directory: {downloadPath}");
+                    }
+                    
+                    // Ensure directory exists
+                    try
+                    {
+                        if (!Directory.Exists(downloadPath))
+                        {
+                            Directory.CreateDirectory(downloadPath);
+                        }
+                        System.Diagnostics.Debug.WriteLine($"✅ Android: PDF download path set to: {downloadPath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Android: Failed to create download directory: {ex.Message}");
+                        // Final fallback to app data directory
+                        downloadPath = Path.Combine(FileSystem.AppDataDirectory, "Downloads");
+                        Directory.CreateDirectory(downloadPath);
                     }
                 }
                 else if (platform == DevicePlatform.iOS || platform == DevicePlatform.MacCatalyst)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Maui.Devices;
+using Microsoft.Maui.Storage;
 using System.IO;
 
 using Coftea_Capstone.C_;
@@ -280,6 +281,19 @@ namespace Coftea_Capstone.Models
                     var alterInventorySql = "ALTER TABLE inventory ADD COLUMN imageData LONGBLOB;";
                     await using var alterInventoryCmd = new MySqlCommand(alterInventorySql, conn);
                     await alterInventoryCmd.ExecuteNonQueryAsync();
+                }
+
+                // Add imageData column to users table if it doesn't exist (for migration)
+                var checkUsersSql = @"SELECT COUNT(*) FROM information_schema.COLUMNS 
+                                      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'imageData';";
+                await using var checkUsersCmd = new MySqlCommand(checkUsersSql, conn);
+                var usersHasColumn = Convert.ToInt32(await checkUsersCmd.ExecuteScalarAsync()) > 0;
+                
+                if (!usersHasColumn)
+                {
+                    var alterUsersSql = "ALTER TABLE users ADD COLUMN imageData LONGBLOB;";
+                    await using var alterUsersCmd = new MySqlCommand(alterUsersSql, conn);
+                    await alterUsersCmd.ExecuteNonQueryAsync();
                 }
             }
             catch (Exception ex)
@@ -2301,6 +2315,28 @@ namespace Coftea_Capstone.Models
                     
                     System.Diagnostics.Debug.WriteLine($"Loaded user from DB - ID: {user.ID}, Username: '{user.Username}', ProfileImage: '{user.ProfileImage}', FullName: '{user.FullName}'");
                     
+                    // Restore profile image from database if file is missing
+                    if (!string.IsNullOrWhiteSpace(user.ProfileImage) && user.ProfileImage != "usericon.png")
+                    {
+                        var profileImageName = user.ProfileImage;
+                        var imagePath = Services.ImagePersistenceService.GetImagePath(profileImageName);
+                        if (!File.Exists(imagePath))
+                        {
+                            // Try to restore from database
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await GetUserProfileImageAsync(user.ID);
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"Error restoring profile image for user {user.ID}: {ex.Message}");
+                                }
+                            });
+                        }
+                    }
+                    
                     return user;
                 }
                 return null;
@@ -2323,6 +2359,24 @@ namespace Coftea_Capstone.Models
                 var firstName = nameParts.Length > 0 ? nameParts[0] : string.Empty;
                 var lastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : string.Empty;
                 
+                // Read image bytes from file system if it exists
+                byte[]? imageBytes = null;
+                if (!string.IsNullOrWhiteSpace(profileImage) && profileImage != "usericon.png")
+                {
+                    // Profile images are stored directly in AppDataDirectory, not in ProductImages subdirectory
+                    var imagePath = Path.Combine(FileSystem.AppDataDirectory, profileImage);
+                    
+                    if (File.Exists(imagePath))
+                    {
+                        imageBytes = await File.ReadAllBytesAsync(imagePath);
+                        System.Diagnostics.Debug.WriteLine($"✅ Read profile image from: {imagePath}, Size: {imageBytes.Length} bytes");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Profile image file not found at: {imagePath}");
+                    }
+                }
+                
                 var sql = @"UPDATE users SET 
                            username = @Username, 
                            email = @Email, 
@@ -2331,6 +2385,7 @@ namespace Coftea_Capstone.Models
                            fullName = @FullName,
                            phoneNumber = @PhoneNumber, 
                            profileImage = @ProfileImage,
+                           imageData = @ImageData,
                            can_access_inventory = @CanAccessInventory,
                            can_access_sales_report = @CanAccessSalesReport
                            WHERE id = @UserId;";
@@ -2344,6 +2399,7 @@ namespace Coftea_Capstone.Models
                 cmd.Parameters.AddWithValue("@FullName", fullName ?? string.Empty);
                 cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber ?? string.Empty);
                 cmd.Parameters.AddWithValue("@ProfileImage", profileImage ?? "usericon.png");
+                cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
                 cmd.Parameters.AddWithValue("@CanAccessInventory", canAccessInventory);
                 cmd.Parameters.AddWithValue("@CanAccessSalesReport", canAccessSalesReport);
 
@@ -2364,17 +2420,41 @@ namespace Coftea_Capstone.Models
             try
             {
                 await using var conn = await GetOpenConnectionAsync();
-                var sql = "UPDATE users SET profileImage = @ProfileImage WHERE id = @UserId;";
+                
+                // Read image bytes from file system if it exists
+                byte[]? imageBytes = null;
+                if (!string.IsNullOrWhiteSpace(profileImage) && profileImage != "usericon.png")
+                {
+                    // Profile images are stored directly in AppDataDirectory, not in ProductImages subdirectory
+                    var imagePath = Path.Combine(FileSystem.AppDataDirectory, profileImage);
+                    
+                    if (File.Exists(imagePath))
+                    {
+                        imageBytes = await File.ReadAllBytesAsync(imagePath);
+                        System.Diagnostics.Debug.WriteLine($"✅ Read profile image from: {imagePath}, Size: {imageBytes.Length} bytes");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Profile image file not found at: {imagePath}");
+                    }
+                }
+                
+                var sql = "UPDATE users SET profileImage = @ProfileImage, imageData = @ImageData WHERE id = @UserId;";
                 
                 await using var cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@ProfileImage", profileImage);
+                cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
 
-                return await cmd.ExecuteNonQueryAsync();
+                var rowsAffected = await cmd.ExecuteNonQueryAsync();
+                System.Diagnostics.Debug.WriteLine($"✅ Updated profile image in database for userId={userId}, imageBytes={(imageBytes != null ? imageBytes.Length : 0)} bytes, rowsAffected={rowsAffected}");
+                
+                return rowsAffected;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error updating user profile image: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error updating user profile image: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
@@ -3445,10 +3525,12 @@ namespace Coftea_Capstone.Models
                 System.Diagnostics.Debug.WriteLine($"✅ Connection opened and transaction started");
 
                 // Get the approved quantity from purchase_order_items to know how much to subtract
-                var getPOItemSql = @"SELECT approvedQuantity, unitOfMeasurement, itemName 
-                                    FROM purchase_order_items 
-                                    WHERE purchaseOrderId = @PurchaseOrderId 
-                                      AND inventoryItemId = @InventoryItemId;";
+                // Also get the original requested UoM from the inventory table (since unitOfMeasurement might have been overwritten when accepting)
+                var getPOItemSql = @"SELECT poi.approvedQuantity, poi.unitOfMeasurement, poi.itemName, i.unitOfMeasurement as inventoryUoM
+                                    FROM purchase_order_items poi
+                                    INNER JOIN inventory i ON poi.inventoryItemId = i.itemID
+                                    WHERE poi.purchaseOrderId = @PurchaseOrderId 
+                                      AND poi.inventoryItemId = @InventoryItemId;";
                 await using var getPOItemCmd = new MySqlCommand(getPOItemSql, conn, tx);
                 getPOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                 getPOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
@@ -3465,6 +3547,8 @@ namespace Coftea_Capstone.Models
                 int approvedQuantityDb = poReader.GetInt32("approvedQuantity");
                 string approvedUoM = poReader.IsDBNull(poReader.GetOrdinal("unitOfMeasurement")) ? "" : poReader.GetString("unitOfMeasurement");
                 string itemName = poReader.GetString("itemName");
+                // Get the original requested UoM from inventory (this is what was used when creating the purchase order)
+                string originalRequestedUoM = poReader.IsDBNull(poReader.GetOrdinal("inventoryUoM")) ? "" : poReader.GetString("inventoryUoM");
                 await poReader.CloseAsync();
                 
                 if (approvedQuantityDb <= 0)
@@ -3548,17 +3632,21 @@ namespace Coftea_Capstone.Models
                 
                 System.Diagnostics.Debug.WriteLine($"✅ Updated inventory: Removed {quantityToSubtract} {inventoryUoM} from {itemName}");
 
-                // Reset the purchase_order_items table - set approvedQuantity to 0
+                // Reset the purchase_order_items table - set approvedQuantity to 0 and restore original requested UoM
                 System.Diagnostics.Debug.WriteLine($"🔍 Step 4: Resetting purchase_order_items table...");
                 var updatePOItemSql = @"UPDATE purchase_order_items 
                                        SET approvedQuantity = 0, 
-                                           unitOfMeasurement = @OriginalUoM
+                                           unitOfMeasurement = @OriginalRequestedUoM
                                        WHERE purchaseOrderId = @PurchaseOrderId 
                                          AND inventoryItemId = @InventoryItemId;";
                 await using var updatePOItemCmd = new MySqlCommand(updatePOItemSql, conn, tx);
-                updatePOItemCmd.Parameters.AddWithValue("@OriginalUoM", approvedUoM ?? "");
+                // Restore to the original requested UoM (from inventory item's UoM, which was used when creating the purchase order)
+                // Use originalRequestedUoM if available, otherwise fall back to inventoryUoM
+                string uomToRestore = !string.IsNullOrWhiteSpace(originalRequestedUoM) ? originalRequestedUoM : (inventoryUoM ?? "");
+                updatePOItemCmd.Parameters.AddWithValue("@OriginalRequestedUoM", uomToRestore);
                 updatePOItemCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                 updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
+                System.Diagnostics.Debug.WriteLine($"🔍 Restoring unitOfMeasurement to original requested UoM: {uomToRestore}");
                 System.Diagnostics.Debug.WriteLine($"🔍 Step 5: Executing purchase_order_items UPDATE...");
                 var poRowsAffected = await updatePOItemCmd.ExecuteNonQueryAsync();
                 System.Diagnostics.Debug.WriteLine($"🔍 Step 6: purchase_order_items UPDATE executed - rowsAffected={poRowsAffected}");
@@ -3606,6 +3694,83 @@ namespace Coftea_Capstone.Models
                 catch (Exception logEx)
                 {
                     System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Failed to log inventory activity: {logEx.Message}");
+                }
+
+                // Check the status of all items in the purchase order after retraction
+                var checkAllItemsSql = @"SELECT 
+                    COUNT(*) as totalItems,
+                    SUM(CASE WHEN approvedQuantity > 0 THEN 1 ELSE 0 END) as acceptedItems,
+                    SUM(CASE WHEN approvedQuantity = -1 THEN 1 ELSE 0 END) as canceledItems,
+                    SUM(CASE WHEN approvedQuantity > 0 OR approvedQuantity = -1 THEN 1 ELSE 0 END) as processedItems
+                    FROM purchase_order_items 
+                    WHERE purchaseOrderId = @PurchaseOrderId;";
+                await using var checkAllItemsCmd = new MySqlCommand(checkAllItemsSql, conn, tx);
+                checkAllItemsCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                await using var checkReader = await checkAllItemsCmd.ExecuteReaderAsync();
+                int totalItems = 0;
+                int acceptedItems = 0;
+                int canceledItems = 0;
+                int processedItems = 0;
+                if (await checkReader.ReadAsync())
+                {
+                    totalItems = checkReader.GetInt32("totalItems");
+                    acceptedItems = checkReader.GetInt32("acceptedItems");
+                    canceledItems = checkReader.GetInt32("canceledItems");
+                    processedItems = checkReader.GetInt32("processedItems");
+                }
+                await checkReader.CloseAsync();
+
+                // Update purchase order status based on item processing state after retraction
+                if (totalItems > 0)
+                {
+                    string newStatus;
+                    if (processedItems >= totalItems)
+                    {
+                        // All items are processed
+                        if (acceptedItems == totalItems && canceledItems == 0)
+                        {
+                            // All items are accepted, none canceled
+                            newStatus = "Approved";
+                        }
+                        else if (acceptedItems > 0 && canceledItems > 0)
+                        {
+                            // Some items accepted, some canceled
+                            newStatus = "Partially Approved";
+                        }
+                        else if (canceledItems == totalItems)
+                        {
+                            // All items are canceled
+                            newStatus = "Rejected";
+                        }
+                        else
+                        {
+                            // Fallback (shouldn't happen, but just in case)
+                            newStatus = "Partially Approved";
+                        }
+                    }
+                    else if (acceptedItems > 0 || canceledItems > 0)
+                    {
+                        // Some items are processed but not all
+                        newStatus = "Partially Approved";
+                    }
+                    else
+                    {
+                        // No items processed yet (all retracted back to pending)
+                        newStatus = "Pending";
+                    }
+                    
+                    // Only update status if it's different from current
+                    var updateOrderStatusSql = @"UPDATE purchase_orders 
+                                                SET status = @Status, 
+                                                    updatedAt = @UpdatedAt
+                                                WHERE purchaseOrderId = @PurchaseOrderId
+                                                  AND (status != @Status OR status IS NULL);";
+                    await using var updateOrderStatusCmd = new MySqlCommand(updateOrderStatusSql, conn, tx);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@Status", newStatus);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
+                    var statusRowsAffected = await updateOrderStatusCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine($"📊 Updated purchase order status to '{newStatus}' after retraction: {statusRowsAffected} row(s) affected (Total: {totalItems}, Accepted: {acceptedItems}, Canceled: {canceledItems})");
                 }
 
                 await tx.CommitAsync();
@@ -3805,9 +3970,11 @@ namespace Coftea_Capstone.Models
                     // Continue anyway - the inventory update is more important than logging
                 }
 
-                // Check if all items in the purchase order are accepted or canceled
+                // Check the status of all items in the purchase order
                 var checkAllItemsSql = @"SELECT 
                     COUNT(*) as totalItems,
+                    SUM(CASE WHEN approvedQuantity > 0 THEN 1 ELSE 0 END) as acceptedItems,
+                    SUM(CASE WHEN approvedQuantity = -1 THEN 1 ELSE 0 END) as canceledItems,
                     SUM(CASE WHEN approvedQuantity > 0 OR approvedQuantity = -1 THEN 1 ELSE 0 END) as processedItems
                     FROM purchase_order_items 
                     WHERE purchaseOrderId = @PurchaseOrderId;";
@@ -3815,30 +3982,73 @@ namespace Coftea_Capstone.Models
                 checkAllItemsCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                 await using var checkReader = await checkAllItemsCmd.ExecuteReaderAsync();
                 int totalItems = 0;
+                int acceptedItems = 0;
+                int canceledItems = 0;
                 int processedItems = 0;
                 if (await checkReader.ReadAsync())
                 {
                     totalItems = checkReader.GetInt32("totalItems");
+                    acceptedItems = checkReader.GetInt32("acceptedItems");
+                    canceledItems = checkReader.GetInt32("canceledItems");
                     processedItems = checkReader.GetInt32("processedItems");
                 }
                 await checkReader.CloseAsync();
 
-                // If all items are processed, update the purchase order status
-                if (processedItems >= totalItems && totalItems > 0)
+                // Update purchase order status based on item processing state
+                if (totalItems > 0)
                 {
+                    string newStatus;
+                    if (processedItems >= totalItems)
+                    {
+                        // All items are processed
+                        if (acceptedItems == totalItems && canceledItems == 0)
+                        {
+                            // All items are accepted, none canceled
+                            newStatus = "Approved";
+                        }
+                        else if (acceptedItems > 0 && canceledItems > 0)
+                        {
+                            // Some items accepted, some canceled
+                            newStatus = "Partially Approved";
+                        }
+                        else if (canceledItems == totalItems)
+                        {
+                            // All items are canceled
+                            newStatus = "Rejected";
+                        }
+                        else
+                        {
+                            // Fallback (shouldn't happen, but just in case)
+                            newStatus = "Partially Approved";
+                        }
+                    }
+                    else if (acceptedItems > 0 || canceledItems > 0)
+                    {
+                        // Some items are processed but not all
+                        newStatus = "Partially Approved";
+                    }
+                    else
+                    {
+                        // No items processed yet
+                        newStatus = "Pending";
+                    }
+                    
+                    // Only update status if it's different from current
                     var updateOrderStatusSql = @"UPDATE purchase_orders 
-                                                SET status = 'Partially Approved', 
+                                                SET status = @Status, 
                                                     approvedBy = @ApprovedBy, 
                                                     approvedDate = @ApprovedDate,
                                                     updatedAt = @UpdatedAt
-                                                WHERE purchaseOrderId = @PurchaseOrderId;";
+                                                WHERE purchaseOrderId = @PurchaseOrderId
+                                                  AND (status != @Status OR status IS NULL);";
                     await using var updateOrderStatusCmd = new MySqlCommand(updateOrderStatusSql, conn, tx);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@Status", newStatus);
                     updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedBy", approvedBy);
                     updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedDate", DateTime.Now);
                     updateOrderStatusCmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
                     updateOrderStatusCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                     var statusRowsAffected = await updateOrderStatusCmd.ExecuteNonQueryAsync();
-                    System.Diagnostics.Debug.WriteLine($"📊 Updated purchase order status: {statusRowsAffected} row(s) affected");
+                    System.Diagnostics.Debug.WriteLine($"📊 Updated purchase order status to '{newStatus}': {statusRowsAffected} row(s) affected (Total: {totalItems}, Accepted: {acceptedItems}, Canceled: {canceledItems})");
                 }
 
                 await tx.CommitAsync();
@@ -3911,9 +4121,11 @@ namespace Coftea_Capstone.Models
                 updatePOItemCmd.Parameters.AddWithValue("@InventoryItemId", inventoryItemId);
                 var rowsAffected = await updatePOItemCmd.ExecuteNonQueryAsync();
 
-                // Check if all items in the purchase order are accepted or canceled
+                // Check the status of all items in the purchase order
                 var checkAllItemsSql = @"SELECT 
                     COUNT(*) as totalItems,
+                    SUM(CASE WHEN approvedQuantity > 0 THEN 1 ELSE 0 END) as acceptedItems,
+                    SUM(CASE WHEN approvedQuantity = -1 THEN 1 ELSE 0 END) as canceledItems,
                     SUM(CASE WHEN approvedQuantity > 0 OR approvedQuantity = -1 THEN 1 ELSE 0 END) as processedItems
                     FROM purchase_order_items 
                     WHERE purchaseOrderId = @PurchaseOrderId;";
@@ -3921,29 +4133,73 @@ namespace Coftea_Capstone.Models
                 checkAllItemsCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
                 await using var checkReader = await checkAllItemsCmd.ExecuteReaderAsync();
                 int totalItems = 0;
+                int acceptedItems = 0;
+                int canceledItems = 0;
                 int processedItems = 0;
                 if (await checkReader.ReadAsync())
                 {
                     totalItems = checkReader.GetInt32("totalItems");
+                    acceptedItems = checkReader.GetInt32("acceptedItems");
+                    canceledItems = checkReader.GetInt32("canceledItems");
                     processedItems = checkReader.GetInt32("processedItems");
                 }
                 await checkReader.CloseAsync();
 
-                // If all items are processed, update the purchase order status
-                if (processedItems >= totalItems && totalItems > 0)
+                // Update purchase order status based on item processing state
+                if (totalItems > 0)
                 {
+                    string newStatus;
+                    if (processedItems >= totalItems)
+                    {
+                        // All items are processed
+                        if (acceptedItems == totalItems && canceledItems == 0)
+                        {
+                            // All items are accepted, none canceled
+                            newStatus = "Approved";
+                        }
+                        else if (acceptedItems > 0 && canceledItems > 0)
+                        {
+                            // Some items accepted, some canceled
+                            newStatus = "Partially Approved";
+                        }
+                        else if (canceledItems == totalItems)
+                        {
+                            // All items are canceled
+                            newStatus = "Rejected";
+                        }
+                        else
+                        {
+                            // Fallback (shouldn't happen, but just in case)
+                            newStatus = "Partially Approved";
+                        }
+                    }
+                    else if (acceptedItems > 0 || canceledItems > 0)
+                    {
+                        // Some items are processed but not all
+                        newStatus = "Partially Approved";
+                    }
+                    else
+                    {
+                        // No items processed yet
+                        newStatus = "Pending";
+                    }
+                    
+                    // Only update status if it's different from current
                     var updateOrderStatusSql = @"UPDATE purchase_orders 
-                                                SET status = 'Partially Approved', 
+                                                SET status = @Status, 
                                                     approvedBy = @CanceledBy, 
                                                     approvedDate = @ApprovedDate,
                                                     updatedAt = @UpdatedAt
-                                                WHERE purchaseOrderId = @PurchaseOrderId;";
+                                                WHERE purchaseOrderId = @PurchaseOrderId
+                                                  AND (status != @Status OR status IS NULL);";
                     await using var updateOrderStatusCmd = new MySqlCommand(updateOrderStatusSql, conn, (MySqlTransaction)tx);
+                    updateOrderStatusCmd.Parameters.AddWithValue("@Status", newStatus);
                     updateOrderStatusCmd.Parameters.AddWithValue("@CanceledBy", canceledBy);
                     updateOrderStatusCmd.Parameters.AddWithValue("@ApprovedDate", DateTime.Now);
                     updateOrderStatusCmd.Parameters.AddWithValue("@UpdatedAt", DateTime.Now);
                     updateOrderStatusCmd.Parameters.AddWithValue("@PurchaseOrderId", purchaseOrderId);
-                    await updateOrderStatusCmd.ExecuteNonQueryAsync();
+                    var statusRowsAffected = await updateOrderStatusCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine($"📊 Updated purchase order status to '{newStatus}': {statusRowsAffected} row(s) affected (Total: {totalItems}, Accepted: {acceptedItems}, Canceled: {canceledItems})");
                 }
 
                 await tx.CommitAsync();
@@ -4195,6 +4451,51 @@ namespace Coftea_Capstone.Models
                 System.Diagnostics.Debug.WriteLine($"❌ Error getting inventory image: {ex.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Gets user profile image bytes from database and restores to app data directory if missing
+        /// </summary>
+        public async Task<byte[]?> GetUserProfileImageAsync(int userId)
+        {
+            try
+            {
+                await using var conn = await GetOpenConnectionAsync();
+                var sql = "SELECT imageData, profileImage FROM users WHERE id = @UserId;";
+                await using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                await using var reader = await cmd.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var profileImage = reader.IsDBNull(reader.GetOrdinal("profileImage")) ? null : reader.GetString("profileImage");
+                    
+                    // If imageData exists in database, return it and restore to app data directory
+                    if (!reader.IsDBNull(reader.GetOrdinal("imageData")))
+                    {
+                        var imageBytes = (byte[])reader["imageData"];
+                        
+                        // Restore to app data directory if file doesn't exist
+                        if (!string.IsNullOrWhiteSpace(profileImage) && profileImage != "usericon.png")
+                        {
+                            var imagePath = Services.ImagePersistenceService.GetImagePath(profileImage);
+                            if (!File.Exists(imagePath) && imageBytes != null && imageBytes.Length > 0)
+                            {
+                                await Services.ImagePersistenceService.EnsureImagesDirectoryExistsAsync();
+                                await File.WriteAllBytesAsync(imagePath, imageBytes);
+                                System.Diagnostics.Debug.WriteLine($"✅ Restored user profile image to app data: {profileImage}");
+                            }
+                        }
+                        
+                        return imageBytes;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error getting user profile image: {ex.Message}");
+            }
+            return null;
         }
     }
 }
