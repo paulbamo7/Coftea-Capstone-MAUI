@@ -102,7 +102,7 @@
                             <RowDefinition Height="2"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Text="Fruit/Soda" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
-                                BackgroundColor="#D4C4A3" WidthRequest="120" HeightRequest="40"
+                                BackgroundColor="#D4C4A3" WidthRequest="130" HeightRequest="40"
                                 Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda">
                             <Button.Style>
                                 <Style TargetType="Button">
@@ -243,14 +243,15 @@
                                                    VerticalOptions="Center" />
 
                                             <!-- Prices (Small visible only for Coffee; Medium and Large visible for all) -->
-                                            <HorizontalStackLayout Grid.Row="2" Grid.Column="1" 
-                                                                   Spacing="10" 
-                                                                   VerticalOptions="Center">
+                                            <VerticalStackLayout Grid.Row="2" Grid.Column="1" 
+                                                                 Spacing="3" 
+                                                                 VerticalOptions="Center">
                                                 <!-- Small price - only for Coffee category -->
                                                 <Label Text="{Binding SmallPrice, StringFormat='Small: ₱{0:F2}'}" 
                                                        FontSize="12" 
                                                        TextColor="DarkGreen"
-                                                       IsVisible="False">
+                                                       IsVisible="False"
+                                                       LineBreakMode="NoWrap">
                                                     <Label.Triggers>
                                                         <DataTrigger TargetType="Label" Binding="{Binding Category}" Value="Coffee">
                                                             <Setter Property="IsVisible" Value="True" />
@@ -261,13 +262,15 @@
                                                 <!-- Medium price - always visible -->
                                                 <Label Text="{Binding MediumPrice, StringFormat='Medium: ₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="DarkGreen" />
+                                                       TextColor="DarkGreen"
+                                                       LineBreakMode="NoWrap" />
 
                                                 <!-- Large price - always visible -->
                                                 <Label Text="{Binding LargePrice, StringFormat='Large: ₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="DarkGreen" />
-                                            </HorizontalStackLayout>
+                                                       TextColor="DarkGreen"
+                                                       LineBreakMode="NoWrap" />
+                                            </VerticalStackLayout>
 
                                             <!-- Action Buttons -->
                                             <HorizontalStackLayout Grid.Row="3" Grid.Column="1" 

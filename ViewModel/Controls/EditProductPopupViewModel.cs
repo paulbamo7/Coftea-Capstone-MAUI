@@ -106,7 +106,29 @@ namespace Coftea_Capstone.ViewModel
             {
                 foreach (var product in AllProducts)
                 {
-                    if (product.Category == category || product.Subcategory == category)
+                    // Normalize category comparison (case-insensitive)
+                    var productCategory = product.Category?.Trim() ?? "";
+                    var productSubcategory = product.Subcategory?.Trim() ?? "";
+                    var filterCategory = category?.Trim() ?? "";
+                    
+                    // Special handling for "Fruit/Soda" to match variations
+                    bool matches = false;
+                    if (filterCategory.Equals("Fruit/Soda", StringComparison.OrdinalIgnoreCase))
+                    {
+                        matches = productCategory.Equals("Fruit/Soda", StringComparison.OrdinalIgnoreCase) ||
+                                  productCategory.Equals("FruitSoda", StringComparison.OrdinalIgnoreCase) ||
+                                  productCategory.Equals("Fruit Soda", StringComparison.OrdinalIgnoreCase) ||
+                                  productCategory.Equals("Fruitsoda", StringComparison.OrdinalIgnoreCase) ||
+                                  productSubcategory.Equals("Fruit", StringComparison.OrdinalIgnoreCase) ||
+                                  productSubcategory.Equals("Soda", StringComparison.OrdinalIgnoreCase);
+                    }
+                    else
+                    {
+                        matches = productCategory.Equals(filterCategory, StringComparison.OrdinalIgnoreCase) ||
+                                  productSubcategory.Equals(filterCategory, StringComparison.OrdinalIgnoreCase);
+                    }
+                    
+                    if (matches)
                     {
                         Products.Add(product);
                     }
