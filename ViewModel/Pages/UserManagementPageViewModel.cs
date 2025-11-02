@@ -26,7 +26,7 @@ namespace Coftea_Capstone.ViewModel
         private int currentPage = 1;
 
         [ObservableProperty]
-        private string searchText;
+        private string searchText = string.Empty;
 
         [ObservableProperty]
         private string selectedSortOption = "Name (A-Z)";
@@ -74,7 +74,22 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private Task SortBy() => Task.CompletedTask; // Future: implement sorting functionality
+        private async Task SortBy() // Show sort options
+        {
+            var sortOptions = new[] { "Name (A-Z)", "Name (Z-A)", "Date Added (Newest)", "Date Added (Oldest)" };
+            
+            var selected = await Application.Current.MainPage.DisplayActionSheet(
+                "Sort By", 
+                "Cancel", 
+                null, 
+                sortOptions);
+            
+            if (selected != null && selected != "Cancel" && sortOptions.Contains(selected))
+            {
+                SelectedSortOption = selected;
+                ApplyFilters();
+            }
+        }
 
         [RelayCommand]
         private async Task ViewProfile(UserEntry entry) // Open the user profile popup
@@ -165,7 +180,8 @@ namespace Coftea_Capstone.ViewModel
                     Id = u.ID,
                     Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
                     LastActive = GetLastActiveText(u.ID), // Get real last active data
-                    DateAdded = GetDateAddedText(u.ID), // Get real date added data
+                    DateAdded = FormatDateAdded(u.CreatedAt), // Use actual created_at date from database
+                    CreatedAt = u.CreatedAt, // Store actual date for accurate sorting
                     IsAdmin = u.IsAdmin,
                     // Admin users always have full access, regular users use database values
                     CanAccessInventory = u.IsAdmin ? true : u.CanAccessInventory,
@@ -174,6 +190,12 @@ namespace Coftea_Capstone.ViewModel
                 }));
 
                 System.Diagnostics.Debug.WriteLine($"🔧 Created {Users.Count} UserEntry objects");
+                
+                // Initialize FilteredUsers with all users, then apply filters and sorting
+                // Make sure SearchText is empty initially
+                SearchText = string.Empty;
+                FilteredUsers = new ObservableCollection<UserEntry>(Users);
+                ApplyFilters();
             }
             catch (Exception ex)
             {
@@ -194,11 +216,69 @@ namespace Coftea_Capstone.ViewModel
             return DateTime.Now.AddDays(-new Random().Next(1, 30)).ToString("MMM dd, yyyy");
         }
 
-        private string GetDateAddedText(int userId) 
+        private string FormatDateAdded(DateTime dateAdded) 
         {
-            // For now, return a placeholder. In a real app, you'd use the actual creation date
-            // This could be stored in a created_at column in the users table
-            return DateTime.Now.AddDays(-new Random().Next(30, 365)).ToString("MMM dd, yyyy");
+            // Format the actual created_at date from database
+            return dateAdded.ToString("MMM dd, yyyy");
+        }
+
+        partial void OnSearchTextChanged(string value)
+        {
+            ApplyFilters();
+        }
+
+        partial void OnSelectedSortOptionChanged(string value)
+        {
+            ApplyFilters();
+        }
+
+        private void ApplyFilters()
+        {
+            try
+            {
+                var query = Users.AsEnumerable();
+
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    var searchTerm = SearchText.ToLowerInvariant();
+                    query = query.Where(u => 
+                        (u.Username?.ToLowerInvariant().Contains(searchTerm) ?? false));
+                }
+
+                // Apply sorting
+                query = ApplySorting(query);
+
+                FilteredUsers = new ObservableCollection<UserEntry>(query);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error applying filters: {ex.Message}");
+                FilteredUsers = new ObservableCollection<UserEntry>(Users);
+            }
+        }
+
+        private IEnumerable<UserEntry> ApplySorting(IEnumerable<UserEntry> query)
+        {
+            return SelectedSortOption switch
+            {
+                "Name (A-Z)" => query.OrderBy(u => u.Username),
+                "Name (Z-A)" => query.OrderByDescending(u => u.Username),
+                "Date Added (Newest)" => query.OrderByDescending(u => u.CreatedAt),
+                "Date Added (Oldest)" => query.OrderBy(u => u.CreatedAt),
+                _ => query.OrderBy(u => u.Username) // Default to Name (A-Z)
+            };
+        }
+
+        private DateTime ParseDate(string dateText)
+        {
+            if (string.IsNullOrWhiteSpace(dateText))
+                return DateTime.MinValue;
+            
+            if (DateTime.TryParse(dateText, out var date))
+                return date;
+            
+            return DateTime.MinValue;
         }
     }
 }

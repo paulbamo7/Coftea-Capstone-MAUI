@@ -720,7 +720,7 @@
         </Grid>
 
         <!-- Popups -->
-        <view:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>
+        <view:Settings x:Name="SettingsPopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2" ZIndex="1900"/>
         <otherViews:ManageInventoryOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManageInventoryPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
@@ -739,8 +739,8 @@
         <otherViews:OrderConfirmedPopup BindingContext="{Binding OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:ProcessingQueuePopup BindingContext="{Binding ProcessingQueuePopup}" Grid.ColumnSpan="2" ZIndex="1900"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
-        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
-        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
+        <otherViews:NotificationPopup x:Name="NotificationPopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
+        <otherViews:ProfilePopup x:Name="ProfilePopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
         <otherViews:RetryConnectionPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=RetryConnectionPopup}" Grid.ColumnSpan="2" ZIndex="2700"/>
 
     </Grid>

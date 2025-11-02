@@ -1,7 +1,10 @@
 using Coftea_Capstone.ViewModel;
+using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.ViewModel.Pages;
 using Microsoft.Maui.Dispatching;
 using Coftea_Capstone;
 using Coftea_Capstone.Services;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -30,6 +33,26 @@ public partial class PointOfSale : ContentPage
 
             // Set BindingContext
             BindingContext = POSViewModel;
+
+            // Subscribe to ViewModel reinitialization messages
+            MessagingCenter.Subscribe<App>(this, "ViewModelsReinitialized", async (sender) =>
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 ViewModelsReinitialized message received in POS - refreshing popup bindings");
+                await RefreshPopupBindings();
+            });
+            
+            MessagingCenter.Subscribe<LoginPageViewModel>(this, "ViewModelsReadyAfterLogin", async (sender) =>
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 ViewModelsReadyAfterLogin message received in POS - refreshing popup bindings");
+                await RefreshPopupBindings();
+            });
+            
+            // Subscribe to profile image change messages
+            MessagingCenter.Subscribe<ProfilePopupViewModel, ImageSource>(this, "ProfileImageChanged", async (sender, newImageSource) =>
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 ProfileImageChanged message received in POS - refreshing profile image");
+                await RefreshPopupBindings();
+            });
 
             // RetryConnectionPopup is now handled globally through App.xaml.cs
             
@@ -166,6 +189,11 @@ public partial class PointOfSale : ContentPage
                 return;
             }
 
+            // Refresh popup bindings to ensure we have the latest ViewModel instances
+            // Small delay to ensure ViewModels are fully initialized
+            await Task.Delay(100);
+            await RefreshPopupBindings();
+
             // Refresh stock levels when page appears to reflect any inventory changes
             await POSViewModel.CheckStockLevelsForAllProducts();
 
@@ -208,6 +236,15 @@ public partial class PointOfSale : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+
+        // Unsubscribe from MessagingCenter to avoid memory leaks
+        try
+        {
+            MessagingCenter.Unsubscribe<App>(this, "ViewModelsReinitialized");
+            MessagingCenter.Unsubscribe<LoginPageViewModel>(this, "ViewModelsReadyAfterLogin");
+            MessagingCenter.Unsubscribe<ProfilePopupViewModel, ImageSource>(this, "ProfileImageChanged");
+        }
+        catch { }
 
         // Mark as disposed to prevent timer/layout updates
         _isDisposed = true;
@@ -394,6 +431,62 @@ public partial class PointOfSale : ContentPage
         catch { }
 
         return base.OnBackButtonPressed();
+    }
+
+    private async Task RefreshPopupBindings()
+    {
+        try
+        {
+            var app = (App)Application.Current;
+            
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    // Explicitly rebind all popup controls to the new ViewModel instances
+                    if (app?.SettingsPopup != null && SettingsPopupControl != null)
+                    {
+                        SettingsPopupControl.BindingContext = app.SettingsPopup;
+                        System.Diagnostics.Debug.WriteLine("✅ POS SettingsPopup binding refreshed");
+                    }
+                    
+                    if (app?.NotificationPopup != null && NotificationPopupControl != null)
+                    {
+                        NotificationPopupControl.BindingContext = app.NotificationPopup;
+                        // Force reload notifications after binding refresh
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                // Small delay to ensure ViewModel is fully bound
+                                await Task.Delay(200);
+                                await app.NotificationPopup.LoadStoredNotificationsAsync();
+                                System.Diagnostics.Debug.WriteLine("✅ POS Notifications reloaded after binding refresh");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"⚠️ Error reloading notifications in POS: {ex.Message}");
+                            }
+                        });
+                        System.Diagnostics.Debug.WriteLine("✅ POS NotificationPopup binding refreshed");
+                    }
+                    
+                    if (app?.ProfilePopup != null && ProfilePopupControl != null)
+                    {
+                        ProfilePopupControl.BindingContext = app.ProfilePopup;
+                        System.Diagnostics.Debug.WriteLine("✅ POS ProfilePopup binding refreshed");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Error in POS RefreshPopupBindings MainThread: {ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"⚠️ Error in POS RefreshPopupBindings: {ex.Message}");
+        }
     }
 
 }

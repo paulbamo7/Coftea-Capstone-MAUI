@@ -585,12 +585,6 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private void ShowNotificationBell() // Opens the notification popup
-        {
-            NotificationPopup?.ToggleCommand.Execute(null);
-        }
-
-        [RelayCommand]
         private void ShowProcessingQueue()
         {
             ProcessingQueuePopup?.Show();
@@ -1164,6 +1158,27 @@ namespace Coftea_Capstone.ViewModel
                 SelectedProduct.LargeQuantity--; 
         }
 
+
+        [RelayCommand]
+        private void ShowNotificationBell() // Toggles the notification popup
+        {
+            try
+            {
+                if (NotificationPopup != null)
+                {
+                    NotificationPopup.ToggleCommand?.Execute(null);
+                    System.Diagnostics.Debug.WriteLine("🔔 Notification popup toggled");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ NotificationPopup is null");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error toggling notification popup: {ex.Message}");
+            }
+        }
 
         [RelayCommand]
         private void ShowCart() // Opens the cart popup with current cart items

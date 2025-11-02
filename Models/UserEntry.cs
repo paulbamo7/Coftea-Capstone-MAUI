@@ -13,6 +13,7 @@ namespace Coftea_Capstone.Models
         public string Username { get; set; }
         public string LastActive { get; set; }
         public string DateAdded { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now; // Actual creation date for sorting
         public bool IsAdmin { get; set; } 
         
         public bool CanAccessInventory 

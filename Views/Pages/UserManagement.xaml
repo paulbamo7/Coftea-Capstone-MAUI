@@ -69,7 +69,7 @@
                                     BackgroundColor="White"
                                     WidthRequest="250">
                                 <Entry Placeholder="Search" 
-                                       Text="{Binding SearchText}" 
+                                       Text="{Binding SearchText, Mode=TwoWay}" 
                                        PlaceholderColor="#8B7355" 
                                        TextColor="#5B4F45"
                                        BackgroundColor="Transparent"
@@ -94,19 +94,18 @@
                         <VerticalStackLayout Spacing="0">
 
                             <!-- Table Header -->
-                            <Grid ColumnDefinitions="2*,3*,2*,2*" BackgroundColor="#BDAEA2" Padding="10">
+                            <Grid ColumnDefinitions="2*,3*,2*" BackgroundColor="#BDAEA2" Padding="10">
                                 <Label Text="Username" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
                                 <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
-                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
-                                <Label Text="Date Added" Grid.Column="3" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
+                                <Label Text="Date Added" Grid.Column="2" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
                             </Grid>
 
                             <!-- Users List -->
-                            <CollectionView ItemsSource="{Binding Users}">
+                            <CollectionView ItemsSource="{Binding FilteredUsers}">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <VerticalStackLayout Spacing="0">
-                                            <Grid ColumnDefinitions="2*,3*,2*,2*,Auto" Padding="10" RowSpacing="0">
+                                            <Grid ColumnDefinitions="2*,3*,2*,Auto" Padding="10" RowSpacing="0">
                                                 <Label Text="{Binding Username}" FontSize="16" FontFamily="OpenSansSemibold" VerticalOptions="Center" TextColor="#5B4F45"/>
 
                                                 <VerticalStackLayout Grid.Column="1" Spacing="8">
@@ -132,11 +131,10 @@
                                                     </VerticalStackLayout>
                                                 </VerticalStackLayout>
 
-                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" TextColor="#8B7355"/>
-                                                <Label Grid.Column="3" Text="{Binding DateAdded}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" TextColor="#8B7355"/>
+                                                <Label Grid.Column="2" Text="{Binding DateAdded}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" TextColor="#8B7355"/>
 
                                                 <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
-                                                <Grid Grid.Column="4" HorizontalOptions="End" VerticalOptions="Center">
+                                                <Grid Grid.Column="3" HorizontalOptions="End" VerticalOptions="Center">
                                                     <Button Text="⋮" 
                                                             FontSize="18"
                                                             FontAttributes="Bold"

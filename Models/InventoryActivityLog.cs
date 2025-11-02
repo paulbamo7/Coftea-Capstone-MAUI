@@ -43,6 +43,7 @@ namespace Coftea_Capstone.Models
                     "ADDED" => "Added Stock",
                     "UPDATED" => "Adjusted Stock",
                     "PURCHASE_ORDER" => "Purchase Order",
+                    "RETRACTED" => "Retracted",
                     _ => Action
                 };
             }
@@ -52,7 +53,7 @@ namespace Coftea_Capstone.Models
         {
             get
             {
-                if (Action == "DEDUCTED" || QuantityChanged < 0)
+                if (Action == "DEDUCTED" || Action == "RETRACTED" || QuantityChanged < 0)
                     return $"-{Math.Abs(QuantityChanged)}";
                 else if (Action == "ADDED" || QuantityChanged > 0)
                     return $"+{QuantityChanged}";
@@ -76,6 +77,7 @@ namespace Coftea_Capstone.Models
                         "POS_ORDER" => $"Sold to customer",
                         "MANUAL_ADJUSTMENT" => "Manual correction",
                         "PURCHASE_ORDER" => "New delivery received",
+                        "PURCHASE_ORDER_RETRACT" => "Purchase order retracted",
                         "WASTAGE" => "Wastage/Expired",
                         "RETURN" => "Customer return",
                         _ => Reason
@@ -100,6 +102,7 @@ namespace Coftea_Capstone.Models
                         "ADDED" => $"STOCKIN-{OrderId}",
                         "UPDATED" => $"ADJ-{OrderId}",
                         "PURCHASE_ORDER" => $"PO-{OrderId}",
+                        "RETRACTED" => $"RETRACT-{OrderId}",
                         _ => OrderId
                     };
                 }
@@ -121,6 +124,7 @@ namespace Coftea_Capstone.Models
                     "ADDED" => "Added",
                     "UPDATED" => "Updated",
                     "PURCHASE_ORDER" => "Purchase Order",
+                    "RETRACTED" => "Retracted",
                     _ => Action
                 };
             }
@@ -171,6 +175,7 @@ namespace Coftea_Capstone.Models
                     "ADDED" => "#4CAF50", // Green for additions
                     "UPDATED" => "#2196F3", // Blue for updates
                     "PURCHASE_ORDER" => "#9C27B0", // Purple for purchase orders
+                    "RETRACTED" => "#FF9800", // Orange for retracted items
                     _ => "#757575" // Gray for unknown
                 };
             }
@@ -186,6 +191,7 @@ namespace Coftea_Capstone.Models
                     "ADDED" => "➕",
                     "UPDATED" => "✏️",
                     "PURCHASE_ORDER" => "📦",
+                    "RETRACTED" => "↩️",
                     _ => "📋"
                 };
             }

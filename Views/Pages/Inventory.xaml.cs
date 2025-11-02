@@ -1,6 +1,9 @@
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.ViewModel.Pages;
 using Coftea_Capstone.Services;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -30,6 +33,26 @@ public partial class Inventory : ContentPage
             await vm.ForceReloadDataAsync();
         });
 
+        // Subscribe to ViewModel reinitialization messages
+        MessagingCenter.Subscribe<App>(this, "ViewModelsReinitialized", async (sender) =>
+        {
+            System.Diagnostics.Debug.WriteLine("🔄 ViewModelsReinitialized message received in Inventory - refreshing popup bindings");
+            await RefreshPopupBindings();
+        });
+        
+        MessagingCenter.Subscribe<LoginPageViewModel>(this, "ViewModelsReadyAfterLogin", async (sender) =>
+        {
+            System.Diagnostics.Debug.WriteLine("🔄 ViewModelsReadyAfterLogin message received in Inventory - refreshing popup bindings");
+            await RefreshPopupBindings();
+        });
+        
+        // Subscribe to profile image change messages
+        MessagingCenter.Subscribe<ProfilePopupViewModel, ImageSource>(this, "ProfileImageChanged", async (sender, newImageSource) =>
+        {
+            System.Diagnostics.Debug.WriteLine("🔄 ProfileImageChanged message received in Inventory - refreshing profile image");
+            await RefreshPopupBindings();
+        });
+
         // RetryConnectionPopup is now handled globally through App.xaml.cs
 
         // Initialize data immediately when page is created
@@ -37,6 +60,11 @@ public partial class Inventory : ContentPage
         {
             // Update navigation state for indicator
             NavigationStateService.SetCurrentPageType(typeof(Inventory));
+            
+            // Refresh popup bindings to ensure we have the latest ViewModel instances
+            // Small delay to ensure ViewModels are fully initialized
+            await Task.Delay(100);
+            await RefreshPopupBindings();
             
             System.Diagnostics.Debug.WriteLine("🔄 Inventory page appearing - reloading data");
             await vm.InitializeAsync();
@@ -56,6 +84,9 @@ public partial class Inventory : ContentPage
 
         // Unsubscribe messaging to avoid retaining the page
         MessagingCenter.Unsubscribe<AddItemToInventoryViewModel>(this, "InventoryChanged");
+        MessagingCenter.Unsubscribe<App>(this, "ViewModelsReinitialized");
+        MessagingCenter.Unsubscribe<LoginPageViewModel>(this, "ViewModelsReadyAfterLogin");
+        MessagingCenter.Unsubscribe<ProfilePopupViewModel, ImageSource>(this, "ProfileImageChanged");
 
         // Break external references from singletons to page controls
         try
@@ -134,6 +165,62 @@ public partial class Inventory : ContentPage
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error opening profile: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshPopupBindings()
+    {
+        try
+        {
+            var app = (App)Application.Current;
+            
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    // Explicitly rebind all popup controls to the new ViewModel instances
+                    if (app?.SettingsPopup != null && SettingsPopupControl != null)
+                    {
+                        SettingsPopupControl.BindingContext = app.SettingsPopup;
+                        System.Diagnostics.Debug.WriteLine("✅ Inventory SettingsPopup binding refreshed");
+                    }
+                    
+                    if (app?.NotificationPopup != null && NotificationPopupControl != null)
+                    {
+                        NotificationPopupControl.BindingContext = app.NotificationPopup;
+                        // Force reload notifications after binding refresh
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                // Small delay to ensure ViewModel is fully bound
+                                await Task.Delay(200);
+                                await app.NotificationPopup.LoadStoredNotificationsAsync();
+                                System.Diagnostics.Debug.WriteLine("✅ Inventory Notifications reloaded after binding refresh");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"⚠️ Error reloading notifications in Inventory: {ex.Message}");
+                            }
+                        });
+                        System.Diagnostics.Debug.WriteLine("✅ Inventory NotificationPopup binding refreshed");
+                    }
+                    
+                    if (app?.ProfilePopup != null && ProfilePopupControl != null)
+                    {
+                        ProfilePopupControl.BindingContext = app.ProfilePopup;
+                        System.Diagnostics.Debug.WriteLine("✅ Inventory ProfilePopup binding refreshed");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Error in Inventory RefreshPopupBindings MainThread: {ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"⚠️ Error in Inventory RefreshPopupBindings: {ex.Message}");
         }
     }
 }

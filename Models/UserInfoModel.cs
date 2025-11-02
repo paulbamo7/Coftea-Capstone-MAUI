@@ -34,5 +34,8 @@ namespace Coftea_Capstone.Models
         public bool CanAccessInventory { get; set; }
         public bool CanAccessSalesReport { get; set; }
         public bool CanAccessPOS { get; set; }
+
+        // Date when user was created/added
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

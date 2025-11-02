@@ -52,6 +52,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private List<CartItem> cartItems = new();
 
+        [ObservableProperty]
+        private ImageSource qrCodeImageSource;
+
         public PaymentPopupViewModel()
         {
             IsPaymentVisible = false;
@@ -60,6 +63,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             Change = 0;
             PaymentStatus = "Pending";
             CartItems = new List<CartItem>();
+            QrCodeImageSource = null;
             
             // Debug: Log that PaymentPopup is initialized as hidden
             System.Diagnostics.Debug.WriteLine("PaymentPopupViewModel initialized with IsPaymentVisible = false");
@@ -76,8 +80,14 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsPaymentVisible = true;
             System.Diagnostics.Debug.WriteLine($"PaymentPopup IsPaymentVisible set to: {IsPaymentVisible}");
             
+            // Generate QR code for GCash payment (contains total amount and transaction info)
+            var qrCodeText = $"GCASH_PAYMENT:{total:F2}:{DateTime.Now:yyyyMMddHHmmss}";
+            QrCodeImageSource = QRCodeService.GenerateQRCode(qrCodeText, 250);
+            System.Diagnostics.Debug.WriteLine($"🔵 QR code generated in ShowPayment: {(QrCodeImageSource != null ? "Success" : "Failed")}");
+            
             // Force property change notification
             OnPropertyChanged(nameof(IsPaymentVisible));
+            OnPropertyChanged(nameof(QrCodeImageSource));
         }
 
         [RelayCommand]
@@ -98,6 +108,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                 AmountPaid = TotalAmount;
                 Change = 0;
                 PaymentStatus = "Ready to Confirm";
+                
+                // Regenerate QR code when GCash is selected
+                if (IsGCashSelected)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔵 Generating QR code for GCash payment: {TotalAmount:F2}");
+                    var qrCodeText = $"GCASH_PAYMENT:{TotalAmount:F2}:{DateTime.Now:yyyyMMddHHmmss}";
+                    QrCodeImageSource = QRCodeService.GenerateQRCode(qrCodeText, 250);
+                    System.Diagnostics.Debug.WriteLine($"🔵 QR code generated: {(QrCodeImageSource != null ? "Success" : "Failed")}");
+                    OnPropertyChanged(nameof(QrCodeImageSource));
+                }
             }
             else
             {
