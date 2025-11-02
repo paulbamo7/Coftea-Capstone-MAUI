@@ -42,9 +42,19 @@ namespace Coftea_Capstone.Services
                 transactions = transactions ?? new List<TransactionHistoryModel>();
                 topItems = topItems ?? new List<TrendItem>();
 
-                // Get inventory deductions
-                var inventoryDeductions = await GetInventoryDeductionsForPeriodAsync(startDate, endDate);
-                var unitMap = await GetInventoryUnitsMapAsync();
+                // Get inventory deductions (with UoM from activity logs)
+                var inventoryDeductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
+                var inventoryDeductions = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.totalDeducted);
+                var unitMap = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.unitOfMeasurement ?? "", StringComparer.OrdinalIgnoreCase);
+                // Merge with inventory items map for items not in activity logs
+                var inventoryUnitMap = await GetInventoryUnitsMapAsync();
+                foreach (var kvp in inventoryUnitMap)
+                {
+                    if (!unitMap.ContainsKey(kvp.Key))
+                    {
+                        unitMap[kvp.Key] = kvp.Value;
+                    }
+                }
 
                 // Calculate totals
                 var totalSales = transactions?.Sum(t => t?.Total ?? 0) ?? 0;
@@ -157,10 +167,25 @@ namespace Coftea_Capstone.Services
                     foreach (var deduction in inventoryDeductions.OrderByDescending(x => x.Value).Take(15))
                     {
                         if (deduction.Key == null) continue;
-                        var unit = unitMap.TryGetValue(deduction.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : "units";
+                        var unit = unitMap.TryGetValue(deduction.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : null;
+                        if (string.IsNullOrWhiteSpace(unit))
+                        {
+                            // If UoM not found in map, try to get it from inventory directly
+                            try
+                            {
+                                var items = await _database.GetInventoryItemsAsyncCached();
+                                var inventoryItem = items?.FirstOrDefault(i => i?.itemName?.Equals(deduction.Key, StringComparison.OrdinalIgnoreCase) == true);
+                                unit = inventoryItem?.unitOfMeasurement;
+                            }
+                            catch { }
+                        }
+                        // Use actual UoM or empty string instead of "units"
+                        var displayUnit = !string.IsNullOrWhiteSpace(unit) ? unit : "";
                         PdfGridRow row = deductionsGrid.Rows.Add();
                         row.Cells[0].Value = deduction.Key;
-                        row.Cells[1].Value = $"{deduction.Value:N1} {unit}";
+                        row.Cells[1].Value = !string.IsNullOrWhiteSpace(displayUnit) 
+                            ? $"{deduction.Value:N1} {displayUnit}" 
+                            : $"{deduction.Value:N1}";
                     }
 
                     if (inventoryDeductions.Count == 0)
@@ -187,8 +212,8 @@ namespace Coftea_Capstone.Services
                     FileStream fileStream = new FileStream(filePath, FileMode.Create);
                     document.Save(fileStream);
                     fileStream.Dispose();
-
-                    return filePath;
+                
+                return filePath;
                 }
             }
             catch (Exception ex)
@@ -207,9 +232,19 @@ namespace Coftea_Capstone.Services
                 transactions = transactions ?? new List<TransactionHistoryModel>();
                 topItems = topItems ?? new List<TrendItem>();
 
-                // Get inventory deductions
-                var inventoryDeductions = await GetInventoryDeductionsForPeriodAsync(startDate, endDate);
-                var unitMap = await GetInventoryUnitsMapAsync();
+                // Get inventory deductions (with UoM from activity logs)
+                var inventoryDeductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
+                var inventoryDeductions = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.totalDeducted);
+                var unitMap = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.unitOfMeasurement ?? "", StringComparer.OrdinalIgnoreCase);
+                // Merge with inventory items map for items not in activity logs
+                var inventoryUnitMap = await GetInventoryUnitsMapAsync();
+                foreach (var kvp in inventoryUnitMap)
+                {
+                    if (!unitMap.ContainsKey(kvp.Key))
+                    {
+                        unitMap[kvp.Key] = kvp.Value;
+                    }
+                }
 
                 // Calculate totals
                 var totalSales = transactions?.Sum(t => t?.Total ?? 0) ?? 0;
@@ -327,10 +362,25 @@ namespace Coftea_Capstone.Services
                     foreach (var deduction in inventoryDeductions.OrderByDescending(x => x.Value).Take(20))
                     {
                         if (deduction.Key == null) continue;
-                        var unit = unitMap.TryGetValue(deduction.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : "units";
+                        var unit = unitMap.TryGetValue(deduction.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : null;
+                        if (string.IsNullOrWhiteSpace(unit))
+                        {
+                            // If UoM not found in map, try to get it from inventory directly
+                            try
+                            {
+                                var items = await _database.GetInventoryItemsAsyncCached();
+                                var inventoryItem = items?.FirstOrDefault(i => i?.itemName?.Equals(deduction.Key, StringComparison.OrdinalIgnoreCase) == true);
+                                unit = inventoryItem?.unitOfMeasurement;
+                            }
+                            catch { }
+                        }
+                        // Use actual UoM or empty string instead of "units"
+                        var displayUnit = !string.IsNullOrWhiteSpace(unit) ? unit : "";
                         PdfGridRow row = deductionsGrid.Rows.Add();
                         row.Cells[0].Value = deduction.Key;
-                        row.Cells[1].Value = $"{deduction.Value:N1} {unit}";
+                        row.Cells[1].Value = !string.IsNullOrWhiteSpace(displayUnit) 
+                            ? $"{deduction.Value:N1} {displayUnit}" 
+                            : $"{deduction.Value:N1}";
                     }
 
                     if (inventoryDeductions.Count == 0)
@@ -357,8 +407,8 @@ namespace Coftea_Capstone.Services
                     FileStream fileStream = new FileStream(filePath, FileMode.Create);
                     document.Save(fileStream);
                     fileStream.Dispose();
-
-                    return filePath;
+                
+                return filePath;
                 }
             }
             catch (Exception ex)
@@ -535,34 +585,16 @@ namespace Coftea_Capstone.Services
         {
             try
             {
-                var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                // Use actual inventory activity logs instead of hardcoded deductions
+                var deductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
+                
+                // Convert to simple dictionary with just amounts for backward compatibility
                 var deductions = new Dictionary<string, double>();
-
-                if (transactions == null || transactions.Count == 0)
+                foreach (var kvp in deductionsWithUnits)
                 {
-                    return deductions;
+                    deductions[kvp.Key] = kvp.Value.totalDeducted;
                 }
-
-                var productGroups = transactions
-                    .Where(t => t != null && !string.IsNullOrEmpty(t.DrinkName))
-                    .GroupBy(t => t.DrinkName)
-                    .ToList();
-
-                foreach (var productGroup in productGroups)
-                {
-                    if (productGroup == null || string.IsNullOrEmpty(productGroup.Key)) continue;
-
-                    var productName = productGroup.Key;
-                    var totalQuantity = productGroup.Sum(t => t?.Quantity ?? 0);
-                    AddBasicDeductionsForProduct(deductions, productName, totalQuantity);
-
-                    foreach (var transaction in productGroup)
-                    {
-                        if (transaction == null) continue;
-                        AddCupAndStrawDeductions(deductions, transaction.Size, transaction.Quantity);
-                    }
-                }
-
+                
                 return deductions;
             }
             catch (Exception ex)
@@ -605,7 +637,7 @@ namespace Coftea_Capstone.Services
                 if (deductions == null || string.IsNullOrWhiteSpace(productName)) return;
 
                 var productNameLower = productName.ToLowerInvariant();
-
+                
                 if (productNameLower.Contains("coffee"))
                 {
                     AddDeduction(deductions, "Coffee Beans", totalQuantity * 0.1);
@@ -735,36 +767,36 @@ namespace Coftea_Capstone.Services
             if (deductions == null) return;
 
             try
+        {
+            var sizeMultiplier = GetSizeMultiplier(size);
+            var totalQuantity = quantity * sizeMultiplier;
+            
+            var cupName = size?.ToLowerInvariant() switch
             {
-                var sizeMultiplier = GetSizeMultiplier(size);
-                var totalQuantity = quantity * sizeMultiplier;
-
-                var cupName = size?.ToLowerInvariant() switch
-                {
-                    "small" => "Small Cup",
-                    "medium" => "Medium Cup",
-                    "large" => "Large Cup",
-                    _ => "Medium Cup"
-                };
-
-                if (deductions.ContainsKey(cupName))
-                {
-                    deductions[cupName] += totalQuantity;
-                }
-                else
-                {
-                    deductions[cupName] = totalQuantity;
-                }
-
-                if (deductions.ContainsKey("Straw"))
-                {
-                    deductions["Straw"] += quantity;
-                }
-                else
-                {
-                    deductions["Straw"] = quantity;
-                }
+                "small" => "Small Cup",
+                "medium" => "Medium Cup",
+                "large" => "Large Cup",
+                _ => "Medium Cup"
+            };
+            
+            if (deductions.ContainsKey(cupName))
+            {
+                deductions[cupName] += totalQuantity;
             }
+            else
+            {
+                deductions[cupName] = totalQuantity;
+            }
+            
+            if (deductions.ContainsKey("Straw"))
+            {
+                    deductions["Straw"] += quantity;
+            }
+            else
+            {
+                deductions["Straw"] = quantity;
+            }
+        }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error adding cup and straw deductions: {ex.Message}");

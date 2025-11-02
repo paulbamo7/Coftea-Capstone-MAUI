@@ -12,6 +12,8 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -78,6 +80,19 @@
                                        Margin="20,0"
                                        Text="{Binding Email}"/>
                             </Border>
+
+                            <!-- Email Validation Message -->
+                            <Frame IsVisible="{Binding EmailValidationMessage, Converter={StaticResource StringToBoolConverter}}" 
+                                   BackgroundColor="#FFE8E8" 
+                                   Padding="20,10" 
+                                   CornerRadius="10" 
+                                   Margin="15,5,15,0"
+                                   HasShadow="False">
+                                <StackLayout Orientation="Horizontal" Spacing="8">
+                                    <Label Text="✗" TextColor="#D9534F" FontSize="14" FontFamily="MontserratBlack"/>
+                                    <Label Text="{Binding EmailValidationMessage}" FontSize="13" TextColor="#D9534F" FontFamily="MontserratBlack"/>
+                                </StackLayout>
+                            </Frame>
                                         
                             <!-- Third Row: Password -->
                             <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="370" BackgroundColor="#F5F1ED">
@@ -188,7 +203,7 @@
                             </Border>
 
                             <!-- Terms & Conditions -->
-                            <HorizontalStackLayout Spacing="10" Margin="15,15,15,20" HorizontalOptions="Start">
+                            <HorizontalStackLayout Spacing="6" Margin="15,5,15,20" HorizontalOptions="Start">
                                 <CheckBox IsChecked="{Binding IsTermsAccepted}" Color="#5B4F45" Scale="1.2"/>
                                 <Label Text="I agree to the " 
                                        VerticalOptions="Center" 
@@ -203,16 +218,16 @@
                             </HorizontalStackLayout>
                             
                             <!-- Action Buttons -->
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="20" RowDefinitions="Auto" Margin="15,0,15,0">
+                            <Grid ColumnDefinitions="1.2*,*" ColumnSpacing="20" RowDefinitions="Auto" Margin="15,0,15,0">
                                 <Button Grid.Column="0" 
                                         Text="← Back to Login" 
                                         BackgroundColor="#C1A892" 
                                         TextColor="#5B4F45" 
-                                        FontSize="16"
+                                        FontSize="13"
                                         FontFamily="MontserratBlack"
                                         Command="{Binding BackToLoginCommand}"
                                         CornerRadius="15"
-                                        Padding="30,15"
+                                        Padding="15,15"
                                         BorderColor="#8B7355"
                                         BorderWidth="2"
                                         HeightRequest="55"/>

@@ -9,6 +9,7 @@
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:IsPositiveConverter x:Key="IsPositiveConverter"/>
+            <converters:IndexOfInCollectionMultiConverter x:Key="IndexOfConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
     <Grid HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
@@ -31,9 +32,21 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Frame BackgroundColor="#FAFAFA" HasShadow="False" Padding="20,15" Margin="0,0,0,8" BorderColor="#E0E0E0">
-                                <Grid ColumnDefinitions="*,Auto" RowSpacing="10">
+                                <Grid ColumnDefinitions="Auto,*,Auto" RowSpacing="10">
+                                    <!-- Order Number -->
+                                    <Frame Grid.Column="0" BackgroundColor="#5B4F45" CornerRadius="8" Padding="10,8" HasShadow="False" WidthRequest="50" HeightRequest="50" Margin="0,0,10,0">
+                                        <Label VerticalOptions="Center" HorizontalOptions="Center" TextColor="White" FontSize="18" FontAttributes="Bold">
+                                            <Label.Text>
+                                                <MultiBinding Converter="{StaticResource IndexOfConverter}">
+                                                    <Binding Path="BindingContext.PendingItems" Source="{x:Reference Root}" />
+                                                    <Binding />
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                    </Frame>
+                                    
                                     <!-- Item Info -->
-                                    <VerticalStackLayout Grid.Column="0" Spacing="8">
+                                    <VerticalStackLayout Grid.Column="1" Spacing="8">
                                         <!-- Product Name and Size Header with distinct styling -->
                                         <Frame BackgroundColor="#E8D5C4" CornerRadius="8" Padding="12,8" HasShadow="False">
                                             <StackLayout Orientation="Horizontal" Spacing="8">
@@ -93,7 +106,7 @@
                                     </VerticalStackLayout>
                                     
                                     <!-- Completed Button -->
-                                    <Button Grid.Column="1" Text="✓" FontSize="18" FontAttributes="Bold"
+                                    <Button Grid.Column="2" Text="✓" FontSize="18" FontAttributes="Bold"
                                             BackgroundColor="#66BB6A" TextColor="White"
                                             CornerRadius="25" WidthRequest="50" HeightRequest="50" Padding="0"
                                             Command="{Binding BindingContext.CompleteItemCommand, Source={x:Reference Root}}"

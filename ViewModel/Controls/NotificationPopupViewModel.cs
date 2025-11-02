@@ -39,6 +39,16 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public async Task AddSuccess(string title, string entityName, string idText) // Success popup
         {
+            // Skip inventory/stock notifications (they have been disabled)
+            if (title.Equals("Inventory", StringComparison.OrdinalIgnoreCase) ||
+                entityName.Contains("Stock", StringComparison.OrdinalIgnoreCase) ||
+                entityName.Contains("Listed Item", StringComparison.OrdinalIgnoreCase) ||
+                entityName.Contains("Updated Stock", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Diagnostics.Debug.WriteLine($"📝 Skipping inventory notification: {title} - {entityName}");
+                return;
+            }
+            
             var notification = new NotificationItem
             {
                 Title = title,
@@ -82,7 +92,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             IsNotificationVisible = false;
         }
-        private async Task LoadStoredNotificationsAsync() // Load notifications from storage
+        public async Task LoadStoredNotificationsAsync() // Load notifications from storage
         {
             try
             {
@@ -91,13 +101,29 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     // Clear current notifications and load stored ones
                     Notifications.Clear();
-                    foreach (var notification in storedNotifications)
+                    
+                    // Filter out inventory/stock notifications
+                    var filteredNotifications = storedNotifications.Where(n => 
+                        !n.Title.Equals("Inventory", StringComparison.OrdinalIgnoreCase) &&
+                        !n.Title.Contains("Inventory", StringComparison.OrdinalIgnoreCase) &&
+                        !n.Message.Contains("Stock", StringComparison.OrdinalIgnoreCase) &&
+                        !n.Message.Contains("Listed Item", StringComparison.OrdinalIgnoreCase) &&
+                        !n.Message.Contains("Updated Stock", StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                    
+                    foreach (var notification in filteredNotifications)
                     {
                         Notifications.Add(notification);
                     }
                     
                     // Update notification count
                     NotificationCount = Notifications.Count;
+                    
+                    // If we filtered any out, save the filtered list back to storage
+                    if (filteredNotifications.Count < storedNotifications.Count)
+                    {
+                        await SaveNotificationsAsync();
+                    }
                 }
             }
             catch (Exception ex)
@@ -136,6 +162,16 @@ namespace Coftea_Capstone.ViewModel.Controls
         // Method to add any type of notification with storage
         public async Task AddNotification(string title, string message, string idText = "", string type = "Info") // type: Info, Warning, Error
         {
+            // Skip inventory/stock notifications (they have been disabled)
+            if (title.Contains("Inventory", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Stock", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Listed Item", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Updated Stock", StringComparison.OrdinalIgnoreCase))
+            {
+                System.Diagnostics.Debug.WriteLine($"📝 Skipping inventory notification: {title} - {message}");
+                return;
+            }
+            
             var notification = new NotificationItem
             {
                 Title = title,

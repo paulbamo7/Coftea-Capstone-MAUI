@@ -103,7 +103,7 @@
                Margin="20"
                VerticalOptions="Center"
                HorizontalOptions="Center"
-               WidthRequest="900"
+               WidthRequest="920"
                HeightRequest="700"
                InputTransparent="False">
 
@@ -235,8 +235,8 @@
                             </Button>
                         </StackLayout>
 
-                        <!-- Search, Date Filter, and Refresh -->
-                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="10">
+                        <!-- Search and Date Filter -->
+                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
                             <Border Grid.Column="0" 
                                     Stroke="#8B7355" 
                                     StrokeShape="RoundRectangle 15" 
@@ -251,14 +251,15 @@
                                        Margin="15,0"/>
                             </Border>
                             <Button Grid.Column="1" 
-                                    Text="📅" 
+                                    Text="📅 Filter Date" 
                                     BackgroundColor="#BDAEA2" 
                                     TextColor="#5B4F45" 
                                     BorderColor="#8B7355"
                                     BorderWidth="2"
-                                    WidthRequest="55" 
+                                    WidthRequest="130" 
                                     HeightRequest="45"
                                     CornerRadius="20"
+                                    FontSize="13"
                                     Command="{Binding ShowDateFilterCommand}">
                                 <Button.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding HasDateFilter}" Value="True">
@@ -269,16 +270,6 @@
                                 </Button.Triggers>
                             </Button>
                             <Button Grid.Column="2" 
-                                    Text="🔍" 
-                                    BackgroundColor="#BDAEA2" 
-                                    TextColor="#5B4F45" 
-                                    BorderColor="#8B7355"
-                                    BorderWidth="2"
-                                    WidthRequest="55" 
-                                    HeightRequest="45"
-                                    CornerRadius="20"
-                                    Command="{Binding SearchCommand}"/>
-                            <Button Grid.Column="3" 
                                     Text="🔄" 
                                     BackgroundColor="#BDAEA2" 
                                     TextColor="#5B4F45" 
@@ -315,11 +306,11 @@
                         </Grid>
 
                         <!-- Activity Log Table -->
-                        <ScrollView Grid.Row="3" Orientation="Vertical">
+                        <ScrollView Grid.Row="3" Orientation="Vertical" VerticalScrollBarVisibility="Default">
                             <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
                                 <VerticalStackLayout Spacing="0">
                                     <!-- Table Header -->
-                                    <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12" WidthRequest="1200">
+                                    <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12" MinimumWidthRequest="1100">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="40"/>   <!-- # -->
                                         <ColumnDefinition Width="120"/>  <!-- Date & Time -->
@@ -332,7 +323,6 @@
                                         <ColumnDefinition Width="70"/>   <!-- New Qty -->
                                         <ColumnDefinition Width="140"/>  <!-- Used for Product -->
                                         <ColumnDefinition Width="120"/>  <!-- Remarks -->
-                                        <ColumnDefinition Width="90"/>   <!-- Ref. ID -->
                                     </Grid.ColumnDefinitions>
                                     
                                     <Label Grid.Column="0" Text="#" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Start"/>
@@ -346,14 +336,13 @@
                                     <Label Grid.Column="8" Text="New Qty" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="End"/>
                                     <Label Grid.Column="9" Text="Used for Product" FontSize="11" FontAttributes="Bold" TextColor="White"/>
                                     <Label Grid.Column="10" Text="Remarks" FontSize="11" FontAttributes="Bold" TextColor="White"/>
-                                    <Label Grid.Column="11" Text="Ref. ID" FontSize="11" FontAttributes="Bold" TextColor="White"/>
                                 </Grid>
 
                                 <!-- Table Rows -->
                                 <CollectionView ItemsSource="{Binding PagedActivityLog}">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}" ColumnSpacing="12" WidthRequest="1200">
+                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}" ColumnSpacing="12" MinimumWidthRequest="1100">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="40"/>   <!-- # -->
                                                     <ColumnDefinition Width="120"/>  <!-- Date & Time -->
@@ -366,7 +355,6 @@
                                                     <ColumnDefinition Width="70"/>   <!-- New Qty -->
                                                     <ColumnDefinition Width="140"/>  <!-- Used for Product -->
                                                     <ColumnDefinition Width="120"/>  <!-- Remarks -->
-                                                    <ColumnDefinition Width="90"/>   <!-- Ref. ID -->
                                                 </Grid.ColumnDefinitions>
                                                 
                                                 <Label Grid.Column="0" Text="{Binding RowNumber}" FontSize="10" TextColor="#333" HorizontalOptions="Start" VerticalOptions="Center"/>
@@ -380,16 +368,15 @@
                                                 <Label Grid.Column="8" Text="{Binding NewQuantityText}" FontSize="10" TextColor="#333" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
                                                 <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
                                                 <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
-                                                <Label Grid.Column="11" Text="{Binding ReferenceId}" FontSize="10" TextColor="#4A90E2" VerticalOptions="Center"/>
                                                 
                                                 <!-- Separator Line -->
-                                                <BoxView Grid.ColumnSpan="12" HeightRequest="1" BackgroundColor="#E0E0E0" VerticalOptions="End"/>
+                                                <BoxView Grid.ColumnSpan="11" HeightRequest="1" BackgroundColor="#E0E0E0" VerticalOptions="End"/>
                                             </Grid>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
                                     <!-- Pagination Controls -->
-                                    <Grid Padding="10" BackgroundColor="#FFF" ColumnDefinitions="Auto,*,Auto" Margin="0,5,0,0" WidthRequest="1200">
+                                    <Grid Padding="10" BackgroundColor="#FFF" ColumnDefinitions="Auto,*,Auto" Margin="0,5,0,0" MinimumWidthRequest="1100">
                                         <Button Grid.Column="0" Text="Prev" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
                                                 IsEnabled="{Binding CanGoToPreviousPage}"
                                                 Command="{Binding PrevPageCommand}"/>

@@ -220,19 +220,11 @@ namespace Coftea_Capstone.ViewModel
             {
                 System.Diagnostics.Debug.WriteLine("🛒 Creating purchase order...");
                 
-                // Get items that are below minimum stock levels
+                // Get items that are below minimum stock levels (if any)
                 var lowStockItems = allInventoryItems.Where(item => item.itemQuantity <= item.minimumQuantity).ToList();
                 
-                if (!lowStockItems.Any())
-                {
-                    await Application.Current.MainPage.DisplayAlert(
-                        "No Purchase Order Needed", 
-                        "All inventory items are above minimum stock levels.", 
-                        "OK");
-                    return;
-                }
-                
-                // Show the beautiful popup with editable fields
+                // Always show the popup, even if there are no low stock items
+                // This allows users to create purchase orders in advance
                 var app = (App)Application.Current;
                 if (app?.CreatePurchaseOrderPopup != null)
                 {

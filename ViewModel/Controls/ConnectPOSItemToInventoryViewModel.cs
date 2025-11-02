@@ -1441,6 +1441,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                     AddonsPopup.AddonsSelected += OnAddonsSelected;
                 }
 
+                // Set parent's SelectedAddons reference for syncing (important for edit mode)
+                AddonsPopup.ParentSelectedAddons = SelectedAddons;
+                
                 // Load addons and show popup
                 System.Diagnostics.Debug.WriteLine($"🔍 Loading addons...");
                 await AddonsPopup.LoadAddonsAsync();

@@ -87,7 +87,7 @@ namespace Coftea_Capstone.ViewModel
             
             if (fullUserDetails != null)
             {
-                UserProfilePopup.ShowUserProfile(fullUserDetails);
+                await UserProfilePopup.ShowUserProfile(fullUserDetails);
             }
             else
             {
@@ -103,8 +103,8 @@ namespace Coftea_Capstone.ViewModel
             
             // Prevent admin user from being deleted
             var actions = entry.IsAdmin 
-                ? new[] { "View Profile", "Edit Inventory", "Edit POS Menu" }
-                : new[] { "View Profile", "Edit Inventory", "Edit POS Menu", "Delete User" };
+                ? new[] { "View Profile" }
+                : new[] { "View Profile", "Delete User" };
                 
             var action = await Application.Current.MainPage.DisplayActionSheet("Options", "Cancel", null, actions);
             

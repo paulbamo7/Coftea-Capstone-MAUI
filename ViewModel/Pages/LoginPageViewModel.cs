@@ -152,6 +152,35 @@ namespace Coftea_Capstone.ViewModel
                         await app.ProfilePopup.LoadUserProfile();
                     });
                 }
+                
+                // Force popups to refresh their bindings after login
+                // This ensures that if ViewModels were reinitialized during logout, 
+                // the popups properly rebind to the new instances
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try
+                    {
+                        // Verify ViewModels are accessible
+                        if (app?.SettingsPopup == null || app?.NotificationPopup == null || app?.ProfilePopup == null)
+                        {
+                            System.Diagnostics.Debug.WriteLine("⚠️ Warning: Some ViewModels are null after login, reinitializing...");
+                            app?.InitializeViewModels();
+                            await Task.Delay(100); // Small delay for initialization
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"✅ ViewModels accessible after login - SettingsPopup: {app.SettingsPopup != null}, NotificationPopup: {app.NotificationPopup != null}, ProfilePopup: {app.ProfilePopup != null}");
+                        }
+                        
+                        // Send message to notify pages that ViewModels are ready
+                        // This allows pages to rebind their popup references
+                        MessagingCenter.Send(this, "ViewModelsReadyAfterLogin");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Error checking ViewModels after login: {ex.Message}");
+                    }
+                });
 
                 // Navigate to dashboard
                 await SimpleNavigationService.NavigateToAsync("//dashboard");

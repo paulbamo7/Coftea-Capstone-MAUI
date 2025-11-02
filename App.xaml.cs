@@ -189,39 +189,10 @@ namespace Coftea_Capstone
             // Persist cart when app goes to background (platform lifecycle events handled elsewhere)
         }
 
-        private async void OnConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
+        private void OnConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
         {
-            if (e.NetworkAccess == NetworkAccess.Internet)
-            {
-                System.Diagnostics.Debug.WriteLine("🌐 Internet connection restored - syncing pending operations...");
-                try
-                {
-                    var offlineQueue = new Services.OfflineQueueService();
-                    var syncedCount = await offlineQueue.SyncPendingOperationsAsync();
-                    if (syncedCount > 0)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"✅ Synced {syncedCount} pending operations");
-                        // Show notification if there осталось pending operations
-                        MainThread.BeginInvokeOnMainThread(async () =>
-                        {
-                            try
-                            {
-                                if (MainPage != null && NotificationPopup != null)
-                                {
-                                    NotificationPopup.ShowNotification(
-                                        $"Synced {syncedCount} pending operation(s) to database.",
-                                        "Sync Complete");
-                                }
-                            }
-                            catch { }
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"❌ Error syncing on connection restore: {ex.Message}");
-                }
-            }
+            // Connectivity monitoring (no offline sync)
+            System.Diagnostics.Debug.WriteLine($"🌐 Network status changed: {e.NetworkAccess}");
         }
 
         private void SetRootPage(Page page)
@@ -231,10 +202,25 @@ namespace Coftea_Capstone
             try { NavigationStateService.SetCurrentPageType(page.GetType()); } catch { }
         }
 
-        private void InitializeViewModels()
+        public void InitializeViewModels()
         {
             // Initialize shared popups first so dependent VMs can reference them safely
             NotificationPopup = new NotificationPopupViewModel();
+            
+            // Ensure notifications are loaded after initialization
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(300); // Small delay to ensure ViewModel is ready
+                    await NotificationPopup?.LoadStoredNotificationsAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Notifications loaded after ViewModel initialization");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Error loading notifications after initialization: {ex.Message}");
+                }
+            });
 
             AddItemPopup = new AddItemToPOSViewModel();
             var editProductPopup = new EditProductPopupViewModel(AddItemPopup);
@@ -410,6 +396,22 @@ namespace Coftea_Capstone
             
             // Reinitialize ViewModels - new instances default to IsVisible = false
             InitializeViewModels();
+            
+            // Ensure ViewModels are properly initialized and accessible
+            // Force initialization of critical ViewModels to prevent null reference issues
+            if (SettingsPopup == null || NotificationPopup == null || ProfilePopup == null)
+            {
+                System.Diagnostics.Debug.WriteLine("⚠️ Warning: Some ViewModels are null after reinitialization, retrying...");
+                InitializeViewModels();
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"✅ ViewModels reinitialized - SettingsPopup: {SettingsPopup != null}, NotificationPopup: {NotificationPopup != null}, ProfilePopup: {ProfilePopup != null}");
+            
+            // Small delay to ensure ViewModels are fully initialized before forcing binding refresh
+            await Task.Delay(100);
+            
+            // Force popup bindings to refresh after reinitialization
+            ForcePopupBindingRefresh();
         }
 
         private void DisposeViewModels()
@@ -440,6 +442,32 @@ namespace Coftea_Capstone
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error disposing ViewModels: {ex.Message}");
+            }
+        }
+
+        private void ForcePopupBindingRefresh()
+        {
+            try
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    try
+                    {
+                        // Notify pages that ViewModels have been reinitialized
+                        // This allows pages to rebind their popup references
+                        MessagingCenter.Send(this, "ViewModelsReinitialized");
+                        
+                        System.Diagnostics.Debug.WriteLine("✅ Sent ViewModelsReinitialized message to refresh popup bindings");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Error sending ViewModelsReinitialized message: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error in ForcePopupBindingRefresh: {ex.Message}");
             }
         }
 

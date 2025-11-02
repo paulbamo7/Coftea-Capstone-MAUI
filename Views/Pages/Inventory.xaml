@@ -368,5 +368,6 @@
         <otherViews:ActivityLogPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ActivityLogPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:PurchaseOrderApprovalPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PurchaseOrderApprovalPopup}" Grid.ColumnSpan="2" ZIndex="1850"/>
         <otherViews:CreatePurchaseOrderPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=CreatePurchaseOrderPopup}" Grid.ColumnSpan="2" ZIndex="1850"/>
+        <otherViews:RetryConnectionPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=RetryConnectionPopup}" Grid.ColumnSpan="2" ZIndex="2800"/>
     </Grid>
 </ContentPage>

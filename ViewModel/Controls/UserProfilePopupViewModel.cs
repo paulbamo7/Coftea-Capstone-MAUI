@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.C_;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -32,6 +33,10 @@ namespace Coftea_Capstone.ViewModel.Controls
         
         // Sales Report is access-only, not editable, so we just store it privately for updates
         private bool _canAccessSalesReport = false;
+        
+        // Public property for displaying Sales Report access (read-only)
+        [ObservableProperty]
+        private bool canAccessSalesReport = false;
 
         [ObservableProperty]
         private int userId = 0;
@@ -42,7 +47,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ImageSource profileImageSource = "usericon.png";
 
-        public void ShowUserProfile(UserInfoModel user) // Show profile from UserInfoModel
+        public async Task ShowUserProfile(UserInfoModel user) // Show profile from UserInfoModel
         {
             if (user == null) return;
 
@@ -56,29 +61,60 @@ namespace Coftea_Capstone.ViewModel.Controls
             CanEditInventory = user.CanAccessInventory;
             CanEditPOSMenu = user.CanAccessPOS;
             _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
+            CanAccessSalesReport = user.CanAccessSalesReport; // For display
             
-            // Load profile image from database
-            ProfileImage = !string.IsNullOrWhiteSpace(user.ProfileImage) ? user.ProfileImage : "usericon.png";
-            ProfileImageSource = GetProfileImageSource(ProfileImage);
+            // Notify computed properties changed
+            OnPropertyChanged(nameof(InventoryAccessText));
+            OnPropertyChanged(nameof(POSAccessText));
+            OnPropertyChanged(nameof(SalesReportAccessText));
+            
+            // Load profile image from database - always refresh from database to get latest
+            try
+            {
+                var freshUser = await _database.GetUserByIdAsync(user.ID);
+                var profileImageName = freshUser?.ProfileImage ?? user.ProfileImage;
+                ProfileImage = !string.IsNullOrWhiteSpace(profileImageName) ? profileImageName : "usericon.png";
+                
+                System.Diagnostics.Debug.WriteLine($"ShowUserProfile - UserId: {UserId}, ProfileImage from DB: {profileImageName}, Using: {ProfileImage}");
+                
+                // Clear first to force image reload, then set new source on main thread
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ProfileImageSource = null;
+                    ProfileImageSource = GetProfileImageSource(ProfileImage);
+                    System.Diagnostics.Debug.WriteLine($"ProfileImageSource set to: {ProfileImageSource}");
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error loading user profile image: {ex.Message}");
+                // Fallback to provided user data
+                ProfileImage = !string.IsNullOrWhiteSpace(user.ProfileImage) ? user.ProfileImage : "usericon.png";
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ProfileImageSource = null;
+                    ProfileImageSource = GetProfileImageSource(ProfileImage);
+                });
+            }
 
             IsVisible = true;
         }
 
-        private ImageSource GetProfileImageSource(string imageName)
+        private ImageSource GetProfileImageSource(string imageFileName)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"GetProfileImageSource called with: {imageName}");
+                System.Diagnostics.Debug.WriteLine($"GetProfileImageSource called with: {imageFileName}");
                 
-                if (string.IsNullOrWhiteSpace(imageName) || imageName == "usericon.png")
+                if (string.IsNullOrWhiteSpace(imageFileName) || imageFileName == "usericon.png")
                 {
                     System.Diagnostics.Debug.WriteLine("Using default usericon.png");
                     return ImageSource.FromFile("usericon.png");
                 }
 
-                // Check if it's a custom profile image in app data
-                var appDataPath = System.IO.Path.Combine(Microsoft.Maui.Storage.FileSystem.AppDataDirectory, imageName);
-                System.Diagnostics.Debug.WriteLine($"Checking for image at: {appDataPath}");
+                // Check if it's a custom profile image in app data directory (same as ProfilePopupViewModel)
+                var appDataPath = System.IO.Path.Combine(Microsoft.Maui.Storage.FileSystem.AppDataDirectory, imageFileName);
+                System.Diagnostics.Debug.WriteLine($"Checking for profile image at: {appDataPath}");
                 
                 if (System.IO.File.Exists(appDataPath))
                 {
@@ -86,26 +122,28 @@ namespace Coftea_Capstone.ViewModel.Controls
                     return ImageSource.FromFile(appDataPath);
                 }
 
-                System.Diagnostics.Debug.WriteLine($"Custom image not found, checking if it's a resource file");
+                System.Diagnostics.Debug.WriteLine($"Profile image not found at {appDataPath}, checking if it's a resource file");
                 
-                // Check if it's a bundled resource file (e.g., avatar1.png, avatar2.png)
+                // Check if it's a bundled resource file (e.g., avatar1.png, avatar2.png, or usericon.png)
                 try
                 {
-                    var resourceImage = ImageSource.FromFile(imageName);
-                    System.Diagnostics.Debug.WriteLine($"Using resource image: {imageName}");
+                    var resourceImage = ImageSource.FromFile(imageFileName);
+                    System.Diagnostics.Debug.WriteLine($"Using resource image: {imageFileName}");
                     return resourceImage;
                 }
-                catch
+                catch (Exception resourceEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Resource image not found, using default");
+                    System.Diagnostics.Debug.WriteLine($"Resource image not found: {resourceEx.Message}");
                 }
 
                 // Fallback to default user icon
+                System.Diagnostics.Debug.WriteLine($"Falling back to default usericon.png");
                 return ImageSource.FromFile("usericon.png");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error in GetProfileImageSource: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                 return ImageSource.FromFile("usericon.png");
             }
         }
@@ -122,6 +160,12 @@ namespace Coftea_Capstone.ViewModel.Controls
             CanEditInventory = user.CanAccessInventory;
             CanEditPOSMenu = user.CanAccessPOS;
             _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
+            CanAccessSalesReport = user.CanAccessSalesReport; // For display
+            
+            // Notify computed properties changed
+            OnPropertyChanged(nameof(InventoryAccessText));
+            OnPropertyChanged(nameof(POSAccessText));
+            OnPropertyChanged(nameof(SalesReportAccessText));
 
             IsVisible = true;
         }
@@ -167,6 +211,27 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 System.Diagnostics.Debug.WriteLine($"Error updating POS menu permission: {ex.Message}");
             }
+        }
+
+        // Computed properties for display
+        public string InventoryAccessText => CanEditInventory ? "Can Edit Inventory: Yes" : "Can Edit Inventory: No";
+        public string POSAccessText => CanEditPOSMenu ? "Can Edit POS Menu: Yes" : "Can Edit POS Menu: No";
+        public string SalesReportAccessText => CanAccessSalesReport ? "Can Access Sales Report: Yes" : "Can Access Sales Report: No";
+        
+        // Partial methods to notify computed properties when base properties change
+        partial void OnCanEditInventoryChanged(bool value)
+        {
+            OnPropertyChanged(nameof(InventoryAccessText));
+        }
+        
+        partial void OnCanEditPOSMenuChanged(bool value)
+        {
+            OnPropertyChanged(nameof(POSAccessText));
+        }
+        
+        partial void OnCanAccessSalesReportChanged(bool value)
+        {
+            OnPropertyChanged(nameof(SalesReportAccessText));
         }
 
         [RelayCommand]

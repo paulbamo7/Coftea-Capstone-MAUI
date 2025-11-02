@@ -18,7 +18,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new(); // Filtered addons displayed in UI
         private List<InventoryPageModel> _allAddons = new(); // Master list of all addons
-        public ObservableCollection<InventoryPageModel> SelectedAddons { get; set; } = new(); // Currently selected addons
+        
+        // Reference to parent's SelectedAddons for syncing (set by parent when opening popup)
+        public ObservableCollection<InventoryPageModel> ParentSelectedAddons { get; set; }
 
         public event Action<List<InventoryPageModel>> AddonsSelected; // List of selected addons
 
@@ -76,6 +78,15 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 await LoadAddonsAsync();
+                
+                // Sync selections from parent SelectedAddons if available (important for edit mode)
+                // This ensures addons loaded in edit mode are visible when opening the popup
+                if (ParentSelectedAddons != null && ParentSelectedAddons.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔍 Syncing {ParentSelectedAddons.Count} previously selected addons in OpenAddonsPopup");
+                    SyncSelectionsFrom(ParentSelectedAddons);
+                }
+                
                 System.Diagnostics.Debug.WriteLine($"✅ Addons loaded, setting IsAddonsPopupVisible = true");
                 IsAddonsPopupVisible = true;
                 System.Diagnostics.Debug.WriteLine($"✅ IsAddonsPopupVisible set to: {IsAddonsPopupVisible}");
@@ -122,7 +133,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var inventoryItems = await _database.GetInventoryItemsAsync();
                 _allAddons.Clear();
                 AvailableAddons.Clear();
-                SelectedAddons.Clear();
 
                 // Only include items in the "Sinkers & etc." category
                 var filtered = inventoryItems.Where(i => string.Equals((i.itemCategory ?? string.Empty).Trim(), "Sinkers & etc.", StringComparison.OrdinalIgnoreCase));
@@ -229,7 +239,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 AvailableAddons?.Clear();
-                SelectedAddons?.Clear();
+                ParentSelectedAddons = null;
                 AddonsSelected = null;
             }
             catch { }

@@ -53,6 +53,11 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private bool hasSpecialChar;
         [ObservableProperty] private bool hasMinLength;
         [ObservableProperty] private bool passwordsMatch;
+        
+        // Email validation properties
+        [ObservableProperty] private bool isEmailValid = true;
+        [ObservableProperty] private bool isEmailAvailable = true;
+        [ObservableProperty] private string emailValidationMessage = "";
 
         // Password validation methods
         partial void OnPasswordChanged(string value)
@@ -84,6 +89,76 @@ namespace Coftea_Capstone.ViewModel
         partial void OnConfirmPasswordChanged(string value)
         {
             PasswordsMatch = !string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(value) && Password == value;
+        }
+
+        partial void OnEmailChanged(string value)
+        {
+            // Reset validation state
+            IsEmailValid = true;
+            IsEmailAvailable = true;
+            EmailValidationMessage = "";
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            // Validate email format
+            if (!Regex.IsMatch(value.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                IsEmailValid = false;
+                EmailValidationMessage = "Invalid email format";
+                return;
+            }
+
+            IsEmailValid = true;
+
+            // Check if email is already registered (debounced) - fire and forget async task
+            _ = CheckEmailAvailabilityAsync(value);
+        }
+
+        private async Task CheckEmailAvailabilityAsync(string email)
+        {
+            try
+            {
+                await Task.Delay(500); // Debounce: wait 500ms after user stops typing
+                
+                // Check again if email hasn't changed
+                if (Email == email && !string.IsNullOrWhiteSpace(email))
+                {
+                    if (!Services.NetworkService.HasInternetConnection())
+                    {
+                        return; // Can't check without internet
+                    }
+
+                    // Check if email exists in approved users
+                    var existingUser = await _database.GetUserByEmailAsync(email.Trim());
+                    if (existingUser != null)
+                    {
+                        IsEmailAvailable = false;
+                        EmailValidationMessage = "Email is already registered";
+                        return;
+                    }
+
+                    // Check if email exists in pending requests
+                    var existingPendingRequest = await _database.GetPendingUserRequestByEmailAsync(email.Trim());
+                    if (existingPendingRequest != null)
+                    {
+                        IsEmailAvailable = false;
+                        EmailValidationMessage = "Email is already registered (pending approval)";
+                        return;
+                    }
+
+                    // Email is available
+                    IsEmailAvailable = true;
+                    EmailValidationMessage = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error checking email availability: {ex.Message}");
+                // Don't block user if check fails
+            }
         }
 
         // ===================== Commands =====================
@@ -162,6 +237,13 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
+            // Check if email validation failed
+            if (!string.IsNullOrWhiteSpace(EmailValidationMessage))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", EmailValidationMessage, "OK");
+                return;
+            }
+
             try
             {
             // Require internet for registration
@@ -170,11 +252,23 @@ namespace Coftea_Capstone.ViewModel
                 try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
                 return;
             }
-                // Check if email already exists
+                // Final check: Check if email already exists in approved users
                 var existingUser = await _database.GetUserByEmailAsync(Email);
                 if (existingUser != null)
                 {
+                    IsEmailAvailable = false;
+                    EmailValidationMessage = "Email is already registered";
                     await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered.", "OK");
+                    return;
+                }
+
+                // Final check: Check if email already exists in pending requests
+                var existingPendingRequest = await _database.GetPendingUserRequestByEmailAsync(Email);
+                if (existingPendingRequest != null)
+                {
+                    IsEmailAvailable = false;
+                    EmailValidationMessage = "Email is already registered (pending approval)";
+                    await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered. Your registration request is pending approval.", "OK");
                     return;
                 }
 

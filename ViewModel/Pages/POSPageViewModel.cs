@@ -98,7 +98,152 @@ namespace Coftea_Capstone.ViewModel
 
         public bool IsSmallSizeVisibleInCart => string.Equals(SelectedProduct?.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
         public bool IsMediumSizeVisibleInCart => true; 
-        public bool IsLargeSizeVisibleInCart => true; 
+        public bool IsLargeSizeVisibleInCart => true;
+
+        // Addon summary properties for display
+        public string SmallAddonsDisplay => GetAddonsDisplay("Small");
+        public string MediumAddonsDisplay => GetAddonsDisplay("Medium");
+        public string LargeAddonsDisplay => GetAddonsDisplay("Large");
+
+        private string GetAddonsDisplay(string size)
+        {
+            if (SelectedProduct == null) return "";
+            
+            ObservableCollection<InventoryPageModel> addons = null;
+            int quantity = 0;
+            
+            switch (size)
+            {
+                case "Small":
+                    addons = SelectedProduct.SmallAddons;
+                    quantity = SelectedProduct.SmallQuantity;
+                    break;
+                case "Medium":
+                    addons = SelectedProduct.MediumAddons;
+                    quantity = SelectedProduct.MediumQuantity;
+                    break;
+                case "Large":
+                    addons = SelectedProduct.LargeAddons;
+                    quantity = SelectedProduct.LargeQuantity;
+                    break;
+            }
+            
+            if (addons == null || quantity <= 0) return "";
+            
+            var selectedAddons = addons
+                .Where(a => a != null && a.IsSelected && a.AddonQuantity > 0)
+                .Select(a => $"{a.itemName} ({a.AddonQuantity} pcs)")
+                .ToList();
+            
+            if (!selectedAddons.Any()) return "";
+            
+            return $"{size} addons: {string.Join(", ", selectedAddons)}";
+        }
+
+        partial void OnSelectedProductChanged(POSPageModel value)
+        {
+            OnPropertyChanged(nameof(SmallAddonsDisplay));
+            OnPropertyChanged(nameof(MediumAddonsDisplay));
+            OnPropertyChanged(nameof(LargeAddonsDisplay));
+            
+            // Unsubscribe from previous product
+            if (value == null)
+            {
+                return;
+            }
+            
+            // Subscribe to product quantity changes
+            value.PropertyChanged -= OnProductQuantityChanged;
+            value.PropertyChanged += OnProductQuantityChanged;
+            
+            // Subscribe to addon collection changes
+            if (value.SmallAddons != null)
+            {
+                value.SmallAddons.CollectionChanged -= OnAddonsCollectionChanged;
+                value.SmallAddons.CollectionChanged += OnAddonsCollectionChanged;
+                
+                foreach (var addon in value.SmallAddons)
+                {
+                    if (addon != null)
+                    {
+                        addon.PropertyChanged -= OnAddonPropertyChanged;
+                        addon.PropertyChanged += OnAddonPropertyChanged;
+                    }
+                }
+            }
+            if (value.MediumAddons != null)
+            {
+                value.MediumAddons.CollectionChanged -= OnAddonsCollectionChanged;
+                value.MediumAddons.CollectionChanged += OnAddonsCollectionChanged;
+                
+                foreach (var addon in value.MediumAddons)
+                {
+                    if (addon != null)
+                    {
+                        addon.PropertyChanged -= OnAddonPropertyChanged;
+                        addon.PropertyChanged += OnAddonPropertyChanged;
+                    }
+                }
+            }
+            if (value.LargeAddons != null)
+            {
+                value.LargeAddons.CollectionChanged -= OnAddonsCollectionChanged;
+                value.LargeAddons.CollectionChanged += OnAddonsCollectionChanged;
+                
+                foreach (var addon in value.LargeAddons)
+                {
+                    if (addon != null)
+                    {
+                        addon.PropertyChanged -= OnAddonPropertyChanged;
+                        addon.PropertyChanged += OnAddonPropertyChanged;
+                    }
+                }
+            }
+        }
+
+        private void OnProductQuantityChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(POSPageModel.SmallQuantity) ||
+                e.PropertyName == nameof(POSPageModel.MediumQuantity) ||
+                e.PropertyName == nameof(POSPageModel.LargeQuantity))
+            {
+                OnPropertyChanged(nameof(SmallAddonsDisplay));
+                OnPropertyChanged(nameof(MediumAddonsDisplay));
+                OnPropertyChanged(nameof(LargeAddonsDisplay));
+            }
+        }
+
+        private void OnAddonsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Subscribe to new addons
+            if (e.NewItems != null)
+            {
+                foreach (InventoryPageModel addon in e.NewItems)
+                {
+                    if (addon != null)
+                    {
+                        addon.PropertyChanged -= OnAddonPropertyChanged;
+                        addon.PropertyChanged += OnAddonPropertyChanged;
+                    }
+                }
+            }
+            
+            // Update display
+            OnPropertyChanged(nameof(SmallAddonsDisplay));
+            OnPropertyChanged(nameof(MediumAddonsDisplay));
+            OnPropertyChanged(nameof(LargeAddonsDisplay));
+        }
+
+        private void OnAddonPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(InventoryPageModel.IsSelected) || 
+                e.PropertyName == nameof(InventoryPageModel.AddonQuantity))
+            {
+                OnPropertyChanged(nameof(SmallAddonsDisplay));
+                OnPropertyChanged(nameof(MediumAddonsDisplay));
+                OnPropertyChanged(nameof(LargeAddonsDisplay));
+            }
+        } 
 
         // ===================== Initialization =====================
         public POSPageViewModel(AddItemToPOSViewModel addItemToPOSViewModel, SettingsPopUpViewModel settingsPopupViewModel)
@@ -340,6 +485,28 @@ namespace Coftea_Capstone.ViewModel
                         copy.InventoryItems.Add(addonCopy);
                         System.Diagnostics.Debug.WriteLine($"🔧 Copied legacy addon to cart: {addonCopy.itemName}, IsSelected: {addonCopy.IsSelected}, AddonQuantity: {addonCopy.AddonQuantity}");
                     }
+                }
+                
+                // Check if an identical item already exists in cart (same product, quantities, and addons)
+                var existingItem = CartItems.FirstOrDefault(item => 
+                    item.ProductID == copy.ProductID &&
+                    item.SmallQuantity == copy.SmallQuantity &&
+                    item.MediumQuantity == copy.MediumQuantity &&
+                    item.LargeQuantity == copy.LargeQuantity &&
+                    AreAddonsIdentical(item.SmallAddons, copy.SmallAddons) &&
+                    AreAddonsIdentical(item.MediumAddons, copy.MediumAddons) &&
+                    AreAddonsIdentical(item.LargeAddons, copy.LargeAddons) &&
+                    AreAddonsIdentical(item.InventoryItems, copy.InventoryItems)
+                );
+                
+                if (existingItem != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Identical item already exists in cart, skipping duplicate");
+                    if (NotificationPopup != null)
+                    {
+                        NotificationPopup.ShowNotification("This item is already in your cart with the same configuration.", "Duplicate Item");
+                    }
+                    return;
                 }
                 
                 System.Diagnostics.Debug.WriteLine($"🛒 Adding to CartItems collection...");
@@ -1204,6 +1371,34 @@ namespace Coftea_Capstone.ViewModel
             {
                 CartItems = loadedCart;
             }
+        }
+
+        // Helper method to check if two addon collections are identical
+        private bool AreAddonsIdentical(ObservableCollection<InventoryPageModel> addons1, ObservableCollection<InventoryPageModel> addons2)
+        {
+            if (addons1 == null && addons2 == null) return true;
+            if (addons1 == null || addons2 == null) return false;
+            if (addons1.Count != addons2.Count) return false;
+            
+            // Get selected addons with quantities from both collections
+            var selected1 = addons1.Where(a => a != null && a.IsSelected && a.AddonQuantity > 0)
+                .OrderBy(a => a.itemID)
+                .Select(a => new { a.itemID, a.AddonQuantity })
+                .ToList();
+            var selected2 = addons2.Where(a => a != null && a.IsSelected && a.AddonQuantity > 0)
+                .OrderBy(a => a.itemID)
+                .Select(a => new { a.itemID, a.AddonQuantity })
+                .ToList();
+            
+            if (selected1.Count != selected2.Count) return false;
+            
+            for (int i = 0; i < selected1.Count; i++)
+            {
+                if (selected1[i].itemID != selected2[i].itemID || selected1[i].AddonQuantity != selected2[i].AddonQuantity)
+                    return false;
+            }
+            
+            return true;
         }
     }
 }

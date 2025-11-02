@@ -145,15 +145,32 @@ namespace Coftea_Capstone.ViewModel.Controls
                             }
                             
                             addonTotalPrice += addonPriceForSize;
-                            
-                            // Format addon name with size prefix
-                            string addonName = string.IsNullOrEmpty(size)
-                                ? $"{addon.itemName} (x{addon.AddonQuantity})"
-                                : $"{size}: {addon.itemName} (x{addon.AddonQuantity})";
-                            
-                            addonNames.Add(addonName);
-                            System.Diagnostics.Debug.WriteLine($"🛒 Selected Addon: {addonName}, Quantity: {addon.AddonQuantity}, Unit Price: {addon.AddonPrice}, Total: {addonPriceForSize}");
                         }
+                        
+                        // Group addons by size and format them
+                        var addonsBySize = allSelectedAddons
+                            .GroupBy(a => a.size)
+                            .OrderBy(g => g.Key == "Small" ? 1 : g.Key == "Medium" ? 2 : g.Key == "Large" ? 3 : 4)
+                            .ToList();
+                        
+                        foreach (var sizeGroup in addonsBySize)
+                        {
+                            var size = sizeGroup.Key;
+                            var addonList = sizeGroup.Select(a => $"{a.addon.itemName} ({a.addon.AddonQuantity})").ToList();
+                            
+                            if (string.IsNullOrEmpty(size))
+                            {
+                                // Legacy addons without size
+                                addonNames.Add(string.Join(", ", addonList));
+                            }
+                            else
+                            {
+                                // Size-specific addons: "Medium: Addon1 (2), Addon2 (3)"
+                                addonNames.Add($"{size}: {string.Join(", ", addonList)}");
+                            }
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"🛒 Formatted Addons: {string.Join(" | ", addonNames)}");
                         
                         System.Diagnostics.Debug.WriteLine($"Product: {it.ProductName}, Addon Total: {addonTotalPrice}");
                         
@@ -343,11 +360,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     
                     if (matchingCartItem != null)
                     {
-                        // Preserve addon information before removing
-                        if (matchingCartItem.InventoryItems != null && matchingCartItem.InventoryItems.Any(a => a.IsSelected || a.AddonQuantity > 0))
+                        // Preserve addon information before removing (check all addon collections)
+                        preservedAddons = new List<InventoryPageModel>();
+                        
+                        // Preserve Small size addons
+                        if (matchingCartItem.SmallAddons != null && matchingCartItem.SmallAddons.Any(a => a.IsSelected || (a.AddonQuantity > 0)))
                         {
-                            preservedAddons = new List<InventoryPageModel>();
-                            foreach (var addon in matchingCartItem.InventoryItems)
+                            foreach (var addon in matchingCartItem.SmallAddons)
                             {
                                 if (addon.IsSelected || addon.AddonQuantity > 0)
                                 {
@@ -369,9 +388,107 @@ namespace Coftea_Capstone.ViewModel.Controls
                                         InputAmount = addon.InputAmount,
                                         InputUnit = addon.InputUnit
                                     });
-                                    System.Diagnostics.Debug.WriteLine($"🔧 Preserved addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                    System.Diagnostics.Debug.WriteLine($"🔧 Preserved Small addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
                                 }
                             }
+                        }
+                        
+                        // Preserve Medium size addons
+                        if (matchingCartItem.MediumAddons != null && matchingCartItem.MediumAddons.Any(a => a.IsSelected || (a.AddonQuantity > 0)))
+                        {
+                            foreach (var addon in matchingCartItem.MediumAddons)
+                            {
+                                if (addon.IsSelected || addon.AddonQuantity > 0)
+                                {
+                                    preservedAddons.Add(new InventoryPageModel
+                                    {
+                                        itemID = addon.itemID,
+                                        itemName = addon.itemName,
+                                        itemCategory = addon.itemCategory,
+                                        itemDescription = addon.itemDescription,
+                                        itemQuantity = addon.itemQuantity,
+                                        unitOfMeasurement = addon.unitOfMeasurement,
+                                        minimumQuantity = addon.minimumQuantity,
+                                        maximumQuantity = addon.maximumQuantity,
+                                        ImageSet = addon.ImageSet,
+                                        IsSelected = addon.IsSelected,
+                                        AddonQuantity = addon.AddonQuantity,
+                                        AddonPrice = addon.AddonPrice,
+                                        AddonUnit = addon.AddonUnit,
+                                        InputAmount = addon.InputAmount,
+                                        InputUnit = addon.InputUnit
+                                    });
+                                    System.Diagnostics.Debug.WriteLine($"🔧 Preserved Medium addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                }
+                            }
+                        }
+                        
+                        // Preserve Large size addons
+                        if (matchingCartItem.LargeAddons != null && matchingCartItem.LargeAddons.Any(a => a.IsSelected || (a.AddonQuantity > 0)))
+                        {
+                            foreach (var addon in matchingCartItem.LargeAddons)
+                            {
+                                if (addon.IsSelected || addon.AddonQuantity > 0)
+                                {
+                                    preservedAddons.Add(new InventoryPageModel
+                                    {
+                                        itemID = addon.itemID,
+                                        itemName = addon.itemName,
+                                        itemCategory = addon.itemCategory,
+                                        itemDescription = addon.itemDescription,
+                                        itemQuantity = addon.itemQuantity,
+                                        unitOfMeasurement = addon.unitOfMeasurement,
+                                        minimumQuantity = addon.minimumQuantity,
+                                        maximumQuantity = addon.maximumQuantity,
+                                        ImageSet = addon.ImageSet,
+                                        IsSelected = addon.IsSelected,
+                                        AddonQuantity = addon.AddonQuantity,
+                                        AddonPrice = addon.AddonPrice,
+                                        AddonUnit = addon.AddonUnit,
+                                        InputAmount = addon.InputAmount,
+                                        InputUnit = addon.InputUnit
+                                    });
+                                    System.Diagnostics.Debug.WriteLine($"🔧 Preserved Large addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                }
+                            }
+                        }
+                        
+                        // Legacy: Preserve old InventoryItems if any (for backward compatibility)
+                        if (matchingCartItem.InventoryItems != null && matchingCartItem.InventoryItems.Any(a => a.IsSelected || a.AddonQuantity > 0))
+                        {
+                            foreach (var addon in matchingCartItem.InventoryItems)
+                            {
+                                if (addon.IsSelected || addon.AddonQuantity > 0)
+                                {
+                                    // Check if already preserved (avoid duplicates)
+                                    if (!preservedAddons.Any(a => a.itemID == addon.itemID))
+                                    {
+                                        preservedAddons.Add(new InventoryPageModel
+                                        {
+                                            itemID = addon.itemID,
+                                            itemName = addon.itemName,
+                                            itemCategory = addon.itemCategory,
+                                            itemDescription = addon.itemDescription,
+                                            itemQuantity = addon.itemQuantity,
+                                            unitOfMeasurement = addon.unitOfMeasurement,
+                                            minimumQuantity = addon.minimumQuantity,
+                                            maximumQuantity = addon.maximumQuantity,
+                                            ImageSet = addon.ImageSet,
+                                            IsSelected = addon.IsSelected,
+                                            AddonQuantity = addon.AddonQuantity,
+                                            AddonPrice = addon.AddonPrice,
+                                            AddonUnit = addon.AddonUnit,
+                                            InputAmount = addon.InputAmount,
+                                            InputUnit = addon.InputUnit
+                                        });
+                                        System.Diagnostics.Debug.WriteLine($"🔧 Preserved Legacy addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (preservedAddons.Any())
+                        {
                             System.Diagnostics.Debug.WriteLine($"🔧 Preserved {preservedAddons.Count} addons for restoration");
                         }
                         
@@ -481,17 +598,88 @@ namespace Coftea_Capstone.ViewModel.Controls
                             {
                                 System.Diagnostics.Debug.WriteLine($"🔧 Restoring {preservedAddons.Count} preserved addons...");
                                 
-                                // Wait longer for addons to load from database (LoadAddonsForSelectedAsync is async)
-                                // Keep checking until InventoryItems has items or timeout
+                                // Wait for addons to load from database (LoadAddonsForSelectedAsync is async)
+                                // Check all addon collections (SmallAddons, MediumAddons, LargeAddons, and legacy InventoryItems)
                                 int retries = 0;
-                                while ((currentProduct.InventoryItems == null || currentProduct.InventoryItems.Count == 0) && retries < 10)
+                                bool hasLoadedAddons = false;
+                                while (retries < 15 && !hasLoadedAddons)
                                 {
-                                    await Task.Delay(100);
-                                    retries++;
+                                    hasLoadedAddons = 
+                                        (currentProduct.SmallAddons != null && currentProduct.SmallAddons.Any()) ||
+                                        (currentProduct.MediumAddons != null && currentProduct.MediumAddons.Any()) ||
+                                        (currentProduct.LargeAddons != null && currentProduct.LargeAddons.Any()) ||
+                                        (currentProduct.InventoryItems != null && currentProduct.InventoryItems.Any());
+                                    
+                                    if (!hasLoadedAddons)
+                                    {
+                                        await Task.Delay(100);
+                                        retries++;
+                                    }
                                 }
                                 
-                                System.Diagnostics.Debug.WriteLine($"🔧 Addon loading check: InventoryItems count = {currentProduct.InventoryItems?.Count ?? 0}, retries = {retries}");
+                                System.Diagnostics.Debug.WriteLine($"🔧 Addon loading check: SmallAddons={currentProduct.SmallAddons?.Count ?? 0}, MediumAddons={currentProduct.MediumAddons?.Count ?? 0}, LargeAddons={currentProduct.LargeAddons?.Count ?? 0}, InventoryItems={currentProduct.InventoryItems?.Count ?? 0}, retries={retries}");
                                 
+                                // Restore addons to SmallAddons collection
+                                if (currentProduct.SmallAddons != null && currentProduct.SmallAddons.Any())
+                                {
+                                    foreach (var addon in currentProduct.SmallAddons.ToList())
+                                    {
+                                        var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                        if (preserved != null)
+                                        {
+                                            addon.IsSelected = preserved.IsSelected;
+                                            addon.AddonQuantity = preserved.AddonQuantity;
+                                            System.Diagnostics.Debug.WriteLine($"✅ Restored Small addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                        }
+                                        else
+                                        {
+                                            addon.IsSelected = false;
+                                            addon.AddonQuantity = 0;
+                                        }
+                                    }
+                                }
+                                
+                                // Restore addons to MediumAddons collection
+                                if (currentProduct.MediumAddons != null && currentProduct.MediumAddons.Any())
+                                {
+                                    foreach (var addon in currentProduct.MediumAddons.ToList())
+                                    {
+                                        var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                        if (preserved != null)
+                                        {
+                                            addon.IsSelected = preserved.IsSelected;
+                                            addon.AddonQuantity = preserved.AddonQuantity;
+                                            System.Diagnostics.Debug.WriteLine($"✅ Restored Medium addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                        }
+                                        else
+                                        {
+                                            addon.IsSelected = false;
+                                            addon.AddonQuantity = 0;
+                                        }
+                                    }
+                                }
+                                
+                                // Restore addons to LargeAddons collection
+                                if (currentProduct.LargeAddons != null && currentProduct.LargeAddons.Any())
+                                {
+                                    foreach (var addon in currentProduct.LargeAddons.ToList())
+                                    {
+                                        var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                        if (preserved != null)
+                                        {
+                                            addon.IsSelected = preserved.IsSelected;
+                                            addon.AddonQuantity = preserved.AddonQuantity;
+                                            System.Diagnostics.Debug.WriteLine($"✅ Restored Large addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                        }
+                                        else
+                                        {
+                                            addon.IsSelected = false;
+                                            addon.AddonQuantity = 0;
+                                        }
+                                    }
+                                }
+                                
+                                // Legacy: Restore addons to InventoryItems collection
                                 if (currentProduct.InventoryItems != null && currentProduct.InventoryItems.Any())
                                 {
                                     foreach (var addon in currentProduct.InventoryItems.ToList())
@@ -501,21 +689,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                                         {
                                             addon.IsSelected = preserved.IsSelected;
                                             addon.AddonQuantity = preserved.AddonQuantity;
-                                            System.Diagnostics.Debug.WriteLine($"✅ Restored addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                            System.Diagnostics.Debug.WriteLine($"✅ Restored Legacy addon: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
                                         }
                                         else
                                         {
-                                            // Reset addons that weren't in cart
                                             addon.IsSelected = false;
                                             addon.AddonQuantity = 0;
                                         }
                                     }
-                                    System.Diagnostics.Debug.WriteLine($"✅ Finished restoring addons");
                                 }
-                                else
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"⚠️ InventoryItems is null or empty after waiting, cannot restore addons");
-                                }
+                                
+                                System.Diagnostics.Debug.WriteLine($"✅ Finished restoring addons to all collections");
                             }
 
                             // Force UI updates by reassigning SelectedProduct
@@ -546,14 +730,85 @@ namespace Coftea_Capstone.ViewModel.Controls
                                 {
                                     System.Diagnostics.Debug.WriteLine($"🔧 Restoring {preservedAddons.Count} preserved addons after refresh...");
                                     
-                                    // Wait for addons to load
+                                    // Wait for addons to load from database
                                     int retries = 0;
-                                    while ((currentProduct.InventoryItems == null || currentProduct.InventoryItems.Count == 0) && retries < 10)
+                                    bool hasLoadedAddons = false;
+                                    while (retries < 15 && !hasLoadedAddons)
                                     {
-                                        await Task.Delay(100);
-                                        retries++;
+                                        hasLoadedAddons = 
+                                            (currentProduct.SmallAddons != null && currentProduct.SmallAddons.Any()) ||
+                                            (currentProduct.MediumAddons != null && currentProduct.MediumAddons.Any()) ||
+                                            (currentProduct.LargeAddons != null && currentProduct.LargeAddons.Any()) ||
+                                            (currentProduct.InventoryItems != null && currentProduct.InventoryItems.Any());
+                                        
+                                        if (!hasLoadedAddons)
+                                        {
+                                            await Task.Delay(100);
+                                            retries++;
+                                        }
                                     }
                                     
+                                    // Restore addons to SmallAddons collection
+                                    if (currentProduct.SmallAddons != null && currentProduct.SmallAddons.Any())
+                                    {
+                                        foreach (var addon in currentProduct.SmallAddons.ToList())
+                                        {
+                                            var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                            if (preserved != null)
+                                            {
+                                                addon.IsSelected = preserved.IsSelected;
+                                                addon.AddonQuantity = preserved.AddonQuantity;
+                                                System.Diagnostics.Debug.WriteLine($"✅ Restored Small addon after refresh: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                            }
+                                            else
+                                            {
+                                                addon.IsSelected = false;
+                                                addon.AddonQuantity = 0;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Restore addons to MediumAddons collection
+                                    if (currentProduct.MediumAddons != null && currentProduct.MediumAddons.Any())
+                                    {
+                                        foreach (var addon in currentProduct.MediumAddons.ToList())
+                                        {
+                                            var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                            if (preserved != null)
+                                            {
+                                                addon.IsSelected = preserved.IsSelected;
+                                                addon.AddonQuantity = preserved.AddonQuantity;
+                                                System.Diagnostics.Debug.WriteLine($"✅ Restored Medium addon after refresh: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                            }
+                                            else
+                                            {
+                                                addon.IsSelected = false;
+                                                addon.AddonQuantity = 0;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Restore addons to LargeAddons collection
+                                    if (currentProduct.LargeAddons != null && currentProduct.LargeAddons.Any())
+                                    {
+                                        foreach (var addon in currentProduct.LargeAddons.ToList())
+                                        {
+                                            var preserved = preservedAddons.FirstOrDefault(a => a.itemID == addon.itemID);
+                                            if (preserved != null)
+                                            {
+                                                addon.IsSelected = preserved.IsSelected;
+                                                addon.AddonQuantity = preserved.AddonQuantity;
+                                                System.Diagnostics.Debug.WriteLine($"✅ Restored Large addon after refresh: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                            }
+                                            else
+                                            {
+                                                addon.IsSelected = false;
+                                                addon.AddonQuantity = 0;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Legacy: Restore addons to InventoryItems collection
                                     if (currentProduct.InventoryItems != null && currentProduct.InventoryItems.Any())
                                     {
                                         foreach (var addon in currentProduct.InventoryItems.ToList())
@@ -563,7 +818,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                                             {
                                                 addon.IsSelected = preserved.IsSelected;
                                                 addon.AddonQuantity = preserved.AddonQuantity;
-                                                System.Diagnostics.Debug.WriteLine($"✅ Restored addon after refresh: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
+                                                System.Diagnostics.Debug.WriteLine($"✅ Restored Legacy addon after refresh: {addon.itemName}, IsSelected: {addon.IsSelected}, AddonQuantity: {addon.AddonQuantity}");
                                             }
                                             else
                                             {
@@ -572,6 +827,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                                             }
                                         }
                                     }
+                                    
+                                    System.Diagnostics.Debug.WriteLine($"✅ Finished restoring addons after refresh");
                                 }
 
                                 var temp2 = posViewModel.SelectedProduct;

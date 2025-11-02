@@ -542,9 +542,8 @@ namespace Coftea_Capstone.ViewModel
                             }
                         }
 
-                        // Format: "CRITICAL: Tapiocca (6 kg) - Added: Jan 15, 2024 10:30"
-                        var addedTime = item.CreatedAt.ToString("MMM dd, yyyy HH:mm");
-                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {normalizedUnit}) - Added: {addedTime}";
+                        // Format: "CRITICAL: Tapiocca (6 kg)"
+                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {normalizedUnit})";
                         System.Diagnostics.Debug.WriteLine($"🔍 Adding alert: {alertText}");
                         InventoryAlerts.Add(alertText);
                     }

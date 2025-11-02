@@ -1503,51 +1503,12 @@ namespace Coftea_Capstone.Models
         }
 
         // Send inventory update notification
+        // DISABLED: Inventory/stock notifications have been disabled per user request
         private async Task SendInventoryUpdateNotificationAsync(string itemName, double previousQuantity, double newQuantity, double quantityChanged, string unitOfMeasurement, string action, string reason = "")
         {
-            try
-            {
-                var app = (App)Application.Current;
-                if (app?.NotificationPopup != null)
-                {
-                    string message;
-                    string title;
-                    string type;
-
-                    if (quantityChanged > 0)
-                    {
-                        // Increase
-                        title = "Inventory Updated";
-                        message = $"{itemName}: Added {quantityChanged:F1} {unitOfMeasurement} ({previousQuantity:F1} → {newQuantity:F1} {unitOfMeasurement})";
-                        type = "Success";
-                    }
-                    else if (quantityChanged < 0)
-                    {
-                        // Decrease
-                        title = "Inventory Updated";
-                        message = $"{itemName}: Deducted {Math.Abs(quantityChanged):F1} {unitOfMeasurement} ({previousQuantity:F1} → {newQuantity:F1} {unitOfMeasurement})";
-                        type = "Info";
-                    }
-                    else
-                    {
-                        // No change in quantity but other fields updated
-                        title = "Inventory Updated";
-                        message = $"{itemName}: Updated (Quantity: {newQuantity:F1} {unitOfMeasurement})";
-                        type = "Info";
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(reason))
-                    {
-                        message += $" - {reason}";
-                    }
-
-                    await app.NotificationPopup.AddNotification(title, message, $"Action: {action}", type);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error sending inventory update notification: {ex.Message}");
-            }
+            // Inventory notifications are disabled - only log to debug
+            System.Diagnostics.Debug.WriteLine($"📝 Inventory update (notification disabled): {itemName} - {previousQuantity:F1} → {newQuantity:F1} {unitOfMeasurement} ({quantityChanged:+0.##;-0.##}) - {action}");
+            await Task.CompletedTask;
         }
 
         public async Task<int> DeleteInventoryItemAsync(int itemId) // Deletes an inventory item from the database
@@ -1712,6 +1673,49 @@ namespace Coftea_Capstone.Models
         public async Task<List<InventoryActivityLog>> GetRecentInventoryActivityAsync(int limit = 50) // Gets recent inventory activity
         {
             return await GetInventoryActivityLogAsync(null, limit);
+        }
+        
+        public async Task<Dictionary<string, (double totalDeducted, string unitOfMeasurement)>> GetInventoryDeductionsForPeriodAsync(DateTime startDate, DateTime endDate) // Gets inventory deductions from activity logs for a date range
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            var sql = @"SELECT itemName, SUM(ABS(quantityChanged)) as totalDeducted, unitOfMeasurement 
+                       FROM inventory_activity_log 
+                       WHERE action = 'DEDUCTED' 
+                       AND reason = 'POS_ORDER' 
+                       AND timestamp >= @StartDate 
+                       AND timestamp < @EndDate 
+                       GROUP BY itemName, unitOfMeasurement";
+            
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@StartDate", startDate);
+            cmd.Parameters.AddWithValue("@EndDate", endDate.AddDays(1)); // Add 1 day to include end date
+            
+            var deductions = new Dictionary<string, (double totalDeducted, string unitOfMeasurement)>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            
+            while (await reader.ReadAsync())
+            {
+                var itemName = reader.GetString("itemName");
+                var totalDeducted = reader.GetDouble("totalDeducted");
+                var unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) 
+                    ? null 
+                    : reader.GetString("unitOfMeasurement");
+                
+                if (deductions.ContainsKey(itemName))
+                {
+                    // Aggregate if same item name appears with different units (shouldn't happen, but safe)
+                    var existing = deductions[itemName];
+                    deductions[itemName] = (existing.totalDeducted + totalDeducted, existing.unitOfMeasurement ?? unitOfMeasurement);
+                }
+                else
+                {
+                    deductions[itemName] = (totalDeducted, unitOfMeasurement);
+                }
+            }
+            
+            await reader.CloseAsync();
+            
+            return deductions;
         }
 
         private string GetDefaultUnitForCategory(string category) // Determines default unit of measurement based on category
@@ -2480,6 +2484,32 @@ namespace Coftea_Capstone.Models
                 });
             }
             return requests;
+        }
+
+        public async Task<UserPendingRequest> GetPendingUserRequestByEmailAsync(string email) // Check if email exists in pending requests
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = "SELECT * FROM pending_registrations WHERE email = @Email LIMIT 1;";
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new UserPendingRequest
+                {
+                    ID = reader.GetInt32("id"),
+                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
+                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
+                    Email = reader.GetString("email"),
+                    Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
+                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
+                    RequestDate = reader.IsDBNull(reader.GetOrdinal("registrationDate")) ? DateTime.MinValue : reader.GetDateTime("registrationDate"),
+                    Status = "pending"
+                };
+            }
+            return null;
         }
 
         public async Task<int> ApprovePendingRegistrationAsync(int requestId)

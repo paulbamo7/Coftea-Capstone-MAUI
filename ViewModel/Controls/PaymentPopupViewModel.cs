@@ -15,7 +15,12 @@ namespace Coftea_Capstone.ViewModel.Controls
     public partial class PaymentPopupViewModel : ObservableObject
     {
         private readonly CartStorageService _cartStorage = new CartStorageService();
-        private readonly OfflineQueueService _offlineQueue = new OfflineQueueService();
+        
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
+        {
+            return ((App)Application.Current).RetryConnectionPopup;
+        }
+        
         [ObservableProperty]
         private bool isPaymentVisible = false;
 
@@ -128,6 +133,15 @@ namespace Coftea_Capstone.ViewModel.Controls
             System.Diagnostics.Debug.WriteLine($"🔵 TotalAmount: {TotalAmount}, AmountPaid: {AmountPaid}");
             System.Diagnostics.Debug.WriteLine($"🔵 CartItems count: {CartItems?.Count ?? 0}");
             System.Diagnostics.Debug.WriteLine($"🔵 SelectedPaymentMethod: {SelectedPaymentMethod}");
+            
+            // Check internet connection first - before processing payment
+            if (!Services.NetworkService.HasInternetConnection())
+            {
+                GetRetryConnectionPopup().ShowRetryPopup(
+                    ConfirmPayment,
+                    "No internet connection detected. Please check your network settings and try again.");
+                return;
+            }
             
             // For non-cash methods (GCash/Bank), auto-approve regardless of AmountPaid
             var isNonCash = IsGCashSelected || IsBankSelected;
@@ -514,107 +528,28 @@ namespace Coftea_Capstone.ViewModel.Controls
                         TransactionDate = DateTime.Now
                     };
 
-                    // Check if online
-                    bool isOnline = NetworkService.HasInternetConnection();
+                    // Save the combined transaction to database
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    await database.SaveTransactionAsync(orderTransaction);
+                    System.Diagnostics.Debug.WriteLine($"✅ Database save successful for order: {transactionId}");
                     
-                    if (isOnline)
+                    // Deduct inventory for each item
+                    System.Diagnostics.Debug.WriteLine($"🔧 Starting inventory deduction for {CartItems.Count} cart items");
+                    foreach (var item in CartItems)
                     {
-                        // Save the combined transaction to database
-                        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                        await database.SaveTransactionAsync(orderTransaction);
-                        System.Diagnostics.Debug.WriteLine($"✅ Database save successful for order: {transactionId}");
-                        
-                        // Deduct inventory for each item
-                        System.Diagnostics.Debug.WriteLine($"🔧 Starting inventory deduction for {CartItems.Count} cart items");
-                        foreach (var item in CartItems)
+                        System.Diagnostics.Debug.WriteLine($"💾 ========== Deducting inventory for: {item.ProductName} ==========");
+                        System.Diagnostics.Debug.WriteLine($"💾 Item details - Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
+                        try
                         {
-                            System.Diagnostics.Debug.WriteLine($"💾 ========== Deducting inventory for: {item.ProductName} ==========");
-                            System.Diagnostics.Debug.WriteLine($"💾 Item details - Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
-                            try
-                            {
-                                await DeductInventoryForItemAsync(database, item);
-                                System.Diagnostics.Debug.WriteLine($"✅ Inventory deduction successful for: {item.ProductName}");
-                            }
-                            catch (Exception itemEx)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"❌ Failed to deduct inventory for {item.ProductName}: {itemEx.Message}");
-                            }
+                            await DeductInventoryForItemAsync(database, item);
+                            System.Diagnostics.Debug.WriteLine($"✅ Inventory deduction successful for: {item.ProductName}");
                         }
-                        System.Diagnostics.Debug.WriteLine($"🔧 Completed inventory deduction for all cart items");
-                    }
-                    else
-                    {
-                        // Queue transaction and deductions for offline sync
-                        System.Diagnostics.Debug.WriteLine($"📦 Offline mode: Queueing transaction {transactionId} for sync");
-                        await _offlineQueue.QueueTransactionAsync(orderTransaction);
-                        
-                        // Queue inventory deductions
-                        foreach (var item in CartItems)
+                        catch (Exception itemEx)
                         {
-                            try
-                            {
-                                var deductions = new List<(string name, double amount, string unit)>();
-                                
-                                // Use InventoryItems from CartItem (no database query needed when offline)
-                                if (item.InventoryItems != null && item.InventoryItems.Any())
-                                {
-                                    foreach (var ingredient in item.InventoryItems)
-                                    {
-                                        // Handle regular ingredients
-                                        if (ingredient.IsSelected && ingredient.SelectedSize != null)
-                                        {
-                                            double amount = 0;
-                                            string unit = ingredient.unitOfMeasurement;
-                                            
-                                            // Calculate amount based on selected size and quantity
-                                            if (ingredient.SelectedSize == "Small" && item.SmallQuantity > 0)
-                                            {
-                                                amount = (ingredient.InputAmountSmall > 0 ? ingredient.InputAmountSmall : (ingredient.InputAmount > 0 ? ingredient.InputAmount : 0)) * item.SmallQuantity;
-                                            }
-                                            else if (ingredient.SelectedSize == "Medium" && item.MediumQuantity > 0)
-                                            {
-                                                amount = (ingredient.InputAmountMedium > 0 ? ingredient.InputAmountMedium : (ingredient.InputAmount > 0 ? ingredient.InputAmount : 0)) * item.MediumQuantity;
-                                            }
-                                            else if (ingredient.SelectedSize == "Large" && item.LargeQuantity > 0)
-                                            {
-                                                amount = (ingredient.InputAmountLarge > 0 ? ingredient.InputAmountLarge : (ingredient.InputAmount > 0 ? ingredient.InputAmount : 0)) * item.LargeQuantity;
-                                            }
-                                            
-                                            if (amount > 0)
-                                            {
-                                                deductions.Add((ingredient.itemName, amount, unit));
-                                            }
-                                        }
-                                        
-                                        // Handle addons (addonQuantity > 0 indicates it's an addon)
-                                        if (ingredient.AddonQuantity > 0)
-                                        {
-                                            var totalQuantity = item.SmallQuantity + item.MediumQuantity + item.LargeQuantity;
-                                            if (totalQuantity > 0)
-                                            {
-                                                // Use AddonQuantity if available, otherwise InputAmount
-                                                double addonAmount = ingredient.AddonQuantity > 0 ? ingredient.AddonQuantity : (ingredient.InputAmount > 0 ? ingredient.InputAmount : 0);
-                                                string addonUnit = !string.IsNullOrEmpty(ingredient.AddonUnit) ? ingredient.AddonUnit : ingredient.unitOfMeasurement;
-                                                deductions.Add((ingredient.itemName, addonAmount * totalQuantity, addonUnit));
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                if (deductions.Any())
-                                {
-                                    await _offlineQueue.QueueInventoryDeductionAsync(item.ProductName, deductions);
-                                    System.Diagnostics.Debug.WriteLine($"✅ Queued {deductions.Count} deductions for {item.ProductName}");
-                                }
-                            }
-                            catch (Exception itemEx)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"❌ Failed to queue deductions for {item.ProductName}: {itemEx.Message}");
-                            }
+                            System.Diagnostics.Debug.WriteLine($"❌ Failed to deduct inventory for {item.ProductName}: {itemEx.Message}");
                         }
-                        
-                        System.Diagnostics.Debug.WriteLine($"📦 Transaction and deductions queued successfully for offline sync");
                     }
+                    System.Diagnostics.Debug.WriteLine($"🔧 Completed inventory deduction for all cart items");
                     
                     // Add to in-memory collection for history popup
                     transactions.Add(orderTransaction);

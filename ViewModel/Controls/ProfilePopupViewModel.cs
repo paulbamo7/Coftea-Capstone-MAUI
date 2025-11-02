@@ -187,12 +187,32 @@ namespace Coftea_Capstone.ViewModel.Controls
                     var fileName = $"profile_{Guid.NewGuid()}{Path.GetExtension(result.FileName)}";
                     var targetPath = Path.Combine(FileSystem.AppDataDirectory, fileName);
                     
-                    using var stream = await result.OpenReadAsync();
-                    using var fileStream = File.Create(targetPath);
-                    await stream.CopyToAsync(fileStream);
+                    // Ensure the file is fully written and flushed before using it
+                    using (var stream = await result.OpenReadAsync())
+                    using (var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        await stream.CopyToAsync(fileStream);
+                        await fileStream.FlushAsync(); // Ensure data is written to disk
+                    }
+                    
+                    // Verify file exists after write (important for Release builds)
+                    if (!File.Exists(targetPath))
+                    {
+                        throw new Exception("Failed to save profile image file");
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"✅ Profile image saved to: {targetPath}");
                     
                     ProfileImage = fileName;
-                    ProfileImageSource = GetProfileImageSource(fileName);
+                    
+                    // Clear existing source first to force reload (important for Release builds)
+                    ProfileImageSource = null;
+                    
+                    // Get new source on main thread
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        ProfileImageSource = GetProfileImageSource(fileName);
+                    });
 
                     // Update the global user profile
                     if (App.CurrentUser != null)
@@ -209,6 +229,9 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                     // Refresh profile display across the app
                     RefreshProfileDisplay();
+                    
+                    // Notify EmployeeDashboard to refresh the profile image
+                    MessagingCenter.Send(this, "ProfileImageChanged", ProfileImageSource);
 
                     await Task.Delay(2000);
                     StatusMessage = string.Empty;
@@ -429,16 +452,20 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         // Method to refresh profile display across the app
-        public void RefreshProfileDisplay() // Notify UI to refresh profile display
+        public async void RefreshProfileDisplay() // Notify UI to refresh profile display
         {
             try
             {
                 System.Diagnostics.Debug.WriteLine("RefreshProfileDisplay called");
                 
                 // Force UI update by clearing and setting the ProfileImageSource again
-                // This forces MAUI to reload the image instead of using cached version
+                // This forces MAUI to reload the image instead of using cached version (important for Release builds)
                 var tempImage = ProfileImage;
                 ProfileImageSource = null; // Clear first to force reload
+                
+                // Small delay to ensure previous binding is released (important for Release builds)
+                await Task.Delay(50);
+                
                 ProfileImageSource = GetProfileImageSource(tempImage);
                 
                 // Trigger property change notifications for this popup
@@ -509,8 +536,32 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 if (File.Exists(appDataPath))
                 {
-                    System.Diagnostics.Debug.WriteLine($"Custom profile image found at: {appDataPath}");
-                    return ImageSource.FromFile(appDataPath);
+                    System.Diagnostics.Debug.WriteLine($"✅ Custom profile image found at: {appDataPath}");
+                    // Use full path to ensure proper loading in Release builds
+                    // The full path is more reliable than just the filename in Release builds
+                    try
+                    {
+                        // Try with full path first (more reliable in Release builds)
+                        var imageSource = ImageSource.FromFile(appDataPath);
+                        System.Diagnostics.Debug.WriteLine($"✅ ImageSource created from full path: {appDataPath}");
+                        return imageSource;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Error loading image with full path: {ex.Message}, trying filename only");
+                        // Fallback to just filename if full path doesn't work
+                        try
+                        {
+                            var imageSource = ImageSource.FromFile(imageFileName);
+                            System.Diagnostics.Debug.WriteLine($"✅ ImageSource created from filename: {imageFileName}");
+                            return imageSource;
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Error loading image with filename: {fallbackEx.Message}");
+                            throw;
+                        }
+                    }
                 }
 
                 System.Diagnostics.Debug.WriteLine($"Custom image not found, checking if it's a resource file");

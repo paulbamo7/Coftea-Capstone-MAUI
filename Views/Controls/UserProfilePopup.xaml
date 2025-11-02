@@ -26,7 +26,7 @@
                Margin="40"
                VerticalOptions="Center"
                HorizontalOptions="Center"
-               WidthRequest="600"
+               WidthRequest="800"
                MinimumHeightRequest="450">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer/>
@@ -109,34 +109,30 @@
                                    TextColor="#000000"/>
                         </VerticalStackLayout>
                         
-                        <!-- Permissions Section -->
+                        <!-- Access Section -->
                         <VerticalStackLayout Spacing="8" Margin="0,20,0,0">
-                            <Label Text="Permissions:"
-                                   FontSize="16" FontFamily="MontserratBlack"
+                            <Label Text="Access"
+                                   FontSize="20" FontFamily="MontserratBlack"
                                    FontAttributes="Bold"
-                                   TextColor="#000000"/>
+                                   TextColor="#000000"
+                                   Margin="0,0,0,5"/>
                             
-                            <HorizontalStackLayout Spacing="10">
-                                <Button Text="EDIT INVENTORY"
-                                        BackgroundColor="#FFB6C1"
-                                        TextColor="White"
-                                        FontAttributes="Bold"
-                                        CornerRadius="15"
-                                        Padding="15,8"
-                                        FontSize="14" FontFamily="MontserratBlack"
-                                        IsEnabled="{Binding CanEditInventory}"
-                                        Command="{Binding ToggleInventoryPermissionCommand}"/>
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="{Binding InventoryAccessText}"
+                                       FontSize="16" FontFamily="MontserratBlack"
+                                       FontAttributes="Bold"
+                                       TextColor="#000000"/>
                                 
-                                <Button Text="EDIT POS"
-                                        BackgroundColor="#90EE90"
-                                        TextColor="White"
-                                        FontAttributes="Bold"
-                                        CornerRadius="15"
-                                        Padding="15,8"
-                                        FontSize="14" FontFamily="MontserratBlack"
-                                        IsEnabled="{Binding CanEditPOSMenu}"
-                                        Command="{Binding TogglePOSMenuPermissionCommand}"/>
-                            </HorizontalStackLayout>
+                                <Label Text="{Binding POSAccessText}"
+                                       FontSize="16" FontFamily="MontserratBlack"
+                                       FontAttributes="Bold"
+                                       TextColor="#000000"/>
+                                
+                                <Label Text="{Binding SalesReportAccessText}"
+                                       FontSize="16" FontFamily="MontserratBlack"
+                                       FontAttributes="Bold"
+                                       TextColor="#000000"/>
+                            </VerticalStackLayout>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Grid>

@@ -86,24 +86,22 @@
 
                 <!-- Right Side: Inventory Alert (aligned with first row - same height as Total Sales Today) -->
                 <Frame Grid.Column="1" Grid.Row="0" CornerRadius="25" Padding="20" BackgroundColor="White" HasShadow="True" VerticalOptions="Fill" HeightRequest="310">
-                    <VerticalStackLayout>
+                    <VerticalStackLayout Spacing="10">
                         <Label Text="Inventory Alert" FontAttributes="Bold" FontSize="20" TextColor="#5B4F45"/>
                         <Frame CornerRadius="20" Padding="10" BackgroundColor="#F9F9F9" Margin="5" VerticalOptions="FillAndExpand">
-                            <ScrollView VerticalOptions="FillAndExpand">
-                                <CollectionView ItemsSource="{Binding InventoryAlerts}" Margin="0,10,0,0">
-                                    <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Frame BackgroundColor="White" CornerRadius="10" Padding="8" Margin="0,2" HasShadow="True">
-                                                <Label Text="{Binding .}" 
-                                                       TextColor="{Binding ., Converter={StaticResource StockColorConverter}}"
-                                                       FontSize="12" 
-                                                       FontAttributes="Bold"
-                                                       HorizontalOptions="FillAndExpand"/>
-                                            </Frame>
-                                        </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
-                            </ScrollView>
+                            <CollectionView ItemsSource="{Binding InventoryAlerts}" VerticalOptions="FillAndExpand">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Frame BackgroundColor="White" CornerRadius="10" Padding="8" Margin="0,2" HasShadow="True">
+                                            <Label Text="{Binding .}" 
+                                                   TextColor="{Binding ., Converter={StaticResource StockColorConverter}}"
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold"
+                                                   HorizontalOptions="FillAndExpand"/>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
                         </Frame>
                     </VerticalStackLayout>
                 </Frame>
@@ -123,7 +121,7 @@
                                         <Frame BackgroundColor="#FAFAFA" CornerRadius="24" Padding="16" Margin="6" WidthRequest="170" HeightRequest="190" HasShadow="True">
                                             <VerticalStackLayout Spacing="10">
                                                 <Frame CornerRadius="35" Padding="0" BackgroundColor="White" WidthRequest="70" HeightRequest="70" HorizontalOptions="Center" IsClippedToBounds="True">
-                                                    <Image Source="{Binding ProductImage}" Aspect="AspectFill" WidthRequest="70" HeightRequest="70"/>
+                                                    <Image Source="{Binding ImageSource}" Aspect="AspectFill" WidthRequest="70" HeightRequest="70"/>
                                                 </Frame>
                                                 <Label Text="{Binding OrderDisplay}" FontSize="13" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center"/>
                                                 <Label Text="{Binding Status}" FontSize="11" TextColor="{Binding StatusColor}" HorizontalOptions="Center"/>
@@ -180,9 +178,9 @@
         </VerticalStackLayout>
 
         <!-- Popups -->
-        <views:Settings BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
-        <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
-        <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
+        <views:Settings x:Name="SettingsPopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
+        <otherViews:NotificationPopup x:Name="NotificationPopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
+        <otherViews:ProfilePopup x:Name="ProfilePopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
         <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="2700"/>
         <otherViews:ManagePOSOptions BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         <otherViews:EditProductPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ManagePOSPopup.EditProductPopupVM}" Grid.ColumnSpan="2" ZIndex="1900"/>
@@ -202,6 +200,7 @@
         <!-- Removed OrderCompletePopup here; it should only appear on POS -->
         <otherViews:OrderConfirmedPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:SuccessCardPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=SuccessCardPopup}" Grid.ColumnSpan="2" ZIndex="1200"/>
+        <otherViews:RetryConnectionPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=RetryConnectionPopup}" Grid.ColumnSpan="2" ZIndex="2800"/>
 
     </Grid>
 </ContentPage>
