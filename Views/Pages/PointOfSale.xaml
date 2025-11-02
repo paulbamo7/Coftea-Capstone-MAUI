@@ -189,7 +189,7 @@
                             Command="{Binding ShowHistoryCommand}" />
                     
                     <!-- Replace button (formerly To Prepare) -->
-                    <Button Text="📋"
+                    <Button Text="⏰"
                             BackgroundColor="#BDAEA2"
                             TextColor="#5B4F45"
                             BorderColor="#8B7355"
@@ -199,7 +199,22 @@
                             HeightRequest="48"
                             FontSize="20"
                             Padding="0"
-                            Command="{Binding ShowProcessingQueueCommand}" />
+                            Command="{Binding ShowProcessingQueueCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="#BDAEA2" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#8B7355" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding ProcessingQueueHasItems}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#D9534F" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#C0392B" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     
                     <!-- Cart icon with badge -->
                     <Grid>
@@ -213,7 +228,22 @@
                                 HeightRequest="48"
                                 FontSize="20"
                                 Padding="0"
-                                Command="{Binding CartCommand}" />
+                                Command="{Binding CartCommand}">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="BackgroundColor" Value="White" />
+                                    <Setter Property="TextColor" Value="#5B4F45" />
+                                    <Setter Property="BorderColor" Value="#8B7355" />
+                                    <Style.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding CartHasItems}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="#5BC0DE" />
+                                            <Setter Property="TextColor" Value="White" />
+                                            <Setter Property="BorderColor" Value="#46B8DA" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                         <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
                                HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
                                IsVisible="{Binding CartCount, Converter={StaticResource IsPositiveConverter}}">

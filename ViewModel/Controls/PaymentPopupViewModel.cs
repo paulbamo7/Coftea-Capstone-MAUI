@@ -373,6 +373,36 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
             }
 
+            // Refresh POS page products after checkout
+            try
+            {
+                var posApp = (App)Application.Current;
+                if (posApp?.POSVM != null)
+                {
+                    await posApp.POSVM.LoadDataAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ POS products refreshed after checkout");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh POS products: {ex.Message}");
+            }
+
+            // Refresh inventory after checkout
+            try
+            {
+                var invApp = (App)Application.Current;
+                if (invApp?.InventoryVM != null)
+                {
+                    await invApp.InventoryVM.ForceReloadDataAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Inventory refreshed after checkout");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh inventory: {ex.Message}");
+            }
+
             // Close payment popup
             IsPaymentVisible = false;
         }
@@ -697,7 +727,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine($"🔧 Found {ingredients.Count()} ingredients for product: {cartItem.ProductName}");
 
                 // Prepare deductions dictionary to accumulate amounts for the same ingredient
-                var deductionsDict = new Dictionary<string, double>();
+                // Store: convertedAmount, originalUnit, originalAmount
+                var deductionsDict = new Dictionary<string, (double convertedAmount, string originalUnit, double originalAmount)>();
 
                 // Helper local function to add deductions for a specific size using per-size amounts
                 void AddSizeDeductions(string size, int qty)
@@ -752,14 +783,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                         System.Diagnostics.Debug.WriteLine($"🔧   Per-size units: Small='{ingredient.InputUnitSmall}', Medium='{ingredient.InputUnitMedium}', Large='{ingredient.InputUnitLarge}'");
                         System.Diagnostics.Debug.WriteLine($"🔧   Shared amount={amount}, Shared unit='{unit}', Inventory unit='{ingredient.unitOfMeasurement}'");
                         
+                        // Calculate original total amount before conversion (for logging)
+                        var originalTotal = perServing * qty;
+                        
                         // Accumulate amounts for the same ingredient across different sizes
                         if (deductionsDict.ContainsKey(ingredient.itemName))
                         {
-                            deductionsDict[ingredient.itemName] += total;
+                            var existing = deductionsDict[ingredient.itemName];
+                            deductionsDict[ingredient.itemName] = (
+                                existing.convertedAmount + total,
+                                existing.originalUnit, // Keep first unit found
+                                existing.originalAmount + originalTotal // Accumulate original amounts
+                            );
                         }
                         else
                         {
-                            deductionsDict[ingredient.itemName] = total;
+                            deductionsDict[ingredient.itemName] = (total, perUnit, originalTotal);
                         }
                     }
                 }
@@ -850,17 +889,23 @@ namespace Coftea_Capstone.ViewModel.Controls
                         System.Diagnostics.Debug.WriteLine($"   📦 {size} drinks: {sizeQuantity}, Addon quantity per drink: {cartAddon.AddonQuantity}");
                         
                         var sizeAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)sizeQuantity;
+                        var originalAddonAmount = perServingAmount * cartAddon.AddonQuantity * (double)sizeQuantity;
                         System.Diagnostics.Debug.WriteLine($"   ➖ DEDUCTING for {size}: {sizeAddonDeduction} {inventoryBaseUnit} ({convertedAmount} x {cartAddon.AddonQuantity} x {sizeQuantity})");
                         
                         // Accumulate addon amounts for the same ingredient
                         if (deductionsDict.ContainsKey(cartAddon.itemName))
                         {
-                            deductionsDict[cartAddon.itemName] += sizeAddonDeduction;
-                            System.Diagnostics.Debug.WriteLine($"   📝 Accumulated total for {cartAddon.itemName}: {deductionsDict[cartAddon.itemName]}");
+                            var existing = deductionsDict[cartAddon.itemName];
+                            deductionsDict[cartAddon.itemName] = (
+                                existing.convertedAmount + sizeAddonDeduction,
+                                existing.originalUnit, // Keep first unit found
+                                existing.originalAmount + originalAddonAmount
+                            );
+                            System.Diagnostics.Debug.WriteLine($"   📝 Accumulated total for {cartAddon.itemName}: {deductionsDict[cartAddon.itemName].convertedAmount}");
                         }
                         else
                         {
-                            deductionsDict[cartAddon.itemName] = sizeAddonDeduction;
+                            deductionsDict[cartAddon.itemName] = (sizeAddonDeduction, perServingUnit, originalAddonAmount);
                             System.Diagnostics.Debug.WriteLine($"   📝 First deduction for {cartAddon.itemName}: {sizeAddonDeduction}");
                         }
                     }
@@ -907,10 +952,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                         if (totalDrinks > 0)
                         {
                             var totalAddonDeduction = convertedAmount * cartAddon.AddonQuantity * (double)totalDrinks;
+                            var originalAddonAmount = perServingAmount * cartAddon.AddonQuantity * (double)totalDrinks;
                             if (deductionsDict.ContainsKey(cartAddon.itemName))
-                                deductionsDict[cartAddon.itemName] += totalAddonDeduction;
+                            {
+                                var existing = deductionsDict[cartAddon.itemName];
+                                deductionsDict[cartAddon.itemName] = (
+                                    existing.convertedAmount + totalAddonDeduction,
+                                    existing.originalUnit,
+                                    existing.originalAmount + originalAddonAmount
+                                );
+                            }
                             else
-                                deductionsDict[cartAddon.itemName] = totalAddonDeduction;
+                            {
+                                deductionsDict[cartAddon.itemName] = (totalAddonDeduction, perServingUnit, originalAddonAmount);
+                            }
                         }
                     }
                 }
@@ -923,13 +978,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (cartItem.LargeQuantity > 0)
                     await AddAutomaticCupAndStrawForSize(deductionsDict, "Large", cartItem.LargeQuantity);
 
-                // Convert dictionary back to list for database call
-                var deductions = deductionsDict.Select(kvp => (kvp.Key, kvp.Value)).ToList();
+                // Convert dictionary back to list for database call with original amounts/units
+                var deductions = deductionsDict.Select(kvp => 
+                    (kvp.Key, kvp.Value.convertedAmount, kvp.Value.originalUnit, kvp.Value.originalAmount)).ToList();
 
                 System.Diagnostics.Debug.WriteLine($"🔧 Final deductions for {cartItem.ProductName}:");
                 foreach (var deduction in deductions)
                 {
-                    System.Diagnostics.Debug.WriteLine($"   - {deduction.Key}: {deduction.Value}");
+                    System.Diagnostics.Debug.WriteLine($"   - {deduction.Item1}: {deduction.Item2} (original: {deduction.Item4} {deduction.Item3})");
                 }
 
                 // Deduct inventory
@@ -969,7 +1025,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task AddAutomaticCupAndStrawForSize(Dictionary<string, double> deductionsDict, string size, int quantity) // Add cup and straw deductions based on size
+        private async Task AddAutomaticCupAndStrawForSize(Dictionary<string, (double convertedAmount, string originalUnit, double originalAmount)> deductionsDict, string size, int quantity) // Add cup and straw deductions based on size
         {
             try
             {
@@ -988,14 +1044,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var cupItem = await database.GetInventoryItemByNameCachedAsync(cupName);
                 if (cupItem != null)
                 {
-                    // Accumulate cup amounts for the same item
+                    // Cups are in "pcs" - no conversion needed, original and converted are the same
+                    var originalUnit = "pcs";
                     if (deductionsDict.ContainsKey(cupName))
                     {
-                        deductionsDict[cupName] += quantity;
+                        var existing = deductionsDict[cupName];
+                        deductionsDict[cupName] = (
+                            existing.convertedAmount + quantity,
+                            existing.originalUnit,
+                            existing.originalAmount + quantity
+                        );
                     }
                     else
                     {
-                        deductionsDict[cupName] = quantity;
+                        deductionsDict[cupName] = (quantity, originalUnit, quantity);
                     }
                 }
 
@@ -1003,14 +1065,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var strawItem = await database.GetInventoryItemByNameCachedAsync("Straw");
                 if (strawItem != null)
                 {
-                    // Accumulate straw amounts for the same item
+                    // Straws are in "pcs" - no conversion needed, original and converted are the same
+                    var originalUnit = "pcs";
                     if (deductionsDict.ContainsKey("Straw"))
                     {
-                        deductionsDict["Straw"] += quantity;
+                        var existing = deductionsDict["Straw"];
+                        deductionsDict["Straw"] = (
+                            existing.convertedAmount + quantity,
+                            existing.originalUnit,
+                            existing.originalAmount + quantity
+                        );
                     }
                     else
                     {
-                        deductionsDict["Straw"] = quantity;
+                        deductionsDict["Straw"] = (quantity, originalUnit, quantity);
                     }
                 }
             }

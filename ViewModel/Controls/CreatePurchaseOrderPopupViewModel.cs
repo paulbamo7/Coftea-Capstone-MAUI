@@ -19,8 +19,32 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private bool isLoading;
 
-        [ObservableProperty]
-        private ObservableCollection<CreateOrderEditableItem> editableItems = new();
+        private ObservableCollection<CreateOrderEditableItem> _editableItems = new();
+        public ObservableCollection<CreateOrderEditableItem> EditableItems
+        {
+            get => _editableItems;
+            set
+            {
+                if (_editableItems != null)
+                {
+                    _editableItems.CollectionChanged -= OnEditableItemsChanged;
+                }
+                _editableItems = value;
+                if (_editableItems != null)
+                {
+                    _editableItems.CollectionChanged += OnEditableItemsChanged;
+                }
+                OnPropertyChanged();
+            }
+        }
+
+        private void OnEditableItemsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Notify UI that EditableItems changed so buttons can update
+            OnPropertyChanged(nameof(EditableItems));
+            // Also notify FilteredInventoryItems to refresh
+            FilteredInventoryItems = new ObservableCollection<InventoryPageModel>(FilteredInventoryItems);
+        }
 
         [ObservableProperty]
         private string infoText = string.Empty;
@@ -31,18 +55,56 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private bool showSuccessView;
 
+        [ObservableProperty]
+        private bool isManualSelectionVisible;
+
+        [ObservableProperty]
+        private ObservableCollection<InventoryPageModel> allInventoryItems = new();
+
+        [ObservableProperty]
+        private ObservableCollection<InventoryPageModel> filteredInventoryItems = new();
+
+        [ObservableProperty]
+        private string searchText = string.Empty;
+
         public bool IsAdmin { get; set; }
 
         public CreatePurchaseOrderPopupViewModel()
         {
+            // Initialize EditableItems with CollectionChanged handler
+            if (_editableItems != null)
+            {
+                _editableItems.CollectionChanged += OnEditableItemsChanged;
+            }
         }
 
-        public void LoadItems(System.Collections.Generic.List<InventoryPageModel> lowStockItems, bool isAdmin)
+        partial void OnSearchTextChanged(string value)
+        {
+            FilterInventoryItems();
+        }
+
+        public async Task LoadItems(System.Collections.Generic.List<InventoryPageModel> lowStockItems, bool isAdmin)
         {
             IsAdmin = isAdmin;
             EditableItems.Clear();
             ShowSuccessView = false;
             CreatedPurchaseOrderId = null;
+            IsManualSelectionVisible = false;
+            SearchText = string.Empty;
+
+            // Load all inventory items for manual selection
+            try
+            {
+                var allItems = await _database.GetInventoryItemsAsyncCached();
+                AllInventoryItems = new ObservableCollection<InventoryPageModel>(allItems ?? new List<InventoryPageModel>());
+                FilteredInventoryItems = new ObservableCollection<InventoryPageModel>(AllInventoryItems);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error loading inventory items: {ex.Message}");
+                AllInventoryItems = new ObservableCollection<InventoryPageModel>();
+                FilteredInventoryItems = new ObservableCollection<InventoryPageModel>();
+            }
 
             foreach (var item in lowStockItems)
             {
@@ -64,9 +126,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 EditableItems.Add(editableItem);
             }
 
-            InfoText = IsAdmin
-                ? "This will create and auto-approve the purchase order and update inventory immediately."
-                : "This will create a purchase order. Admin approval required.";
+            InfoText = "This will create a purchase order. Please accept items in 'Manage Purchase Order' to update inventory.";
         }
 
         [RelayCommand]
@@ -102,71 +162,15 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 if (purchaseOrderId > 0)
                 {
-                    var currentUser = App.CurrentUser?.Email ?? "Unknown";
+                    // Store the created purchase order ID
+                    CreatedPurchaseOrderId = purchaseOrderId;
 
-                    if (IsAdmin)
-                    {
-                        // Admin is creating the order - auto-approve it with custom quantities
-                        System.Diagnostics.Debug.WriteLine("👑 Admin user detected - auto-approving purchase order");
-
-                        // Prepare custom items for approval
-                        var customItemsList = EditableItems.Select(ei => new
-                        {
-                            ei.InventoryItemId,
-                            ei.ItemName,
-                            ApprovedQuantity = ei.ApprovedQuantity,
-                            ApprovedUoM = ei.ApprovedUoM
-                        }).ToList();
-
-                        bool approved = false;
-                        try
-                        {
-                            approved = await _database.UpdatePurchaseOrderStatusAsync(
-                                purchaseOrderId,
-                                "Approved",
-                                currentUser,
-                                new { Items = customItemsList });
-                        }
-                        catch (Exception approvalEx)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"❌ Exception during auto-approval: {approvalEx.Message}");
-                            System.Diagnostics.Debug.WriteLine($"Stack trace: {approvalEx.StackTrace}");
-                            approved = false;
-                        }
-
-                        // Store the created purchase order ID
-                        CreatedPurchaseOrderId = purchaseOrderId;
-
-                        if (approved)
-                        {
-                            // Show success view with PDF button
-                            ShowSuccessView = true;
-                            InfoText = $"✅ Purchase order #{purchaseOrderId} has been created and auto-approved!\n\nInventory has been updated.";
-                            
-                            System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} auto-approved by admin");
-                        }
-                        else
-                        {
-                            // Order was created successfully, but auto-approval failed
-                            // Show success view with PDF button
-                            ShowSuccessView = true;
-                            InfoText = $"✅ Purchase order #{purchaseOrderId} has been created successfully!\n\n⚠️ Auto-approval was not completed, but the order is ready for manual approval.\n\nYou can view and approve it in 'Manage Purchase Order'.";
-                            
-                            System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created successfully, but auto-approval failed");
-                        }
-                    }
-                    else
-                    {
-                        // Regular user - requires admin approval
-                        System.Diagnostics.Debug.WriteLine("👤 Regular user detected - purchase order requires admin approval");
-
-                        // Store the created purchase order ID
-                        CreatedPurchaseOrderId = purchaseOrderId;
-
-                        // Show success view with PDF button
-                        ShowSuccessView = true;
-                        InfoText = $"✅ Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\nAdmin approval is required.";
-                    }
+                    // Show success view with PDF button
+                    // All purchase orders (admin and regular users) now require explicit approval in ManagePurchaseOrder
+                    ShowSuccessView = true;
+                    InfoText = $"✅ Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\nPlease accept the items in 'Manage Purchase Order' to update inventory.";
+                    
+                    System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created - requires approval in ManagePurchaseOrder");
                 }
                 else
                 {
@@ -280,11 +284,90 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private void ToggleManualSelection()
+        {
+            IsManualSelectionVisible = !IsManualSelectionVisible;
+        }
+
+        [RelayCommand]
+        private void FilterInventoryItems()
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                FilteredInventoryItems = new ObservableCollection<InventoryPageModel>(AllInventoryItems);
+                return;
+            }
+
+            var searchLower = SearchText.ToLowerInvariant();
+            var filtered = AllInventoryItems.Where(item =>
+                item.itemName.ToLowerInvariant().Contains(searchLower) ||
+                (item.itemCategory ?? "").ToLowerInvariant().Contains(searchLower)
+            ).ToList();
+
+            FilteredInventoryItems = new ObservableCollection<InventoryPageModel>(filtered);
+        }
+
+        [RelayCommand]
+        private void AddManualItem(InventoryPageModel item)
+        {
+            if (item == null) return;
+
+            // Check if item is already in EditableItems
+            var existingItem = EditableItems.FirstOrDefault(ei => ei.InventoryItemId == item.itemID);
+            if (existingItem != null)
+            {
+                // Remove if already exists
+                EditableItems.Remove(existingItem);
+                System.Diagnostics.Debug.WriteLine($"✅ Removed {item.itemName} from purchase order manually");
+                OnPropertyChanged(nameof(EditableItems)); // Notify UI to refresh
+                return;
+            }
+
+            // Add new item
+            var editableItem = new CreateOrderEditableItem
+            {
+                InventoryItemId = item.itemID,
+                ItemName = item.itemName,
+                ItemCategory = item.itemCategory ?? "",
+                RequestedQuantity = 1,
+                CurrentStockQuantity = item.itemQuantity,
+                ApprovedQuantity = 1, // Default to 1
+                Quantity = 1, // Default to 1 unit
+                ApprovedUoM = item.unitOfMeasurement ?? "pcs",
+                OriginalUoM = item.unitOfMeasurement ?? "pcs",
+                UnitPrice = 10.0m, // Default unit price
+                TotalPrice = 1 * 10.0m
+            };
+            EditableItems.Add(editableItem);
+
+            System.Diagnostics.Debug.WriteLine($"✅ Added {item.itemName} to purchase order manually");
+            OnPropertyChanged(nameof(EditableItems)); // Notify UI to refresh
+        }
+
+        // Helper method to check if item is already in EditableItems
+        public bool IsItemInOrder(int inventoryItemId)
+        {
+            return EditableItems.Any(ei => ei.InventoryItemId == inventoryItemId);
+        }
+
+        [RelayCommand]
+        private void RemoveItem(CreateOrderEditableItem item)
+        {
+            if (item != null && EditableItems.Contains(item))
+            {
+                EditableItems.Remove(item);
+                System.Diagnostics.Debug.WriteLine($"✅ Removed {item.ItemName} from purchase order");
+            }
+        }
+
+        [RelayCommand]
         private void Close()
         {
             ShowSuccessView = false;
             CreatedPurchaseOrderId = null;
             IsVisible = false;
+            IsManualSelectionVisible = false;
+            SearchText = string.Empty;
         }
     }
 

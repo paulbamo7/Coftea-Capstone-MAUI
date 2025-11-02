@@ -359,8 +359,11 @@ namespace Coftea_Capstone.Services
                 {
                     try
                     {
-                        // Convert to the format expected by DeductInventoryAsync: (string name, double amount)
-                        var deductionList = deduction.Deductions.Select(d => (name: d.ItemName, amount: d.Amount)).ToList();
+                        // Convert to the format expected by DeductInventoryAsync: (string name, double amount, string originalUnit, double originalAmount)
+                        // For offline deductions, Unit is the original unit, and Amount might already be converted
+                        // Use Unit as originalUnit and Amount as both converted and original (since we don't have unconverted amount stored offline)
+                        var deductionList = deduction.Deductions.Select(d => 
+                            (name: d.ItemName, amount: d.Amount, originalUnit: d.Unit ?? "pcs", originalAmount: d.Amount)).ToList();
                         await database.DeductInventoryAsync(deductionList, deduction.ProductName);
                         syncedCount++;
                         System.Diagnostics.Debug.WriteLine($"✅ Synced deduction for: {deduction.ProductName}");

@@ -597,7 +597,8 @@ namespace Coftea_Capstone.Models
                 item.InputUnitLarge = string.IsNullOrWhiteSpace(unitLarge) ? (item.unitOfMeasurement ?? "pcs") : unitLarge;
 
                 // Initialize the InputUnit based on the current selected size
-                item.InitializeInputUnit();
+                // Pass true for edit mode since we're loading saved data from database
+                item.InitializeInputUnit(isEditMode: true);
 
                 // If you later add cost computation, populate PriceUsed* here
                 item.PriceUsedSmall = 0;
@@ -1185,7 +1186,7 @@ namespace Coftea_Capstone.Models
 		}
 
         // Deduct inventory quantities by item name and amount
-        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount)> deductions, string productName = null) // Deducts inventory quantities
+        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount, string originalUnit, double originalAmount)> deductions, string productName = null) // Deducts inventory quantities
         {
             System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Starting with {deductions?.Count() ?? 0} deductions for product: {productName ?? "Unknown"}");
             
@@ -1195,7 +1196,7 @@ namespace Coftea_Capstone.Models
             int totalAffected = 0;
             try
             {
-                foreach (var (name, amount) in deductions)
+                foreach (var (name, amount, originalUnit, originalAmount) in deductions)
                 {
                     System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Processing {name} - {amount}");
                     
@@ -1236,6 +1237,10 @@ namespace Coftea_Capstone.Models
                         getNewCmd.Parameters.AddWithValue("@Name", name);
                         var newQuantity = Convert.ToDouble(await getNewCmd.ExecuteScalarAsync());
                         
+                        // Use original amount and unit for logging if provided, otherwise use converted
+                        var logAmount = originalAmount > 0 ? originalAmount : amount;
+                        var logUnit = !string.IsNullOrWhiteSpace(originalUnit) ? originalUnit : unitOfMeasurement;
+                        
                         // Log the activity
                         var logEntry = new InventoryActivityLog
                         {
@@ -1243,10 +1248,10 @@ namespace Coftea_Capstone.Models
                             ItemName = itemName,
                             ItemCategory = itemCategory,
                             Action = "DEDUCTED",
-                            QuantityChanged = -amount, // Negative for deduction
+                            QuantityChanged = -logAmount, // Negative for deduction - use original amount
                             PreviousQuantity = previousQuantity,
                             NewQuantity = newQuantity,
-                            UnitOfMeasurement = unitOfMeasurement,
+                            UnitOfMeasurement = logUnit, // Use original unit for display
                             Reason = "POS_ORDER",
                             UserEmail = App.CurrentUser?.Email ?? "System",
                             UserFullName = !string.IsNullOrWhiteSpace(App.CurrentUser?.FullName) 
@@ -1257,12 +1262,14 @@ namespace Coftea_Capstone.Models
                             OrderId = null, // Will be set by calling code if available
                             ProductName = productName, // Store the POS product name
                             Notes = !string.IsNullOrWhiteSpace(productName) 
-                                ? $"Deducted {amount} {unitOfMeasurement} for {productName}"
-                                : $"Deducted {amount} {unitOfMeasurement} for POS order"
+                                ? $"Deducted {logAmount} {logUnit} (converted: {amount} {unitOfMeasurement}) for {productName}"
+                                : $"Deducted {logAmount} {logUnit} (converted: {amount} {unitOfMeasurement}) for POS order"
                         };
                         
                         await LogInventoryActivityAsync(logEntry, conn, tx);
                         System.Diagnostics.Debug.WriteLine($"📝 Logged deduction activity for {name}: {previousQuantity} → {newQuantity}");
+                        
+                        await SendInventoryUpdateNotificationAsync(itemName, previousQuantity, newQuantity, -logAmount, logUnit, "DEDUCTED", $"POS order: {productName ?? "N/A"}");
                     }
                     
                     System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: {name} - {rowsAffected} rows affected");
@@ -1313,6 +1320,10 @@ namespace Coftea_Capstone.Models
 
                 var rows = await cmd.ExecuteNonQueryAsync();
                 InvalidateInventoryCache();
+                
+                // Send notification for new inventory item
+                await SendInventoryUpdateNotificationAsync(inventory.itemName, 0, inventory.itemQuantity, inventory.itemQuantity, unitOfMeasurement, "ADDED", "New item created");
+                
                 return rows;
             }
             catch (Exception ex)
@@ -1394,6 +1405,9 @@ namespace Coftea_Capstone.Models
                     
                     await LogInventoryActivityAsync(logEntry, conn, tx);
                     System.Diagnostics.Debug.WriteLine($"📝 Logged inventory update: {itemName} - {previousQuantity} → {inventory.itemQuantity} ({quantityChanged:+0.##;-0.##} {unitOfMeasurement})");
+                    
+                    // Send notification for inventory update
+                    await SendInventoryUpdateNotificationAsync(itemName, previousQuantity, inventory.itemQuantity, quantityChanged, unitOfMeasurement, "UPDATED", "Manual adjustment");
                 }
                 
                 await tx.CommitAsync();
@@ -1485,6 +1499,54 @@ namespace Coftea_Capstone.Models
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error sending low stock notification: {ex.Message}");
+            }
+        }
+
+        // Send inventory update notification
+        private async Task SendInventoryUpdateNotificationAsync(string itemName, double previousQuantity, double newQuantity, double quantityChanged, string unitOfMeasurement, string action, string reason = "")
+        {
+            try
+            {
+                var app = (App)Application.Current;
+                if (app?.NotificationPopup != null)
+                {
+                    string message;
+                    string title;
+                    string type;
+
+                    if (quantityChanged > 0)
+                    {
+                        // Increase
+                        title = "Inventory Updated";
+                        message = $"{itemName}: Added {quantityChanged:F1} {unitOfMeasurement} ({previousQuantity:F1} → {newQuantity:F1} {unitOfMeasurement})";
+                        type = "Success";
+                    }
+                    else if (quantityChanged < 0)
+                    {
+                        // Decrease
+                        title = "Inventory Updated";
+                        message = $"{itemName}: Deducted {Math.Abs(quantityChanged):F1} {unitOfMeasurement} ({previousQuantity:F1} → {newQuantity:F1} {unitOfMeasurement})";
+                        type = "Info";
+                    }
+                    else
+                    {
+                        // No change in quantity but other fields updated
+                        title = "Inventory Updated";
+                        message = $"{itemName}: Updated (Quantity: {newQuantity:F1} {unitOfMeasurement})";
+                        type = "Info";
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(reason))
+                    {
+                        message += $" - {reason}";
+                    }
+
+                    await app.NotificationPopup.AddNotification(title, message, $"Action: {action}", type);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error sending inventory update notification: {ex.Message}");
             }
         }
 
@@ -2782,7 +2844,8 @@ namespace Coftea_Capstone.Models
                 
                 System.Diagnostics.Debug.WriteLine("📦 [Database] Fetching pending purchase orders...");
                 
-                // First, get all pending orders (case-insensitive and whitespace-insensitive)
+                // Get all pending orders (case-insensitive and whitespace-insensitive)
+                // No limit - pagination is handled in ViewModel
                 var sql = @"
                     SELECT * FROM purchase_orders
                     WHERE LOWER(TRIM(status)) = 'pending'
@@ -3548,6 +3611,9 @@ namespace Coftea_Capstone.Models
                 {
                     System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Could not get new quantity: {qtyEx.Message}. Using calculated value: {newQuantity}");
                 }
+
+                // Send notification for inventory addition from purchase order
+                await SendInventoryUpdateNotificationAsync(itemName, currentQuantity, newQuantity, quantityToAdd, inventoryUoM, "ADDED", $"Purchase Order #{purchaseOrderId}");
 
                 // Log the addition
                 var logEntry = new InventoryActivityLog

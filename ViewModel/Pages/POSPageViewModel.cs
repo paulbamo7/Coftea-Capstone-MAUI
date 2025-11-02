@@ -64,11 +64,24 @@ namespace Coftea_Capstone.ViewModel
         public bool IsCartVisible => CartItems?.Any() ?? false;
 
         public int CartCount => CartItems?.Where(item => item != null && (item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0)).Count() ?? 0;
+        
+        public bool CartHasItems => CartCount > 0;
+        
+        public int ProcessingQueueCount => ProcessingQueuePopup?.QueueCount ?? 0;
+        
+        public bool ProcessingQueueHasItems => ProcessingQueuePopup?.HasItems ?? false;
 
         partial void OnCartItemsChanged(ObservableCollection<POSPageModel> value)
         {
             OnPropertyChanged(nameof(IsCartVisible));
             OnPropertyChanged(nameof(CartCount));
+            OnPropertyChanged(nameof(CartHasItems));
+        }
+        
+        private void OnProcessingQueueItemsChanged()
+        {
+            OnPropertyChanged(nameof(ProcessingQueueCount));
+            OnPropertyChanged(nameof(ProcessingQueueHasItems));
         }
 
         [ObservableProperty]
@@ -98,6 +111,15 @@ namespace Coftea_Capstone.ViewModel
             CartPopup = new CartPopupViewModel();
             HistoryPopup = new HistoryPopupViewModel();
             ProcessingQueuePopup = new ProcessingQueuePopupViewModel();
+            // Subscribe to ProcessingQueuePopup property changes
+            ProcessingQueuePopup.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(ProcessingQueuePopup.QueueCount) || 
+                    e.PropertyName == nameof(ProcessingQueuePopup.HasItems))
+                {
+                    OnProcessingQueueItemsChanged();
+                }
+            };
             // Load pending items on initialization
             _ = ProcessingQueuePopup.LoadPendingItemsAsync();
             PaymentPopup = ((App)Application.Current).PaymentPopup;

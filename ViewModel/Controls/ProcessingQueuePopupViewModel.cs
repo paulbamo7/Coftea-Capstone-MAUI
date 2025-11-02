@@ -50,6 +50,16 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ObservableCollection<ProcessingItemModel> pendingItems = new();
 
+        public int QueueCount => PendingItems?.Count ?? 0;
+        
+        public bool HasItems => QueueCount > 0;
+
+        partial void OnPendingItemsChanged(ObservableCollection<ProcessingItemModel> value)
+        {
+            OnPropertyChanged(nameof(QueueCount));
+            OnPropertyChanged(nameof(HasItems));
+        }
+
         [RelayCommand]
         public void Show()
         {
@@ -196,6 +206,10 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 PendingItems.Add(processingItem);
                 
+                // Notify property changes for queue count
+                OnPropertyChanged(nameof(QueueCount));
+                OnPropertyChanged(nameof(HasItems));
+                
                 // Save to database for persistence
                 _ = SaveProcessingItemAsync(processingItem);
             }
@@ -215,6 +229,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     PendingItems.Add(item);
                 }
+                // Notify property changes for queue count
+                OnPropertyChanged(nameof(QueueCount));
+                OnPropertyChanged(nameof(HasItems));
             }
             catch (Exception ex)
             {
@@ -270,6 +287,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 PendingItems.Remove(item);
                 if (!PendingItems.Any())
                     IsVisible = false;
+                // Notify property changes for queue count
+                OnPropertyChanged(nameof(QueueCount));
+                OnPropertyChanged(nameof(HasItems));
             }
             catch (Exception ex)
             {

@@ -877,7 +877,8 @@ namespace Coftea_Capstone.ViewModel
                     inv._isLoadingFromDatabase = false;
                     
                     // Initialize the InputUnit to ensure proper data binding
-                    inv.InitializeInputUnit();
+                    // Pass true for edit mode since we're loading saved data from database
+                    inv.InitializeInputUnit(isEditMode: true);
                 }
 
                 // Update derived collections and flags using public method

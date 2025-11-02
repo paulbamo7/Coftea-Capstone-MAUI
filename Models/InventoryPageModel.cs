@@ -247,26 +247,69 @@ namespace Coftea_Capstone.Models
         }
 
         // Method to initialize InputUnit when item is first loaded
-        public void InitializeInputUnit()
+        public void InitializeInputUnit(bool isEditMode = false)
         {
             // Set flag to prevent unit propagation during loading
             _isLoadingFromDatabase = true;
             
             // Set the InputUnit based on the current selected size
+            string initialUnit;
             switch (SelectedSize)
             {
                 case "Small":
-                    InputUnit = string.IsNullOrWhiteSpace(InputUnitSmall) ? DefaultUnit : InputUnitSmall;
+                    initialUnit = string.IsNullOrWhiteSpace(InputUnitSmall) ? DefaultUnit : InputUnitSmall;
                     break;
                 case "Medium":
-                    InputUnit = string.IsNullOrWhiteSpace(InputUnitMedium) ? DefaultUnit : InputUnitMedium;
+                    initialUnit = string.IsNullOrWhiteSpace(InputUnitMedium) ? DefaultUnit : InputUnitMedium;
                     break;
                 case "Large":
-                    InputUnit = string.IsNullOrWhiteSpace(InputUnitLarge) ? DefaultUnit : InputUnitLarge;
+                    initialUnit = string.IsNullOrWhiteSpace(InputUnitLarge) ? DefaultUnit : InputUnitLarge;
                     break;
                 default:
-                    InputUnit = DefaultUnit;
+                    initialUnit = DefaultUnit;
                     break;
+            }
+            
+            // In edit mode, use the saved value from database (don't pre-select smallest)
+            if (isEditMode && !string.IsNullOrWhiteSpace(initialUnit))
+            {
+                InputUnit = initialUnit;
+            }
+            else
+            {
+                // For new products, pre-select the smallest UoM based on ingredient's unit
+                // If ingredient unit is "L", pre-select "ml"
+                // If ingredient unit is "kg", pre-select "g"
+                var normalizedUnit = initialUnit?.Trim().ToLowerInvariant();
+                if (normalizedUnit == "l" || normalizedUnit == "liter" || normalizedUnit == "litre")
+                {
+                    // Check if "ml" is available in AllowedUnits
+                    if (AllowedUnits != null && AllowedUnits.Contains("ml"))
+                    {
+                        InputUnit = "ml";
+                    }
+                    else
+                    {
+                        InputUnit = initialUnit;
+                    }
+                }
+                else if (normalizedUnit == "kg" || normalizedUnit == "kilogram")
+                {
+                    // Check if "g" is available in AllowedUnits
+                    if (AllowedUnits != null && AllowedUnits.Contains("g"))
+                    {
+                        InputUnit = "g";
+                    }
+                    else
+                    {
+                        InputUnit = initialUnit;
+                    }
+                }
+                else
+                {
+                    // For "ml", "g", "pcs", or other units, use as-is
+                    InputUnit = initialUnit;
+                }
             }
             
             // Also initialize the InputAmount to match the current size

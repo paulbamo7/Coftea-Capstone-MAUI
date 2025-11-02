@@ -309,81 +309,46 @@
                                                                             </Label>
                                                                         </Grid>
 
-                                                                        <!-- Original UoM Display and Action Buttons -->
+                                                                        <!-- Original UoM Display and Retract Button -->
                                                                         <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
-                                                                              ColumnDefinitions="*,Auto,Auto"
-                                                                              ColumnSpacing="8">
-                                                                            <Grid Grid.Column="0"
-                                                                                  ColumnDefinitions="*,*"
-                                                                                  ColumnSpacing="15">
-                                                                                <Label Grid.Column="0"
-                                                                                       FontSize="11"
-                                                                                       TextColor="#999"
-                                                                                       VerticalOptions="Center">
-                                                                                    <Label.FormattedText>
-                                                                                        <FormattedString>
-                                                                                            <Span Text="Requested: " FontAttributes="None"/>
-                                                                                            <Span Text="{Binding RequestedQuantity}" FontAttributes="Bold"/>
-                                                                                            <Span Text=" " FontAttributes="None"/>
-                                                                                            <Span Text="{Binding OriginalUoM}" FontAttributes="Bold"/>
-                                                                                        </FormattedString>
-                                                                                    </Label.FormattedText>
-                                                                                </Label>
-                                                                                <Label Grid.Column="1"
-                                                                                       FontSize="11"
-                                                                                       TextColor="#999"
-                                                                                       VerticalOptions="Center">
-                                                                                    <Label.FormattedText>
-                                                                                        <FormattedString>
-                                                                                            <Span Text="Approved: " FontAttributes="None"/>
-                                                                                            <Span Text="{Binding ApprovedQuantity}" FontAttributes="Bold"/>
-                                                                                            <Span Text=" " FontAttributes="None"/>
-                                                                                            <Span Text="{Binding ApprovedUoM}" FontAttributes="Bold"/>
-                                                                                        </FormattedString>
-                                                                                    </Label.FormattedText>
-                                                                                </Label>
-                                                                            </Grid>
-                                                                            
-                                                                            <!-- Accept Button -->
-                                                                            <Button Grid.Column="1"
-                                                                                    Text="ACCEPT"
-                                                                                    Padding="0"
-                                                                                    BackgroundColor="#4CAF50"
-                                                                                    TextColor="White"
-                                                                                    CornerRadius="8"
-                                                                                    HeightRequest="35"
-                                                                                    WidthRequest="90"
-                                                                                    FontSize="12"
-                                                                                    FontAttributes="Bold"
-                                                                                    Command="{Binding BindingContext.AcceptItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
-                                                                                    CommandParameter="{Binding .}"
-                                                                                    IsVisible="{Binding IsPending}"/>
-                                                                            
-                                                                            <!-- Cancel Button -->
-                                                                            <Button Grid.Column="2"
-                                                                                    Text="CANCEL"
-                                                                                    Padding="0"
-                                                                                    BackgroundColor="#F44336"
-                                                                                    TextColor="White"
-                                                                                    CornerRadius="8"
-                                                                                    HeightRequest="35"
-                                                                                    WidthRequest="90"
-                                                                                    FontSize="12"
-                                                                                    FontAttributes="Bold"
-                                                                                    Command="{Binding BindingContext.CancelItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
-                                                                                    CommandParameter="{Binding .}"
-                                                                                    IsVisible="{Binding IsPending}"/>
-                                                                            
+                                                                              ColumnDefinitions="*,*,Auto"
+                                                                              ColumnSpacing="15">
+                                                                            <Label Grid.Column="0"
+                                                                                   FontSize="11"
+                                                                                   TextColor="#999"
+                                                                                   VerticalOptions="Center">
+                                                                                <Label.FormattedText>
+                                                                                    <FormattedString>
+                                                                                        <Span Text="Requested: " FontAttributes="None"/>
+                                                                                        <Span Text="{Binding RequestedQuantity}" FontAttributes="Bold"/>
+                                                                                        <Span Text=" " FontAttributes="None"/>
+                                                                                        <Span Text="{Binding OriginalUoM}" FontAttributes="Bold"/>
+                                                                                    </FormattedString>
+                                                                                </Label.FormattedText>
+                                                                            </Label>
+                                                                            <Label Grid.Column="1"
+                                                                                   FontSize="11"
+                                                                                   TextColor="#999"
+                                                                                   VerticalOptions="Center">
+                                                                                <Label.FormattedText>
+                                                                                    <FormattedString>
+                                                                                        <Span Text="Approved: " FontAttributes="None"/>
+                                                                                        <Span Text="{Binding ApprovedQuantity}" FontAttributes="Bold"/>
+                                                                                        <Span Text=" " FontAttributes="None"/>
+                                                                                        <Span Text="{Binding ApprovedUoM}" FontAttributes="Bold"/>
+                                                                                    </FormattedString>
+                                                                                </Label.FormattedText>
+                                                                            </Label>
                                                                             <!-- Retract Button (for accepted items) -->
-                                                                            <Button Grid.Column="1"
+                                                                            <Button Grid.Column="2"
                                                                                     Text="RETRACT"
                                                                                     Padding="0"
                                                                                     BackgroundColor="#FF9800"
                                                                                     TextColor="White"
                                                                                     CornerRadius="8"
-                                                                                    HeightRequest="35"
-                                                                                    WidthRequest="90"
-                                                                                    FontSize="12"
+                                                                                    HeightRequest="32"
+                                                                                    WidthRequest="85"
+                                                                                    FontSize="11"
                                                                                     FontAttributes="Bold"
                                                                                     Command="{Binding BindingContext.RetractItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                     CommandParameter="{Binding .}"
@@ -398,14 +363,16 @@
                                             </Grid>
 
                                             <!-- Action Buttons -->
-                                            <Grid Grid.Row="3" ColumnDefinitions="*,*,Auto,Auto,Auto" ColumnSpacing="10" Margin="0,15,0,0">
+                                            <Grid Grid.Row="3" ColumnDefinitions="*,*,Auto" ColumnSpacing="10" Margin="0,15,0,0">
                                                 <Button Grid.Column="0"
-                                                        Text="✅ Approve"
+                                                        Text="ACCEPT ALL"
                                                         BackgroundColor="#4CAF50"
                                                         TextColor="White"
+                                                        FontSize="14"
+                                                        FontAttributes="Bold"
                                                         CornerRadius="10"
-                                                        HeightRequest="40"
-                                                        Command="{Binding BindingContext.ApproveOrderCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                                        HeightRequest="45"
+                                                        Command="{Binding BindingContext.AcceptAllItemsCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                         CommandParameter="{Binding .}">
                                                     <Button.Triggers>
                                                         <DataTrigger TargetType="Button" Binding="{Binding Status}" Value="Pending">
@@ -420,11 +387,13 @@
                                                     </Button.Triggers>
                                                 </Button>
                                                 <Button Grid.Column="1"
-                                                        Text="❌ Reject"
+                                                        Text="REJECT ALL"
                                                         BackgroundColor="#F44336"
                                                         TextColor="White"
+                                                        FontSize="14"
+                                                        FontAttributes="Bold"
                                                         CornerRadius="10"
-                                                        HeightRequest="40"
+                                                        HeightRequest="45"
                                                         Command="{Binding BindingContext.RejectOrderCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                         CommandParameter="{Binding .}">
                                                     <Button.Triggers>
@@ -440,34 +409,14 @@
                                                     </Button.Triggers>
                                                 </Button>
                                                 <Button Grid.Column="2"
-                                                        Text="ACCEPT ALL"
-                                                        BackgroundColor="#4CAF50"
-                                                        TextColor="White"
-                                                        FontSize="11"
-                                                        FontAttributes="Bold"
-                                                        CornerRadius="10"
-                                                        HeightRequest="40"
-                                                        WidthRequest="90"
-                                                        Command="{Binding BindingContext.AcceptAllItemsCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
-                                                        CommandParameter="{Binding .}"/>
-                                                <Button Grid.Column="3"
-                                                        Text="CANCEL ALL"
-                                                        BackgroundColor="#F44336"
-                                                        TextColor="White"
-                                                        FontSize="11"
-                                                        FontAttributes="Bold"
-                                                        CornerRadius="10"
-                                                        HeightRequest="40"
-                                                        WidthRequest="90"
-                                                        Command="{Binding BindingContext.CancelAllItemsCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
-                                                        CommandParameter="{Binding .}"/>
-                                                <Button Grid.Column="4"
                                                         Text="📄 PDF"
                                                         BackgroundColor="#2196F3"
                                                         TextColor="White"
+                                                        FontSize="14"
+                                                        FontAttributes="Bold"
                                                         CornerRadius="10"
-                                                        HeightRequest="40"
-                                                        WidthRequest="80"
+                                                        HeightRequest="45"
+                                                        WidthRequest="100"
                                                         Command="{Binding BindingContext.ExportPurchaseOrderPDFCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                         CommandParameter="{Binding .}"/>
                                             </Grid>
@@ -480,15 +429,58 @@
                 </ScrollView>
 
                 <!-- Footer -->
-                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="10">
-                    <Button Text="CLOSE" 
+                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="10" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <!-- Close Button -->
+                    <Button Grid.Column="0"
+                            Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Text="CLOSE" 
                             BackgroundColor="#BDAEA2"
                             TextColor="White"
                             CornerRadius="10"
                             HeightRequest="45"
                             WidthRequest="150"
-                            HorizontalOptions="Center"
+                            HorizontalOptions="Start"
+                            VerticalOptions="Center"
                             Command="{Binding CloseCommand}"/>
+                    
+                    <!-- Pagination Controls - Bottom Right -->
+                    <HorizontalStackLayout Grid.Column="1"
+                                           Grid.Row="1"
+                                           IsVisible="{Binding BindingContext.HasPendingOrders, Source={x:Reference PurchaseOrderApprovalPopupView}}" 
+                                           Spacing="10"
+                                           HorizontalOptions="End"
+                                           VerticalOptions="Center">
+                        <Button Text="◀ Previous"
+                                BackgroundColor="#BDAEA2"
+                                TextColor="White"
+                                FontSize="12"
+                                FontAttributes="Bold"
+                                CornerRadius="8"
+                                HeightRequest="38"
+                                WidthRequest="100"
+                                Padding="8,0"
+                                Command="{Binding BindingContext.PreviousPageCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                IsEnabled="{Binding BindingContext.HasPreviousPage, Source={x:Reference PurchaseOrderApprovalPopupView}}"/>
+                        <Label Text="{Binding BindingContext.PageInfo, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               VerticalOptions="Center"
+                               VerticalTextAlignment="Center"
+                               Margin="0"/>
+                        <Button Text="Next ▶"
+                                BackgroundColor="#BDAEA2"
+                                TextColor="White"
+                                FontSize="12"
+                                FontAttributes="Bold"
+                                CornerRadius="8"
+                                HeightRequest="38"
+                                WidthRequest="100"
+                                Padding="8,0"
+                                Command="{Binding BindingContext.NextPageCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
+                                IsEnabled="{Binding BindingContext.HasNextPage, Source={x:Reference PurchaseOrderApprovalPopupView}}"/>
+                    </HorizontalStackLayout>
                 </Grid>
             </Grid>
         </Frame>

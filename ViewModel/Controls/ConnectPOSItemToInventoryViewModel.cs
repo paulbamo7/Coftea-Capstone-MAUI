@@ -194,7 +194,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     }
                     
                     // Initialize the InputUnit properly to ensure it's remembered
-                    item.InitializeInputUnit();
+                    // In edit mode, use saved values from database; in add mode, pre-select smallest unit
+                    item.InitializeInputUnit(IsEditMode || IsUpdateAmountsMode);
                 }
                 
                 // Update InputAmount and InputUnit for all selected items based on current size
@@ -226,7 +227,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     if (string.IsNullOrWhiteSpace(item.InputUnit))
                     {
                         var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
-                        item.InputUnit = size switch
+                        var initialUnit = size switch
                         {
                             "Small" => !string.IsNullOrWhiteSpace(item.InputUnitSmall) ? item.InputUnitSmall : fallbackUnit,
                             "Medium" => !string.IsNullOrWhiteSpace(item.InputUnitMedium) ? item.InputUnitMedium : fallbackUnit,
@@ -234,7 +235,44 @@ namespace Coftea_Capstone.ViewModel.Controls
                             _ => fallbackUnit
                         };
                         
-                        System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} InputUnit to {item.InputUnit} (was empty)");
+                        // Pre-select the smallest UoM based on ingredient's unit
+                        // If ingredient unit is "L", pre-select "ml"
+                        // If ingredient unit is "kg", pre-select "g"
+                        var normalizedUnit = initialUnit?.Trim().ToLowerInvariant();
+                        if (normalizedUnit == "l" || normalizedUnit == "liter" || normalizedUnit == "litre")
+                        {
+                            // Check if "ml" is available in AllowedUnits
+                            if (item.AllowedUnits != null && item.AllowedUnits.Contains("ml"))
+                            {
+                                item.InputUnit = "ml";
+                                System.Diagnostics.Debug.WriteLine($"🔧 Pre-selected ml for {item.itemName} (ingredient unit: {initialUnit})");
+                            }
+                            else
+                            {
+                                item.InputUnit = initialUnit;
+                                System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} InputUnit to {item.InputUnit} (ml not available)");
+                            }
+                        }
+                        else if (normalizedUnit == "kg" || normalizedUnit == "kilogram")
+                        {
+                            // Check if "g" is available in AllowedUnits
+                            if (item.AllowedUnits != null && item.AllowedUnits.Contains("g"))
+                            {
+                                item.InputUnit = "g";
+                                System.Diagnostics.Debug.WriteLine($"🔧 Pre-selected g for {item.itemName} (ingredient unit: {initialUnit})");
+                            }
+                            else
+                            {
+                                item.InputUnit = initialUnit;
+                                System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} InputUnit to {item.InputUnit} (g not available)");
+                            }
+                        }
+                        else
+                        {
+                            // For "ml", "g", "pcs", or other units, use as-is
+                            item.InputUnit = initialUnit;
+                            System.Diagnostics.Debug.WriteLine($"🔧 Set {item.itemName} InputUnit to {item.InputUnit} (was empty)");
+                        }
                     }
                     else
                     {
@@ -486,8 +524,23 @@ namespace Coftea_Capstone.ViewModel.Controls
             UpdateSelectedIngredientsOnly();
         }
         [RelayCommand]
-        private void ShowPreview()
+        private async Task ShowPreview()
         {
+            // Validate that all ingredients have a UoM selected
+            var ingredientsWithoutUoM = SelectedIngredientsOnly
+                .Where(item => string.IsNullOrWhiteSpace(item.InputUnit))
+                .ToList();
+
+            if (ingredientsWithoutUoM.Any())
+            {
+                var itemNames = string.Join(", ", ingredientsWithoutUoM.Select(i => i.itemName));
+                await Application.Current.MainPage.DisplayAlert(
+                    "Validation Error", 
+                    $"Please select a Unit of Measurement (UoM) for the following ingredients:\n{itemNames}",
+                    "OK");
+                return;
+            }
+
             IsPreviewVisible = true;
         }
 

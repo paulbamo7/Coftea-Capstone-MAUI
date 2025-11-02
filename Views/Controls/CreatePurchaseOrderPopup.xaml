@@ -5,6 +5,7 @@
     x:Class="Coftea_Capstone.Views.Controls.CreatePurchaseOrderPopup"
     x:Name="CreatePurchaseOrderPopupView"
     xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel.Controls"
+    xmlns:models="clr-namespace:Coftea_Capstone.Models"
     xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
     x:DataType="vm:CreatePurchaseOrderPopupViewModel"
     BackgroundColor="#80000000"
@@ -14,6 +15,7 @@
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+            <converters:ItemInOrderConverter x:Key="ItemInOrderConverter"/>
         </ResourceDictionary>
     </ContentView.Resources>
 
@@ -100,8 +102,145 @@
                                    LineBreakMode="WordWrap"/>
                         </Frame>
 
+                        <!-- Manual Selection Button -->
+                        <Button Text="➕ Add Manual Items"
+                                BackgroundColor="#2196F3"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="45"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                Command="{Binding ToggleManualSelectionCommand}"
+                                Margin="0,0,0,10"/>
+
+                        <!-- Manual Selection Panel -->
+                        <Frame BackgroundColor="#E3F2FD"
+                               CornerRadius="10"
+                               Padding="15"
+                               BorderColor="#90CAF9"
+                               HasShadow="False"
+                               IsVisible="{Binding IsManualSelectionVisible}"
+                               Margin="0,0,0,15">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="🔍 Search and Add Items:"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#5B4F45"/>
+                                
+                                <!-- Search Box -->
+                                <Border BackgroundColor="White"
+                                        StrokeThickness="1"
+                                        Stroke="#B0BEC5"
+                                        StrokeShape="RoundRectangle 8,8,8,8"
+                                        HeightRequest="45"
+                                        Padding="10,0">
+                                    <Entry Text="{Binding SearchText, Mode=TwoWay}"
+                                           Placeholder="Search items by name or category..."
+                                           PlaceholderColor="#999"
+                                           BackgroundColor="Transparent"
+                                           TextColor="#5B4F45"
+                                           FontSize="14"
+                                           HeightRequest="45"/>
+                                </Border>
+
+                                <!-- Filtered Items List -->
+                                <Label Text="Available Items:"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="#5B4F45"
+                                       Margin="0,5,0,5"/>
+                                
+                                <CollectionView ItemsSource="{Binding FilteredInventoryItems}"
+                                                MaximumHeightRequest="300"
+                                                BackgroundColor="Transparent">
+                                    <CollectionView.ItemsLayout>
+                                        <GridItemsLayout Orientation="Vertical" Span="3" />
+                                    </CollectionView.ItemsLayout>
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="models:InventoryPageModel">
+                                            <Frame BackgroundColor="White"
+                                                   CornerRadius="8"
+                                                   Padding="10"
+                                                   Margin="4"
+                                                   HasShadow="True">
+                                                <VerticalStackLayout Spacing="6">
+                                                    <Label Text="{Binding itemName}"
+                                                           FontSize="13"
+                                                           FontAttributes="Bold"
+                                                           TextColor="#5B4F45"
+                                                           LineBreakMode="TailTruncation"
+                                                           MaxLines="1"/>
+                                                    <Label FontSize="11"
+                                                           TextColor="#999"
+                                                           LineBreakMode="TailTruncation"
+                                                           MaxLines="1">
+                                                        <Label.FormattedText>
+                                                            <FormattedString>
+                                                                <Span Text="{Binding itemQuantity, StringFormat='{0:F1}'}"/>
+                                                                <Span Text=" "/>
+                                                                <Span Text="{Binding unitOfMeasurement}"/>
+                                                            </FormattedString>
+                                                        </Label.FormattedText>
+                                                    </Label>
+                                                    <Button Padding="0">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="CornerRadius" Value="6"/>
+                                                                <Setter Property="HeightRequest" Value="32"/>
+                                                                <Setter Property="FontSize" Value="11"/>
+                                                                <Setter Property="FontAttributes" Value="Bold"/>
+                                                                <Setter Property="TextColor" Value="White"/>
+                                                                <Setter Property="HorizontalOptions" Value="Fill"/>
+                                                                <Setter Property="Command" Value="{Binding BindingContext.AddManualItemCommand, Source={x:Reference CreatePurchaseOrderPopupView}}"/>
+                                                                <Setter Property="CommandParameter" Value="{Binding .}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger TargetType="Button">
+                                                                        <DataTrigger.Binding>
+                                                                            <MultiBinding Converter="{StaticResource ItemInOrderConverter}">
+                                                                                <Binding Path="BindingContext.EditableItems.Count" Source="{x:Reference CreatePurchaseOrderPopupView}"/>
+                                                                                <Binding Path="itemID"/>
+                                                                            </MultiBinding>
+                                                                        </DataTrigger.Binding>
+                                                                        <DataTrigger.Value>
+                                                                            <x:Boolean>True</x:Boolean>
+                                                                        </DataTrigger.Value>
+                                                                        <Setter Property="Text" Value="− Remove"/>
+                                                                        <Setter Property="BackgroundColor" Value="#F44336"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger TargetType="Button">
+                                                                        <DataTrigger.Binding>
+                                                                            <MultiBinding Converter="{StaticResource ItemInOrderConverter}">
+                                                                                <Binding Path="BindingContext.EditableItems.Count" Source="{x:Reference CreatePurchaseOrderPopupView}"/>
+                                                                                <Binding Path="itemID"/>
+                                                                            </MultiBinding>
+                                                                        </DataTrigger.Binding>
+                                                                        <DataTrigger.Value>
+                                                                            <x:Boolean>False</x:Boolean>
+                                                                        </DataTrigger.Value>
+                                                                        <Setter Property="Text" Value="➕ Add"/>
+                                                                        <Setter Property="BackgroundColor" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                </VerticalStackLayout>
+                                            </Frame>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                    <CollectionView.EmptyView>
+                                        <Label Text="No items found."
+                                               TextColor="Gray"
+                                               FontSize="14"
+                                               HorizontalTextAlignment="Center"
+                                               Padding="20"/>
+                                    </CollectionView.EmptyView>
+                                </CollectionView>
+                            </VerticalStackLayout>
+                        </Frame>
+
                         <!-- Items List with Editable Fields -->
-                        <Label Text="📦 Items Below Minimum Stock:"
+                        <Label Text="📦 Items in Purchase Order:"
                                FontSize="16"
                                FontAttributes="Bold"
                                TextColor="#5B4F45"
@@ -123,7 +262,7 @@
                                            Padding="15"
                                            Margin="0,0,0,12"
                                            HasShadow="True">
-                                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" RowSpacing="10" ColumnSpacing="10">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto" RowSpacing="10" ColumnSpacing="10">
                                             <!-- Item Name -->
                                             <Label Grid.Row="0" Grid.Column="0"
                                                    Text="{Binding ItemName}"
@@ -147,9 +286,23 @@
                                                     </FormattedString>
                                                 </Label.FormattedText>
                                             </Label>
+
+                                            <!-- Remove Button -->
+                                            <Button Grid.Row="0" Grid.Column="2"
+                                                    Text="✕"
+                                                    BackgroundColor="#F44336"
+                                                    TextColor="White"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    WidthRequest="35"
+                                                    HeightRequest="35"
+                                                    CornerRadius="6"
+                                                    Padding="0"
+                                                    Command="{Binding BindingContext.RemoveItemCommand, Source={x:Reference CreatePurchaseOrderPopupView}}"
+                                                    CommandParameter="{Binding .}"/>
                                             
                                             <!-- Unit Amount and Quantity Input -->
-                                            <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                            <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" 
                                                   ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,*" 
                                                   ColumnSpacing="8"
                                                   VerticalOptions="Center">

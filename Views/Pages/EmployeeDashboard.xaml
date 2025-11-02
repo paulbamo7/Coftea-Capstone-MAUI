@@ -89,19 +89,21 @@
                     <VerticalStackLayout>
                         <Label Text="Inventory Alert" FontAttributes="Bold" FontSize="20" TextColor="#5B4F45"/>
                         <Frame CornerRadius="20" Padding="10" BackgroundColor="#F9F9F9" Margin="5" VerticalOptions="FillAndExpand">
-                            <CollectionView ItemsSource="{Binding InventoryAlerts}" Margin="0,10,0,0">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Frame BackgroundColor="White" CornerRadius="10" Padding="8" Margin="0,2" HasShadow="True">
-                                            <Label Text="{Binding .}" 
-                                                   TextColor="{Binding ., Converter={StaticResource StockColorConverter}}"
-                                                   FontSize="12" 
-                                                   FontAttributes="Bold"
-                                                   HorizontalOptions="FillAndExpand"/>
-                                        </Frame>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                            <ScrollView VerticalOptions="FillAndExpand">
+                                <CollectionView ItemsSource="{Binding InventoryAlerts}" Margin="0,10,0,0">
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Frame BackgroundColor="White" CornerRadius="10" Padding="8" Margin="0,2" HasShadow="True">
+                                                <Label Text="{Binding .}" 
+                                                       TextColor="{Binding ., Converter={StaticResource StockColorConverter}}"
+                                                       FontSize="12" 
+                                                       FontAttributes="Bold"
+                                                       HorizontalOptions="FillAndExpand"/>
+                                            </Frame>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </ScrollView>
                         </Frame>
                     </VerticalStackLayout>
                 </Frame>

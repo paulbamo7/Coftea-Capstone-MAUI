@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:others="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              x:Class="Coftea_Capstone.Views.Controls.EditProductPopup"
              x:Name="EditProductPopupView"
              BackgroundColor="#80000000"
              IsVisible="{Binding IsEditProductPopupVisible}"
              InputTransparent="False">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <others:CategoryAndSubcategoryVisibilityConverter x:Key="CategoryAndSubcategoryVisibilityConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
         <!-- Background overlay to close on outside tap -->
@@ -235,12 +244,22 @@
                                                    FontSize="16" 
                                                    VerticalOptions="Start" />
 
-                                            <!-- Category -->
-                                            <Label Grid.Row="1" Grid.Column="1"
-                                                   Text="{Binding Category, StringFormat='Category: {0}'}" 
-                                                   FontSize="12" 
-                                                   TextColor="Gray" 
-                                                   VerticalOptions="Center" />
+                                            <!-- Category and Subcategory -->
+                                            <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding Category, StringFormat='Category: {0}'}" 
+                                                       FontSize="12" 
+                                                       TextColor="Gray" />
+                                                <Label Text="{Binding Subcategory, StringFormat='Subcategory: {0}'}" 
+                                                       FontSize="11" 
+                                                       TextColor="Gray">
+                                                    <Label.IsVisible>
+                                                        <MultiBinding Converter="{StaticResource CategoryAndSubcategoryVisibilityConverter}">
+                                                            <Binding Path="Category" />
+                                                            <Binding Path="Subcategory" />
+                                                        </MultiBinding>
+                                                    </Label.IsVisible>
+                                                </Label>
+                                            </VerticalStackLayout>
 
                                             <!-- Prices (Small visible only for Coffee; Medium and Large visible for all) -->
                                             <VerticalStackLayout Grid.Row="2" Grid.Column="1" 

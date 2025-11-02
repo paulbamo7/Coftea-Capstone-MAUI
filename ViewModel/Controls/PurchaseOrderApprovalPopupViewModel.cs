@@ -21,8 +21,20 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ObservableCollection<PurchaseOrderDisplayModel> pendingOrders = new();
 
+        private List<PurchaseOrderDisplayModel> _allOrders = new();
+        private const int ItemsPerPage = 10;
+
+        [ObservableProperty]
+        private int currentPage = 1;
+
+        [ObservableProperty]
+        private int totalPages = 1;
+
         public bool HasPendingOrders => PendingOrders.Count > 0;
         public bool HasNoPendingOrders => PendingOrders.Count == 0 && !IsLoading;
+        public bool HasPreviousPage => CurrentPage > 1;
+        public bool HasNextPage => CurrentPage < TotalPages;
+        public string PageInfo => $"Page {CurrentPage} of {TotalPages}";
 
         public PurchaseOrderApprovalPopupViewModel()
         {
@@ -32,7 +44,15 @@ namespace Coftea_Capstone.ViewModel.Controls
         public async Task ShowAsync()
         {
             IsVisible = true;
+            CurrentPage = 1;
+            TotalPages = 1;
             await LoadPendingOrders();
+            
+            // Ensure commands are initialized
+            OnPropertyChanged(nameof(HasPreviousPage));
+            OnPropertyChanged(nameof(HasNextPage));
+            OnPropertyChanged(nameof(PageInfo));
+            System.Diagnostics.Debug.WriteLine($"🔍 ShowAsync: CurrentPage={CurrentPage}, TotalPages={TotalPages}, HasPrevious={HasPreviousPage}, HasNext={HasNextPage}");
         }
 
         [RelayCommand]
@@ -50,12 +70,12 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (orders.Count == 0)
                 {
                     System.Diagnostics.Debug.WriteLine("📦 [VM] No pending orders found, loading recent orders as fallback...");
-                    orders = await _database.GetAllPurchaseOrdersAsync(20); // Get last 20 orders
+                    orders = await _database.GetAllPurchaseOrdersAsync(10); // Get last 10 orders
                     System.Diagnostics.Debug.WriteLine($"📦 [VM] Received {orders.Count} recent orders from database");
                 }
 
-                // Get items for each order
-                var displayOrders = new ObservableCollection<PurchaseOrderDisplayModel>();
+                // Get items for each order (process all orders first)
+                var allDisplayOrders = new List<PurchaseOrderDisplayModel>();
                 foreach (var order in orders)
                 {
                     System.Diagnostics.Debug.WriteLine($"📦 [VM] Processing order #{order.PurchaseOrderId}");
@@ -108,13 +128,21 @@ namespace Coftea_Capstone.ViewModel.Controls
                         EditableItems = editableItems
                     };
                     
-                    displayOrders.Add(displayOrder);
+                    allDisplayOrders.Add(displayOrder);
                     System.Diagnostics.Debug.WriteLine($"📦 [VM] Added order #{displayOrder.PurchaseOrderId} to display list");
                 }
 
-                PendingOrders = displayOrders;
+                // Store all orders and update pagination
+                _allOrders = allDisplayOrders;
+                TotalPages = (int)Math.Ceiling((double)_allOrders.Count / ItemsPerPage);
+                if (TotalPages == 0) TotalPages = 1;
+                
+                // Apply pagination
+                ApplyPagination();
+                
                 OnPropertyChanged(nameof(HasPendingOrders));
                 OnPropertyChanged(nameof(HasNoPendingOrders));
+                OnPropertyChanged(nameof(PageInfo));
 
                 System.Diagnostics.Debug.WriteLine($"✅ [VM] UI updated with {PendingOrders.Count} pending orders");
                 System.Diagnostics.Debug.WriteLine($"✅ [VM] HasPendingOrders: {HasPendingOrders}, HasNoPendingOrders: {HasNoPendingOrders}");
@@ -129,6 +157,77 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 IsLoading = false;
                 System.Diagnostics.Debug.WriteLine($"📦 [VM] Loading finished. IsLoading = {IsLoading}");
+            }
+        }
+
+        private void ApplyPagination()
+        {
+            var startIndex = (CurrentPage - 1) * ItemsPerPage;
+            var endIndex = Math.Min(startIndex + ItemsPerPage, _allOrders.Count);
+            var pageOrders = _allOrders.Skip(startIndex).Take(ItemsPerPage).ToList();
+
+            PendingOrders.Clear();
+            foreach (var order in pageOrders)
+            {
+                PendingOrders.Add(order);
+            }
+
+            OnPropertyChanged(nameof(HasPendingOrders));
+            OnPropertyChanged(nameof(HasNoPendingOrders));
+            OnPropertyChanged(nameof(HasPreviousPage));
+            OnPropertyChanged(nameof(HasNextPage));
+            OnPropertyChanged(nameof(PageInfo));
+
+            System.Diagnostics.Debug.WriteLine($"📄 [VM] Applied pagination: Page {CurrentPage} of {TotalPages} ({PendingOrders.Count} orders displayed)");
+        }
+
+        partial void OnCurrentPageChanged(int value)
+        {
+            ApplyPagination();
+            OnPropertyChanged(nameof(HasPreviousPage));
+            OnPropertyChanged(nameof(HasNextPage));
+        }
+
+        partial void OnTotalPagesChanged(int value)
+        {
+            OnPropertyChanged(nameof(HasPreviousPage));
+            OnPropertyChanged(nameof(HasNextPage));
+            OnPropertyChanged(nameof(PageInfo));
+        }
+
+        [RelayCommand]
+        private void NextPage()
+        {
+            System.Diagnostics.Debug.WriteLine($"🔍 NextPageCommand called: CurrentPage={CurrentPage}, TotalPages={TotalPages}, HasNext={HasNextPage}");
+            if (CurrentPage < TotalPages)
+            {
+                CurrentPage++;
+                System.Diagnostics.Debug.WriteLine($"➡️ [VM] Navigated to page {CurrentPage}");
+                OnPropertyChanged(nameof(HasPreviousPage));
+                OnPropertyChanged(nameof(HasNextPage));
+                OnPropertyChanged(nameof(PageInfo));
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Cannot go to next page: CurrentPage={CurrentPage} >= TotalPages={TotalPages}");
+            }
+        }
+
+        [RelayCommand]
+        private void PreviousPage()
+        {
+            System.Diagnostics.Debug.WriteLine($"🔍 PreviousPageCommand called: CurrentPage={CurrentPage}, TotalPages={TotalPages}, HasPrevious={HasPreviousPage}");
+            if (CurrentPage > 1)
+            {
+                CurrentPage--;
+                System.Diagnostics.Debug.WriteLine($"⬅️ [VM] Navigated to page {CurrentPage}");
+                OnPropertyChanged(nameof(HasPreviousPage));
+                OnPropertyChanged(nameof(HasNextPage));
+                OnPropertyChanged(nameof(PageInfo));
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Cannot go to previous page: CurrentPage={CurrentPage} <= 1");
             }
         }
 
@@ -190,6 +289,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     if (app?.InventoryVM != null)
                     {
                         await app.InventoryVM.ForceReloadDataAsync();
+                    }
+
+                    // Refresh POS page products after purchase order approval
+                    if (app?.POSVM != null)
+                    {
+                        await app.POSVM.LoadDataAsync();
+                        System.Diagnostics.Debug.WriteLine("✅ POS products refreshed after purchase order approval");
                     }
                 }
                 else
@@ -335,6 +441,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     {
                         await app.InventoryVM.ForceReloadDataAsync();
                     }
+
+                    // Refresh POS page products after accepting item
+                    if (app?.POSVM != null)
+                    {
+                        await app.POSVM.LoadDataAsync();
+                        System.Diagnostics.Debug.WriteLine("✅ POS products refreshed after accepting purchase order item");
+                    }
                 }
                 else
                 {
@@ -429,6 +542,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (app?.InventoryVM != null)
                 {
                     await app.InventoryVM.ForceReloadDataAsync();
+                }
+
+                // Refresh POS page products after accepting all items
+                if (app?.POSVM != null)
+                {
+                    await app.POSVM.LoadDataAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ POS products refreshed after accepting all purchase order items");
                 }
                 
                 if (failCount > 0)

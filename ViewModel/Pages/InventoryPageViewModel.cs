@@ -237,7 +237,7 @@ namespace Coftea_Capstone.ViewModel
                 if (app?.CreatePurchaseOrderPopup != null)
                 {
                     var currentUserIsAdmin = App.CurrentUser?.IsAdmin ?? false;
-                    app.CreatePurchaseOrderPopup.LoadItems(lowStockItems, currentUserIsAdmin);
+                    await app.CreatePurchaseOrderPopup.LoadItems(lowStockItems, currentUserIsAdmin);
                     app.CreatePurchaseOrderPopup.IsVisible = true;
                 }
                 else
