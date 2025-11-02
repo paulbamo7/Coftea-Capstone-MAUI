@@ -4,9 +4,16 @@
              x:Class="Coftea_Capstone.Views.Pages.EmployeeDashboard"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
              BackgroundColor="#C1A892">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:StringToColorConverter x:Key="StringToColorConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <Grid ColumnDefinitions="200, *" RowDefinitions="*">
         <!-- Sidebar Navigation -->
@@ -143,7 +150,7 @@
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="*"/>
                                                 </Grid.RowDefinitions>
-                                                <BoxView VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" Color="#4CAF50" CornerRadius="8"/>
+                                                <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 8,8,8,8"/>
                                                 <Label Text="{Binding Count}" FontSize="10" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" FontAttributes="Bold"/>
                                             </Grid>
                                             <Label Grid.Row="1" Text="{Binding Name}" FontSize="10" LineBreakMode="WordWrap" HorizontalTextAlignment="Center" MaxLines="2" Margin="0,5,0,0"/>

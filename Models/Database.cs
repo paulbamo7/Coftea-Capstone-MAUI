@@ -1098,7 +1098,8 @@ namespace Coftea_Capstone.Models
 				itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
 				unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
 				minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-				maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
+				maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0,
+				CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
 			});
 		}
 		private static bool HasColumn(System.Data.Common.DbDataReader reader, string columnName) // Checks if a column exists in the data reader
@@ -1144,7 +1145,8 @@ namespace Coftea_Capstone.Models
                     itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
                     unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
                     minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
-                    maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0
+                    maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0,
+                    CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
                 };
             }
             return null;

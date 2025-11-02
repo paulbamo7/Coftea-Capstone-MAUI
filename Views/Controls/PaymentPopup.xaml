@@ -49,7 +49,7 @@
                 </Grid>
 
                 <!-- Payment Content -->
-                <Grid Grid.Row="1" Padding="30" ColumnDefinitions="*, *" ColumnSpacing="20">
+                <Grid Grid.Row="1" Padding="30" ColumnDefinitions="1.2*, *" ColumnSpacing="20">
                     <!-- Left Side: Payment Details -->
                     <ScrollView Grid.Column="0">
                         <Grid RowDefinitions="Auto, Auto, *">
@@ -143,11 +143,14 @@
                                 </Grid>
 
                                 <!-- Quick Amount Buttons -->
-                                <Grid Grid.Row="4" Margin="0,0,0,20">
+                                <VerticalStackLayout Grid.Row="4" Margin="0,0,0,20" Spacing="8">
                                     <Label Text="Quick Amounts:" 
                                            FontSize="14" FontFamily="MontserratBlack" 
-                                           TextColor="Gray" />
-                                    <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                                           TextColor="Gray"
+                                           LineBreakMode="NoWrap"
+                                           HorizontalOptions="Start"
+                                           VerticalOptions="Start" />
+                                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Start">
                                         <Button Text="₱50" 
                                                 FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
@@ -185,7 +188,7 @@
                                                 HeightRequest="30"
                                                 Clicked="OnQuickAmountClicked" />
                                     </HorizontalStackLayout>
-                                </Grid>
+                                </VerticalStackLayout>
 
                                 <!-- Confirm Button -->
                                 <Button Grid.Row="5"

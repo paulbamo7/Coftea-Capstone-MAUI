@@ -113,6 +113,7 @@ namespace Coftea_Capstone.Models
                 }
             }
         }
+        public DateTime CreatedAt { get; set; }
         [ObservableProperty]
         private bool isSelected;
 

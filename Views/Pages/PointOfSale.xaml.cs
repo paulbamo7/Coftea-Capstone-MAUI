@@ -174,6 +174,12 @@ public partial class PointOfSale : ContentPage
            
             if (POSViewModel.SettingsPopup != null)
                 POSViewModel.SettingsPopup.IsAddItemToPOSVisible = false;
+            
+            // Clear the right frame when switching pages
+            if (POSViewModel != null)
+            {
+                POSViewModel.SelectedProduct = null;
+            }
 
             // Subscribe to property changes (guard against duplicates)
             POSViewModel.PropertyChanged -= OnViewModelPropertyChanged;

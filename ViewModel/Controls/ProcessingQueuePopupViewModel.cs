@@ -66,10 +66,6 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (cartItem == null) return;
 
-            // Get add-ons with their details (quantity, amount, UoM)
-            var selectedAddons = cartItem.InventoryItems?.Where(a => a.IsSelected && a.AddonQuantity > 0).ToList() ?? new();
-            var addOnTotal = selectedAddons.Sum(a => (decimal)(a.AddonPrice * a.AddonQuantity));
-
             // Fetch addon details from database
             var addonsList = await _database.GetProductAddonsAsync(cartItem.ProductID);
             var addonsDict = addonsList.ToDictionary(a => a.itemID, a => a);
@@ -78,7 +74,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             var ingredientsList = await _database.GetProductIngredientsAsync(cartItem.ProductID);
             var mainIngredients = ingredientsList.Where(i => i.role == "ingredient").ToList();
 
-            void enqueue(string size, int qty, decimal unitPrice, string sizeDisplay)
+            void enqueue(string size, int qty, decimal unitPrice, string sizeDisplay, ObservableCollection<InventoryPageModel> sizeAddons)
             {
                 if (qty <= 0) return;
 
@@ -116,9 +112,13 @@ namespace Coftea_Capstone.ViewModel.Controls
                     }
                 }
 
-                // Build addons list with per-serving amount and UoM
+                // Get addons for this specific size only
+                var selectedSizeAddons = sizeAddons?.Where(a => a != null && a.IsSelected && a.AddonQuantity > 0).ToList() ?? new();
+                var addOnTotal = selectedSizeAddons.Sum(a => (decimal)(a.AddonPrice * a.AddonQuantity * qty));
+
+                // Build addons list with per-size amount and UoM
                 var addonsListForItem = new List<AddonDisplayModel>();
-                foreach (var addon in selectedAddons)
+                foreach (var addon in selectedSizeAddons)
                 {
                     double amountPerServing = 0;
                     string unit = "pcs";
@@ -126,15 +126,40 @@ namespace Coftea_Capstone.ViewModel.Controls
                     if (addonsDict.ContainsKey(addon.itemID))
                     {
                         var addonInfo = addonsDict[addon.itemID];
-                        // Use InputAmountMedium and InputUnitMedium from product_addons table (per-serving amount)
-                        amountPerServing = addonInfo.InputAmountMedium > 0 
-                            ? addonInfo.InputAmountMedium 
-                            : (addonInfo.InputAmount > 0 ? addonInfo.InputAmount : 0);
-                        unit = !string.IsNullOrWhiteSpace(addonInfo.InputUnitMedium) 
-                            ? addonInfo.InputUnitMedium 
-                            : (!string.IsNullOrWhiteSpace(addonInfo.InputUnit) 
-                                ? addonInfo.InputUnit 
-                                : (addonInfo.unitOfMeasurement ?? "pcs"));
+                        // Use per-size addon amounts
+                        if (size == "Small")
+                        {
+                            amountPerServing = addonInfo.InputAmountSmall > 0 
+                                ? addonInfo.InputAmountSmall 
+                                : (addonInfo.InputAmount > 0 ? addonInfo.InputAmount : 0);
+                            unit = !string.IsNullOrWhiteSpace(addonInfo.InputUnitSmall) 
+                                ? addonInfo.InputUnitSmall 
+                                : (!string.IsNullOrWhiteSpace(addonInfo.InputUnit) 
+                                    ? addonInfo.InputUnit 
+                                    : (addonInfo.unitOfMeasurement ?? "pcs"));
+                        }
+                        else if (size == "Medium")
+                        {
+                            amountPerServing = addonInfo.InputAmountMedium > 0 
+                                ? addonInfo.InputAmountMedium 
+                                : (addonInfo.InputAmount > 0 ? addonInfo.InputAmount : 0);
+                            unit = !string.IsNullOrWhiteSpace(addonInfo.InputUnitMedium) 
+                                ? addonInfo.InputUnitMedium 
+                                : (!string.IsNullOrWhiteSpace(addonInfo.InputUnit) 
+                                    ? addonInfo.InputUnit 
+                                    : (addonInfo.unitOfMeasurement ?? "pcs"));
+                        }
+                        else if (size == "Large")
+                        {
+                            amountPerServing = addonInfo.InputAmountLarge > 0 
+                                ? addonInfo.InputAmountLarge 
+                                : (addonInfo.InputAmount > 0 ? addonInfo.InputAmount : 0);
+                            unit = !string.IsNullOrWhiteSpace(addonInfo.InputUnitLarge) 
+                                ? addonInfo.InputUnitLarge 
+                                : (!string.IsNullOrWhiteSpace(addonInfo.InputUnit) 
+                                    ? addonInfo.InputUnit 
+                                    : (addonInfo.unitOfMeasurement ?? "pcs"));
+                        }
                     }
                     else
                     {
@@ -175,9 +200,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                 _ = SaveProcessingItemAsync(processingItem);
             }
 
-            enqueue("Small", cartItem.SmallQuantity, cartItem.SmallPrice ?? 0, "16oz");
-            enqueue("Medium", cartItem.MediumQuantity, cartItem.MediumPrice, "18oz");
-            enqueue("Large", cartItem.LargeQuantity, cartItem.LargePrice, "22oz");
+            enqueue("Small", cartItem.SmallQuantity, cartItem.SmallPrice ?? 0, "16oz", cartItem.SmallAddons);
+            enqueue("Medium", cartItem.MediumQuantity, cartItem.MediumPrice, "18oz", cartItem.MediumAddons);
+            enqueue("Large", cartItem.LargeQuantity, cartItem.LargePrice, "22oz", cartItem.LargeAddons);
         }
 
         public async Task LoadPendingItemsAsync()
@@ -249,6 +274,36 @@ namespace Coftea_Capstone.ViewModel.Controls
             catch (Exception ex)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to save completed item: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
+        public async Task AcceptAll()
+        {
+            if (PendingItems == null || !PendingItems.Any())
+            {
+                return;
+            }
+
+            try
+            {
+                // Get a copy of all items to avoid collection modification during iteration
+                var itemsToComplete = PendingItems.ToList();
+
+                foreach (var item in itemsToComplete)
+                {
+                    await CompleteItem(item);
+                }
+
+                // Close the popup if all items are completed
+                if (!PendingItems.Any())
+                {
+                    IsVisible = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to complete all items: {ex.Message}", "OK");
             }
         }
     }

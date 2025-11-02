@@ -310,9 +310,20 @@ namespace Coftea_Capstone.ViewModel
                     int maxCount = productSales.Max(x => x.Count);
                     if (maxCount <= 0) maxCount = 1; // Prevent division by zero
                     
-                    foreach (var item in productSales)
+                    // Define color palette matching SalesReport
+                    var colorPalette = new List<string>
                     {
-                        item.MaxCount = maxCount;
+                        "#99E599", // Green
+                        "#ac94f4", // Purple/Violet
+                        "#1976D2", // Blue
+                        "#F0E0C1", // Brown/Beige
+                        "#f5dde0"  // Light pink
+                    };
+                    
+                    for (int i = 0; i < productSales.Count; i++)
+                    {
+                        productSales[i].MaxCount = maxCount;
+                        productSales[i].ColorCode = colorPalette[i % colorPalette.Count];
                     }
                 }
 
@@ -481,7 +492,7 @@ namespace Coftea_Capstone.ViewModel
                     .Where(x => x.PercentRemaining <= 100.0) // Show items at or below max, or below minimum
                     .GroupBy(x => x.Item.itemName)
                     .Select(group => group.OrderBy(x => x.PercentRemaining).First())
-                    .OrderBy(x => x.PercentRemaining)
+                    .OrderBy(x => x.Item.CreatedAt) // FIFO: Order by creation date (oldest first)
                     .Take(5)
                     .ToList();
 
@@ -531,8 +542,9 @@ namespace Coftea_Capstone.ViewModel
                             }
                         }
 
-                        // Format: "CRITICAL: Tapiocca (6 kg) - 50%"
-                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {normalizedUnit}) - {percent:F0}%";
+                        // Format: "CRITICAL: Tapiocca (6 kg) - Added: Jan 15, 2024 10:30"
+                        var addedTime = item.CreatedAt.ToString("MMM dd, yyyy HH:mm");
+                        var alertText = $"{stockLevel}: {item.itemName} ({item.itemQuantity:F1} {normalizedUnit}) - Added: {addedTime}";
                         System.Diagnostics.Debug.WriteLine($"🔍 Adding alert: {alertText}");
                         InventoryAlerts.Add(alertText);
                     }

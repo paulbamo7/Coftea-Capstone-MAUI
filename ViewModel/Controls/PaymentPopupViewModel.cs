@@ -8,6 +8,7 @@ using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Models.Service;
 using System.Collections.ObjectModel;
+using Coftea_Capstone.C_;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -194,6 +195,45 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Save transaction to database and shared store
             var savedTransactions = await SaveTransaction();
             System.Diagnostics.Debug.WriteLine($"🔵 SaveTransaction completed. Saved {savedTransactions?.Count ?? 0} transactions");
+
+            // Enqueue items to processing queue BEFORE clearing cart
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"📋 Enqueueing {CartItems.Count} items to processing queue");
+                var posApp = (App)Application.Current;
+                if (posApp?.POSVM?.ProcessingQueuePopup != null)
+                {
+                    // Convert CartItems back to POSPageModel for enqueueing
+                    foreach (var cartItem in CartItems)
+                    {
+                        // Create POSPageModel from CartItem to enqueue to processing queue
+                        var posItem = new POSPageModel
+                        {
+                            ProductID = cartItem.ProductId,
+                            ProductName = cartItem.ProductName,
+                            ImageSet = cartItem.ImageSource,
+                            SmallQuantity = cartItem.SmallQuantity,
+                            MediumQuantity = cartItem.MediumQuantity,
+                            LargeQuantity = cartItem.LargeQuantity,
+                            SmallPrice = cartItem.SmallPrice,
+                            MediumPrice = cartItem.MediumPrice,
+                            LargePrice = cartItem.LargePrice,
+                            SmallAddons = cartItem.SmallAddons ?? new ObservableCollection<InventoryPageModel>(),
+                            MediumAddons = cartItem.MediumAddons ?? new ObservableCollection<InventoryPageModel>(),
+                            LargeAddons = cartItem.LargeAddons ?? new ObservableCollection<InventoryPageModel>(),
+                            InventoryItems = cartItem.InventoryItems ?? new ObservableCollection<InventoryPageModel>()
+                        };
+                        
+                        await posApp.POSVM.ProcessingQueuePopup.EnqueueFromCartItem(posItem);
+                        System.Diagnostics.Debug.WriteLine($"✅ Enqueued {posItem.ProductName} to processing queue");
+                    }
+                    System.Diagnostics.Debug.WriteLine($"✅ All items enqueued to processing queue");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error enqueueing items to processing queue: {ex.Message}");
+            }
 
             // Clear cart on successful payment
             try

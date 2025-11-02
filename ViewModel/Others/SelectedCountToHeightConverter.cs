@@ -56,4 +56,25 @@ namespace Coftea_Capstone.ViewModel.Others
             throw new NotImplementedException();
         }
     }
+
+    public class CollectionCountToHeightConverter : IValueConverter
+    {
+        public double CompactHeight { get; set; } = 100; // when less than 3 items
+        public double ExpandedHeight { get; set; } = 200; // when 3 or more items
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is ICollection collection)
+            {
+                int count = collection.Count;
+                return count >= 3 ? ExpandedHeight : CompactHeight;
+            }
+            return CompactHeight;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

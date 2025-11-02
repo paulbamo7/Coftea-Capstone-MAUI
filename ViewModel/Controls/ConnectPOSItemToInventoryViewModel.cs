@@ -365,6 +365,36 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
             
+            // Clear all fields and selections
+            // Unselect all inventory items
+            foreach (var item in AllInventoryItems)
+            {
+                item.IsSelected = false;
+                // Clear per-size input amounts and units
+                item.InputAmountSmall = 0;
+                item.InputAmountMedium = 0;
+                item.InputAmountLarge = 0;
+                item.InputUnitSmall = null;
+                item.InputUnitMedium = null;
+                item.InputUnitLarge = null;
+                // Clear current input
+                item.InputAmount = 0;
+                item.InputUnit = null;
+            }
+            
+            // Clear selected collections
+            SelectedIngredientsOnly.Clear();
+            SelectedAddons.Clear();
+            Ingredients.Clear();
+            
+            // Reset size selection
+            SelectedSize = "Medium";
+            
+            // Clear filters and search
+            SelectedFilter = "All";
+            SearchText = string.Empty;
+            SelectedSort = "Name (A-Z)";
+            
             // Close the AddItemToPOS form as well to return to PointOfSale
             var app = (App)Application.Current;
             var addItemVM = app?.POSVM?.AddItemToPOSViewModel ?? app?.AddItemPopup;
@@ -388,16 +418,44 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void ReturnToAddItemToPOS()
         {
+            // Close all popups
             IsConnectPOSToInventoryVisible = false;
-            // Reset all states when returning to AddItemToPOS
             IsInputIngredientsVisible = false;
-            // Don't reset edit mode - preserve it for proper state management
-            // IsEditMode = false; // REMOVED - this was causing the issue with ingredient selection persistence
             IsUpdateAmountsMode = false;
             IsPreviewVisible = false;
-            // Ensure any addon popup is closed when returning
             IsAddonPopupVisible = false;
             if (AddonsPopup != null) AddonsPopup.IsAddonsPopupVisible = false;
+            
+            // Clear all fields and selections
+            // Unselect all inventory items
+            foreach (var item in AllInventoryItems)
+            {
+                item.IsSelected = false;
+                // Clear per-size input amounts and units
+                item.InputAmountSmall = 0;
+                item.InputAmountMedium = 0;
+                item.InputAmountLarge = 0;
+                item.InputUnitSmall = null;
+                item.InputUnitMedium = null;
+                item.InputUnitLarge = null;
+                // Clear current input
+                item.InputAmount = 0;
+                item.InputUnit = null;
+            }
+            
+            // Clear selected collections
+            SelectedIngredientsOnly.Clear();
+            SelectedAddons.Clear();
+            Ingredients.Clear();
+            
+            // Reset size selection
+            SelectedSize = "Medium";
+            
+            // Clear filters and search
+            SelectedFilter = "All";
+            SearchText = string.Empty;
+            SelectedSort = "Name (A-Z)";
+            
             // Show parent overlay again
             var app = (App)Application.Current;
             (app?.POSVM?.AddItemToPOSViewModel)?.SetIsAddItemToPOSVisibleTrue();
@@ -815,8 +873,46 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(SelectedInventoryItems));
                 OnPropertyChanged(nameof(SelectedIngredientsOnly));
             }
+            else if (e.PropertyName == nameof(InventoryPageModel.InputUnit))
+            {
+                // When InputUnit changes for the current size, sync it to the other sizes
+                var item = sender as InventoryPageModel;
+                if (item != null && !string.IsNullOrWhiteSpace(item.InputUnit))
+                {
+                    // Temporarily unsubscribe to prevent infinite loop
+                    item.PropertyChanged -= OnItemPropertyChanged;
+                    
+                    // Sync the unit to the other sizes based on current SelectedSize
+                    switch (SelectedSize)
+                    {
+                        case "Small":
+                            item.InputUnitSmall = item.InputUnit;
+                            item.InputUnitMedium = item.InputUnit;
+                            item.InputUnitLarge = item.InputUnit;
+                            System.Diagnostics.Debug.WriteLine($"🔧 Synced Small unit '{item.InputUnit}' to Medium and Large for {item.itemName}");
+                            break;
+                        case "Medium":
+                            item.InputUnitMedium = item.InputUnit;
+                            item.InputUnitSmall = item.InputUnit;
+                            item.InputUnitLarge = item.InputUnit;
+                            System.Diagnostics.Debug.WriteLine($"🔧 Synced Medium unit '{item.InputUnit}' to Small and Large for {item.itemName}");
+                            break;
+                        case "Large":
+                            item.InputUnitLarge = item.InputUnit;
+                            item.InputUnitSmall = item.InputUnit;
+                            item.InputUnitMedium = item.InputUnit;
+                            System.Diagnostics.Debug.WriteLine($"🔧 Synced Large unit '{item.InputUnit}' to Small and Medium for {item.itemName}");
+                            break;
+                    }
+                    
+                    // Resubscribe
+                    item.PropertyChanged += OnItemPropertyChanged;
+                }
+                
+                // Persist per-item input edits immediately to prevent loss on UI switches
+                _ = PersistCurrentInputsAsync();
+            }
             else if (e.PropertyName == nameof(InventoryPageModel.InputAmount)
-                  || e.PropertyName == nameof(InventoryPageModel.InputUnit)
                   || e.PropertyName == nameof(InventoryPageModel.InputAmountSmall)
                   || e.PropertyName == nameof(InventoryPageModel.InputUnitSmall)
                   || e.PropertyName == nameof(InventoryPageModel.InputAmountMedium)

@@ -455,12 +455,12 @@ namespace Coftea_Capstone.Services
 
                     foreach (var item in items)
                     {
-                        var qty = item.ApprovedQuantity > 0 ? item.ApprovedQuantity : item.RequestedQuantity;
+                        var quantity = item.ApprovedQuantity > 0 ? item.ApprovedQuantity : item.RequestedQuantity;
                         PdfGridRow row = itemsGrid.Rows.Add();
                         row.Cells[0].Value = item.ItemName ?? "";
-                        row.Cells[1].Value = qty.ToString();
+                        row.Cells[1].Value = "1"; // Amount: 1 unit per piece
                         row.Cells[2].Value = item.UnitOfMeasurement ?? "pcs";
-                        row.Cells[3].Value = qty.ToString(); // Quantity (same as amount - represents total needed)
+                        row.Cells[3].Value = quantity.ToString(); // Quantity: how many units are being purchased
                     }
 
                     if (items.Count == 0)

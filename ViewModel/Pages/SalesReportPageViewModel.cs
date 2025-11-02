@@ -836,21 +836,11 @@ namespace Coftea_Capstone.ViewModel
             // Define a palette of distinct colors
             var colorPalette = new List<string>
             {
-                "#66BB6A", // Green
-                "#42A5F5", // Blue
-                "#EF5350", // Red
-                "#FFA726", // Orange
-                "#AB47BC", // Purple
-                "#26A69A", // Teal
-                "#FFB74D", // Amber
-                "#78909C", // Blue Grey
-                "#EC407A", // Pink
-                "#5C6BC0", // Indigo
-                "#26C6DA", // Cyan
-                "#AED581", // Light Green
-                "#FFD54F", // Yellow
-                "#9575CD", // Deep Purple
-                "#FF7043"  // Deep Orange
+                "#99E599", // Green
+                "#ac94f4", // Purple/Violet
+                "#1976D2", // Blue
+                "#F0E0C1", // Brown/Beige
+                "#f5dde0"  // Light pink
             };
             
             // Assign unique colors to each item

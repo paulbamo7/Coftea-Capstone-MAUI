@@ -324,8 +324,7 @@ namespace Coftea_Capstone.ViewModel
                 CartItems.Add(copy);
                 System.Diagnostics.Debug.WriteLine($"✅ Successfully added to cart! Cart now has {CartItems.Count} items");
 
-                // Enqueue to processing queue (split per size)
-                _ = ProcessingQueuePopup?.EnqueueFromCartItem(copy);
+                // Note: Items are enqueued to processing queue only after payment is confirmed in PaymentPopupViewModel
 
                 // Reset selection quantities
                 product.SmallQuantity = 0;
@@ -377,6 +376,10 @@ namespace Coftea_Capstone.ViewModel
                 
                 System.Diagnostics.Debug.WriteLine($"🛒 Saving cart to storage...");
                 _ = _cartStorage.SaveCartAsync(CartItems);
+                
+                // Clear the right frame by deselecting the product
+                SelectedProduct = null;
+                System.Diagnostics.Debug.WriteLine($"✅ Cleared SelectedProduct after adding to cart");
             }
             catch (InvalidCastException castEx)
             {

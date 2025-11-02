@@ -293,7 +293,7 @@
                             BorderWidth="2"
                             FontSize="15"
                             FontAttributes="Bold"
-                            Command="{Binding ReturnToAddItemToPOSCommand}" 
+                            Command="{Binding CloseConnectPOSToInventoryCommand}" 
                             WidthRequest="140"
                             HeightRequest="50"
                             CornerRadius="20"/>
