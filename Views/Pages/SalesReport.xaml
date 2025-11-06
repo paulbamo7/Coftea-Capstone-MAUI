@@ -6,6 +6,7 @@
              xmlns:charts="clr-namespace:Coftea_Capstone.Views.Controls"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls" 
              xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             xmlns:controls="clr-namespace:Coftea_Capstone.Views.Controls"
              Shell.TabBarIsVisible="False" 
              BackgroundColor="#C1A892">
 
@@ -13,6 +14,7 @@
         <ResourceDictionary>
             <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
             <converters:StringToColorConverter x:Key="StringToColorConverter"/>
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
             
             <!-- Style for Time Period Buttons -->
             <Style x:Key="TimePeriodButtonStyle" TargetType="Button">
@@ -43,10 +45,22 @@
             <VerticalStackLayout Padding="20" Spacing="16">
 
                 <!-- Top Bar -->
-                <Grid ColumnDefinitions="*,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
                     <Label Text="Sales Report" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
-                    <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
-                    <Grid Grid.Column="2" WidthRequest="40" HeightRequest="40">
+                    <Button Grid.Column="1" 
+                            Text="{Binding DateFilterText}" 
+                            FontSize="12" 
+                            FontAttributes="Bold"
+                            TextColor="#2E7D32" 
+                            BackgroundColor="White"
+                            BorderColor="#C8E6C9"
+                            BorderWidth="1"
+                            CornerRadius="8"
+                            Padding="12,8"
+                            HeightRequest="36"
+                            Command="{Binding SelectDateFilterCommand}"/>
+                    <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
+                    <Grid Grid.Column="3" WidthRequest="40" HeightRequest="40">
                         <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                                WidthRequest="40" 
                                HeightRequest="40" 
@@ -247,8 +261,51 @@
                                    FontSize="28" 
                                    FontAttributes="Bold" 
                                    FontFamily="Montserrat-Black"
+                                   LineBreakMode="NoWrap"
                                    TextColor="#2E7D32" 
                                    HorizontalOptions="Center"/>
+                            
+                            <!-- Comparison Section -->
+                            <Border BackgroundColor="#E8F5E8" 
+                                   Stroke="#81C784"
+                                   StrokeThickness="1"
+                                   StrokeShape="RoundRectangle 10"
+                                   Padding="12" 
+                                   Margin="0,8,0,0"
+                                   IsVisible="{Binding ComparisonPeriodLabel, Converter={StaticResource NullToBoolConverter}}">
+                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                    <Label Text="{Binding ComparisonPeriodLabel}" 
+                                           FontSize="12" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#558B2F" 
+                                           HorizontalOptions="Center"/>
+                                    <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8" HorizontalOptions="Center">
+                                        <Label Text="{Binding ComparisonDifferenceText}" 
+                                               FontSize="16" 
+                                               FontAttributes="Bold" 
+                                               TextColor="#2E7D32"
+                                               HorizontalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsComparisonPositive}" Value="False">
+                                                    <Setter Property="TextColor" Value="#D32F2F" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Text="{Binding ComparisonPercentageText}" 
+                                               Grid.Column="1"
+                                               FontSize="14" 
+                                               FontAttributes="Bold" 
+                                               TextColor="#2E7D32"
+                                               HorizontalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsComparisonPositive}" Value="False">
+                                                    <Setter Property="TextColor" Value="#D32F2F" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </Border>
                             
                             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,10,0,0">
                                 <Frame Grid.Column="0" BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True" HorizontalOptions="FillAndExpand">
@@ -305,18 +362,73 @@
                                 </VerticalStackLayout>
                             </Grid>
                             <!-- Bar chart for Weekly items -->
-                            <CollectionView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding TopItemsWeekly}" HeightRequest="180" ItemsLayout="HorizontalList">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
-                                            <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
-                                                <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12"/>
-                                            </Grid>
-                                            <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
-                                        </VerticalStackLayout>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                            <Grid Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="180" ColumnDefinitions="35,*" RowDefinitions="*,Auto">
+                                <!-- Y-axis labels -->
+                                <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,0,4,0">
+                                    <Label Grid.Row="0" 
+                                           Text="{Binding WeeklyYAxisValues[0], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Row="1" 
+                                           Text="{Binding WeeklyYAxisValues[1], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"
+                                           />
+                                    <Label Grid.Row="2" 
+                                           Text="{Binding WeeklyYAxisValues[2], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Row="3" 
+                                           Text="{Binding WeeklyYAxisValues[3], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Row="4" 
+                                           Text="{Binding WeeklyYAxisValues[4], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                                
+                                <!-- Chart area with grid lines and bars -->
+                                <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End">
+                                    <!-- Y-axis grid lines -->
+                                    <BoxView Grid.Row="0" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="1" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="2" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="3" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="4" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    
+                                    <!-- X-axis line -->
+                                    <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
+                                    
+                                    <!-- Bars -->
+                                    <CollectionView Grid.RowSpan="5" 
+                                                    ItemsSource="{Binding TopItemsWeekly}" 
+                                                    ItemsLayout="HorizontalList"
+                                                    BackgroundColor="Transparent"
+                                                    VerticalOptions="FillAndExpand">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
+                                                    <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
+                                                        <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12"/>
+                                                    </Grid>
+                                                    <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Grid>
+                            </Grid>
                             <CollectionView ItemsSource="{Binding TopItemsWeekly}" HeightRequest="60" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
@@ -354,18 +466,72 @@
                                 </VerticalStackLayout>
                             </Grid>
                             <!-- Bar chart for Monthly items -->
-                            <CollectionView Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding TopItemsMonthly}" HeightRequest="180" ItemsLayout="HorizontalList">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
-                                            <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
-                                                <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12"/>
-                                            </Grid>
-                                            <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
-                                        </VerticalStackLayout>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                            <Grid Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="180" ColumnDefinitions="35,*" RowDefinitions="*,Auto">
+                                <!-- Y-axis labels -->
+                                <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,0,4,0">
+                                    <Label Grid.Row="0" 
+                                           Text="{Binding MonthlyYAxisValues[0], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Row="1" 
+                                           Text="{Binding MonthlyYAxisValues[1], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Row="2" 
+                                           Text="{Binding MonthlyYAxisValues[2], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Row="3" 
+                                           Text="{Binding MonthlyYAxisValues[3], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                    <Label Grid.Row="4" 
+                                           Text="{Binding MonthlyYAxisValues[4], StringFormat='{0}'}" 
+                                           FontSize="9" 
+                                           TextColor="#666666" 
+                                           HorizontalOptions="End" 
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                                
+                                <!-- Chart area with grid lines and bars -->
+                                <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End">
+                                    <!-- Y-axis grid lines -->
+                                    <BoxView Grid.Row="0" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="1" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="2" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="3" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="4" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    
+                                    <!-- X-axis line -->
+                                    <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
+                                    
+                                    <!-- Bars -->
+                                    <CollectionView Grid.RowSpan="5" 
+                                                    ItemsSource="{Binding TopItemsMonthly}" 
+                                                    ItemsLayout="HorizontalList"
+                                                    BackgroundColor="Transparent"
+                                                    VerticalOptions="FillAndExpand">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
+                                                    <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
+                                                        <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12"/>
+                                                    </Grid>
+                                                    <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </Grid>
+                            </Grid>
                             <CollectionView ItemsSource="{Binding TopItemsMonthly}" HeightRequest="60" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
@@ -421,5 +587,8 @@
         <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
         <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="1700"/>
         <otherViews:RetryConnectionPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=RetryConnectionPopup}" Grid.ColumnSpan="2" ZIndex="2800"/>
+        
+        <!-- Date Filter Popup -->
+        <controls:DateFilterPopup BindingContext="{Binding DateFilterPopup}" Grid.ColumnSpan="2" ZIndex="2900"/>
     </Grid>
 </ContentPage>

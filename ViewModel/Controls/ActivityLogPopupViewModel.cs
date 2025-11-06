@@ -58,6 +58,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private DateTime filterEndDate = DateTime.Now;
 
+        public DateTime Today => DateTime.Today;
+
         private bool _hasDateFilter = false;
 
         public bool HasDateFilter => _hasDateFilter;
@@ -249,6 +251,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void ShowDateFilter()
         {
             IsDateFilterVisible = true;
+        }
+
+        [RelayCommand]
+        private void HideDateFilter()
+        {
+            IsDateFilterVisible = false;
         }
 
         [RelayCommand]

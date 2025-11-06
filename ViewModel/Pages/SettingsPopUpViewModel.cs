@@ -40,6 +40,10 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<TrendItem> topSellingProductsToday = new();
 
+        // Y-axis scale property for employee dashboard bar chart
+        [ObservableProperty]
+        private ObservableCollection<int> dashboardYAxisValues = new();
+
         // Dashboard specific properties
         [ObservableProperty]
         private string mostBoughtToday = "No data";
@@ -282,6 +286,25 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private void CalculateDashboardYAxisScale(int maxYValue) // Calculate Y-axis scale for dashboard bar chart
+        {
+            DashboardYAxisValues.Clear();
+            
+            // Generate Y-axis values: 20, 40, 60, 80, 100, 120, 140, etc.
+            // Add in reverse order for display (top to bottom)
+            var values = new List<int>();
+            for (int value = 20; value <= maxYValue; value += 20)
+            {
+                values.Add(value);
+            }
+            
+            // Reverse to show from top (highest) to bottom (lowest)
+            for (int i = values.Count - 1; i >= 0; i--)
+            {
+                DashboardYAxisValues.Add(values[i]);
+            }
+        }
+
         private async Task LoadTopSellingProductsAsync() // Load top selling products for dashboard
         {
             try
@@ -304,11 +327,18 @@ namespace Coftea_Capstone.ViewModel
                     .Take(5)
                     .ToList();
 
-                // Set MaxCount for proper scaling (like in sales report)
+                // Set MaxCount and YAxisMax for proper scaling (like in sales report)
                 if (productSales.Count > 0)
                 {
                     int maxCount = productSales.Max(x => x.Count);
                     if (maxCount <= 0) maxCount = 1; // Prevent division by zero
+                    
+                    // Calculate the Y-axis maximum value (round up to nearest 20)
+                    int yAxisMax = ((maxCount / 20) + 1) * 20;
+                    if (yAxisMax < 100) yAxisMax = 100; // Minimum scale is 100
+                    
+                    // Calculate Y-axis scale values
+                    CalculateDashboardYAxisScale(yAxisMax);
                     
                     // Define color palette matching SalesReport
                     var colorPalette = new List<string>
@@ -323,17 +353,27 @@ namespace Coftea_Capstone.ViewModel
                     for (int i = 0; i < productSales.Count; i++)
                     {
                         productSales[i].MaxCount = maxCount;
+                        productSales[i].YAxisMax = yAxisMax;
                         productSales[i].ColorCode = colorPalette[i % colorPalette.Count];
                     }
                 }
+                else
+                {
+                    // Initialize with default scale if no products
+                    CalculateDashboardYAxisScale(100);
+                }
 
                 TopSellingProductsToday = new ObservableCollection<TrendItem>(productSales);
+                OnPropertyChanged(nameof(DashboardYAxisValues));
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load top selling products: {ex.Message}");
                 // Initialize with empty collection on error
                 TopSellingProductsToday = new ObservableCollection<TrendItem>();
+                // Initialize with default scale on error
+                CalculateDashboardYAxisScale(100);
+                OnPropertyChanged(nameof(DashboardYAxisValues));
             }
         }
 

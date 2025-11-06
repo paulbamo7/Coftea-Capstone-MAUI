@@ -134,6 +134,16 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
+                // Check if there are any items selected
+                if (EditableItems == null || EditableItems.Count == 0)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "No Items Selected",
+                        "Please add at least one item to create a purchase order.",
+                        "OK");
+                    return;
+                }
+
                 // Validate all items have valid quantities
                 var invalidItems = EditableItems.Where(i => i.ApprovedQuantity <= 0 || string.IsNullOrWhiteSpace(i.ApprovedUoM)).ToList();
                 if (invalidItems.Any())

@@ -18,6 +18,7 @@ namespace Coftea_Capstone.ViewModel
         // ===================== Dependencies & Services =====================
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
+        public ViewModel.Controls.DateFilterPopupViewModel DateFilterPopup { get; set; }
 
         private readonly Database _database;
         private readonly Services.ISalesReportService _salesReportService;
@@ -75,6 +76,16 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedTimePeriod = "All";
 
+        // Date filter properties
+        [ObservableProperty]
+        private DateTime? selectedStartDate;
+
+        [ObservableProperty]
+        private DateTime? selectedEndDate;
+
+        [ObservableProperty]
+        private string dateFilterText = "All Dates";
+
         [ObservableProperty]
         private decimal weeklyCashTotal;
 
@@ -110,6 +121,44 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private decimal yesterdayTotalSales;
+
+        // Comparison period properties (previous period for comparison)
+        [ObservableProperty]
+        private decimal comparisonCashTotal;
+
+        [ObservableProperty]
+        private decimal comparisonGCashTotal;
+
+        [ObservableProperty]
+        private decimal comparisonBankTotal;
+
+        [ObservableProperty]
+        private decimal comparisonTotalSales;
+
+        [ObservableProperty]
+        private string comparisonPeriodLabel = string.Empty; // e.g., "vs Yesterday"
+
+        // Computed comparison properties
+        public decimal ComparisonDifference => DisplayTotalSales - ComparisonTotalSales;
+        
+        public decimal ComparisonPercentageChange
+        {
+            get
+            {
+                if (ComparisonTotalSales == 0) return DisplayTotalSales > 0 ? 100 : 0;
+                return ((DisplayTotalSales - ComparisonTotalSales) / ComparisonTotalSales) * 100;
+            }
+        }
+
+        public string ComparisonDifferenceText => ComparisonDifference >= 0 
+            ? $"+₱{ComparisonDifference:N2}" 
+            : $"₱{ComparisonDifference:N2}";
+
+        public string ComparisonPercentageText => ComparisonPercentageChange >= 0
+            ? $"+{ComparisonPercentageChange:F1}%"
+            : $"{ComparisonPercentageChange:F1}%";
+
+        public bool IsComparisonPositive => ComparisonDifference >= 0;
 
         // Computed properties for display
         public decimal DisplayCashTotal => SelectedTimePeriod switch
@@ -276,6 +325,11 @@ namespace Coftea_Capstone.ViewModel
             _database = new Database(); // Will use auto-detected host
             SettingsPopup = settingsPopup;
             _salesReportService = salesReportService ?? new Services.DatabaseSalesReportService();
+            DateFilterPopup = new ViewModel.Controls.DateFilterPopupViewModel();
+            
+            // Initialize Y-axis values with default scale (20, 40, 60, 80, 100)
+            CalculateYAxisScale(100, WeeklyYAxisValues);
+            CalculateYAxisScale(100, MonthlyYAxisValues);
             
             // Load cumulative totals on initialization
             _ = LoadCumulativeTotalsAsync();
@@ -347,10 +401,10 @@ namespace Coftea_Capstone.ViewModel
             
             try
             {
-                // Get recent transactions from today
-                var today = DateTime.Today;
-                var tomorrow = today.AddDays(1);
-                var recentTransactions = await _database.GetTransactionsByDateRangeAsync(today, tomorrow);
+                // Get recent transactions using date filter
+                var startDate = SelectedStartDate ?? DateTime.Today;
+                var endDate = SelectedEndDate ?? DateTime.Today.AddDays(1);
+                var recentTransactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
                 
                 // Sort by transaction date descending and take the most recent 10
                 var sortedTransactions = recentTransactions
@@ -427,12 +481,12 @@ namespace Coftea_Capstone.ViewModel
                 OnPropertyChanged(nameof(DisplayBankTotal));
                 OnPropertyChanged(nameof(DisplayTotalSales));
 
-                // Refresh top products for pie/bar charts (today)
+                // Refresh top products for pie/bar charts (using date filter)
                 try
                 {
-                    var today = DateTime.Today;
-                    var tomorrow = today.AddDays(1);
-                    var topDict = await _database.GetTopProductsByDateRangeAsync(today, tomorrow, 50);
+                    var startDate = SelectedStartDate ?? DateTime.Today;
+                    var endDate = SelectedEndDate ?? DateTime.Today.AddDays(1);
+                    var topDict = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 50);
                     
                     // Categorize products properly
                     var allProducts = await _database.GetProductsAsyncCached();
@@ -566,9 +620,9 @@ namespace Coftea_Capstone.ViewModel
                 }
 
                 // Pull summary from service (real implementation can fetch from DB)
-                var startDate = DateTime.Today.AddDays(-30); // Last 30 days
-                var endDate = DateTime.Today.AddDays(1); // Include today
-                var summary = await _salesReportService.GetSummaryAsync(startDate, endDate);
+                var filterStartDate = SelectedStartDate ?? DateTime.Today.AddDays(-30); // Last 30 days or selected date
+                var filterEndDate = SelectedEndDate ?? DateTime.Today.AddDays(1); // Include today or selected date
+                var summary = await _salesReportService.GetSummaryAsync(filterStartDate, filterEndDate);
 
                 SalesReports = new ObservableCollection<SalesReportPageModel>(summary.Reports ?? new List<SalesReportPageModel>());
 
@@ -591,6 +645,9 @@ namespace Coftea_Capstone.ViewModel
                 
                 // Calculate time period totals
                 await CalculateTimePeriodTotalsAsync();
+                
+                // Calculate comparison period totals
+                await CalculateComparisonPeriodTotalsAsync();
 
                 TopCoffeeToday = new ObservableCollection<TrendItem>(summary.TopCoffeeToday ?? new List<TrendItem>());
                 TopMilkteaToday = new ObservableCollection<TrendItem>(summary.TopMilkteaToday ?? new List<TrendItem>());
@@ -662,6 +719,12 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(DisplayGCashTotal));
             OnPropertyChanged(nameof(DisplayBankTotal));
             OnPropertyChanged(nameof(DisplayTotalSales));
+            OnPropertyChanged(nameof(ComparisonDifference));
+            OnPropertyChanged(nameof(ComparisonPercentageChange));
+            OnPropertyChanged(nameof(ComparisonDifferenceText));
+            OnPropertyChanged(nameof(ComparisonPercentageText));
+            OnPropertyChanged(nameof(IsComparisonPositive));
+            OnPropertyChanged(nameof(ComparisonPeriodLabel));
             
             // Also update category-specific data when time period changes
             ApplyCategoryFilter();
@@ -671,6 +734,45 @@ namespace Coftea_Capstone.ViewModel
         private void SelectCategory(string category) // Select category and apply filter
         {
             SelectedCategory = category;
+        }
+
+        [RelayCommand]
+        private void SelectDateFilter() // Open date filter popup
+        {
+            try
+            {
+                DateFilterPopup.Show((startDate, endDate) =>
+                {
+                    SelectedStartDate = startDate;
+                    SelectedEndDate = endDate;
+
+                    // Update date filter text
+                    if (startDate == null || endDate == null)
+                    {
+                        DateFilterText = "All Dates";
+                    }
+                    else
+                    {
+                        var start = startDate.Value;
+                        var end = endDate.Value.AddDays(-1); // Subtract 1 because endDate includes the next day
+                        if (start.Date == end.Date)
+                        {
+                            DateFilterText = start.ToString("MMM dd, yyyy");
+                        }
+                        else
+                        {
+                            DateFilterText = $"{start:MMM dd} - {end:MMM dd, yyyy}";
+                        }
+                    }
+
+                    // Reload data with the new date filter
+                    _ = LoadDataAsync();
+                }, SelectedStartDate, SelectedEndDate);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in SelectDateFilter: {ex.Message}");
+            }
         }
 
         [RelayCommand]
@@ -693,11 +795,19 @@ namespace Coftea_Capstone.ViewModel
                 // Calculate the new totals
                 await CalculateTimePeriodTotalsAsync();
                 
+                // Calculate comparison period totals
+                await CalculateComparisonPeriodTotalsAsync();
+                
                 // Notify UI of all property changes in a single batch
                 OnPropertyChanged(nameof(DisplayCashTotal));
                 OnPropertyChanged(nameof(DisplayGCashTotal));
                 OnPropertyChanged(nameof(DisplayBankTotal));
                 OnPropertyChanged(nameof(DisplayTotalSales));
+                OnPropertyChanged(nameof(ComparisonDifference));
+                OnPropertyChanged(nameof(ComparisonPercentageChange));
+                OnPropertyChanged(nameof(ComparisonDifferenceText));
+                OnPropertyChanged(nameof(ComparisonPercentageText));
+                OnPropertyChanged(nameof(IsComparisonPositive));
                 
                 // Force UI update
                 await Task.Delay(50); // Small delay to allow UI to catch up
@@ -733,11 +843,19 @@ namespace Coftea_Capstone.ViewModel
                 SetMaxCountForItems(topWeeklyItems);
                 AssignUniqueColors(topWeeklyItems); // Assign unique colors to weekly items
                 
+                // Calculate Y-axis scale for weekly chart
+                int weeklyMaxCount = topWeeklyItems.Any() ? topWeeklyItems.Max(x => x.Count) : 100;
+                CalculateYAxisScale(weeklyMaxCount, WeeklyYAxisValues);
+                
                 // Create monthly data (combine weekly data for demo)
                 var monthlyItems = GetFilteredItems(TopCoffeeWeekly, TopMilkteaWeekly, TopFrappeWeekly, TopFruitSodaWeekly, SelectedCategory);
                 var topMonthlyItems = monthlyItems.OrderByDescending(x => x.Count).Take(5).ToList();
                 SetMaxCountForItems(topMonthlyItems);
                 AssignUniqueColors(topMonthlyItems); // Assign unique colors to monthly items
+                
+                // Calculate Y-axis scale for monthly chart
+                int monthlyMaxCount = topMonthlyItems.Any() ? topMonthlyItems.Max(x => x.Count) : 100;
+                CalculateYAxisScale(monthlyMaxCount, MonthlyYAxisValues);
                 
                 // Update filtered order counts
                 FilteredTodayOrders = todayItems.Sum(x => x.Count);
@@ -763,6 +881,8 @@ namespace Coftea_Capstone.ViewModel
                         OnPropertyChanged(nameof(TopItemsToday));
                         OnPropertyChanged(nameof(TopItemsWeekly));
                         OnPropertyChanged(nameof(TopItemsMonthly));
+                        OnPropertyChanged(nameof(WeeklyYAxisValues));
+                        OnPropertyChanged(nameof(MonthlyYAxisValues));
                         OnPropertyChanged(nameof(Item1Name));
                         OnPropertyChanged(nameof(Item2Name));
                         OnPropertyChanged(nameof(Item3Name));
@@ -822,10 +942,45 @@ namespace Coftea_Capstone.ViewModel
             int maxCount = items.Max(x => x.Count);
             if (maxCount <= 0) maxCount = 1; // Prevent division by zero
             
-            // Set the MaxCount for each item
+            // Calculate the Y-axis maximum value (round up to nearest 20)
+            int yAxisMax = ((maxCount / 20) + 1) * 20;
+            if (yAxisMax < 100) yAxisMax = 100; // Minimum scale is 100
+            
+            // Set the MaxCount and YAxisMax for each item
             foreach (var item in items)
             {
                 item.MaxCount = maxCount;
+                item.YAxisMax = yAxisMax;
+            }
+        }
+
+        // Y-axis scale properties for bar charts
+        [ObservableProperty]
+        private ObservableCollection<int> weeklyYAxisValues = new();
+
+        [ObservableProperty]
+        private ObservableCollection<int> monthlyYAxisValues = new();
+
+        private void CalculateYAxisScale(int maxCount, ObservableCollection<int> targetCollection)
+        {
+            targetCollection.Clear();
+            
+            // Calculate the maximum Y-axis value (round up to nearest 20)
+            int maxYValue = ((maxCount / 20) + 1) * 20;
+            if (maxYValue < 100) maxYValue = 100; // Minimum scale is 100
+            
+            // Generate Y-axis values: 20, 40, 60, 80, 100, 120, 140, etc.
+            // Add in reverse order for display (top to bottom)
+            var values = new List<int>();
+            for (int value = 20; value <= maxYValue; value += 20)
+            {
+                values.Add(value);
+            }
+            
+            // Reverse to show from top (highest) to bottom (lowest)
+            for (int i = values.Count - 1; i >= 0; i--)
+            {
+                targetCollection.Add(values[i]);
             }
         }
 
@@ -1317,6 +1472,152 @@ namespace Coftea_Capstone.ViewModel
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error calculating {SelectedTimePeriod} totals: {ex.Message}");
+            }
+        }
+
+        private async Task CalculateComparisonPeriodTotalsAsync() // Calculate comparison period totals
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var today = now.Date;
+                
+                if (SelectedTimePeriod == "Today")
+                {
+                    // Compare with Yesterday
+                    var yesterday = today.AddDays(-1);
+                    var yesterdayStart = yesterday;
+                    var yesterdayEnd = today;
+                    
+                    var yesterdayTransactions = await _database.GetTransactionsByDateRangeAsync(yesterdayStart, yesterdayEnd);
+                    
+                    ComparisonCashTotal = yesterdayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonGCashTotal = yesterdayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonBankTotal = yesterdayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonTotalSales = yesterdayTransactions.Sum(t => t.Total);
+                    ComparisonPeriodLabel = "vs Yesterday";
+                }
+                else if (SelectedTimePeriod == "Yesterday")
+                {
+                    // Compare with Today
+                    var todayStart = today;
+                    var todayEnd = today.AddDays(1);
+                    
+                    var todayTransactions = await _database.GetTransactionsByDateRangeAsync(todayStart, todayEnd);
+                    
+                    ComparisonCashTotal = todayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonGCashTotal = todayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonBankTotal = todayTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonTotalSales = todayTransactions.Sum(t => t.Total);
+                    ComparisonPeriodLabel = "vs Today";
+                }
+                else if (SelectedTimePeriod == "1 Week")
+                {
+                    // Compare with previous week (7 days before the current week)
+                    var previousWeekStart = today.AddDays(-14);
+                    var previousWeekEnd = today.AddDays(-7);
+                    
+                    var previousWeekTransactions = await _database.GetTransactionsByDateRangeAsync(previousWeekStart, previousWeekEnd);
+                    
+                    ComparisonCashTotal = previousWeekTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonGCashTotal = previousWeekTransactions
+                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonBankTotal = previousWeekTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonTotalSales = previousWeekTransactions.Sum(t => t.Total);
+                    ComparisonPeriodLabel = "vs Previous Week";
+                }
+                else if (SelectedTimePeriod == "1 Month")
+                {
+                    // Compare with previous month (30 days before the current month)
+                    var previousMonthStart = today.AddMonths(-1).AddDays(-30);
+                    var previousMonthEnd = today.AddMonths(-1);
+                    
+                    var previousMonthTransactions = await _database.GetTransactionsByDateRangeAsync(previousMonthStart, previousMonthEnd);
+                    
+                    ComparisonCashTotal = previousMonthTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonGCashTotal = previousMonthTransactions
+                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonBankTotal = previousMonthTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonTotalSales = previousMonthTransactions.Sum(t => t.Total);
+                    ComparisonPeriodLabel = "vs Previous Month";
+                }
+                else if (SelectedTimePeriod == "All Time")
+                {
+                    // Compare with previous month (30 days before today)
+                    var previousMonthStart = today.AddMonths(-1);
+                    var previousMonthEnd = today;
+                    
+                    var previousMonthTransactions = await _database.GetTransactionsByDateRangeAsync(previousMonthStart, previousMonthEnd);
+                    
+                    ComparisonCashTotal = previousMonthTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonGCashTotal = previousMonthTransactions
+                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonBankTotal = previousMonthTransactions
+                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                        .Sum(t => t.Total);
+                    
+                    ComparisonTotalSales = previousMonthTransactions.Sum(t => t.Total);
+                    ComparisonPeriodLabel = "vs Previous Month";
+                }
+                else
+                {
+                    // Default: no comparison
+                    ComparisonCashTotal = 0;
+                    ComparisonGCashTotal = 0;
+                    ComparisonBankTotal = 0;
+                    ComparisonTotalSales = 0;
+                    ComparisonPeriodLabel = string.Empty;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"Comparison period ({ComparisonPeriodLabel}) totals - Cash: {ComparisonCashTotal}, GCash: {ComparisonGCashTotal}, Bank: {ComparisonBankTotal}, Total: {ComparisonTotalSales}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error calculating comparison period totals: {ex.Message}");
+                ComparisonCashTotal = 0;
+                ComparisonGCashTotal = 0;
+                ComparisonBankTotal = 0;
+                ComparisonTotalSales = 0;
+                ComparisonPeriodLabel = string.Empty;
             }
         }
 

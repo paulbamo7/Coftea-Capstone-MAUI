@@ -378,9 +378,15 @@ namespace Coftea_Capstone.ViewModel
                 {
                     // Add new product
                     var existingProducts = await _database.GetProductsAsync();
-                    if (existingProducts.Any(p => p.ProductName == ProductName))
+                    // Check for duplicate: same name AND same category AND same subcategory
+                    var duplicateProduct = existingProducts.FirstOrDefault(p => 
+                        string.Equals(p.ProductName, ProductName, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(p.Category, SelectedCategory, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(p.Subcategory ?? string.Empty, EffectiveCategory ?? string.Empty, StringComparison.OrdinalIgnoreCase));
+                    
+                    if (duplicateProduct != null)
                     {
-                        await Application.Current.MainPage.DisplayAlert("Error", "Product already exists!", "OK");
+                        await Application.Current.MainPage.DisplayAlert("Error", "A product with this name, category, and subcategory already exists!", "OK");
                         return;
                     }
 
