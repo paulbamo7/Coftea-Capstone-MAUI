@@ -266,46 +266,41 @@
                                    HorizontalOptions="Center"/>
                             
                             <!-- Comparison Section -->
-                            <Border BackgroundColor="#E8F5E8" 
-                                   Stroke="#81C784"
-                                   StrokeThickness="1"
-                                   StrokeShape="RoundRectangle 10"
-                                   Padding="12" 
-                                   Margin="0,8,0,0"
-                                   IsVisible="{Binding ComparisonPeriodLabel, Converter={StaticResource NullToBoolConverter}}">
-                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
-                                    <Label Text="{Binding ComparisonPeriodLabel}" 
-                                           FontSize="12" 
+                            <VerticalStackLayout Spacing="4"
+                                                 Margin="0,8,0,0"
+                                                 HorizontalOptions="Center"
+                                                 IsVisible="{Binding ComparisonPeriodLabel, Converter={StaticResource NullToBoolConverter}}">
+                                <Label Text="{Binding ComparisonPeriodLabel}" 
+                                       FontSize="12" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#558B2F" 
+                                       HorizontalOptions="Center"/>
+                                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8" HorizontalOptions="Center">
+                                    <Label Text="{Binding ComparisonDifferenceText}" 
+                                           FontSize="16" 
                                            FontAttributes="Bold" 
-                                           TextColor="#558B2F" 
-                                           HorizontalOptions="Center"/>
-                                    <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8" HorizontalOptions="Center">
-                                        <Label Text="{Binding ComparisonDifferenceText}" 
-                                               FontSize="16" 
-                                               FontAttributes="Bold" 
-                                               TextColor="#2E7D32"
-                                               HorizontalOptions="Center">
-                                            <Label.Triggers>
-                                                <DataTrigger TargetType="Label" Binding="{Binding IsComparisonPositive}" Value="False">
-                                                    <Setter Property="TextColor" Value="#D32F2F" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                        <Label Text="{Binding ComparisonPercentageText}" 
-                                               Grid.Column="1"
-                                               FontSize="14" 
-                                               FontAttributes="Bold" 
-                                               TextColor="#2E7D32"
-                                               HorizontalOptions="Center">
-                                            <Label.Triggers>
-                                                <DataTrigger TargetType="Label" Binding="{Binding IsComparisonPositive}" Value="False">
-                                                    <Setter Property="TextColor" Value="#D32F2F" />
-                                                </DataTrigger>
-                                            </Label.Triggers>
-                                        </Label>
-                                    </Grid>
-                                </VerticalStackLayout>
-                            </Border>
+                                           TextColor="#2E7D32"
+                                           HorizontalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsComparisonPositive}" Value="False">
+                                                <Setter Property="TextColor" Value="#D32F2F" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Label Text="{Binding ComparisonPercentageText}" 
+                                           Grid.Column="1"
+                                           FontSize="14" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#2E7D32"
+                                           HorizontalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsComparisonPositive}" Value="False">
+                                                <Setter Property="TextColor" Value="#D32F2F" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </Grid>
+                            </VerticalStackLayout>
                             
                             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,10,0,0">
                                 <Frame Grid.Column="0" BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True" HorizontalOptions="FillAndExpand">
