@@ -46,8 +46,8 @@ namespace Coftea_Capstone.Services
                             statement_descriptor = "Coftea POS",
                             redirect = new
                             {
-                                success = "https://coftea.app/payments/success",
-                                failed = "https://coftea.app/payments/failed"
+                                success = "https://paulbamo7.github.io/PaymentCapstone/",
+                                failed = "https://paulbamo7.github.io/PaymentCapstone/"
                             },
                             billing = new
                             {

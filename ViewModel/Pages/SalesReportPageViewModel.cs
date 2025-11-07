@@ -8,6 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Models;
+using Coftea_Capstone.Models.Reports;
+using Coftea_Capstone.Services;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Networking;
 using System.Windows.Input;
 
@@ -22,6 +25,16 @@ namespace Coftea_Capstone.ViewModel
 
         private readonly Database _database;
         private readonly Services.ISalesReportService _salesReportService;
+        private readonly string[] _aggregateModes = new[]
+        {
+            "Total sales per product",
+            "Sales per day",
+            "Sales per week",
+            "Sales per month"
+        };
+
+        private CancellationTokenSource? _aggregateCts;
+        private bool _suppressAggregateModeChanged;
 
         // ===================== State & Models =====================
         [ObservableProperty]
@@ -320,6 +333,23 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int recentOrdersCount;
 
+        public ObservableCollection<string> AggregateModes { get; } = new();
+        public ObservableCollection<SalesAggregateRow> SalesAggregateRows { get; } = new();
+
+        [ObservableProperty]
+        private bool isAggregateSectionVisible;
+
+        [ObservableProperty]
+        private bool isAggregateLoading;
+
+        [ObservableProperty]
+        private bool hasAggregateRows;
+
+        [ObservableProperty]
+        private string selectedAggregateMode;
+
+        public string AggregateToggleText => IsAggregateSectionVisible ? "Hide breakdown" : "View breakdown";
+
         private static readonly DateTime DefaultReportStartDate = new DateTime(2020, 1, 1);
 
         private DateTime GetFilterStartDate()
@@ -345,6 +375,15 @@ namespace Coftea_Capstone.ViewModel
             
             // Load cumulative totals on initialization
             _ = LoadCumulativeTotalsAsync();
+
+            foreach (var option in _aggregateModes)
+            {
+                AggregateModes.Add(option);
+            }
+
+            _suppressAggregateModeChanged = true;
+            SelectedAggregateMode = AggregateModes.FirstOrDefault() ?? string.Empty;
+            _suppressAggregateModeChanged = false;
         }
 
         [RelayCommand]
@@ -562,6 +601,8 @@ namespace Coftea_Capstone.ViewModel
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error refreshing today's sales: {ex.Message}");
             }
+
+            await LoadAggregateRowsAsync(ignoreVisibility: true);
         }
 
         private async Task CalculatePaymentMethodTotalsAsync() // Calculate today's totals by payment method
@@ -709,6 +750,8 @@ namespace Coftea_Capstone.ViewModel
 
                 ApplyCategoryFilter();
                 UpdateHeaderRanges();
+
+                await LoadAggregateRowsAsync(ignoreVisibility: true);
             }
             catch (OperationCanceledException)
             {
@@ -736,6 +779,90 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private SalesAggregateGrouping MapAggregateGrouping(string mode)
+        {
+            return mode switch
+            {
+                "Sales per day" => SalesAggregateGrouping.Day,
+                "Sales per week" => SalesAggregateGrouping.Week,
+                "Sales per month" => SalesAggregateGrouping.Month,
+                _ => SalesAggregateGrouping.Product
+            };
+        }
+
+        private async Task LoadAggregateRowsAsync(bool ignoreVisibility = false)
+        {
+            if (!ignoreVisibility && !IsAggregateSectionVisible)
+            {
+                return;
+            }
+
+            if (!AggregateModes.Any())
+            {
+                foreach (var option in _aggregateModes)
+                {
+                    AggregateModes.Add(option);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(SelectedAggregateMode))
+            {
+                _suppressAggregateModeChanged = true;
+                SelectedAggregateMode = AggregateModes.FirstOrDefault() ?? string.Empty;
+                _suppressAggregateModeChanged = false;
+                if (string.IsNullOrWhiteSpace(SelectedAggregateMode))
+                {
+                    return;
+                }
+            }
+
+            _aggregateCts?.Cancel();
+            _aggregateCts?.Dispose();
+            _aggregateCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            var token = _aggregateCts.Token;
+
+            try
+            {
+                IsAggregateLoading = true;
+
+                var start = GetFilterStartDate();
+                var end = GetFilterEndDateExclusive();
+                var grouping = MapAggregateGrouping(SelectedAggregateMode);
+
+                var rows = await _salesReportService.GetAggregatesAsync(start, end, grouping, token);
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    SalesAggregateRows.Clear();
+                    foreach (var row in rows)
+                    {
+                        SalesAggregateRows.Add(row);
+                    }
+
+                    HasAggregateRows = SalesAggregateRows.Count > 0;
+                });
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("ℹ️ LoadAggregateRowsAsync cancelled");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ LoadAggregateRowsAsync error: {ex.Message}");
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    SalesAggregateRows.Clear();
+                    HasAggregateRows = false;
+                });
+            }
+            finally
+            {
+                IsAggregateLoading = false;
+                _aggregateCts?.Dispose();
+                _aggregateCts = null;
+            }
+        }
+
         partial void OnSelectedCategoryChanged(string value) // Apply category filter
         {
             System.Diagnostics.Debug.WriteLine($"Category changed to: {value}");
@@ -748,6 +875,26 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(FilteredTodayOrders));
             OnPropertyChanged(nameof(FilteredWeeklyOrders));
             OnPropertyChanged(nameof(MonthlyOrders));
+        }
+
+        partial void OnIsAggregateSectionVisibleChanged(bool value)
+        {
+            OnPropertyChanged(nameof(AggregateToggleText));
+        }
+
+        partial void OnSelectedAggregateModeChanged(string value)
+        {
+            if (_suppressAggregateModeChanged)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            _ = LoadAggregateRowsAsync(ignoreVisibility: true);
         }
 
         partial void OnSelectedTimePeriodChanged(string value) // Update display totals
@@ -772,6 +919,17 @@ namespace Coftea_Capstone.ViewModel
         private void SelectCategory(string category) // Select category and apply filter
         {
             SelectedCategory = category;
+        }
+
+        [RelayCommand]
+        private async Task ToggleAggregateSection()
+        {
+            IsAggregateSectionVisible = !IsAggregateSectionVisible;
+
+            if (IsAggregateSectionVisible)
+            {
+                await LoadAggregateRowsAsync(ignoreVisibility: true);
+            }
         }
 
         [RelayCommand]

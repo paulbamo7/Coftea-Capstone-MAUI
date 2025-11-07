@@ -284,17 +284,15 @@
                                 </Frame>
 
                                 <!-- Payment Status -->
-                                <Grid Grid.Row="2" Margin="0,0,0,15" ColumnDefinitions="*,Auto">
-                                    <Label Grid.Column="0" Text="Payment Status:" 
+                                <VerticalStackLayout Grid.Row="2" Spacing="4" Margin="0,0,0,15">
+                                    <Label Text="Payment Status:" 
                                            FontSize="16" FontFamily="MontserratBlack" 
-                                           TextColor="Black"
-                                           VerticalOptions="Center" />
-                                    <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
+                                           TextColor="Black" />
+                                    <Label Text="{Binding PaymentStatus}" 
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
-                                           TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
-                                           VerticalOptions="Center" />
-                                </Grid>
+                                           TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}" />
+                                </VerticalStackLayout>
 
                                 <!-- GCash Payment Steps -->
                                 <Frame Grid.Row="3" Padding="15" BackgroundColor="#F0F9FF" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">
@@ -357,17 +355,15 @@
                                 </Frame>
 
                                 <!-- Payment Status -->
-                                <Grid Grid.Row="2" Margin="0,0,0,15" ColumnDefinitions="*,Auto">
-                                    <Label Grid.Column="0" Text="Payment Status:" 
+                                <VerticalStackLayout Grid.Row="2" Spacing="4" Margin="0,0,0,15">
+                                    <Label Text="Payment Status:" 
                                            FontSize="16" FontFamily="MontserratBlack" 
-                                           TextColor="Black"
-                                           VerticalOptions="Center" />
-                                    <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
+                                           TextColor="Black" />
+                                    <Label Text="{Binding PaymentStatus}" 
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
-                                           TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
-                                           VerticalOptions="Center" />
-                                </Grid>
+                                           TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}" />
+                                </VerticalStackLayout>
 
                                 <!-- Bank Transfer Steps -->
                                 <Frame Grid.Row="3" Padding="15" BackgroundColor="#F3F4F6" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">

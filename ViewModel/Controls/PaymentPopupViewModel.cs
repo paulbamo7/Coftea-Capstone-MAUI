@@ -17,6 +17,8 @@ namespace Coftea_Capstone.ViewModel.Controls
     {
         private readonly CartStorageService _cartStorage = new CartStorageService();
         private readonly PayMongoService _payMongoService = new PayMongoService();
+        private string? _currentGCashSourceId;
+        private string? _currentGCashCheckoutUrl;
         
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
@@ -81,52 +83,69 @@ namespace Coftea_Capstone.ViewModel.Controls
             PaymentStatus = "Pending";
             IsPaymentVisible = true;
             System.Diagnostics.Debug.WriteLine($"PaymentPopup IsPaymentVisible set to: {IsPaymentVisible}");
-            
-            // Generate QR code for GCash payment (contains total amount and transaction info)
-            var qrCodeText = $"GCASH_PAYMENT:{total:F2}:{DateTime.Now:yyyyMMddHHmmss}";
-            QrCodeImageSource = QRCodeService.GenerateQRCode(qrCodeText, 250);
-            System.Diagnostics.Debug.WriteLine($"🔵 QR code generated in ShowPayment: {(QrCodeImageSource != null ? "Success" : "Failed")}");
-            
+
+            _currentGCashCheckoutUrl = null;
+            _currentGCashSourceId = null;
+            QrCodeImageSource = null;
+            SelectedPaymentMethod = "Cash";
+
             // Force property change notification
             OnPropertyChanged(nameof(IsPaymentVisible));
             OnPropertyChanged(nameof(QrCodeImageSource));
+            OnPropertyChanged(nameof(SelectedPaymentMethod));
         }
 
         [RelayCommand]
         private void ClosePayment() // Close payment popup
         {
             IsPaymentVisible = false;
+            _currentGCashCheckoutUrl = null;
+            _currentGCashSourceId = null;
         }
 
         [RelayCommand]
-        private void SelectPaymentMethod(string method) // Cash, GCash, Bank
+        private async Task SelectPaymentMethod(string method) // Cash, GCash, Bank
         {
             SelectedPaymentMethod = method;
             System.Diagnostics.Debug.WriteLine($"Payment method selected: {method}");
 
-            // Auto-fill payment for non-cash methods so user doesn't need to type amount
-            if (IsGCashSelected || IsBankSelected)
+            if (IsGCashSelected)
+            {
+                AmountPaid = TotalAmount;
+                Change = 0;
+                PaymentStatus = "Preparing GCash checkout...";
+
+                var prepareResult = await EnsureGCashCheckoutAsync(forceNew: true);
+                if (!prepareResult.Success)
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "GCash Payment",
+                        prepareResult.ErrorMessage ?? "Unable to prepare GCash checkout. Please try again.",
+                        "OK");
+
+                    SelectedPaymentMethod = "Cash";
+                    AmountPaid = 0;
+                    Change = -TotalAmount;
+                    PaymentStatus = "Pending";
+                    QrCodeImageSource = null;
+                    return;
+                }
+
+                PaymentStatus = "Scan the QR code to continue on GCash";
+            }
+            else if (IsBankSelected)
             {
                 AmountPaid = TotalAmount;
                 Change = 0;
                 PaymentStatus = "Ready to Confirm";
-                
-                // Regenerate QR code when GCash is selected
-                if (IsGCashSelected)
-                {
-                    System.Diagnostics.Debug.WriteLine($"🔵 Generating QR code for GCash payment: {TotalAmount:F2}");
-                    var qrCodeText = $"GCASH_PAYMENT:{TotalAmount:F2}:{DateTime.Now:yyyyMMddHHmmss}";
-                    QrCodeImageSource = QRCodeService.GenerateQRCode(qrCodeText, 250);
-                    System.Diagnostics.Debug.WriteLine($"🔵 QR code generated: {(QrCodeImageSource != null ? "Success" : "Failed")}");
-                    OnPropertyChanged(nameof(QrCodeImageSource));
-                }
+                QrCodeImageSource = null;
             }
             else
             {
-                // Cash – require amount
                 AmountPaid = 0;
                 Change = -TotalAmount;
                 PaymentStatus = "Pending";
+                QrCodeImageSource = null;
             }
         }
 
@@ -186,6 +205,12 @@ namespace Coftea_Capstone.ViewModel.Controls
                 if (!gcashResult)
                 {
                     PaymentStatus = "GCash payment cancelled";
+                    return;
+                }
+
+                var confirmed = await WaitForGCashCompletionAsync();
+                if (!confirmed)
+                {
                     return;
                 }
             }
@@ -1186,30 +1211,29 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
-                PaymentStatus = "Creating GCash payment...";
-                var result = await _payMongoService.CreateGCashSourceAsync(
-                    TotalAmount,
-                    $"Coftea POS Order {DateTime.Now:yyyyMMddHHmmss}");
+                PaymentStatus = "Preparing GCash checkout...";
+                var ensureResult = await EnsureGCashCheckoutAsync();
 
-                if (!result.Success || string.IsNullOrWhiteSpace(result.CheckoutUrl))
+                if (!ensureResult.Success || string.IsNullOrWhiteSpace(_currentGCashCheckoutUrl))
                 {
                     await Application.Current.MainPage.DisplayAlert(
                         "GCash Payment Failed",
-                        result.ErrorMessage ?? "Unable to create payment link. Please try again.",
+                        ensureResult.ErrorMessage ?? "Unable to create payment link. Please try again.",
                         "OK");
                     return false;
                 }
+
                 PaymentStatus = "Awaiting GCash payment...";
 
                 try
                 {
-                    await Browser.Default.OpenAsync(result.CheckoutUrl, BrowserLaunchMode.SystemPreferred);
+                    await Browser.Default.OpenAsync(_currentGCashCheckoutUrl, BrowserLaunchMode.SystemPreferred);
                 }
                 catch
                 {
                     await Application.Current.MainPage.DisplayAlert(
                         "GCash Checkout",
-                        $"Open this link to complete payment:\n{result.CheckoutUrl}",
+                        $"Open this link to complete payment:\n{_currentGCashCheckoutUrl}",
                         "OK");
                 }
 
@@ -1222,6 +1246,124 @@ namespace Coftea_Capstone.ViewModel.Controls
                     ex.Message,
                     "OK");
                 return false;
+            }
+        }
+
+        private async Task<bool> WaitForGCashCompletionAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_currentGCashSourceId))
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "GCash Payment",
+                    "Unable to track the GCash payment source. Please try again.",
+                    "OK");
+                return false;
+            }
+
+            PaymentStatus = "Waiting for GCash confirmation...";
+            var timeout = TimeSpan.FromMinutes(5);
+            var pollDelay = TimeSpan.FromSeconds(4);
+            var startUtc = DateTime.UtcNow;
+
+            while (DateTime.UtcNow - startUtc < timeout)
+            {
+                try
+                {
+                    if (!Services.NetworkService.HasInternetConnection())
+                    {
+                        PaymentStatus = "Waiting for network to verify payment...";
+                        await Task.Delay(pollDelay);
+                        continue;
+                    }
+
+                    var (success, status, error) = await _payMongoService.RetrieveSourceStatusAsync(_currentGCashSourceId);
+                    if (!success)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ PayMongo status check failed: {error}");
+                        PaymentStatus = "Verifying payment with PayMongo...";
+                        await Task.Delay(pollDelay);
+                        continue;
+                    }
+
+                    var normalized = status?.Trim().ToLowerInvariant() ?? string.Empty;
+                    System.Diagnostics.Debug.WriteLine($"🔍 PayMongo source {_currentGCashSourceId} status: {normalized}");
+
+                    switch (normalized)
+                    {
+                        case "chargeable":
+                        case "paid":
+                            PaymentStatus = "GCash payment confirmed";
+                            _currentGCashSourceId = null;
+                            return true;
+                        case "failed":
+                        case "cancelled":
+                        case "canceled":
+                        case "expired":
+                            PaymentStatus = "GCash payment not completed";
+                            await Application.Current.MainPage.DisplayAlert(
+                                "GCash Payment",
+                                $"GCash reported the payment as {normalized}. Please ask the customer to try again.",
+                                "OK");
+                            _currentGCashSourceId = null;
+                            return false;
+                        default:
+                            PaymentStatus = "Waiting for GCash confirmation...";
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Error while polling PayMongo: {ex.Message}");
+                    PaymentStatus = "Verifying payment with PayMongo...";
+                }
+
+                await Task.Delay(pollDelay);
+            }
+
+            PaymentStatus = "GCash confirmation timed out";
+            await Application.Current.MainPage.DisplayAlert(
+                "GCash Payment",
+                "We did not receive confirmation from GCash in time. Please verify the payment before proceeding.",
+                "OK");
+            return false;
+        }
+
+        private async Task<(bool Success, string? ErrorMessage)> EnsureGCashCheckoutAsync(bool forceNew = false)
+        {
+            try
+            {
+                if (!forceNew && !string.IsNullOrWhiteSpace(_currentGCashCheckoutUrl))
+                {
+                    if (QrCodeImageSource == null)
+                    {
+                        QrCodeImageSource = QRCodeService.GenerateQRCode(_currentGCashCheckoutUrl, 250);
+                    }
+                    return (true, null);
+                }
+
+                var result = await _payMongoService.CreateGCashSourceAsync(
+                    TotalAmount,
+                    $"Coftea POS Order {DateTime.Now:yyyyMMddHHmmss}");
+
+                if (!result.Success || string.IsNullOrWhiteSpace(result.CheckoutUrl))
+                {
+                    _currentGCashCheckoutUrl = null;
+                    _currentGCashSourceId = null;
+                    QrCodeImageSource = null;
+                    return (false, result.ErrorMessage ?? "Unable to create GCash payment link.");
+                }
+
+                _currentGCashSourceId = result.SourceId;
+                _currentGCashCheckoutUrl = result.CheckoutUrl;
+                QrCodeImageSource = QRCodeService.GenerateQRCode(_currentGCashCheckoutUrl, 250);
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                _currentGCashCheckoutUrl = null;
+                _currentGCashSourceId = null;
+                QrCodeImageSource = null;
+                return (false, ex.Message);
             }
         }
     }

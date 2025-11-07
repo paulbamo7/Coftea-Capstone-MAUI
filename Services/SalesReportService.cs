@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Globalization;
 using Coftea_Capstone.Models;
-using Coftea_Capstone.Services;
+using Coftea_Capstone.Models.Reports;
 using Coftea_Capstone.C_;
 
 namespace Coftea_Capstone.Services
@@ -27,9 +28,18 @@ namespace Coftea_Capstone.Services
         public IEnumerable<SalesReportPageModel> Reports { get; set; }
     }
 
+    public enum SalesAggregateGrouping
+    {
+        Product,
+        Day,
+        Week,
+        Month
+    }
+
     public interface ISalesReportService
     {
         Task<SalesReportSummary> GetSummaryAsync(DateTime startDate, DateTime endDate);
+        Task<List<SalesAggregateRow>> GetAggregatesAsync(DateTime startDate, DateTime endDate, SalesAggregateGrouping grouping, CancellationToken cancellationToken = default);
     }
 
     // Real implementation using database
@@ -264,6 +274,165 @@ namespace Coftea_Capstone.Services
             }
         }
 
+        private static (string Key, string Label, DateTime SortDate) ResolveGrouping(TransactionHistoryModel transaction, SalesAggregateGrouping grouping)
+        {
+            var date = transaction.TransactionDate;
+
+            switch (grouping)
+            {
+                case SalesAggregateGrouping.Day:
+                    var day = date.Date;
+                    return (day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), day.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture), day);
+
+                case SalesAggregateGrouping.Week:
+                    var dateOnly = date.Date;
+                    var diffToMonday = (7 + ((int)dateOnly.DayOfWeek - (int)DayOfWeek.Monday)) % 7;
+                    var startOfWeek = dateOnly.AddDays(-diffToMonday);
+                    var endOfWeek = startOfWeek.AddDays(6);
+                    var weekLabel = FormattableString.Invariant($"Week of {startOfWeek:MMM dd} - {endOfWeek:MMM dd}");
+                    return ($"{startOfWeek:yyyy-MM-dd}", weekLabel, startOfWeek);
+
+                case SalesAggregateGrouping.Month:
+                    var monthStart = new DateTime(date.Year, date.Month, 1);
+                    return ($"{monthStart:yyyy-MM}", monthStart.ToString("MMMM yyyy", CultureInfo.InvariantCulture), monthStart);
+
+                case SalesAggregateGrouping.Product:
+                default:
+                    var productName = (transaction.DrinkName ?? "Unknown").Trim();
+                    if (string.IsNullOrWhiteSpace(productName))
+                    {
+                        productName = "Uncategorised";
+                    }
+                    return (productName.ToUpperInvariant(), productName, DateTime.MinValue);
+            }
+        }
+
+        private static SalesAggregateBreakdown ResolveBreakdown(SalesAggregateRow row, string paymentMethod)
+        {
+            if (string.IsNullOrWhiteSpace(paymentMethod))
+            {
+                return row.Cash;
+            }
+
+            paymentMethod = paymentMethod.Trim();
+
+            if (paymentMethod.Equals("gcash", StringComparison.OrdinalIgnoreCase))
+            {
+                return row.GCash;
+            }
+
+            if (paymentMethod.Equals("bank", StringComparison.OrdinalIgnoreCase) || paymentMethod.Equals("card", StringComparison.OrdinalIgnoreCase))
+            {
+                return row.Bank;
+            }
+
+            if (paymentMethod.Equals("cash", StringComparison.OrdinalIgnoreCase))
+            {
+                return row.Cash;
+            }
+
+            // Default fallback to cash grouping for other methods
+            return row.Cash;
+        }
+
+        private static decimal CalculateLineRevenue(TransactionHistoryModel transaction)
+        {
+            if (transaction == null)
+            {
+                return 0m;
+            }
+
+            if (transaction.Price > 0m)
+            {
+                return transaction.Price;
+            }
+
+            var breakdownTotal = transaction.SmallPrice + transaction.MediumPrice + transaction.LargePrice + transaction.AddonPrice;
+            if (breakdownTotal > 0m)
+            {
+                return breakdownTotal;
+            }
+
+            return transaction.Total > 0m ? transaction.Total : 0m;
+        }
+
+        public async Task<List<SalesAggregateRow>> GetAggregatesAsync(DateTime startDate, DateTime endDate, SalesAggregateGrouping grouping, CancellationToken cancellationToken = default)
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(TimeSpan.FromSeconds(20));
+
+            var effectiveEnd = endDate <= startDate ? startDate.AddDays(1) : endDate;
+
+            var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, effectiveEnd);
+
+            var aggregates = new Dictionary<string, (SalesAggregateRow Row, DateTime SortDate)>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var transaction in transactions)
+            {
+                if (transaction == null)
+                {
+                    continue;
+                }
+
+                var quantity = transaction.Quantity > 0 ? transaction.Quantity : 1;
+                if (quantity <= 0)
+                {
+                    quantity = 1;
+                }
+
+                if (string.IsNullOrWhiteSpace(transaction.DrinkName) && grouping == SalesAggregateGrouping.Product)
+                {
+                    continue;
+                }
+
+                var revenue = CalculateLineRevenue(transaction);
+                var (key, label, sortDate) = ResolveGrouping(transaction, grouping);
+
+                if (!aggregates.TryGetValue(key, out var aggregateEntry))
+                {
+                    var row = new SalesAggregateRow
+                    {
+                        GroupKey = key,
+                        GroupLabel = label,
+                        GroupingDescription = grouping.ToString()
+                    };
+                    aggregates[key] = (row, sortDate);
+                    aggregateEntry = aggregates[key];
+                }
+
+                aggregateEntry.Row.AddOverall(quantity, revenue);
+
+                var paymentBreakdown = ResolveBreakdown(aggregateEntry.Row, transaction.PaymentMethod ?? "Cash");
+                paymentBreakdown.Add(quantity, revenue);
+
+                aggregates[key] = (aggregateEntry.Row, aggregateEntry.SortDate == DateTime.MinValue ? sortDate : aggregateEntry.SortDate);
+            }
+
+            var rows = aggregates
+                .Select(pair => new
+                {
+                    pair.Value.SortDate,
+                    pair.Value.Row
+                })
+                .ToList();
+
+            if (grouping == SalesAggregateGrouping.Product)
+            {
+                rows = rows
+                    .OrderByDescending(r => r.Row.TotalQuantity)
+                    .ThenBy(r => r.Row.GroupLabel, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+            else
+            {
+                rows = rows
+                    .OrderBy(r => r.SortDate)
+                    .ToList();
+            }
+
+            return rows.Select(r => r.Row).ToList();
+        }
+
         private async Task<KeyValuePair<string, double>?> GetTrendingItemAsync(DateTime startDate, DateTime endDate)
         {
             try
@@ -383,6 +552,11 @@ namespace Coftea_Capstone.Services
                 Reports = new List<SalesReportPageModel>()
             };
             return Task.FromResult(summary);
+        }
+
+        public Task<List<SalesAggregateRow>> GetAggregatesAsync(DateTime startDate, DateTime endDate, SalesAggregateGrouping grouping, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new List<SalesAggregateRow>());
         }
 
     }
