@@ -122,7 +122,11 @@ namespace Coftea_Capstone.Services
                 var allProducts = await _database.GetProductsAsyncCached();
                 var productLookup = allProducts
                     .Where(p => !string.IsNullOrWhiteSpace(p.ProductName))
-                    .ToDictionary(p => p.ProductName, p => p, StringComparer.OrdinalIgnoreCase);
+                    .GroupBy(p => p.ProductName, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.First(),
+                        StringComparer.OrdinalIgnoreCase);
 
                 foreach (var product in aggregatedProducts)
                 {

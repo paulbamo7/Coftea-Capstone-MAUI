@@ -1265,10 +1265,10 @@ namespace Coftea_Capstone.ViewModel
             {
                 // Load cumulative totals from preferences
                 var prefs = Preferences.Default;
-                CumulativeCashTotal = prefs.Get("CumulativeCashTotal", 0m);
-                CumulativeGCashTotal = prefs.Get("CumulativeGCashTotal", 0m);
-                CumulativeBankTotal = prefs.Get("CumulativeBankTotal", 0m);
-                CumulativeTotalSales = prefs.Get("CumulativeTotalSales", 0m);
+                CumulativeCashTotal = Convert.ToDecimal(prefs.Get("CumulativeCashTotal", 0.0));
+                CumulativeGCashTotal = Convert.ToDecimal(prefs.Get("CumulativeGCashTotal", 0.0));
+                CumulativeBankTotal = Convert.ToDecimal(prefs.Get("CumulativeBankTotal", 0.0));
+                CumulativeTotalSales = Convert.ToDecimal(prefs.Get("CumulativeTotalSales", 0.0));
                 
                 System.Diagnostics.Debug.WriteLine($"Loaded cumulative totals - Cash: {CumulativeCashTotal}, GCash: {CumulativeGCashTotal}, Bank: {CumulativeBankTotal}, Total: {CumulativeTotalSales}");
             }
@@ -1302,10 +1302,10 @@ namespace Coftea_Capstone.ViewModel
                     CumulativeTotalSales += TotalSalesToday;
 
                     // Save to preferences
-                    prefs.Set("CumulativeCashTotal", CumulativeCashTotal);
-                    prefs.Set("CumulativeGCashTotal", CumulativeGCashTotal);
-                    prefs.Set("CumulativeBankTotal", CumulativeBankTotal);
-                    prefs.Set("CumulativeTotalSales", CumulativeTotalSales);
+                    prefs.Set("CumulativeCashTotal", (double)CumulativeCashTotal);
+                    prefs.Set("CumulativeGCashTotal", (double)CumulativeGCashTotal);
+                    prefs.Set("CumulativeBankTotal", (double)CumulativeBankTotal);
+                    prefs.Set("CumulativeTotalSales", (double)CumulativeTotalSales);
                     prefs.Set("LastCumulativeUpdateDate", today);
 
                     System.Diagnostics.Debug.WriteLine($"Updated cumulative totals for new day - Cash: {CumulativeCashTotal}, GCash: {CumulativeGCashTotal}, Bank: {CumulativeBankTotal}, Total: {CumulativeTotalSales}");
@@ -1334,10 +1334,10 @@ namespace Coftea_Capstone.ViewModel
 
                 // Save to preferences
                 var prefs = Preferences.Default;
-                prefs.Set("CumulativeCashTotal", 0m);
-                prefs.Set("CumulativeGCashTotal", 0m);
-                prefs.Set("CumulativeBankTotal", 0m);
-                prefs.Set("CumulativeTotalSales", 0m);
+                prefs.Set("CumulativeCashTotal", 0.0);
+                prefs.Set("CumulativeGCashTotal", 0.0);
+                prefs.Set("CumulativeBankTotal", 0.0);
+                prefs.Set("CumulativeTotalSales", 0.0);
 
                 System.Diagnostics.Debug.WriteLine("Cumulative totals reset to zero");
             }
