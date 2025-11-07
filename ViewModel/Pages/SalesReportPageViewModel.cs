@@ -320,6 +320,18 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int recentOrdersCount;
 
+        private static readonly DateTime DefaultReportStartDate = new DateTime(2020, 1, 1);
+
+        private DateTime GetFilterStartDate()
+        {
+            return SelectedStartDate?.Date ?? DefaultReportStartDate;
+        }
+
+        private DateTime GetFilterEndDateExclusive()
+        {
+            return SelectedEndDate ?? DateTime.Today.AddDays(1);
+        }
+
         public SalesReportPageViewModel(SettingsPopUpViewModel settingsPopup, Services.ISalesReportService salesReportService = null)
         {
             _database = new Database(); // Will use auto-detected host
@@ -402,8 +414,8 @@ namespace Coftea_Capstone.ViewModel
             try
             {
                 // Get recent transactions using date filter
-                var startDate = SelectedStartDate ?? DateTime.Today;
-                var endDate = SelectedEndDate ?? DateTime.Today.AddDays(1);
+                var startDate = GetFilterStartDate();
+                var endDate = GetFilterEndDateExclusive();
                 var recentTransactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
                 
                 // Sort by transaction date descending and take the most recent 10
@@ -484,8 +496,8 @@ namespace Coftea_Capstone.ViewModel
                 // Refresh top products for pie/bar charts (using date filter)
                 try
                 {
-                    var startDate = SelectedStartDate ?? DateTime.Today;
-                    var endDate = SelectedEndDate ?? DateTime.Today.AddDays(1);
+                    var startDate = GetFilterStartDate();
+                    var endDate = GetFilterEndDateExclusive();
                     var topDict = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 50);
                     
                     // Categorize products properly
@@ -594,6 +606,32 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private async Task<(decimal cash, decimal gcash, decimal bank, decimal total)> GetPaymentTotalsAsync(DateTime startDate, DateTime endDate)
+        {
+            if (startDate >= endDate)
+            {
+                return (0m, 0m, 0m, 0m);
+            }
+
+            var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+
+            var cashTotal = transactions
+                .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
+                .Sum(t => t.Total);
+
+            var gcashTotal = transactions
+                .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
+                .Sum(t => t.Total);
+
+            var bankTotal = transactions
+                .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
+                .Sum(t => t.Total);
+
+            var overallTotal = transactions.Sum(t => t.Total);
+
+            return (cashTotal, gcashTotal, bankTotal, overallTotal);
+        }
+
         public async Task InitializeAsync() // Initial data load
         {
             await LoadDataAsync();
@@ -620,8 +658,8 @@ namespace Coftea_Capstone.ViewModel
                 }
 
                 // Pull summary from service (real implementation can fetch from DB)
-                var filterStartDate = SelectedStartDate ?? DateTime.Today.AddDays(-30); // Last 30 days or selected date
-                var filterEndDate = SelectedEndDate ?? DateTime.Today.AddDays(1); // Include today or selected date
+                var filterStartDate = GetFilterStartDate();
+                var filterEndDate = GetFilterEndDateExclusive();
                 var summary = await _salesReportService.GetSummaryAsync(filterStartDate, filterEndDate);
 
                 SalesReports = new ObservableCollection<SalesReportPageModel>(summary.Reports ?? new List<SalesReportPageModel>());
@@ -766,6 +804,7 @@ namespace Coftea_Capstone.ViewModel
                     }
 
                     // Reload data with the new date filter
+                    SelectedTimePeriod = "All Time";
                     _ = LoadDataAsync();
                 }, SelectedStartDate, SelectedEndDate);
             }
@@ -1314,160 +1353,120 @@ namespace Coftea_Capstone.ViewModel
             {
                 var now = DateTime.Now;
                 var today = now.Date;
-                
+                var filterStart = GetFilterStartDate();
+                var filterEnd = GetFilterEndDateExclusive();
+
+                decimal periodCash = 0m;
+                decimal periodGCash = 0m;
+                decimal periodBank = 0m;
+                decimal periodTotal = 0m;
+
                 if (SelectedTimePeriod == "Today")
                 {
-                    var todayStart = today;
-                    var todayEnd = today.AddDays(1);
-                    
-                    var todayTransactions = await _database.GetTransactionsByDateRangeAsync(todayStart, todayEnd);
-                    
-                    // Update today's totals
-                    CashTotal = todayTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    GCashTotal = todayTransactions
-                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    BankTotal = todayTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    TotalSalesToday = todayTransactions.Sum(t => t.Total);
-                    
-                    System.Diagnostics.Debug.WriteLine($"Today's totals - Cash: {CashTotal}, GCash: {GCashTotal}, Bank: {BankTotal}, Total: {TotalSalesToday}");
+                    var dayStart = today;
+                    var dayEnd = today.AddDays(1);
+                    var rangeStart = filterStart > dayStart ? filterStart : dayStart;
+                    var rangeEnd = filterEnd < dayEnd ? filterEnd : dayEnd;
+
+                    var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(rangeStart, rangeEnd);
+                    periodCash = cash;
+                    periodGCash = gcash;
+                    periodBank = bank;
+                    periodTotal = total;
+
+                    TotalSalesToday = total;
+
+                    System.Diagnostics.Debug.WriteLine($"Today's totals (filtered) - Cash: {cash}, GCash: {gcash}, Bank: {bank}, Total: {total}");
                 }
                 else if (SelectedTimePeriod == "Yesterday")
                 {
-                    var yesterday = today.AddDays(-1);
-                    var yesterdayStart = yesterday;
+                    var yesterdayStart = today.AddDays(-1);
                     var yesterdayEnd = today;
-                    
-                    // Get transactions from yesterday to today (to show cumulative data up to today)
-                    var allTransactions = await _database.GetTransactionsByDateRangeAsync(yesterdayStart, today.AddDays(1));
-                    
-                    // Filter for just yesterday
-                    var yesterdayOnly = allTransactions
-                        .Where(t => t.TransactionDate >= yesterdayStart && t.TransactionDate < yesterdayEnd)
-                        .ToList();
-                    
-                    // Calculate yesterday's totals
-                    var cashTotal = yesterdayOnly
-                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    var gcashTotal = yesterdayOnly
-                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    var bankTotal = yesterdayOnly
-                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    var totalSales = yesterdayOnly.Sum(t => t.Total);
-                    
-                    // Update properties on the main thread
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        YesterdayCashTotal = allTransactions
-                            .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
-                            .Sum(t => t.Total);
-                            
-                        YesterdayGCashTotal = allTransactions
-                            .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
-                            .Sum(t => t.Total);
-                            
-                        YesterdayBankTotal = allTransactions
-                            .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
-                            .Sum(t => t.Total);
-                            
-                        YesterdayTotalSales = allTransactions.Sum(t => t.Total);
-                        
-                        // Force UI update
-                        OnPropertyChanged(nameof(DisplayCashTotal));
-                        OnPropertyChanged(nameof(DisplayGCashTotal));
-                        OnPropertyChanged(nameof(DisplayBankTotal));
-                        OnPropertyChanged(nameof(DisplayTotalSales));
-                    });
-                    
-                    System.Diagnostics.Debug.WriteLine($"Yesterday's totals - Cash: {cashTotal}, GCash: {gcashTotal}, Bank: {bankTotal}, Total: {totalSales}");
-                    System.Diagnostics.Debug.WriteLine($"Cumulative totals - Cash: {YesterdayCashTotal}, GCash: {YesterdayGCashTotal}, Bank: {YesterdayBankTotal}, Total: {YesterdayTotalSales}");
+                    var rangeStart = filterStart > yesterdayStart ? filterStart : yesterdayStart;
+                    var rangeEnd = filterEnd < yesterdayEnd ? filterEnd : yesterdayEnd;
+
+                    var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(rangeStart, rangeEnd);
+                    periodCash = cash;
+                    periodGCash = gcash;
+                    periodBank = bank;
+                    periodTotal = total;
+
+                    YesterdayCashTotal = cash;
+                    YesterdayGCashTotal = gcash;
+                    YesterdayBankTotal = bank;
+                    YesterdayTotalSales = total;
+
+                    System.Diagnostics.Debug.WriteLine($"Yesterday's totals (filtered) - Cash: {cash}, GCash: {gcash}, Bank: {bank}, Total: {total}");
                 }
                 else if (SelectedTimePeriod == "1 Week")
                 {
                     var weekStart = today.AddDays(-7);
-                    
-                    // Get transactions for the past 7 days up to now
-                    var weeklyTransactions = await _database.GetTransactionsByDateRangeAsync(weekStart, today.AddDays(1));
-                    
-                    WeeklyCashTotal = weeklyTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    WeeklyGCashTotal = weeklyTransactions
-                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    WeeklyBankTotal = weeklyTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    WeeklyTotalSales = weeklyTransactions.Sum(t => t.Total);
-                    
-                    System.Diagnostics.Debug.WriteLine($"Weekly totals (last 7 days) - Cash: {WeeklyCashTotal}, GCash: {WeeklyGCashTotal}, Bank: {WeeklyBankTotal}, Total: {WeeklyTotalSales}");
+                    var weekEnd = today.AddDays(1);
+                    var rangeStart = filterStart > weekStart ? filterStart : weekStart;
+                    var rangeEnd = filterEnd < weekEnd ? filterEnd : weekEnd;
+
+                    var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(rangeStart, rangeEnd);
+                    periodCash = cash;
+                    periodGCash = gcash;
+                    periodBank = bank;
+                    periodTotal = total;
+
+                    WeeklyCashTotal = cash;
+                    WeeklyGCashTotal = gcash;
+                    WeeklyBankTotal = bank;
+                    WeeklyTotalSales = total;
+
+                    System.Diagnostics.Debug.WriteLine($"Weekly totals (filtered) - Cash: {cash}, GCash: {gcash}, Bank: {bank}, Total: {total}");
                 }
                 else if (SelectedTimePeriod == "1 Month")
                 {
                     var monthStart = today.AddMonths(-1);
-                    
-                    // Get transactions for the past 30 days up to now
-                    var monthlyTransactions = await _database.GetTransactionsByDateRangeAsync(monthStart, today.AddDays(1));
-                    
-                    MonthlyCashTotal = monthlyTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    MonthlyGCashTotal = monthlyTransactions
-                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    MonthlyBankTotal = monthlyTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    MonthlyTotalSales = monthlyTransactions.Sum(t => t.Total);
-                    
-                    System.Diagnostics.Debug.WriteLine($"Monthly totals (last 30 days) - Cash: {MonthlyCashTotal}, GCash: {MonthlyGCashTotal}, Bank: {MonthlyBankTotal}, Total: {MonthlyTotalSales}");
+                    var monthEnd = today.AddDays(1);
+                    var rangeStart = filterStart > monthStart ? filterStart : monthStart;
+                    var rangeEnd = filterEnd < monthEnd ? filterEnd : monthEnd;
+
+                    var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(rangeStart, rangeEnd);
+                    periodCash = cash;
+                    periodGCash = gcash;
+                    periodBank = bank;
+                    periodTotal = total;
+
+                    MonthlyCashTotal = cash;
+                    MonthlyGCashTotal = gcash;
+                    MonthlyBankTotal = bank;
+                    MonthlyTotalSales = total;
+
+                    System.Diagnostics.Debug.WriteLine($"Monthly totals (filtered) - Cash: {cash}, GCash: {gcash}, Bank: {bank}, Total: {total}");
                 }
                 else if (SelectedTimePeriod == "All Time")
                 {
-                    // For "All Time" period, get all transactions from the beginning of time
-                    var allStart = DateTime.MinValue;
-                    var allEnd = DateTime.MaxValue;
-                    
-                    var allTransactions = await _database.GetTransactionsByDateRangeAsync(allStart, allEnd);
-                    
-                    // Update cumulative totals (used by "All Time" time period)
-                    CumulativeCashTotal = allTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    CumulativeGCashTotal = allTransactions
-                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    CumulativeBankTotal = allTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    CumulativeTotalSales = allTransactions.Sum(t => t.Total);
-                    
-                    System.Diagnostics.Debug.WriteLine($"All-time totals - Cash: {CumulativeCashTotal}, GCash: {CumulativeGCashTotal}, Bank: {CumulativeBankTotal}, Total: {CumulativeTotalSales}");
+                    var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(filterStart, filterEnd);
+                    periodCash = cash;
+                    periodGCash = gcash;
+                    periodBank = bank;
+                    periodTotal = total;
+
+                    CumulativeCashTotal = cash;
+                    CumulativeGCashTotal = gcash;
+                    CumulativeBankTotal = bank;
+                    CumulativeTotalSales = total;
+
+                    System.Diagnostics.Debug.WriteLine($"All-time totals (filtered) - Cash: {cash}, GCash: {gcash}, Bank: {bank}, Total: {total}");
                 }
-                
-                System.Diagnostics.Debug.WriteLine($"Calculated {SelectedTimePeriod} totals - Cash: {DisplayCashTotal}, GCash: {DisplayGCashTotal}, Bank: {DisplayBankTotal}, Total: {DisplayTotalSales}");
+                else
+                {
+                    var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(filterStart, filterEnd);
+                    periodCash = cash;
+                    periodGCash = gcash;
+                    periodBank = bank;
+                    periodTotal = total;
+                }
+
+                CashTotal = periodCash;
+                GCashTotal = periodGCash;
+                BankTotal = periodBank;
+
+                System.Diagnostics.Debug.WriteLine($"Calculated {SelectedTimePeriod} totals - Cash: {periodCash}, GCash: {periodGCash}, Bank: {periodBank}, Total: {periodTotal}");
             }
             catch (Exception ex)
             {
@@ -1577,26 +1576,40 @@ namespace Coftea_Capstone.ViewModel
                 }
                 else if (SelectedTimePeriod == "All Time")
                 {
-                    // Compare with previous month (30 days before today)
-                    var previousMonthStart = today.AddMonths(-1);
-                    var previousMonthEnd = today;
-                    
-                    var previousMonthTransactions = await _database.GetTransactionsByDateRangeAsync(previousMonthStart, previousMonthEnd);
-                    
-                    ComparisonCashTotal = previousMonthTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    ComparisonGCashTotal = previousMonthTransactions
-                        .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    ComparisonBankTotal = previousMonthTransactions
-                        .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
-                        .Sum(t => t.Total);
-                    
-                    ComparisonTotalSales = previousMonthTransactions.Sum(t => t.Total);
-                    ComparisonPeriodLabel = "vs Previous Month";
+                    var filterStart = GetFilterStartDate();
+                    var filterEnd = GetFilterEndDateExclusive();
+                    var span = filterEnd - filterStart;
+
+                    if (span.TotalDays <= 0)
+                    {
+                        ComparisonCashTotal = 0;
+                        ComparisonGCashTotal = 0;
+                        ComparisonBankTotal = 0;
+                        ComparisonTotalSales = 0;
+                        ComparisonPeriodLabel = string.Empty;
+                    }
+                    else
+                    {
+                        var previousStart = filterStart - span;
+                        var previousEnd = filterStart;
+
+                        var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(previousStart, previousEnd);
+
+                        ComparisonCashTotal = cash;
+                        ComparisonGCashTotal = gcash;
+                        ComparisonBankTotal = bank;
+                        ComparisonTotalSales = total;
+
+                        var days = Math.Round(span.TotalDays);
+                        if (days <= 1)
+                        {
+                            ComparisonPeriodLabel = "vs Previous Day";
+                        }
+                        else
+                        {
+                            ComparisonPeriodLabel = $"vs Previous {days:N0}-Day Period";
+                        }
+                    }
                 }
                 else
                 {

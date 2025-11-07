@@ -172,7 +172,7 @@
                     </VerticalStackLayout>
 
                     <!-- Middle Column: Top 3 Picks Today - Pie Chart -->
-                    <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" HeightRequest="300" VerticalOptions="Start">
+                    <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" HeightRequest="220" VerticalOptions="Start">
                         <Grid RowDefinitions="Auto,*,Auto">
                             <!-- Header -->
                             <Grid ColumnDefinitions="*,Auto">
@@ -221,7 +221,7 @@
                     </Frame>
 
                     <!-- Right Column: Total Cash Accumulated -->
-                    <Frame Grid.Column="2" BackgroundColor="#C8E6C9" CornerRadius="15" Padding="20" HasShadow="True" HeightRequest="300" VerticalOptions="Start" BorderColor="#81C784">
+                    <Frame Grid.Column="2" BackgroundColor="#C8E6C9" CornerRadius="15" Padding="20" HasShadow="True" HeightRequest="220" VerticalOptions="Start" BorderColor="#81C784">
                         <VerticalStackLayout Spacing="8" HorizontalOptions="Fill">
                             <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
                                 <Label Text="Total Sales" FontAttributes="Bold" FontSize="20" FontFamily="Montserrat-Black" TextColor="#2E7D32" HorizontalOptions="Center"/>

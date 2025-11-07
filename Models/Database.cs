@@ -1899,7 +1899,7 @@ namespace Coftea_Capstone.Models
         }
 
         // ===================== Sales Report =====================
-        public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction) // Saves a transaction to the database
+        public async Task<int> SaveTransactionAsync(TransactionHistoryModel transaction, IEnumerable<CartItem>? cartItems = null) // Saves a transaction (and optional cart items) to the database
         {
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
@@ -1921,25 +1921,72 @@ namespace Coftea_Capstone.Models
                 await transactionCmd.ExecuteNonQueryAsync();
                 int transactionId = (int)transactionCmd.LastInsertedId;
 
-                // Find product ID by name (safer than using hardcoded ID)
-                int productId = await GetProductIdByNameAsync(transaction.DrinkName, conn, (MySqlTransaction)tx);
-                
+                var hasCartItems = cartItems != null && cartItems.Any();
+
                 // Insert into transaction_items table
                 var itemSql = "INSERT INTO transaction_items (transactionID, productID, productName, quantity, price, smallPrice, mediumPrice, largePrice, addonPrice, addOns, size) VALUES (@TransactionID, @ProductID, @ProductName, @Quantity, @Price, @SmallPrice, @MediumPrice, @LargePrice, @AddonPrice, @AddOns, @Size);";
-                await using var itemCmd = new MySqlCommand(itemSql, conn, (MySqlTransaction)tx);
-                itemCmd.Parameters.AddWithValue("@TransactionID", transactionId);
-                itemCmd.Parameters.AddWithValue("@ProductID", productId > 0 ? productId : (object)DBNull.Value);
-                itemCmd.Parameters.AddWithValue("@ProductName", transaction.DrinkName);
-                itemCmd.Parameters.AddWithValue("@Quantity", transaction.Quantity);
-                itemCmd.Parameters.AddWithValue("@Price", transaction.Price);
-                itemCmd.Parameters.AddWithValue("@SmallPrice", transaction.SmallPrice);
-                itemCmd.Parameters.AddWithValue("@MediumPrice", transaction.MediumPrice);
-                itemCmd.Parameters.AddWithValue("@LargePrice", transaction.LargePrice);
-                itemCmd.Parameters.AddWithValue("@AddonPrice", transaction.AddonPrice);
-                itemCmd.Parameters.AddWithValue("@AddOns", transaction.AddOns ?? "");
-                itemCmd.Parameters.AddWithValue("@Size", transaction.Size ?? "");
 
-                await itemCmd.ExecuteNonQueryAsync();
+                if (hasCartItems)
+                {
+                    foreach (var cartItem in cartItems!)
+                    {
+                        if (cartItem == null) continue;
+
+                        var totalQuantity = cartItem.TotalQuantity > 0 ? cartItem.TotalQuantity : Math.Max(1, cartItem.Quantity);
+                        if (totalQuantity <= 0) totalQuantity = 1;
+
+                        var smallTotal = (cartItem.SmallPrice ?? 0m) * cartItem.SmallQuantity;
+                        var mediumTotal = cartItem.MediumPrice * cartItem.MediumQuantity;
+                        var largeTotal = cartItem.LargePrice * cartItem.LargeQuantity;
+                        var calculatedAddon = cartItem.TotalPrice - (smallTotal + mediumTotal + largeTotal);
+                        if (calculatedAddon < 0) calculatedAddon = 0;
+
+                        var sizeLabel = string.IsNullOrWhiteSpace(cartItem.SelectedSize) || totalQuantity > 1
+                            ? (totalQuantity > 1 ? "Multiple" : (cartItem.SelectedSize ?? ""))
+                            : cartItem.SelectedSize;
+
+                        int productId = cartItem.ProductId;
+                        if (productId <= 0 && !string.IsNullOrWhiteSpace(cartItem.ProductName))
+                        {
+                            productId = await GetProductIdByNameAsync(cartItem.ProductName, conn, (MySqlTransaction)tx);
+                        }
+
+                        await using var itemCmd = new MySqlCommand(itemSql, conn, (MySqlTransaction)tx);
+                        itemCmd.Parameters.AddWithValue("@TransactionID", transactionId);
+                        itemCmd.Parameters.AddWithValue("@ProductID", productId > 0 ? productId : (object)DBNull.Value);
+                        itemCmd.Parameters.AddWithValue("@ProductName", cartItem.ProductName ?? transaction.DrinkName ?? "");
+                        itemCmd.Parameters.AddWithValue("@Quantity", totalQuantity);
+                        itemCmd.Parameters.AddWithValue("@Price", cartItem.TotalPrice);
+                        itemCmd.Parameters.AddWithValue("@SmallPrice", smallTotal);
+                        itemCmd.Parameters.AddWithValue("@MediumPrice", mediumTotal);
+                        itemCmd.Parameters.AddWithValue("@LargePrice", largeTotal);
+                        itemCmd.Parameters.AddWithValue("@AddonPrice", calculatedAddon);
+                        itemCmd.Parameters.AddWithValue("@AddOns", cartItem.AddOnsDisplay);
+                        itemCmd.Parameters.AddWithValue("@Size", sizeLabel);
+
+                        await itemCmd.ExecuteNonQueryAsync();
+                    }
+                }
+                else
+                {
+                    // Preserve legacy behavior when no cart items are provided
+                    int productId = await GetProductIdByNameAsync(transaction.DrinkName, conn, (MySqlTransaction)tx);
+
+                    await using var itemCmd = new MySqlCommand(itemSql, conn, (MySqlTransaction)tx);
+                    itemCmd.Parameters.AddWithValue("@TransactionID", transactionId);
+                    itemCmd.Parameters.AddWithValue("@ProductID", productId > 0 ? productId : (object)DBNull.Value);
+                    itemCmd.Parameters.AddWithValue("@ProductName", transaction.DrinkName ?? "");
+                    itemCmd.Parameters.AddWithValue("@Quantity", transaction.Quantity <= 0 ? 1 : transaction.Quantity);
+                    itemCmd.Parameters.AddWithValue("@Price", transaction.Price);
+                    itemCmd.Parameters.AddWithValue("@SmallPrice", transaction.SmallPrice);
+                    itemCmd.Parameters.AddWithValue("@MediumPrice", transaction.MediumPrice);
+                    itemCmd.Parameters.AddWithValue("@LargePrice", transaction.LargePrice);
+                    itemCmd.Parameters.AddWithValue("@AddonPrice", transaction.AddonPrice);
+                    itemCmd.Parameters.AddWithValue("@AddOns", transaction.AddOns ?? "");
+                    itemCmd.Parameters.AddWithValue("@Size", transaction.Size ?? "");
+
+                    await itemCmd.ExecuteNonQueryAsync();
+                }
 
                 await tx.CommitAsync();
                 return transactionId;
@@ -2220,7 +2267,7 @@ namespace Coftea_Capstone.Models
                 
                 return user;
             }
-            return null;
+            return null; 
         } 
 
         public async Task<int> UpdateUserPasswordAsync(int userId, string newHashedPassword)

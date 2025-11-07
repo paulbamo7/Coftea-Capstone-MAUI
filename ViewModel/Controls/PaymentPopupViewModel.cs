@@ -528,12 +528,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                     var largeTotal = CartItems.Sum(item => item.LargePrice * item.LargeQuantity);
                     var addonTotal = CartItems.Sum(item => Math.Max(0, item.TotalPrice - (((item.SmallPrice ?? 0) * item.SmallQuantity) + (item.MediumPrice * item.MediumQuantity) + (item.LargePrice * item.LargeQuantity))));
 
+                    var totalUnits = CartItems.Sum(item => item.TotalQuantity > 0 ? item.TotalQuantity : Math.Max(1, item.Quantity));
+
                     var orderTransaction = new TransactionHistoryModel
                     {
                         TransactionId = transactionId,
                         DrinkName = CartItems.Count == 1 ? CartItems[0].ProductName : $"{CartItems.Count} items",
                         Size = CartItems.Count == 1 ? CartItems[0].SelectedSize : "Multiple",
-                        Quantity = CartItems.Sum(item => item.Quantity),
+                        Quantity = totalUnits,
                         Price = orderTotal,
                         SmallPrice = (decimal)smallTotal,
                         MediumPrice = (decimal)mediumTotal,
@@ -550,7 +552,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                     // Save the combined transaction to database
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                    await database.SaveTransactionAsync(orderTransaction);
+                    await database.SaveTransactionAsync(orderTransaction, CartItems);
                     System.Diagnostics.Debug.WriteLine($"✅ Database save successful for order: {transactionId}");
                     
                     // Deduct inventory for each item

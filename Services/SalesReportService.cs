@@ -42,6 +42,48 @@ namespace Coftea_Capstone.Services
             _database = new Database(); // Will use auto-detected host
         }
 
+        private static List<KeyValuePair<string, int>> AggregateProductCounts(IEnumerable<TransactionHistoryModel> transactions)
+        {
+            return transactions
+                .Where(t => !string.IsNullOrWhiteSpace(t.DrinkName))
+                .GroupBy(t => t.DrinkName.Trim(), StringComparer.OrdinalIgnoreCase)
+                .Select(g => new KeyValuePair<string, int>(g.Key, g.Sum(x => x.Quantity > 0 ? x.Quantity : 1)))
+                .OrderByDescending(kvp => kvp.Value)
+                .ToList();
+        }
+
+        private static string InferCategory(string? categoryFromDb, string productName)
+        {
+            if (!string.IsNullOrWhiteSpace(categoryFromDb))
+            {
+                return categoryFromDb.Trim();
+            }
+
+            var name = productName?.ToLowerInvariant() ?? string.Empty;
+
+            if (name.Contains("frappe") || name.Contains("frap"))
+                return "Frappe";
+
+            if (name.Contains("fruit") || name.Contains("soda") || name.Contains("juice"))
+                return "Fruit/Soda";
+
+            if (name.Contains("tea"))
+                return "Milktea";
+
+            return "Coffee";
+        }
+
+        private static string GetDefaultColor(string category)
+        {
+            return category switch
+            {
+                "Frappe" => "#ac94f4",
+                "Fruit/Soda" => "#F0E0C1",
+                "Milktea" => "#f5dde0",
+                _ => "#99E599",
+            };
+        }
+
         public async Task<SalesReportSummary> GetSummaryAsync(DateTime startDate, DateTime endDate)
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
@@ -58,41 +100,53 @@ namespace Coftea_Capstone.Services
                 var totalSales = transactions.Sum(t => t.Total);
                 var totalOrders = transactions.Count;
                 var activeDays = transactions.Select(t => t.TransactionDate.Date).Distinct().Count();
+                // Aggregate product counts directly from transaction history
+                var aggregatedProducts = AggregateProductCounts(transactions);
 
-                // Get top products (increase limit to ensure we get comprehensive data)
-                var topProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 50);
-                System.Diagnostics.Debug.WriteLine($"🏆 Found {topProducts.Count} top products");
-                
+                if (!aggregatedProducts.Any())
+                {
+                    var fallbackProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 50);
+                    aggregatedProducts = fallbackProducts
+                        .OrderByDescending(p => p.Value)
+                        .Select(p => new KeyValuePair<string, int>(p.Key, p.Value))
+                        .ToList();
+                }
+
                 // Separate by category
                 var coffeeProducts = new List<TrendItem>();
                 var milkTeaProducts = new List<TrendItem>();
                 var frappeProducts = new List<TrendItem>();
                 var fruitSodaProducts = new List<TrendItem>();
 
-                // Get product details to include color codes and categories
+                // Get product details to include color codes and categories (case-insensitive lookup)
                 var allProducts = await _database.GetProductsAsyncCached();
-                var productLookup = allProducts.ToDictionary(p => p.ProductName, p => new { p.Category, ColorCode = p.ColorCode ?? "" });
-                
-                foreach (var product in topProducts)
+                var productLookup = allProducts
+                    .Where(p => !string.IsNullOrWhiteSpace(p.ProductName))
+                    .ToDictionary(p => p.ProductName, p => p, StringComparer.OrdinalIgnoreCase);
+
+                foreach (var product in aggregatedProducts)
                 {
-                    var productInfo = productLookup.GetValueOrDefault(product.Key, new { Category = "Coffee", ColorCode = "" });
-                    
-                    var trendItem = new TrendItem 
-                    { 
-                        Name = product.Key, 
+                    if (string.IsNullOrWhiteSpace(product.Key))
+                    {
+                        continue;
+                    }
+
+                    productLookup.TryGetValue(product.Key, out var productInfo);
+                    var category = InferCategory(productInfo?.Category, product.Key);
+                    var trendItem = new TrendItem
+                    {
+                        Name = product.Key,
                         Count = product.Value,
-                        ColorCode = productInfo.ColorCode
+                        ColorCode = string.IsNullOrWhiteSpace(productInfo?.ColorCode) ? GetDefaultColor(category) : productInfo!.ColorCode!
                     };
-                    
-                    // Categorize based on product category from database
-                    switch (productInfo.Category?.ToLower())
+
+                    switch (category.Trim().ToLowerInvariant())
                     {
                         case "frappe":
                             frappeProducts.Add(trendItem);
                             break;
+                        case "fruit/soda":
                         case "fruitsoda":
-                        case "fruit soda":
-                        case "fruit_soda":
                             fruitSodaProducts.Add(trendItem);
                             break;
                         case "milktea":
@@ -129,7 +183,7 @@ namespace Coftea_Capstone.Services
                     .ToList();
 
                 // Get most bought item across ALL categories (single item)
-                var mostBought = topProducts.OrderByDescending(p => p.Value).FirstOrDefault();
+                var mostBought = aggregatedProducts.FirstOrDefault();
                 
                 // Calculate trending item based on recent demand patterns
                 var trending = await GetTrendingItemAsync(startDate, endDate);
@@ -139,7 +193,7 @@ namespace Coftea_Capstone.Services
                 return new SalesReportSummary
                 {
                     ActiveDays = activeDays,
-                    MostBoughtToday = mostBought.Key ?? "No data",
+                    MostBoughtToday = string.IsNullOrEmpty(mostBought.Key) ? "No data" : mostBought.Key,
                     TrendingToday = trending?.Key ?? "No data",
                     TrendingPercentage = trending?.Value ?? 0.0,
                     TotalSalesToday = totalSales,
@@ -220,23 +274,26 @@ namespace Coftea_Capstone.Services
                 System.Diagnostics.Debug.WriteLine($"Recent period: {recentStart} to {endDate}");
                 System.Diagnostics.Debug.WriteLine($"Historical period: {historicalStart} to {historicalEnd}");
 
-                // Get recent sales
-                var recentProducts = await _database.GetTopProductsByDateRangeAsync(recentStart, endDate, 20);
+                var recentTransactions = await _database.GetTransactionsByDateRangeAsync(recentStart, endDate);
+                var historicalTransactions = await _database.GetTransactionsByDateRangeAsync(historicalStart, historicalEnd);
+
+                var recentProducts = AggregateProductCounts(recentTransactions)
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
                 System.Diagnostics.Debug.WriteLine($"Recent products count: {recentProducts.Count}");
-                
-                // Get historical sales for comparison
-                var historicalProducts = await _database.GetTopProductsByDateRangeAsync(historicalStart, historicalEnd, 20);
+
+                var historicalProducts = AggregateProductCounts(historicalTransactions)
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
                 System.Diagnostics.Debug.WriteLine($"Historical products count: {historicalProducts.Count}");
 
                 // Calculate trending score (recent sales vs historical average)
-                var trendingScores = new Dictionary<string, double>();
-                
+                var trendingScores = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+
                 foreach (var recent in recentProducts)
                 {
-                    var historicalCount = historicalProducts.ContainsKey(recent.Key) ? historicalProducts[recent.Key] : 0;
+                    var historicalCount = historicalProducts.TryGetValue(recent.Key, out var count) ? count : 0;
                     var historicalAverage = historicalCount / 7.0; // Average per day over 7 days
                     var recentAverage = recent.Value / 3.0; // Average per day over 3 days
-                    
+
                     if (historicalAverage > 0)
                     {
                         // Calculate growth rate
@@ -271,26 +328,28 @@ namespace Coftea_Capstone.Services
                 System.Diagnostics.Debug.WriteLine("No positive trending items found, using fallback logic");
                 
                 // Fallback: if no trending items, return second most bought from current period
-                var fallback = recentProducts.Skip(1).FirstOrDefault();
-                if (fallback.Key != null)
+                var fallback = recentProducts.OrderByDescending(kvp => kvp.Value).Skip(1).FirstOrDefault();
+                if (!string.IsNullOrEmpty(fallback.Key))
                 {
                     System.Diagnostics.Debug.WriteLine($"Fallback trending item: {fallback.Key}");
                     return new KeyValuePair<string, double>(fallback.Key, 0.0); // No growth data
                 }
                 
                 // Final fallback: use second most bought from main period
-                var mainProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 10);
+                var mainTransactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                var mainProducts = AggregateProductCounts(mainTransactions);
                 var finalFallback = mainProducts.Skip(1).FirstOrDefault();
                 System.Diagnostics.Debug.WriteLine($"Final fallback trending item: {finalFallback.Key}");
-                return finalFallback.Key != null ? new KeyValuePair<string, double>(finalFallback.Key, 0.0) : (KeyValuePair<string, double>?)null;
+                return !string.IsNullOrEmpty(finalFallback.Key) ? new KeyValuePair<string, double>(finalFallback.Key, 0.0) : (KeyValuePair<string, double>?)null;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error calculating trending item: {ex.Message}");
-                // Fallback to second most bought item
-                var topProducts = await _database.GetTopProductsByDateRangeAsync(startDate, endDate, 10);
+                // Fallback to second most bought item using aggregated data
+                var mainTransactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                var topProducts = AggregateProductCounts(mainTransactions);
                 var fallback = topProducts.Skip(1).FirstOrDefault();
-                return fallback.Key != null ? new KeyValuePair<string, double>(fallback.Key, 0.0) : (KeyValuePair<string, double>?)null;
+                return !string.IsNullOrEmpty(fallback.Key) ? new KeyValuePair<string, double>(fallback.Key, 0.0) : (KeyValuePair<string, double>?)null;
             }
         }
     }
