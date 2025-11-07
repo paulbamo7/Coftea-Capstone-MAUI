@@ -1,4 +1,5 @@
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
@@ -6,8 +7,27 @@ using Android.Views;
 namespace Coftea_Capstone
 {
     [Activity(Theme = "@style/MainTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+    [IntentFilter(
+        new[] { Android.Content.Intent.ActionView },
+        Categories = new[]
+        {
+            Android.Content.Intent.CategoryDefault,
+            Android.Content.Intent.CategoryBrowsable
+        },
+        DataScheme = "cofteapos")]
     public class MainActivity : MauiAppCompatActivity
     {
+        protected override void OnNewIntent(Intent intent)
+        {
+            base.OnNewIntent(intent);
+
+            var data = intent?.DataString;
+            if (!string.IsNullOrWhiteSpace(data) && Microsoft.Maui.Controls.Application.Current is App app)
+            {
+                app.HandleExternalUri(new Uri(data));
+            }
+        }
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);

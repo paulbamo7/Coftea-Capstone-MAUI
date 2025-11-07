@@ -451,6 +451,40 @@ namespace Coftea_Capstone.ViewModel.Controls
             HasError = false;
         }
 
+        [RelayCommand]
+        private async Task Logout() // Logout from the application
+        {
+            try
+            {
+                var mainPage = Application.Current?.MainPage;
+                if (mainPage == null)
+                {
+                    return;
+                }
+
+                var confirm = await mainPage.DisplayAlert("Logout", "Are you sure you want to logout?", "Yes", "No");
+                if (!confirm)
+                {
+                    return;
+                }
+
+                IsProfileVisible = false;
+
+                if (Application.Current is App app)
+                {
+                    await app.ResetAppAfterLogout();
+                }
+            }
+            catch (Exception ex)
+            {
+                var mainPage = Application.Current?.MainPage;
+                if (mainPage != null)
+                {
+                    await mainPage.DisplayAlert("Logout Failed", ex.Message, "OK");
+                }
+            }
+        }
+
         // Method to refresh profile display across the app
         public async void RefreshProfileDisplay() // Notify UI to refresh profile display
         {

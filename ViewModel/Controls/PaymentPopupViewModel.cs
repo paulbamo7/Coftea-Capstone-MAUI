@@ -17,8 +17,10 @@ namespace Coftea_Capstone.ViewModel.Controls
     {
         private readonly CartStorageService _cartStorage = new CartStorageService();
         private readonly PayMongoService _payMongoService = new PayMongoService();
+        private readonly PayMongoBridgeService _payMongoBridgeService = new PayMongoBridgeService();
         private string? _currentGCashSourceId;
         private string? _currentGCashCheckoutUrl;
+        private bool _gcashDeepLinkConfirmed;
         
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
@@ -88,6 +90,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             _currentGCashSourceId = null;
             QrCodeImageSource = null;
             SelectedPaymentMethod = "Cash";
+            _gcashDeepLinkConfirmed = false;
 
             // Force property change notification
             OnPropertyChanged(nameof(IsPaymentVisible));
@@ -101,6 +104,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             IsPaymentVisible = false;
             _currentGCashCheckoutUrl = null;
             _currentGCashSourceId = null;
+            _gcashDeepLinkConfirmed = false;
         }
 
         [RelayCommand]
@@ -167,6 +171,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+        private bool _isProcessingPayment = false;
+
         [RelayCommand]
         private async Task ConfirmPayment() // Confirm and process payment
         {
@@ -199,258 +205,286 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
             }
 
-            if (IsGCashSelected)
+            if (_isProcessingPayment)
             {
-                var gcashResult = await CreateAndLaunchGCashPaymentAsync();
-                if (!gcashResult)
-                {
-                    PaymentStatus = "GCash payment cancelled";
-                    return;
-                }
-
-                var confirmed = await WaitForGCashCompletionAsync();
-                if (!confirmed)
-                {
-                    return;
-                }
+                System.Diagnostics.Debug.WriteLine("⚠️ ConfirmPayment aborted because processing is already running");
+                return;
             }
 
-            System.Diagnostics.Debug.WriteLine("🔵 About to call ProcessPaymentWithSteps");
-            
-            // Assign payment method to each cart item BEFORE clearing
-            var cartItemsCopy = new List<CartItem>();
-            foreach (var item in CartItems)
-            {
-                item.PaymentMethod = SelectedPaymentMethod; // Assign the payment method to each item
-                cartItemsCopy.Add(new CartItem
-                {
-                    ProductName = item.ProductName,
-                    PaymentMethod = item.PaymentMethod,
-                    Price = item.Price,
-                    SmallQuantity = item.SmallQuantity,
-                    MediumQuantity = item.MediumQuantity,
-                    LargeQuantity = item.LargeQuantity
-                });
-            }
-            
-            // Process payment with realistic steps
-            await ProcessPaymentWithSteps();
-            System.Diagnostics.Debug.WriteLine("🔵 ProcessPaymentWithSteps completed");
+            _isProcessingPayment = true;
 
-            System.Diagnostics.Debug.WriteLine("🔵 About to call SaveTransaction");
-            // Save transaction to database and shared store
-            var savedTransactions = await SaveTransaction();
-            System.Diagnostics.Debug.WriteLine($"🔵 SaveTransaction completed. Saved {savedTransactions?.Count ?? 0} transactions");
-
-            // Enqueue items to processing queue BEFORE clearing cart
             try
             {
-                System.Diagnostics.Debug.WriteLine($"📋 Enqueueing {CartItems.Count} items to processing queue");
-                var posApp = (App)Application.Current;
-                if (posApp?.POSVM?.ProcessingQueuePopup != null)
-                {
-                    // Convert CartItems back to POSPageModel for enqueueing
-                    foreach (var cartItem in CartItems)
-                    {
-                        // Create POSPageModel from CartItem to enqueue to processing queue
-                        var posItem = new POSPageModel
-                        {
-                            ProductID = cartItem.ProductId,
-                            ProductName = cartItem.ProductName,
-                            ImageSet = cartItem.ImageSet,
-                            SmallQuantity = cartItem.SmallQuantity,
-                            MediumQuantity = cartItem.MediumQuantity,
-                            LargeQuantity = cartItem.LargeQuantity,
-                            SmallPrice = cartItem.SmallPrice,
-                            MediumPrice = cartItem.MediumPrice,
-                            LargePrice = cartItem.LargePrice,
-                            SmallAddons = cartItem.SmallAddons ?? new ObservableCollection<InventoryPageModel>(),
-                            MediumAddons = cartItem.MediumAddons ?? new ObservableCollection<InventoryPageModel>(),
-                            LargeAddons = cartItem.LargeAddons ?? new ObservableCollection<InventoryPageModel>(),
-                            InventoryItems = cartItem.InventoryItems ?? new ObservableCollection<InventoryPageModel>()
-                        };
-                        
-                        await posApp.POSVM.ProcessingQueuePopup.EnqueueFromCartItem(posItem);
-                        System.Diagnostics.Debug.WriteLine($"✅ Enqueued {posItem.ProductName} to processing queue");
-                    }
-                    System.Diagnostics.Debug.WriteLine($"✅ All items enqueued to processing queue");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"⚠️ Error enqueueing items to processing queue: {ex.Message}");
-            }
+                var skipGcachProcessing = IsGCashSelected && _gcashDeepLinkConfirmed;
 
-            // Clear cart on successful payment
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("🧹 Starting cart clear process...");
-                
-                // Clear the actual cart items in the payment popup
-                CartItems.Clear();
-                System.Diagnostics.Debug.WriteLine("✅ PaymentPopup CartItems cleared");
-                
-                // Also clear the cart in the POS page ViewModel
-                var currentApp = (App)Application.Current;
-                System.Diagnostics.Debug.WriteLine($"Current MainPage type: {currentApp?.MainPage?.GetType().Name}");
-                
-                // For Shell-based navigation, access the POS ViewModel directly from App
-                if (currentApp?.POSVM != null)
+                if (IsGCashSelected && !skipGcachProcessing)
                 {
-                    await currentApp.POSVM.ClearCartAsync();
-                    System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via App reference");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ POSPageViewModel not found in App");
-                    
-                    // Fallback: Try to find POS page in Shell
-                    if (currentApp?.MainPage is Shell shell)
+                    var gcashResult = await CreateAndLaunchGCashPaymentAsync();
+                    if (!gcashResult)
                     {
-                        System.Diagnostics.Debug.WriteLine("Shell found, attempting to access current page...");
-                        var currentPage = shell.CurrentPage;
-                        System.Diagnostics.Debug.WriteLine($"Current Shell page: {currentPage?.GetType().Name}");
-                        
-                        if (currentPage is Coftea_Capstone.Views.Pages.PointOfSale posPage)
-                        {
-                            if (posPage.BindingContext is POSPageViewModel posViewModel)
-                            {
-                                await posViewModel.ClearCartAsync();
-                                System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via Shell.CurrentPage");
-                            }
-                        }
-                    }
-                }
-                
-                System.Diagnostics.Debug.WriteLine("✅ Cart clear process completed");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart: {ex.Message}\n{ex.StackTrace}");
-            }
-
-            // Show success: order-complete popup with auto-disappear
-            PaymentStatus = "Payment Confirmed";
-            var appInstance = (App)Application.Current;
-            
-            // Use the actual transaction ID for order number consistency
-            var orderNumber = savedTransactions?.FirstOrDefault()?.TransactionId.ToString() ?? "Unknown";
-            
-            if (appInstance?.OrderCompletePopup != null)
-            {
-                await appInstance.OrderCompletePopup.ShowOrderCompleteAsync(orderNumber);
-            }
-            
-            // Show order confirmation popup in bottom right with payment breakdown
-            var orderConfirmedPopup = appInstance?.OrderConfirmedPopup;
-            if (orderConfirmedPopup != null)
-            {
-                await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod, cartItemsCopy);
-            }
-            
-            // No automatic toast here; user can open notifications manually via bell
-
-            // Add notifications for each saved transaction (badge only; panel shows details when opened)
-            var notif = ((App)Application.Current)?.NotificationPopup;
-            if (notif != null && savedTransactions != null)
-            {
-                foreach (var t in savedTransactions)
-                {
-                    await notif.AddSuccess("Transaction", $"Completed: {t.DrinkName}", $"ID: {t.TransactionId}");
-                }
-            }
-
-                    // Refresh today's section (recent orders + today's totals) in Sales Report
-                    try
-                    {
-                        var salesApp = (App)Application.Current;
-                        if (salesApp?.SalesReportVM != null)
-                        {
-                            await salesApp.SalesReportVM.RefreshTodayAsync();
-                            System.Diagnostics.Debug.WriteLine("✅ Sales report 'Today' refreshed (orders + totals)");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh sales report today: {ex.Message}");
+                        PaymentStatus = "GCash payment cancelled";
+                        return;
                     }
 
-            // Update Employee Dashboard recent orders + totals immediately
-            var app = (App)Application.Current;
-            var settingsPopup = app?.SettingsPopup;
-            if (settingsPopup != null && savedTransactions != null)
-            {
+                    var confirmed = await WaitForGCashCompletionAsync();
+                    if (!confirmed)
+                    {
+                        return;
+                    }
+                }
+                else if (IsGCashSelected && skipGcachProcessing)
+                {
+                    PaymentStatus = "GCash payment confirmed";
+                }
+
+                System.Diagnostics.Debug.WriteLine("🔵 About to call ProcessPaymentWithSteps");
+                
+                // Assign payment method to each cart item BEFORE clearing
+                var cartItemsCopy = new List<CartItem>();
+                foreach (var item in CartItems)
+                {
+                    item.PaymentMethod = SelectedPaymentMethod; // Assign the payment method to each item
+                    cartItemsCopy.Add(new CartItem
+                    {
+                        ProductName = item.ProductName,
+                        PaymentMethod = item.PaymentMethod,
+                        Price = item.Price,
+                        SmallQuantity = item.SmallQuantity,
+                        MediumQuantity = item.MediumQuantity,
+                        LargeQuantity = item.LargeQuantity
+                    });
+                }
+                
+                // Process payment with realistic steps
+                await ProcessPaymentWithSteps();
+                System.Diagnostics.Debug.WriteLine("🔵 ProcessPaymentWithSteps completed");
+
+                System.Diagnostics.Debug.WriteLine("🔵 About to call SaveTransaction");
+                // Save transaction to database and shared store
+                var savedTransactions = await SaveTransaction();
+                System.Diagnostics.Debug.WriteLine($"🔵 SaveTransaction completed. Saved {savedTransactions?.Count ?? 0} transactions");
+
+                // Enqueue items to processing queue BEFORE clearing cart
                 try
                 {
-                    // Add each saved transaction to dashboard's recent orders on UI thread
-                    foreach (var t in savedTransactions)
+                    System.Diagnostics.Debug.WriteLine($"📋 Enqueueing {CartItems.Count} items to processing queue");
+                    var posApp = (App)Application.Current;
+                    if (posApp?.POSVM?.ProcessingQueuePopup != null)
                     {
-                        var tx = t; // avoid modified closure
-                        // Try to resolve product image by name; fall back to default icon
-                        string productImage = "drink.png";
-                        try
+                        // Convert CartItems back to POSPageModel for enqueueing
+                        foreach (var cartItem in CartItems)
                         {
-                            var dbImg = new Models.Database();
-                            var prod = await dbImg.GetProductByNameAsync(tx.DrinkName);
-                            if (prod != null && !string.IsNullOrWhiteSpace(prod.ImageSet))
+                            // Create POSPageModel from CartItem to enqueue to processing queue
+                            var posItem = new POSPageModel
                             {
-                                productImage = prod.ImageSet;
-                            }
+                                ProductID = cartItem.ProductId,
+                                ProductName = cartItem.ProductName,
+                                ImageSet = cartItem.ImageSet,
+                                SmallQuantity = cartItem.SmallQuantity,
+                                MediumQuantity = cartItem.MediumQuantity,
+                                LargeQuantity = cartItem.LargeQuantity,
+                                SmallPrice = cartItem.SmallPrice,
+                                MediumPrice = cartItem.MediumPrice,
+                                LargePrice = cartItem.LargePrice,
+                                SmallAddons = cartItem.SmallAddons ?? new ObservableCollection<InventoryPageModel>(),
+                                MediumAddons = cartItem.MediumAddons ?? new ObservableCollection<InventoryPageModel>(),
+                                LargeAddons = cartItem.LargeAddons ?? new ObservableCollection<InventoryPageModel>(),
+                                InventoryItems = cartItem.InventoryItems ?? new ObservableCollection<InventoryPageModel>()
+                            };
+                            
+                            await posApp.POSVM.ProcessingQueuePopup.EnqueueFromCartItem(posItem);
+                            System.Diagnostics.Debug.WriteLine($"✅ Enqueued {posItem.ProductName} to processing queue");
                         }
-                        catch { }
-
-                        Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
-                        {
-                            settingsPopup.AddRecentOrder(
-                                tx.TransactionId,
-                                tx.DrinkName,
-                                productImage,
-                                tx.Total
-                            );
-                        });
+                        System.Diagnostics.Debug.WriteLine($"✅ All items enqueued to processing queue");
                     }
-
-                    // Reload dashboard aggregates from DB to ensure consistency
-                    await settingsPopup.LoadTodaysMetricsAsync();
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh employee dashboard: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Error enqueueing items to processing queue: {ex.Message}");
                 }
-            }
 
-            // Refresh POS page products after checkout
-            try
-            {
-                var posApp = (App)Application.Current;
-                if (posApp?.POSVM != null)
+                // Clear cart on successful payment
+                try
                 {
-                    await posApp.POSVM.LoadDataAsync();
-                    System.Diagnostics.Debug.WriteLine("✅ POS products refreshed after checkout");
+                    System.Diagnostics.Debug.WriteLine("🧹 Starting cart clear process...");
+                    
+                    // Clear the actual cart items in the payment popup
+                    CartItems.Clear();
+                    System.Diagnostics.Debug.WriteLine("✅ PaymentPopup CartItems cleared");
+                    
+                    // Also clear the cart in the POS page ViewModel
+                    var currentApp = (App)Application.Current;
+                    System.Diagnostics.Debug.WriteLine($"Current MainPage type: {currentApp?.MainPage?.GetType().Name}");
+                    
+                    // For Shell-based navigation, access the POS ViewModel directly from App
+                    if (currentApp?.POSVM != null)
+                    {
+                        await currentApp.POSVM.ClearCartAsync();
+                        System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via App reference");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("⚠️ POSPageViewModel not found in App");
+                        
+                        // Fallback: Try to find POS page in Shell
+                        if (currentApp?.MainPage is Shell shell)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Shell found, attempting to access current page...");
+                            var currentPage = shell.CurrentPage;
+                            System.Diagnostics.Debug.WriteLine($"Current Shell page: {currentPage?.GetType().Name}");
+                            
+                            if (currentPage is Coftea_Capstone.Views.Pages.PointOfSale posPage)
+                            {
+                                if (posPage.BindingContext is POSPageViewModel posViewModel)
+                                {
+                                    await posViewModel.ClearCartAsync();
+                                    System.Diagnostics.Debug.WriteLine("✅ Cart cleared in POS page ViewModel via Shell.CurrentPage");
+                                }
+                            }
+                        }
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine("✅ Cart clear process completed");
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh POS products: {ex.Message}");
-            }
-
-            // Refresh inventory after checkout
-            try
-            {
-                var invApp = (App)Application.Current;
-                if (invApp?.InventoryVM != null)
+                catch (Exception ex)
                 {
-                    await invApp.InventoryVM.ForceReloadDataAsync();
-                    System.Diagnostics.Debug.WriteLine("✅ Inventory refreshed after checkout");
+                    System.Diagnostics.Debug.WriteLine($"❌ Error clearing cart: {ex.Message}\n{ex.StackTrace}");
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh inventory: {ex.Message}");
-            }
 
-            // Close payment popup
-            IsPaymentVisible = false;
+                // Show success: order-complete popup with auto-disappear
+                PaymentStatus = "Payment Confirmed";
+                var appInstance = (App)Application.Current;
+                
+                // Use the actual transaction ID for order number consistency
+                var orderNumber = savedTransactions?.FirstOrDefault()?.TransactionId.ToString() ?? "Unknown";
+                
+                if (appInstance?.OrderCompletePopup != null)
+                {
+                    await appInstance.OrderCompletePopup.ShowOrderCompleteAsync(orderNumber);
+                }
+                
+                // Show order confirmation popup in bottom right with payment breakdown
+                var orderConfirmedPopup = appInstance?.OrderConfirmedPopup;
+                if (orderConfirmedPopup != null)
+                {
+                    await orderConfirmedPopup.ShowOrderConfirmationAsync(orderNumber, TotalAmount, SelectedPaymentMethod, cartItemsCopy);
+                }
+                
+                // No automatic toast here; user can open notifications manually via bell
+                
+                // Add notifications for each saved transaction (badge only; panel shows details when opened)
+                var notif = ((App)Application.Current)?.NotificationPopup;
+                if (notif != null && savedTransactions != null)
+                {
+                    foreach (var t in savedTransactions)
+                    {
+                        await notif.AddSuccess("Transaction", $"Completed: {t.DrinkName}", $"ID: {t.TransactionId}");
+                    }
+                }
+                
+                        // Refresh today's section (recent orders + today's totals) in Sales Report
+                        try
+                        {
+                            var salesApp = (App)Application.Current;
+                            if (salesApp?.SalesReportVM != null)
+                            {
+                                await salesApp.SalesReportVM.RefreshTodayAsync();
+                                System.Diagnostics.Debug.WriteLine("✅ Sales report 'Today' refreshed (orders + totals)");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh sales report today: {ex.Message}");
+                        }
+
+                // Update Employee Dashboard recent orders + totals immediately
+                var appForDashboard = (App)Application.Current;
+                var settingsPopup = appForDashboard?.SettingsPopup;
+                if (settingsPopup != null && savedTransactions != null)
+                {
+                    try
+                    {
+                        // Add each saved transaction to dashboard's recent orders on UI thread
+                        foreach (var t in savedTransactions)
+                        {
+                            var tx = t; // avoid modified closure
+                            // Try to resolve product image by name; fall back to default icon
+                            string productImage = "drink.png";
+                            try
+                            {
+                                var dbImg = new Models.Database();
+                                var prod = await dbImg.GetProductByNameAsync(tx.DrinkName);
+                                if (prod != null && !string.IsNullOrWhiteSpace(prod.ImageSet))
+                                {
+                                    productImage = prod.ImageSet;
+                                }
+                            }
+                            catch { }
+
+                            Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                settingsPopup.AddRecentOrder(
+                                    tx.TransactionId,
+                                    tx.DrinkName,
+                                    productImage,
+                                    tx.Total
+                                );
+                            });
+                        }
+
+                        // Reload dashboard aggregates from DB to ensure consistency
+                        await settingsPopup.LoadTodaysMetricsAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Could not refresh employee dashboard: {ex.Message}");
+                    }
+                }
+
+                // Quick check for pending inventory/processing notifications
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("🎯 Attempting to refresh top items in Sales Report from payment popup...");
+                    var currentApp = (App)Application.Current;
+                    if (currentApp?.SalesReportVM != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("🎯 SalesReportVM found. Triggering data refresh...");
+                        await Task.Delay(150);
+                        await currentApp.SalesReportVM.RefreshRecentOrdersAsync();
+                        await Task.Delay(150);
+                        await currentApp.SalesReportVM.RefreshTodayAsync();
+                        await Task.Delay(150);
+                        await currentApp.SalesReportVM.LoadDataAsync();
+                        System.Diagnostics.Debug.WriteLine("🎯 Sales report data refresh completed after payment");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("⚠️ SalesReportVM not available during payment refresh");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Error refreshing sales report from payment popup: {ex.Message}");
+                }
+
+                try
+                {
+                    CartItems.Clear();
+                    QrCodeImageSource = null;
+                }
+                catch { }
+                
+                OnPropertyChanged(nameof(CartItems));
+                OnPropertyChanged(nameof(QrCodeImageSource));
+            }
+            finally
+            {
+                _isProcessingPayment = false;
+                _gcashDeepLinkConfirmed = false;
+                _currentGCashCheckoutUrl = null;
+                _currentGCashSourceId = null;
+                QrCodeImageSource = null;
+            }
         }
         private async Task ProcessPaymentWithSteps() // Simulate payment processing steps
         {
@@ -1267,6 +1301,15 @@ namespace Coftea_Capstone.ViewModel.Controls
 
             while (DateTime.UtcNow - startUtc < timeout)
             {
+                if (_gcashDeepLinkConfirmed)
+                {
+                    PaymentStatus = "GCash payment confirmed";
+                    _currentGCashSourceId = null;
+                    _currentGCashCheckoutUrl = null;
+                    _gcashDeepLinkConfirmed = false;
+                    return true;
+                }
+
                 try
                 {
                     if (!Services.NetworkService.HasInternetConnection())
@@ -1274,6 +1317,36 @@ namespace Coftea_Capstone.ViewModel.Controls
                         PaymentStatus = "Waiting for network to verify payment...";
                         await Task.Delay(pollDelay);
                         continue;
+                    }
+
+                    var bridgeResult = await _payMongoBridgeService.GetStatusAsync(_currentGCashSourceId);
+                    if (bridgeResult.Success)
+                    {
+                        var bridgeStatus = (bridgeResult.Status ?? string.Empty).Trim().ToLowerInvariant();
+                        System.Diagnostics.Debug.WriteLine($"🌐 Bridge status for {_currentGCashSourceId}: {bridgeStatus}");
+
+                        if (bridgeStatus == "chargeable" || bridgeStatus == "paid")
+                        {
+                            PaymentStatus = "GCash payment confirmed";
+                            _currentGCashSourceId = null;
+                            _currentGCashCheckoutUrl = null;
+                            return true;
+                        }
+
+                        if (bridgeStatus is "failed" or "cancelled" or "canceled" or "expired")
+                        {
+                            PaymentStatus = "GCash payment not completed";
+                            await Application.Current.MainPage.DisplayAlert(
+                                "GCash Payment",
+                                $"Bridge reported the payment as {bridgeStatus}. Please ask the customer to try again.",
+                                "OK");
+                            _currentGCashSourceId = null;
+                            return false;
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(bridgeResult.Error) && bridgeResult.Status != "notfound")
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Bridge status check failed: {bridgeResult.Error}");
                     }
 
                     var (success, status, error) = await _payMongoService.RetrieveSourceStatusAsync(_currentGCashSourceId);
@@ -1294,6 +1367,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                         case "paid":
                             PaymentStatus = "GCash payment confirmed";
                             _currentGCashSourceId = null;
+                            _currentGCashCheckoutUrl = null;
                             return true;
                         case "failed":
                         case "cancelled":
@@ -1328,6 +1402,26 @@ namespace Coftea_Capstone.ViewModel.Controls
             return false;
         }
 
+        public void ConfirmGCashFromDeepLink()
+        {
+            _gcashDeepLinkConfirmed = true;
+
+            if (!_isProcessingPayment && ConfirmPaymentCommand.CanExecute(null))
+            {
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try
+                    {
+                        await ConfirmPaymentCommand.ExecuteAsync(null);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Error executing ConfirmPayment from deep link: {ex.Message}");
+                    }
+                });
+            }
+        }
+
         private async Task<(bool Success, string? ErrorMessage)> EnsureGCashCheckoutAsync(bool forceNew = false)
         {
             try
@@ -1356,6 +1450,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 _currentGCashSourceId = result.SourceId;
                 _currentGCashCheckoutUrl = result.CheckoutUrl;
                 QrCodeImageSource = QRCodeService.GenerateQRCode(_currentGCashCheckoutUrl, 250);
+                _gcashDeepLinkConfirmed = false;
                 return (true, null);
             }
             catch (Exception ex)

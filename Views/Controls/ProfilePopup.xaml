@@ -175,10 +175,15 @@
                         </Frame>
 
                         <!-- Action Buttons -->
-                        <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0">
-
+                        <Grid ColumnDefinitions="*, *"
+                              RowDefinitions="Auto,Auto"
+                              ColumnSpacing="10"
+                              RowSpacing="10"
+                              Margin="0,10,0,0">
+ 
                             <!-- Reset Button -->
-                            <Button Grid.Column="0" 
+                            <Button Grid.Row="0"
+                                    Grid.Column="0" 
                                     Text="Reset" 
                                     FontSize="14" FontFamily="MontserratBlack" 
                                     BackgroundColor="#A57C5C" 
@@ -186,9 +191,10 @@
                                     CornerRadius="15"
                                     HeightRequest="40"
                                     Command="{Binding ResetProfileCommand}" />
-
+ 
                             <!-- Save Button -->
-                            <Button Grid.Column="1" 
+                            <Button Grid.Row="0"
+                                    Grid.Column="1" 
                                     Text="Save Profile" 
                                     FontSize="14" FontFamily="MontserratBlack" 
                                     FontAttributes="Bold"
@@ -197,6 +203,22 @@
                                     CornerRadius="15"
                                     HeightRequest="40"
                                     Command="{Binding SaveProfileCommand}"
+                                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}" />
+
+                            <!-- Logout Button -->
+                            <Button Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    Text="Logout"
+                                    FontSize="14"
+                                    FontFamily="MontserratBlack"
+                                    FontAttributes="Bold"
+                                    BackgroundColor="#C62828"
+                                    TextColor="White"
+                                    CornerRadius="15"
+                                    HeightRequest="44"
+                                    ImageSource="logouticon.png"
+                                    ContentLayout="Left,12"
+                                    Command="{Binding LogoutCommand}"
                                     IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}" />
                         </Grid>
 

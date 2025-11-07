@@ -84,6 +84,8 @@ namespace Coftea_Capstone
             // Initialize view models
             InitializeViewModels();
 
+            new PayMongoBridgeService().ConfigureBaseUrl("https://dozier-arthur-wistfully.ngrok-free.dev");
+
             // Set initial page based on login status
             if (isLoggedIn && rememberMe)
             {
@@ -468,6 +470,37 @@ namespace Coftea_Capstone
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"⚠️ Error in ForcePopupBindingRefresh: {ex.Message}");
+            }
+        }
+
+        public void HandleExternalUri(Uri uri)
+        {
+            if (uri == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var scheme = uri.Scheme?.ToLowerInvariant();
+                var host = uri.Host?.ToLowerInvariant();
+
+                if (scheme == "cofteapos" && host == "payment-success")
+                {
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        var paymentVm = PaymentPopup;
+                        if (paymentVm != null)
+                        {
+                            paymentVm.PaymentStatus = "GCash payment confirmed";
+                            paymentVm.ConfirmGCashFromDeepLink();
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error handling external URI: {ex.Message}");
             }
         }
 
