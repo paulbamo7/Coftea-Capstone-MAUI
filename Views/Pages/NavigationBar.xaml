@@ -5,11 +5,13 @@
              xmlns:vmPages="clr-namespace:Coftea_Capstone.ViewModel.Pages"
              >
 
-    <StackLayout Grid.Column="0" BackgroundColor="#F8E8D7" Padding="10">
-        <!-- Logo -->
-        <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
+    <ScrollView Orientation="Vertical" BackgroundColor="#F8E8D7"
+                Padding="10" VerticalOptions="FillAndExpand">
+        <StackLayout>
+            <!-- Logo -->
+            <Image Source="coftea_logo.png" HeightRequest="150" HorizontalOptions="Center"/>
 
-        <VerticalStackLayout Spacing="6" Margin="0,4,0,0">
+            <VerticalStackLayout Spacing="6" Margin="0,4,0,20">
             <VerticalStackLayout.BindingContext>
                 <vmPages:NavigationBarViewModel />
             </VerticalStackLayout.BindingContext>
@@ -58,13 +60,34 @@
             </Button>
             <Label Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
-            <Button ImageSource="settings2.png"
-                    BackgroundColor="#FFEAD6"
-                    HeightRequest="80"
-                    Command="{Binding ShowSettingsCommand}" />
-            <Label Text="Settings" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
+            <Button ImageSource="usermanagementicon.png" BackgroundColor="#FFEAD6" HeightRequest="80"
+                    x:Name="UserManagementButton"
+                    Command="{Binding GoUserManagementCommand}"
+                    IsVisible="{Binding IsUserManagementVisible}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsUserManagementActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Label Text="User Management" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"
+                   IsVisible="{Binding IsUserManagementVisible}"/>
+
+            <Button ImageSource="abouticon.png" BackgroundColor="#FFEAD6" HeightRequest="80"
+                    x:Name="AboutButton"
+                    Command="{Binding GoAboutCommand}"
+                    IsVisible="{Binding IsAboutVisible}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsAboutActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Label Text="About" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"
+                   IsVisible="{Binding IsAboutVisible}"/>
         </VerticalStackLayout>
-    </StackLayout>
+        </StackLayout>
+    </ScrollView>
 </ContentView>
  
 

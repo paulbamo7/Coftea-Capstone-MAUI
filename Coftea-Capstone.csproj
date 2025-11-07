@@ -75,8 +75,9 @@
 		<MauiImage Include="Resources\Images\sales_report.png" />
 		<MauiImage Include="Resources\Images\settings.png" />
 		<MauiImage Include="Resources\Images\settings2.png" />
-		<MauiImage Include="Resources\Images\historyicon.png" />
 		<MauiImage Include="Resources\Images\usermanagementicon.png" />
+		<MauiImage Include="Resources\Images\abouticon.png" />
+		<MauiImage Include="Resources\Images\historyicon.png" />
 		<MauiImage Include="Resources\Images\uploadicon.png" />
 		<MauiImage Include="Resources\Images\manageposicon.png" />
 		<MauiImage Include="Resources\Images\manageinventoryicon.png" />

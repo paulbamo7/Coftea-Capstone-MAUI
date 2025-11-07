@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Models.Service;
@@ -15,6 +16,7 @@ namespace Coftea_Capstone.ViewModel.Controls
     public partial class PaymentPopupViewModel : ObservableObject
     {
         private readonly CartStorageService _cartStorage = new CartStorageService();
+        private readonly PayMongoService _payMongoService = new PayMongoService();
         
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
@@ -178,30 +180,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
             }
 
-            // Validate inventory availability before processing payment
-            var inventoryValidation = await ValidateInventoryAvailabilityAsync();
-            if (!inventoryValidation.IsValid)
+            if (IsGCashSelected)
             {
-                await Application.Current.MainPage.DisplayAlert(
-                    "Insufficient Inventory",
-                    inventoryValidation.ErrorMessage,
-                    "OK");
-                return;
+                var gcashResult = await CreateAndLaunchGCashPaymentAsync();
+                if (!gcashResult)
+                {
+                    PaymentStatus = "GCash payment cancelled";
+                    return;
+                }
             }
-
-            // Confirm payment
-            bool confirm = true;
-            if (!isNonCash)
-            {
-                confirm = await Application.Current.MainPage.DisplayAlert(
-                    "Confirm Payment",
-                    $"Total: ₱{TotalAmount:F2}\nPaid: ₱{AmountPaid:F2}\nChange: ₱{Change:F2}\n\nProceed with payment?",
-                    "Confirm",
-                    "Cancel");
-            }
-
-            if (!confirm)
-                return;
 
             System.Diagnostics.Debug.WriteLine("🔵 About to call ProcessPaymentWithSteps");
             
@@ -1192,6 +1179,49 @@ namespace Coftea_Capstone.ViewModel.Controls
             catch (Exception ex)
             {
                 issues.Add($"Error validating cup and straw: {ex.Message}");
+            }
+        }
+
+        private async Task<bool> CreateAndLaunchGCashPaymentAsync()
+        {
+            try
+            {
+                PaymentStatus = "Creating GCash payment...";
+                var result = await _payMongoService.CreateGCashSourceAsync(
+                    TotalAmount,
+                    $"Coftea POS Order {DateTime.Now:yyyyMMddHHmmss}");
+
+                if (!result.Success || string.IsNullOrWhiteSpace(result.CheckoutUrl))
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "GCash Payment Failed",
+                        result.ErrorMessage ?? "Unable to create payment link. Please try again.",
+                        "OK");
+                    return false;
+                }
+                PaymentStatus = "Awaiting GCash payment...";
+
+                try
+                {
+                    await Browser.Default.OpenAsync(result.CheckoutUrl, BrowserLaunchMode.SystemPreferred);
+                }
+                catch
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "GCash Checkout",
+                        $"Open this link to complete payment:\n{result.CheckoutUrl}",
+                        "OK");
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert(
+                    "GCash Payment Error",
+                    ex.Message,
+                    "OK");
+                return false;
             }
         }
     }

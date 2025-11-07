@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Pages.AboutPage"
+             xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False"
+             BackgroundColor="#C1A892">
+
+    <Grid ColumnDefinitions="200,*" RowDefinitions="*">
+        <views:NavigationBar Grid.Column="0" />
+
+        <ScrollView Grid.Column="1" Padding="20">
+            <VerticalStackLayout Spacing="20">
+                <Label Text="About Coftea POS"
+                       FontSize="32"
+                       FontAttributes="Bold"
+                       TextColor="#3E2723" />
+
+                <Frame BackgroundColor="White" CornerRadius="20" Padding="20" HasShadow="True">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Our Story"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="#5B4F45" />
+                        <Label Text="Coftea POS is the in-house point-of-sale and inventory platform crafted specifically for Coftea Café. Our goal is to simplify day-to-day operations so your team can focus on serving drinks customers love."
+                               FontSize="15"
+                               TextColor="#4B3A2F"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame BackgroundColor="White" CornerRadius="20" Padding="20" HasShadow="True">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="What You Can Do"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="#5B4F45" />
+                        <Label Text="• Process POS transactions with integrated QR and cash handling support.&#10;• Monitor real-time sales and employee dashboards.&#10;• Track inventory movements, purchase orders, and stock alerts.&#10;• Manage user access for administrators, cashiers, and inventory staff."
+                               FontSize="15"
+                               TextColor="#4B3A2F"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame BackgroundColor="White" CornerRadius="20" Padding="20" HasShadow="True">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Need Help?"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="#5B4F45" />
+                        <Label Text="For support, suggestions, or bug reports, please reach out to the Coftea development team at support@coftea.app or contact your system administrator."
+                               FontSize="15"
+                               TextColor="#4B3A2F"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Label Text="© Coftea Café — Empowering baristas with better tools."
+                       FontSize="14"
+                       TextColor="#3E2723"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
+

@@ -17,12 +17,18 @@ namespace Coftea_Capstone.ViewModel.Pages
         public ICommand GoPOSCommand { get; }
         public ICommand GoInventoryCommand { get; }
         public ICommand GoSalesReportCommand { get; }
-        public ICommand ShowSettingsCommand { get; }
+        public ICommand GoUserManagementCommand { get; }
+        public ICommand GoAboutCommand { get; }
 
         public bool IsHomeActive => string.Equals(_currentPage, nameof(EmployeeDashboard), StringComparison.Ordinal);
         public bool IsPOSActive => string.Equals(_currentPage, nameof(PointOfSale), StringComparison.Ordinal);
         public bool IsInventoryActive => string.Equals(_currentPage, nameof(Inventory), StringComparison.Ordinal);
         public bool IsSalesReportActive => string.Equals(_currentPage, nameof(SalesReport), StringComparison.Ordinal);
+        public bool IsUserManagementActive => string.Equals(_currentPage, nameof(UserManagement), StringComparison.Ordinal);
+        public bool IsAboutActive => string.Equals(_currentPage, nameof(AboutPage), StringComparison.Ordinal);
+
+        public bool IsUserManagementVisible => App.CurrentUser?.IsAdmin ?? false;
+        public bool IsAboutVisible => App.CurrentUser != null;
 
         public NavigationBarViewModel()
         {
@@ -64,7 +70,25 @@ namespace Coftea_Capstone.ViewModel.Pages
                 }
                 await SimpleNavigationService.NavigateToAsync("//salesreport");
             });
-            ShowSettingsCommand = new Command(() => GlobalSettingsService.ShowSettings());
+            GoUserManagementCommand = new Command(async () =>
+            {
+                if (App.CurrentUser == null) return;
+                UiOverlayService.CloseGlobalOverlays();
+                if (!(App.CurrentUser?.IsAdmin ?? false))
+                {
+                    await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only admins can access User Management.", "OK");
+                    return;
+                }
+                await SimpleNavigationService.NavigateToAsync("//usermanagement");
+            });
+
+            GoAboutCommand = new Command(async () =>
+            {
+                UiOverlayService.CloseGlobalOverlays();
+                await SimpleNavigationService.NavigateToAsync("//about");
+            });
+
+            RaiseAllActiveProps();
         }
 
         private void OnCurrentPageChanged(object sender, string e)
@@ -79,6 +103,10 @@ namespace Coftea_Capstone.ViewModel.Pages
             OnPropertyChanged(nameof(IsPOSActive));
             OnPropertyChanged(nameof(IsInventoryActive));
             OnPropertyChanged(nameof(IsSalesReportActive));
+            OnPropertyChanged(nameof(IsUserManagementActive));
+            OnPropertyChanged(nameof(IsAboutActive));
+            OnPropertyChanged(nameof(IsUserManagementVisible));
+            OnPropertyChanged(nameof(IsAboutVisible));
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string name = null)

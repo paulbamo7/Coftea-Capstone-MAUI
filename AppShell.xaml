@@ -21,5 +21,6 @@
     <ShellContent Route="inventory" ContentTemplate="{DataTemplate views:Inventory}" />
     <ShellContent Route="salesreport" ContentTemplate="{DataTemplate views:SalesReport}" />
     <ShellContent Route="usermanagement" ContentTemplate="{DataTemplate views:UserManagement}" />
+    <ShellContent Route="about" ContentTemplate="{DataTemplate views:AboutPage}" />
 
 </Shell>
