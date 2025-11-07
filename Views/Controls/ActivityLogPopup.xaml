@@ -168,7 +168,11 @@
                             </Button>
                         </StackLayout>
 
+<<<<<<< Updated upstream
                         <!-- Search and Refresh -->
+=======
+                        <!-- Search and Date Filter -->
+>>>>>>> Stashed changes
                         <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
                             <Border Grid.Column="0" 
                                     Stroke="#8B7355" 
@@ -185,8 +189,12 @@
                             </Border>
                             <Button Grid.Column="1" 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
                                     Text="📅" 
+=======
+                                    Text="📅 Filter Date" 
+>>>>>>> Stashed changes
                                     BackgroundColor="#BDAEA2" 
                                     TextColor="#5B4F45" 
                                     BorderColor="#8B7355"
@@ -204,6 +212,7 @@
                                 </Button.Triggers>
                             </Button>
                             <Button Grid.Column="2" 
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes
                                     Text="🔍" 
                                     BackgroundColor="#BDAEA2" 
@@ -215,6 +224,8 @@
                                     CornerRadius="20"
                                     Command="{Binding SearchCommand}"/>
                             <Button Grid.Column="2" 
+=======
+>>>>>>> Stashed changes
                                     Text="🔄" 
                                     BackgroundColor="#BDAEA2" 
                                     TextColor="#5B4F45" 

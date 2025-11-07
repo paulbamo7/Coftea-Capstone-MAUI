@@ -42,7 +42,17 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private int userId = 0;
 
+<<<<<<< Updated upstream
         public void ShowUserProfile(UserInfoModel user) // Show profile from UserInfoModel
+=======
+        [ObservableProperty]
+        private string profileImage = "usericon.png";
+
+        [ObservableProperty]
+        private ImageSource profileImageSource = ImageSource.FromFile("usericon.png");
+
+        public async Task ShowUserProfile(UserInfoModel user) // Show profile from UserInfoModel
+>>>>>>> Stashed changes
         {
             if (user == null) return;
 
@@ -51,6 +61,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             FullName = $"{user.FirstName} {user.LastName}".Trim();
             Email = MaskEmail(user.Email);
             PhoneNumber = user.PhoneNumber;
+<<<<<<< Updated upstream
             Address = user.Address;
             Birthday = user.Birthday;
             CanEditInventory = user.CanAccessInventory;
@@ -64,13 +75,85 @@ namespace Coftea_Capstone.ViewModel.Controls
             ProfileImage = !string.IsNullOrWhiteSpace(user.ProfileImage) ? user.ProfileImage : "usericon.png";
             ProfileImageSource = GetProfileImageSource(ProfileImage);
 >>>>>>> Stashed changes
+=======
+            
+            // If user is admin, set all permissions to true
+            if (user.IsAdmin)
+            {
+                CanEditInventory = true;
+                CanEditPOSMenu = true;
+                CanAccessSalesReport = true;
+                _canAccessSalesReport = true;
+            }
+            else
+            {
+                CanEditInventory = user.CanAccessInventory;
+                CanEditPOSMenu = user.CanAccessPOS;
+                _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
+                CanAccessSalesReport = user.CanAccessSalesReport; // For display
+            }
+            
+            // Explicitly notify property changes to ensure DataTriggers fire
+            OnPropertyChanged(nameof(CanEditInventory));
+            OnPropertyChanged(nameof(CanEditPOSMenu));
+            OnPropertyChanged(nameof(CanAccessSalesReport));
+            
+            // Notify computed properties changed
+            OnPropertyChanged(nameof(InventoryAccessText));
+            OnPropertyChanged(nameof(POSAccessText));
+            OnPropertyChanged(nameof(SalesReportAccessText));
+            
+            // Load profile image from database - always refresh from database to get latest
+            try
+            {
+                var freshUser = await _database.GetUserByIdAsync(user.ID);
+                var profileImageName = freshUser?.ProfileImage ?? user.ProfileImage;
+                ProfileImage = !string.IsNullOrWhiteSpace(profileImageName) ? profileImageName : "usericon.png";
+                
+                System.Diagnostics.Debug.WriteLine($"ShowUserProfile - UserId: {UserId}, ProfileImage from DB: {profileImageName}, Using: {ProfileImage}");
+                
+                // Try to restore profile image from database if file is missing
+                if (!string.IsNullOrWhiteSpace(ProfileImage) && ProfileImage != "usericon.png")
+                {
+                    var imagePath = System.IO.Path.Combine(Microsoft.Maui.Storage.FileSystem.AppDataDirectory, ProfileImage);
+                    if (!System.IO.File.Exists(imagePath))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Profile image file missing, attempting to restore from database: {ProfileImage}");
+                        await _database.GetUserProfileImageAsync(UserId);
+                    }
+                }
+                
+                // Clear first to force image reload, then set new source on main thread
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ProfileImageSource = null;
+                    ProfileImageSource = GetProfileImageSource(ProfileImage);
+                    System.Diagnostics.Debug.WriteLine($"ProfileImageSource set to: {ProfileImageSource}");
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error loading user profile image: {ex.Message}");
+                // Fallback to provided user data
+                ProfileImage = !string.IsNullOrWhiteSpace(user.ProfileImage) ? user.ProfileImage : "usericon.png";
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ProfileImageSource = null;
+                    ProfileImageSource = GetProfileImageSource(ProfileImage);
+                });
+            }
+>>>>>>> Stashed changes
 
             IsVisible = true;
         }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
         private ImageSource GetProfileImageSource(string imageName)
+=======
+        private ImageSource GetProfileImageSource(string imageFileName)
+>>>>>>> Stashed changes
         {
             try
             {
@@ -126,11 +209,40 @@ namespace Coftea_Capstone.ViewModel.Controls
             FullName = user.Username;
             Email = "N/A"; // UserEntry doesn't have email
             PhoneNumber = "N/A"; // UserEntry doesn't have phone
+<<<<<<< Updated upstream
             Address = "N/A"; // UserEntry doesn't have address
             Birthday = DateTime.Now; // UserEntry doesn't have birthday
             CanEditInventory = user.CanAccessInventory;
             CanEditPOSMenu = user.CanAccessPOS;
             _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
+=======
+            
+            // If user is admin, set all permissions to true
+            if (user.IsAdmin)
+            {
+                CanEditInventory = true;
+                CanEditPOSMenu = true;
+                CanAccessSalesReport = true;
+                _canAccessSalesReport = true;
+            }
+            else
+            {
+                CanEditInventory = user.CanAccessInventory;
+                CanEditPOSMenu = user.CanAccessPOS;
+                _canAccessSalesReport = user.CanAccessSalesReport; // Store for updates, but not editable
+                CanAccessSalesReport = user.CanAccessSalesReport; // For display
+            }
+            
+            // Explicitly notify property changes to ensure DataTriggers fire
+            OnPropertyChanged(nameof(CanEditInventory));
+            OnPropertyChanged(nameof(CanEditPOSMenu));
+            OnPropertyChanged(nameof(CanAccessSalesReport));
+            
+            // Notify computed properties changed
+            OnPropertyChanged(nameof(InventoryAccessText));
+            OnPropertyChanged(nameof(POSAccessText));
+            OnPropertyChanged(nameof(SalesReportAccessText));
+>>>>>>> Stashed changes
 
             IsVisible = true;
         }

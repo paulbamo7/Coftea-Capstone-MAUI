@@ -465,6 +465,7 @@ namespace Coftea_Capstone.ViewModel
                 }
                 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 // Compute percent of minimum threshold remaining
                 // percentOfMin = (current / minimum) * 100; if minimum is 0, skip (treated as healthy)
                 var lowStockItems = inventoryItems
@@ -475,6 +476,8 @@ namespace Coftea_Capstone.ViewModel
                     })
                     .Where(x => x.PercentOfMin <= 100.0) // at or below minimum threshold
 =======
+=======
+>>>>>>> Stashed changes
                 // Compute percent of buffer remaining before hitting minimum
                 // Formula: (current - minimum) / (maximum - minimum) × 100
                 // This shows how much "safety buffer" remains before reaching minimum threshold
@@ -506,6 +509,9 @@ namespace Coftea_Capstone.ViewModel
                         }
                     })
                     .Where(x => x.PercentRemaining <= 100.0) // Show items at or below max, or below minimum
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                     .GroupBy(x => x.Item.itemName)
                     .Select(group => group.OrderBy(x => x.PercentOfMin).First())

@@ -104,6 +104,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     var currentUser = App.CurrentUser?.Email ?? "Unknown";
 
+<<<<<<< Updated upstream
                     if (IsAdmin)
                     {
                         // Admin is creating the order - auto-approve it with custom quantities
@@ -176,6 +177,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                         ShowSuccessView = true;
                         InfoText = $"✅ Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\n📱 SMS app should have opened. Please press 'Send' to notify the supplier and admin.\n\nAdmin approval is required.";
                     }
+=======
+                    // Show success view with PDF button
+                    // All purchase orders (admin and regular users) now require explicit approval in ManagePurchaseOrder
+                    ShowSuccessView = true;
+                    InfoText = $"✅ Purchase order #{purchaseOrderId} has been created with your custom amounts!\n\nPlease accept the items in 'Manage Purchase Order' to update inventory.";
+                    
+                    System.Diagnostics.Debug.WriteLine($"✅ Purchase order {purchaseOrderId} created - requires approval in ManagePurchaseOrder");
+>>>>>>> Stashed changes
                 }
                 else
                 {

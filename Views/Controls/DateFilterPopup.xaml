@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Coftea_Capstone.Views.Controls.DateFilterPopup"
+    x:Name="DateFilterPopupView"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding IsVisible}"
+    InputTransparent="False">
+
+    <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+        <!-- Background overlay that closes on tap -->
+        <BoxView BackgroundColor="#80000000" InputTransparent="False" ZIndex="500">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+
+        <!-- Date Filter Popup -->
+        <Frame BackgroundColor="#F8EDE0"
+               CornerRadius="18"
+               Padding="24"
+               WidthRequest="360"
+               MaximumHeightRequest="600"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               HasShadow="True"
+               InputTransparent="False"
+               ZIndex="4000">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="15" MinimumHeightRequest="500">
+                <!-- Header -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                        <Frame WidthRequest="36"
+                               HeightRequest="36"
+                               CornerRadius="12"
+                               Padding="0"
+                               HasShadow="False"
+                               BackgroundColor="#E5D2BD"
+                               VerticalOptions="Center">
+                            <Label Text="📆"
+                                   FontSize="20"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                        <Label Text="Select Date Range" 
+                               FontSize="20" 
+                               FontAttributes="Bold" 
+                               TextColor="#4C3A2E"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                    <Button Grid.Column="1" 
+                            Text="✕" 
+                            FontSize="18"
+                            TextColor="#8B7355"
+                            BackgroundColor="Transparent"
+                            WidthRequest="30"
+                            HeightRequest="30"
+                            Command="{Binding CloseCommand}"/>
+                </Grid>
+
+                <!-- Content - Scrollable -->
+                <ScrollView Grid.Row="1" 
+                           Orientation="Vertical" 
+                           VerticalScrollBarVisibility="Default"
+                           VerticalOptions="FillAndExpand">
+                    <VerticalStackLayout Spacing="20" Padding="0,10,0,0">
+                    <!-- Quick Filters -->
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Quick Filters" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#4C3A2E"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                            <Button Grid.Row="0" Grid.Column="0"
+                                    Text="Today" 
+                                    Command="{Binding SelectQuickFilterCommand}" 
+                                    CommandParameter="Today"
+                                    BackgroundColor="#EBDCCD"
+                                    TextColor="#4C3A2E"
+                                    CornerRadius="10"
+                                    HeightRequest="42"
+                                    FontSize="13"
+                                    FontAttributes="Bold"/>
+                            <Button Grid.Row="0" Grid.Column="1"
+                                    Text="Yesterday" 
+                                    Command="{Binding SelectQuickFilterCommand}" 
+                                    CommandParameter="Yesterday"
+                                    BackgroundColor="#EBDCCD"
+                                    TextColor="#4C3A2E"
+                                    CornerRadius="10"
+                                    HeightRequest="42"
+                                    FontSize="13"
+                                    FontAttributes="Bold"/>
+                            <Button Grid.Row="1" Grid.Column="0"
+                                    Text="This Week" 
+                                    Command="{Binding SelectQuickFilterCommand}" 
+                                    CommandParameter="This Week"
+                                    BackgroundColor="#EBDCCD"
+                                    TextColor="#4C3A2E"
+                                    CornerRadius="10"
+                                    HeightRequest="42"
+                                    FontSize="13"
+                                    FontAttributes="Bold"/>
+                            <Button Grid.Row="1" Grid.Column="1"
+                                    Text="This Month" 
+                                    Command="{Binding SelectQuickFilterCommand}" 
+                                    CommandParameter="This Month"
+                                    BackgroundColor="#EBDCCD"
+                                    TextColor="#4C3A2E"
+                                    CornerRadius="10"
+                                    HeightRequest="42"
+                                    FontSize="13"
+                                    FontAttributes="Bold"/>
+                            <Button Grid.Row="2" Grid.ColumnSpan="2"
+                                    Text="All Dates" 
+                                    Command="{Binding SelectQuickFilterCommand}" 
+                                    CommandParameter="All Dates"
+                                    BackgroundColor="#EBDCCD"
+                                    TextColor="#4C3A2E"
+                                    CornerRadius="12"
+                                    HeightRequest="44"
+                                    FontSize="13"
+                                    FontAttributes="Bold"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- Custom Date Range -->
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Custom Range" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#4C3A2E"/>
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Start Date" 
+                                   FontSize="12" 
+                                   TextColor="#7A6755"/>
+                            <DatePicker x:Name="StartDatePicker"
+                                       Date="{Binding StartDate, Mode=TwoWay}"
+                                       MinimumDate="2020-01-01"
+                                       MaximumDate="{Binding Today}"
+                                       TextColor="#4C3A2E"
+                                       BackgroundColor="#F4E6D6"
+                                       FontSize="14"
+                                       DateSelected="OnStartDateSelected"/>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="End Date" 
+                                   FontSize="12" 
+                                   TextColor="#7A6755"/>
+                            <DatePicker x:Name="EndDatePicker"
+                                       Date="{Binding EndDate, Mode=TwoWay}"
+                                       MinimumDate="{Binding StartDate}"
+                                       MaximumDate="{Binding Today}"
+                                       TextColor="#4C3A2E"
+                                       BackgroundColor="#F4E6D6"
+                                       FontSize="14"/>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Footer Buttons -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Text="Cancel" 
+                            Command="{Binding CloseCommand}"
+                            BackgroundColor="Transparent"
+                            BorderColor="#BDA58D"
+                            BorderWidth="1.5"
+                            TextColor="#8B7355"
+                            CornerRadius="12"
+                            HeightRequest="46"
+                            FontAttributes="Bold"/>
+                    <Button Text="Apply" 
+                            Command="{Binding ApplyDateFilterCommand}"
+                            BackgroundColor="#8B7355"
+                            TextColor="White"
+                            CornerRadius="12"
+                            HeightRequest="46"
+                            FontAttributes="Bold"/>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>
+

@@ -68,6 +68,9 @@ namespace Coftea_Capstone.ViewModel.Controls
             ? $"Filtered: {FilterStartDate:MMM dd, yyyy} - {FilterEndDate:MMM dd, yyyy}"
             : string.Empty;
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         public ActivityLogPopupViewModel()
         {
@@ -126,6 +129,9 @@ namespace Coftea_Capstone.ViewModel.Controls
             UpdatePagedItems();
         }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         [RelayCommand]
         public async Task LoadActivityLogAsync()
@@ -191,6 +197,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Apply action filter
                 if (!string.IsNullOrEmpty(SelectedFilter) && SelectedFilter != "All")
                 {
+<<<<<<< Updated upstream
                     if (SelectedFilter == "PURCHASE_ORDER")
                     {
                         // Filter by Reason for purchase orders (items added from purchase orders)
@@ -201,6 +208,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                         // Filter by Action for other types (DEDUCTED, ADDED, etc.)
                         query = query.Where(log => log.Action == SelectedFilter);
                     }
+=======
+                    // Filter by Action (DEDUCTED, ADDED, etc.)
+                    query = query.Where(log => log.Action == SelectedFilter);
+>>>>>>> Stashed changes
                 }
 
                 // Apply search filter
@@ -214,8 +225,30 @@ namespace Coftea_Capstone.ViewModel.Controls
                         (log.OrderId?.ToLowerInvariant().Contains(searchTerm) ?? false));
                 }
 
+<<<<<<< Updated upstream
                 FilteredActivityLog = new ObservableCollection<InventoryActivityLog>(query);
                 StatusMessage = $"Showing {FilteredActivityLog.Count} of {_allActivityLog.Count} entries";
+=======
+                // Apply date filter
+                if (_hasDateFilter)
+                {
+                    var startDate = FilterStartDate.Date;
+                    var endDate = FilterEndDate.Date.AddDays(1).AddSeconds(-1); // Include entire end date
+                    query = query.Where(log => log.Timestamp >= startDate && log.Timestamp <= endDate);
+                }
+
+                // Assign row numbers for table display
+                var filteredList = query.ToList();
+                for (int i = 0; i < filteredList.Count; i++)
+                {
+                    filteredList[i].RowNumber = i + 1;
+                }
+
+                FilteredActivityLog = new ObservableCollection<InventoryActivityLog>(filteredList);
+                // Reset to first page on new filter
+                CurrentPage = 1;
+                UpdatePagedItems();
+>>>>>>> Stashed changes
             }
             catch (Exception ex)
             {
@@ -264,8 +297,14 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void SetYesterday()
         {
+<<<<<<< Updated upstream
             FilterStartDate = DateTime.Now.AddDays(-1).Date;
             FilterEndDate = DateTime.Now.AddDays(-1).Date;
+=======
+            var yesterday = DateTime.Now.AddDays(-1).Date;
+            FilterStartDate = yesterday;
+            FilterEndDate = yesterday;
+>>>>>>> Stashed changes
         }
 
         [RelayCommand]

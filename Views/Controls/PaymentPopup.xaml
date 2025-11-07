@@ -149,10 +149,19 @@
                                 <!-- Quick Amount Buttons -->
                                 <VerticalStackLayout Grid.Row="4" Margin="0,0,0,20" Spacing="8">
                                     <Label Text="Quick Amounts:" 
+<<<<<<< Updated upstream
                                            FontSize="14" 
                                            TextColor="Gray" />
 <<<<<<< Updated upstream
                                     <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+=======
+                                           FontSize="14" FontFamily="MontserratBlack" 
+                                           TextColor="Gray"
+                                           LineBreakMode="NoWrap"
+                                           HorizontalOptions="Start"
+                                           VerticalOptions="Start" />
+                                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Start">
+>>>>>>> Stashed changes
                                         <Button Text="₱50" 
                                                 FontSize="12"
                                                 BackgroundColor="#E8D5C4"
@@ -190,6 +199,7 @@
                                                 HeightRequest="30"
                                                 Clicked="OnQuickAmountClicked" />
                                     </HorizontalStackLayout>
+<<<<<<< Updated upstream
                                 </Grid>
 =======
                                     <ScrollView Orientation="Horizontal" 
@@ -234,6 +244,8 @@
                                                     Clicked="OnQuickAmountClicked" />
                                         </HorizontalStackLayout>
                                     </ScrollView>
+=======
+>>>>>>> Stashed changes
                                 </VerticalStackLayout>
 >>>>>>> Stashed changes
 

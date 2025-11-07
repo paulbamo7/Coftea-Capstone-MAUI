@@ -62,9 +62,11 @@
                     </Grid>
                 </Grid>
 
+                <!-- Date Filter Button -->
                 <!-- Categories - Centered above pie chart and KPI cards -->
-                <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
-                    <StackLayout Orientation="Horizontal" Spacing="10">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <ScrollView Grid.Column="1" Orientation="Horizontal" HorizontalOptions="Center">
+                        <StackLayout Orientation="Horizontal" Spacing="10">
                         <Button Text="Overview" FontAttributes="Bold" TextColor="Black" FontSize="14"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Overview">
@@ -115,8 +117,21 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                    </StackLayout>
-                </ScrollView>
+                        </StackLayout>
+                    </ScrollView>
+                    <Button Grid.Column="2"
+                            Text="{Binding DateFilterText, TargetNullValue='Select Date Range', FallbackValue='Select Date Range'}"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="White"
+                            BackgroundColor="#8B7355"
+                            CornerRadius="10"
+                            Padding="12,6"
+                            HeightRequest="40"
+                            Command="{Binding SelectDateFilterCommand}"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center"/>
+                </Grid>
 
                 <!-- KPI Cards, Pie Chart, and Total Accumulated - Three column layout -->
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
@@ -135,7 +150,7 @@
                             <Frame BackgroundColor="#E8F5E8" CornerRadius="12" HeightRequest="100" Padding="8" HasShadow="True" Grid.Column="0">
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="Cash" FontAttributes="Bold" FontSize="14" TextColor="#2E7D32"/>
-                                    <Label Text="{Binding CashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#2E7D32" FontAttributes="Bold" LineBreakMode="NoWrap"/>
+                                    <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#2E7D32" FontAttributes="Bold" LineBreakMode="NoWrap"/>
                                 </VerticalStackLayout>
                             </Frame>
 
@@ -143,7 +158,7 @@
                             <Frame BackgroundColor="#E3F2FD" CornerRadius="12" HeightRequest="100" Padding="8" HasShadow="True" Grid.Column="1">
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="GCash" FontAttributes="Bold" FontSize="14" TextColor="#1976D2"/>
-                                    <Label Text="{Binding GCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#1976D2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
+                                    <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#1976D2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
                                 </VerticalStackLayout>
                             </Frame>
 
@@ -151,7 +166,7 @@
                             <Frame BackgroundColor="#F3E5F5" CornerRadius="12" HeightRequest="100" Padding="8" HasShadow="True" Grid.Column="2">
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="Bank" FontAttributes="Bold" FontSize="14" TextColor="#7B1FA2"/>
-                                    <Label Text="{Binding BankTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#7B1FA2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
+                                    <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#7B1FA2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
                                 </VerticalStackLayout>
                             </Frame>
                         </Grid>
@@ -185,6 +200,7 @@
                                                       Item2HasTrend="{Binding Item2HasTrend}"
                                                       Item3HasTrend="{Binding Item3HasTrend}"/>
 
+<<<<<<< Updated upstream
                                 <VerticalStackLayout Grid.Column="1" Spacing="12" HorizontalOptions="End" VerticalOptions="Start" Margin="8,20,0,0">
                                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="6">
                                         <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#66BB6A"/>
@@ -199,6 +215,22 @@
                                     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="6">
                                         <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#795548"/>
                                         <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item3Name}" FontSize="14" TextColor="#5B4F45"/>
+=======
+                                <VerticalStackLayout Grid.Column="1" Spacing="14" HorizontalOptions="Start" VerticalOptions="Center" Margin="8,10,8,10">
+                                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="2">
+                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#66BB6A"/>
+                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item1Name}" FontSize="14" TextColor="#5B4F45" LineBreakMode="WordWrap"/>
+                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item1Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="2">
+                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#8D6E63"/>
+                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item2Name}" FontSize="14" TextColor="#5B4F45" LineBreakMode="WordWrap"/>
+                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item2Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="2">
+                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#795548"/>
+                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item3Name}" FontSize="14" TextColor="#5B4F45" LineBreakMode="WordWrap"/>
+>>>>>>> Stashed changes
                                         <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item3Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
                                     </Grid>
                                 </VerticalStackLayout>
@@ -207,15 +239,21 @@
                     </Frame>
 
                     <!-- Right Column: Total Cash Accumulated -->
+<<<<<<< Updated upstream
                     <Frame Grid.Column="2" BackgroundColor="#C8E6C9" CornerRadius="15" Padding="20" HasShadow="True" HeightRequest="300" VerticalOptions="Start" BorderColor="#81C784">
                         <VerticalStackLayout Spacing="8" HorizontalOptions="Fill">
                             <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+=======
+                    <Frame Grid.Column="2" BackgroundColor="#C8E6C9" CornerRadius="15" Padding="20" HasShadow="True" VerticalOptions="Start" BorderColor="#81C784">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Spacing="6" HorizontalOptions="Center">
+>>>>>>> Stashed changes
                                 <Label Text="Total Sales" FontAttributes="Bold" FontSize="20" FontFamily="Montserrat-Black" TextColor="#2E7D32" HorizontalOptions="Center"/>
                                 <Label Text="{Binding SelectedTimePeriod, StringFormat='{0} sales totals'}" FontSize="13" TextColor="#558B2F" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
                             
                             <!-- Time Period Filter Buttons -->
-                            <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="2">
+                            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*,*,*" ColumnSpacing="2" Margin="0,12,0,0">
                                 <Button Text="Today" 
                                         Style="{StaticResource TimePeriodButtonStyle}"
                                         Grid.Column="0"
@@ -243,13 +281,37 @@
                                         CommandParameter="All Time"/>
                             </Grid>
                             
+                            <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,12,0,0">
+                                <Frame BackgroundColor="#E8F5E8" CornerRadius="10" Padding="10" HasShadow="False" Grid.Column="0">
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Label Text="Cash" FontAttributes="Bold" FontSize="12" TextColor="#2E7D32" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" FontSize="14" FontAttributes="Bold" TextColor="#2E7D32" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Frame>
+                                <Frame BackgroundColor="#E3F2FD" CornerRadius="10" Padding="10" HasShadow="False" Grid.Column="1">
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Label Text="GCash" FontAttributes="Bold" FontSize="12" TextColor="#1976D2" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" FontSize="14" FontAttributes="Bold" TextColor="#1976D2" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Frame>
+                                <Frame BackgroundColor="#F3E5F5" CornerRadius="10" Padding="10" HasShadow="False" Grid.Column="2">
+                                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                        <Label Text="Bank" FontAttributes="Bold" FontSize="12" TextColor="#7B1FA2" HorizontalOptions="Center"/>
+                                        <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" FontSize="14" FontAttributes="Bold" TextColor="#7B1FA2" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </Grid>
+
                             <Label Text="{Binding DisplayTotalSales, StringFormat='₱{0:N2}'}" 
+                                   Grid.Row="3"
+                                   Grid.ColumnSpan="2"
                                    FontSize="28" 
                                    FontAttributes="Bold" 
                                    FontFamily="Montserrat-Black"
                                    TextColor="#2E7D32" 
                                    HorizontalOptions="Center"/>
                             
+<<<<<<< Updated upstream
                             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8" Margin="0,10,0,0">
                                 <Frame Grid.Column="0" BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True" HorizontalOptions="FillAndExpand">
                                     <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
@@ -289,6 +351,10 @@
                                 </Frame>
                             </Grid>
                         </VerticalStackLayout>
+=======
+                            <!-- Comparison details and payment breakdown removed per request -->
+                        </Grid>
+>>>>>>> Stashed changes
                     </Frame>
                 </Grid>
 
@@ -405,7 +471,101 @@
                     </Frame>
                 </Grid>
 
+<<<<<<< Updated upstream
                 
+=======
+                <!-- Sales Breakdown Table -->
+                <Frame BackgroundColor="White" CornerRadius="12" Padding="16" HasShadow="True">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Sales Breakdown" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
+                            <Button Grid.Column="1"
+                                    Text="{Binding AggregateToggleText}"
+                                    Command="{Binding ToggleAggregateSectionCommand}"
+                                    FontSize="12"
+                                    FontAttributes="Bold"
+                                    TextColor="White"
+                                    BackgroundColor="#8B7355"
+                                    CornerRadius="10"
+                                    Padding="14,6"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsAggregateSectionVisible}">
+                            <Label Text="Group by:" FontSize="12" TextColor="#5B4F45" VerticalOptions="Center"/>
+                            <Picker Grid.Column="1"
+                                    ItemsSource="{Binding AggregateModes}"
+                                    SelectedItem="{Binding SelectedAggregateMode}"
+                                    FontSize="12"
+                                    TextColor="#5B4F45"
+                                    HorizontalOptions="End"
+                                    WidthRequest="200"/>
+                        </Grid>
+
+                        <ActivityIndicator IsVisible="{Binding IsAggregateLoading}" IsRunning="{Binding IsAggregateLoading}" Color="#2E7D32"/>
+
+                        <StackLayout IsVisible="{Binding IsAggregateSectionVisible}">
+                            <StackLayout IsVisible="{Binding HasAggregateRows}">
+                                <ScrollView Orientation="Horizontal">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Border Stroke="#D5C3AB" StrokeThickness="1" StrokeShape="RoundRectangle 6" Padding="0">
+                                            <Grid ColumnDefinitions="180,80,120,120,120,120" Padding="0,0,8,0" RowDefinitions="Auto">
+                                                <Label Text="Group" FontAttributes="Bold" TextColor="#5B4F45" Padding="12,8"/>
+                                                <BoxView Grid.Column="1" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="1" Text="Total Qty" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="2" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="2" Text="Total Revenue" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="3" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="3" Text="Cash (Qty / ₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="4" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="4" Text="GCash (Qty / ₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="5" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="5" Text="Bank (Qty / ₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <CollectionView ItemsSource="{Binding SalesAggregateRows}" HeightRequest="260" SelectionMode="None">
+                                            <CollectionView.ItemsLayout>
+                                                <LinearItemsLayout Orientation="Vertical" ItemSpacing="4"/>
+                                            </CollectionView.ItemsLayout>
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Stroke="#E0D4C3" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="0">
+                                                        <Grid ColumnDefinitions="180,80,120,120,120,120" ColumnSpacing="0" Padding="0,6,8,6">
+                                                            <Label Text="{Binding GroupLabel}" TextColor="#424242" FontSize="13" LineBreakMode="WordWrap" Padding="12,0"/>
+                                                            <BoxView Grid.Column="1" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <Label Grid.Column="1" Text="{Binding TotalQuantityDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0"/>
+                                                            <BoxView Grid.Column="2" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <Label Grid.Column="2" Text="{Binding TotalRevenueDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0"/>
+                                                            <BoxView Grid.Column="3" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="3" Spacing="2" HorizontalOptions="Center" Padding="12,0">
+                                                                <Label Text="{Binding Cash.QuantityDisplay}" TextColor="#424242" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                                <Label Text="{Binding Cash.RevenueDisplay}" TextColor="#2E7D32" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                            </VerticalStackLayout>
+                                                            <BoxView Grid.Column="4" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="4" Spacing="2" HorizontalOptions="Center" Padding="12,0">
+                                                                <Label Text="{Binding GCash.QuantityDisplay}" TextColor="#424242" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                                <Label Text="{Binding GCash.RevenueDisplay}" TextColor="#1976D2" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                            </VerticalStackLayout>
+                                                            <BoxView Grid.Column="5" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="5" Spacing="2" HorizontalOptions="Center" Padding="12,0">
+                                                                <Label Text="{Binding Bank.QuantityDisplay}" TextColor="#424242" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                                <Label Text="{Binding Bank.RevenueDisplay}" TextColor="#7B1FA2" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                            </VerticalStackLayout>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                    </VerticalStackLayout>
+                                </ScrollView>
+                                <Label Text="Figures include all filtered transactions." FontSize="11" TextColor="#757575" Margin="0,4,0,0"/>
+                            </StackLayout>
+                            <Label Text="No sales data for this range yet." FontSize="13" TextColor="#757575" HorizontalTextAlignment="Center" Margin="0,12,0,0" IsVisible="{Binding HasAggregateRows, Converter={StaticResource InvertBoolConverter}}"/>
+                        </StackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+>>>>>>> Stashed changes
             </VerticalStackLayout>
         </ScrollView>
 

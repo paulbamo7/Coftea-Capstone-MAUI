@@ -308,6 +308,7 @@ namespace Coftea_Capstone.ViewModel
                         // An item can be both a main ingredient (with its own amount) and an optional addon (with a different amount/price)
                         var ingredients = selectedIngredientsOnly
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                             .Where(i => !addonIds.Contains(i.itemID))
                             .Select(i => (
                                 inventoryItemId: i.itemID,
@@ -324,6 +325,8 @@ namespace Coftea_Capstone.ViewModel
                                 unitL: (string?)(string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.unitOfMeasurement : i.InputUnitLarge)
                             ));
 =======
+=======
+>>>>>>> Stashed changes
                             .Select(i => {
                                 // Ensure fallback unit is never null or empty
                                 var fallbackUnit = !string.IsNullOrWhiteSpace(i.unitOfMeasurement) ? i.unitOfMeasurement : "pcs";
@@ -345,6 +348,9 @@ namespace Coftea_Capstone.ViewModel
                                     unitL: !string.IsNullOrWhiteSpace(i.InputUnitLarge) ? i.InputUnitLarge : fallbackUnit
                                 );
                             });
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
                         var addons = selectedAddonsOnly

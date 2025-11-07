@@ -47,9 +47,14 @@
                     </Frame>
                 </Grid>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 <Grid Grid.Column="3" WidthRequest="35" HeightRequest="35">
 =======
 
+                <Grid Grid.Column="4" WidthRequest="35" HeightRequest="35">
+>>>>>>> Stashed changes
+=======
+                
                 <Grid Grid.Column="4" WidthRequest="35" HeightRequest="35">
 >>>>>>> Stashed changes
                     <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
@@ -180,10 +185,16 @@
                 <!-- History + Cart (far right) -->
                 <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     <Button Text="📝" 
 =======
                     
                     <Button Text="🕐" 
+>>>>>>> Stashed changes
+=======
+                    
+                    <!-- History button -->
+                    <Button Text="📝" 
 >>>>>>> Stashed changes
                             BackgroundColor="#D4A574" 
                             TextColor="White" 

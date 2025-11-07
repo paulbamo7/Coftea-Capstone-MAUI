@@ -29,11 +29,18 @@
 
     <!-- Main Grid containing all content -->
     <Grid>
+<<<<<<< Updated upstream
         <ScrollView VerticalOptions="Center" HorizontalOptions="Center" 
                    Orientation="Both" 
                    VerticalScrollBarVisibility="Default"
                    HorizontalScrollBarVisibility="Default">
             <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="25">
+=======
+        <ScrollView VerticalOptions="Center" HorizontalOptions="Center"
+                   Orientation="Vertical" 
+                   VerticalScrollBarVisibility="Default">
+            <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center">
+>>>>>>> Stashed changes
                 
 <<<<<<< Updated upstream
                 <!-- Logo and Welcome Section -->
@@ -83,6 +90,22 @@
                                        Margin="20,0"
                                        Text="{Binding Email}"/>
                             </Border>
+<<<<<<< Updated upstream
+=======
+
+                            <!-- Email Validation Message -->
+                            <Frame IsVisible="{Binding EmailValidationMessage, Converter={StaticResource StringToBoolConverter}}" 
+                                   BackgroundColor="#FFE8E8" 
+                                   Padding="20,10" 
+                                   CornerRadius="10" 
+                                   Margin="15,5,15,0"
+                                   HasShadow="False">
+                                <StackLayout Orientation="Horizontal" Spacing="8">
+                                    <Label Text="✗" TextColor="#D9534F" FontSize="14" FontFamily="MontserratBlack"/>
+                                    <Label Text="{Binding EmailValidationMessage}" FontSize="13" TextColor="#D9534F" FontFamily="MontserratBlack"/>
+                                </StackLayout>
+                            </Frame>
+>>>>>>> Stashed changes
                                         
                             <!-- Third Row: Password -->
                             <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="370" BackgroundColor="#F5F1ED">
@@ -208,7 +231,11 @@
                             </HorizontalStackLayout>
                             
                             <!-- Action Buttons -->
+<<<<<<< Updated upstream
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="20" RowDefinitions="Auto" Margin="15,0,15,0">
+=======
+                            <Grid ColumnDefinitions="1.2*,*" ColumnSpacing="20" RowDefinitions="Auto" Margin="15,0,15,0">
+>>>>>>> Stashed changes
                                 <Button Grid.Column="0" 
                                         Text="← Back to Login" 
                                         BackgroundColor="#C1A892" 
@@ -217,7 +244,11 @@
                                         FontFamily="MontserratBlack"
                                         Command="{Binding BackToLoginCommand}"
                                         CornerRadius="15"
+<<<<<<< Updated upstream
                                         Padding="30,15"
+=======
+                                        Padding="15,15"
+>>>>>>> Stashed changes
                                         BorderColor="#8B7355"
                                         BorderWidth="2"
                                         HeightRequest="55"/>
@@ -244,6 +275,7 @@
                        WidthRequest="420"
                        HeightRequest="620">
 
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes
                     <Image Source="coftea_logo.png"
                            HeightRequest="180"
@@ -446,6 +478,16 @@
                 </VerticalStackLayout>
             </Frame>
             </VerticalStackLayout>
+=======
+                    <Image Source="coftea_logo.png"
+                           HeightRequest="250"
+                           MaximumWidthRequest="300"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </Frame>
+
+            </HorizontalStackLayout>
+>>>>>>> Stashed changes
         </ScrollView>
 
         <!-- Retry Connection Popup - Overlay at root level -->

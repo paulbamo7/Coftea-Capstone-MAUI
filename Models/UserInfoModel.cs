@@ -20,12 +20,24 @@ namespace Coftea_Capstone.Models
 
         public string PhoneNumber { get; set; } = string.Empty;
 
+<<<<<<< Updated upstream
         public string Address { get; set; } = string.Empty;
 
         // Profile fields
         public string Username { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string ProfileImage { get; set; } = "usericon.png";
+=======
+        // Profile fields with property change notifications
+        [ObservableProperty]
+        private string username = string.Empty;
+        
+        [ObservableProperty]
+        private string fullName = string.Empty;
+        
+        [ObservableProperty]
+        private string profileImage = "usericon.png";
+>>>>>>> Stashed changes
 
         public string Status { get; set; } = "approved";
 

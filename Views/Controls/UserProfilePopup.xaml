@@ -103,6 +103,7 @@
                         <VerticalStackLayout Spacing="8">
                             <Label Text="{Binding FullName, StringFormat='Full Name: {0}'}"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                                    FontSize="16"
                                    TextColor="Black"/>
                             
@@ -122,6 +123,8 @@
                                    FontSize="16"
                                    TextColor="Black"/>
 =======
+=======
+>>>>>>> Stashed changes
                                    FontSize="16" FontFamily="MontserratBlack"
                                    FontAttributes="Bold"
                                    TextColor="#000000"/>
@@ -135,6 +138,9 @@
                                    FontSize="16" FontFamily="MontserratBlack"
                                    FontAttributes="Bold"
                                    TextColor="#000000"/>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                         </VerticalStackLayout>
                         

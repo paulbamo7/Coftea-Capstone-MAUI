@@ -28,6 +28,19 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             // Initialize collections
             SelectedIngredientsOnly = new ObservableCollection<InventoryPageModel>();
+<<<<<<< Updated upstream
+=======
+            
+            // Explicitly initialize all visibility flags to false
+            IsConnectPOSToInventoryVisible = false;
+            IsPreviewVisible = false;
+            IsInputIngredientsVisible = false;
+            IsEditMode = false;
+            IsUpdateAmountsMode = false;
+            IsAddonPopupVisible = false;
+            
+            System.Diagnostics.Debug.WriteLine("🔧 ConnectPOSItemToInventoryViewModel initialized - all flags set to false");
+>>>>>>> Stashed changes
         }
 
         private void OnAddonsSelected(List<InventoryPageModel> selectedAddons)
@@ -682,8 +695,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Update input unit based on the selected size - use saved values from database or temporary values
                 var fallbackUnit = !string.IsNullOrWhiteSpace(item.unitOfMeasurement) ? item.unitOfMeasurement : item.DefaultUnit;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 item.InputUnit = size switch
 =======
+=======
+>>>>>>> Stashed changes
                 
                 // Get the new unit - if not set, inherit from current size in add mode
                 string newUnit;
@@ -746,9 +762,19 @@ namespace Coftea_Capstone.ViewModel.Controls
                         break;
                 }
                 
+<<<<<<< Updated upstream
                 // Explicitly notify UI that the text binding should update
                 OnPropertyChanged(nameof(item.InputAmountText));
                 OnPropertyChanged(nameof(item.InputUnit));
+=======
+                // Set the new values
+                item.InputAmount = newAmount;
+                item.InputUnit = newUnit;
+                
+                // Debug: Log the size switching and per-size values
+                System.Diagnostics.Debug.WriteLine($"🔧 SetSize: {item.itemName} loaded {size} values: {item.InputAmount} {item.InputUnit}");
+                System.Diagnostics.Debug.WriteLine($"🔧   All per-size values - Small: {item.InputAmountSmall} {item.InputUnitSmall}, Medium: {item.InputAmountMedium} {item.InputUnitMedium}, Large: {item.InputAmountLarge} {item.InputUnitLarge}");
+>>>>>>> Stashed changes
             }
             
             // Preserve addon selections when switching sizes

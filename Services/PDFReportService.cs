@@ -6,19 +6,37 @@ using Coftea_Capstone.Models;
 using Microsoft.Maui.Storage;
 using System.Text;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
 using System.IO;
+>>>>>>> Stashed changes
+=======
+using System.IO;
+using Syncfusion.Pdf;
+using Syncfusion.Pdf.Graphics;
+using Syncfusion.Drawing;
+using Syncfusion.Pdf.Grid;
+using PointF = Syncfusion.Drawing.PointF;
+using SizeF = Syncfusion.Drawing.SizeF;
+using RectangleF = Syncfusion.Drawing.RectangleF;
+using PdfColor = Syncfusion.Drawing.Color;
 >>>>>>> Stashed changes
 
 namespace Coftea_Capstone.Services
 {
     public interface IPDFReportService
     {
+<<<<<<< Updated upstream
         Task<string> GenerateWeeklyReportAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
         Task<string> GenerateMonthlyReportAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
 <<<<<<< Updated upstream
 =======
         // Generates HTML report files (can be opened and printed to PDF by browser)
+>>>>>>> Stashed changes
+=======
+        Task<string> GenerateWeeklyReportPDFAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
+        Task<string> GenerateMonthlyReportPDFAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
+        Task<string> GeneratePurchaseOrderPDFAsync(int purchaseOrderId, PurchaseOrderModel order, List<PurchaseOrderItemModel> items);
 >>>>>>> Stashed changes
     }
 
@@ -281,6 +299,9 @@ namespace Coftea_Capstone.Services
             graphics.DrawString(value, valueFont, textBrush, new PointF(x + 10, y + 30));
         }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         private async Task<Dictionary<string, double>> GetInventoryDeductionsForPeriodAsync(DateTime startDate, DateTime endDate)
         {
