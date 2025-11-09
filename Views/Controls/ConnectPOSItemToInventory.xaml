@@ -191,10 +191,11 @@
                                                         <HorizontalStackLayout Grid.Column="0"
                                                                                 Spacing="10"
                                                                                 VerticalOptions="Center">
-                                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                            <CheckBox IsChecked="{Binding IsSelected}"
                                                                       Color="#5B4F45"
                                                                       MinimumWidthRequest="24"
-                                                                      MinimumHeightRequest="24" />
+                                                                      MinimumHeightRequest="24"
+                                                                      InputTransparent="True" />
                                                             <Frame WidthRequest="44"
                                                                    HeightRequest="44"
                                                                    CornerRadius="10"

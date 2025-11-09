@@ -162,9 +162,11 @@ namespace Coftea_Capstone.ViewModel
             }
             else if (string.Equals(category, "Supplies", StringComparison.OrdinalIgnoreCase))
             {
-                // For supplies, show only Others category
-                query = query.Where(i => string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));
-                System.Diagnostics.Debug.WriteLine($"📦 Filtered for Supplies (Others): {query.Count()} items");
+                // For supplies, include both Supplies and Others categories
+                query = query.Where(i =>
+                    string.Equals(i.itemCategory?.Trim(), "Supplies", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));
+                System.Diagnostics.Debug.WriteLine($"📦 Filtered for Supplies category: {query.Count()} items");
             }
             else if (string.Equals(category, "Ingredients", StringComparison.OrdinalIgnoreCase))
             {

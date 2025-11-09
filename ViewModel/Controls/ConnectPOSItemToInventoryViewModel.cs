@@ -1385,8 +1385,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
                 else if (string.Equals(filter, "Supplies", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Supplies should only show Others
-                    query = query.Where(i => string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));
+                    // Supplies should include both "Supplies" and "Others"
+                    query = query.Where(i =>
+                        string.Equals(i.itemCategory?.Trim(), "Supplies", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(i.itemCategory?.Trim(), "Others", StringComparison.OrdinalIgnoreCase));
                 }
                 else
                 {
