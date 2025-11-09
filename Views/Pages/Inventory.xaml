@@ -5,6 +5,7 @@
              xmlns:view="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              Title="Inventory"
              BackgroundColor="#D6BCA8">
 
@@ -230,36 +231,120 @@
                                             IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
 
                                 <CollectionView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Frame Padding="10" Margin="0,6,0,6" CornerRadius="10" BackgroundColor="White">
-                                                <VerticalStackLayout Spacing="6">
-                                                    <Grid ColumnDefinitions="1*, 1*, 2*" VerticalOptions="Center" ColumnSpacing="10">
-                                                        <!-- Items: image + name -->
-                                                        <StackLayout Orientation="Horizontal" Grid.Column="0" Spacing="10" VerticalOptions="Center">
-                                                            <Frame WidthRequest="50" HeightRequest="50" CornerRadius="6" Padding="0" HasShadow="False" BackgroundColor="#F0F0F0">
-                                                                <Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
-                                                            </Frame>
-                                                            <Label Text="{Binding itemName}" FontSize="16" VerticalOptions="Center" TextColor="Black"/>
-                                                        </StackLayout>
+                                    <DataTemplate>
+                                        <Frame Padding="12"
+                                               Margin="0,6,0,6"
+                                               CornerRadius="12"
+                                               BackgroundColor="White"
+                                               BorderColor="#E5D2C1">
+                                            <Frame.Triggers>
+                                                <DataTrigger TargetType="Frame"
+                                                             Binding="{Binding IsExpanded}"
+                                                             Value="True">
+                                                    <Setter Property="BackgroundColor" Value="#F7EFE6" />
+                                                    <Setter Property="BorderColor" Value="#D4A574" />
+                                                </DataTrigger>
+                                            </Frame.Triggers>
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleInventoryItemCommand}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Frame.GestureRecognizers>
 
-                                                        <!-- Category -->
-                                                        <Label Text="{Binding itemCategory}" Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" TextColor="Black"/>
+                                            <Grid RowDefinitions="Auto,Auto">
+                                                <Grid Grid.Row="0"
+                                                      ColumnDefinitions="Auto,*,Auto"
+                                                      ColumnSpacing="12"
+                                                      VerticalOptions="Center">
+                                                    <HorizontalStackLayout Grid.Column="0"
+                                                                            Spacing="10"
+                                                                            VerticalOptions="Center">
+                                                        <Frame WidthRequest="48"
+                                                               HeightRequest="48"
+                                                               CornerRadius="8"
+                                                               Padding="0"
+                                                               BackgroundColor="#EFEFEF"
+                                                               HasShadow="False">
+                                                            <Image Source="{Binding ImageSource}"
+                                                                   Aspect="AspectFill" />
+                                                        </Frame>
+                                                    </HorizontalStackLayout>
 
-                                                        <!-- Stock Information -->
-                                                        <VerticalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
-                                                            <Frame BackgroundColor="White" CornerRadius="10" Padding="8" HasShadow="True">
-                                                                <Label FormattedText="{Binding NewStockDisplayFormatted}" 
-                                                                       FontSize="13" 
-                                                                       HorizontalOptions="Start" 
-                                                                       VerticalOptions="Center"
-                                                                       LineBreakMode="WordWrap"
-                                                                       MaxLines="1" />
-                                                            </Frame>
-                                                        </VerticalStackLayout>
-                                                    </Grid>
-                                                </VerticalStackLayout>
-                                            </Frame>
-                                        </DataTemplate>
+                                                    <VerticalStackLayout Grid.Column="1"
+                                                                          Spacing="2"
+                                                                          VerticalOptions="Center">
+                                                        <Label Text="{Binding itemName}"
+                                                               FontAttributes="Bold"
+                                                               FontSize="15"
+                                                               TextColor="#3C3C3C" />
+                                                        <Label Text="{Binding itemCategory}"
+                                                               FontSize="12"
+                                                               TextColor="#7A6B5E" />
+                                                    </VerticalStackLayout>
+
+                                                    <VerticalStackLayout Grid.Column="2"
+                                                                          Spacing="4"
+                                                                          HorizontalOptions="End"
+                                                                          VerticalOptions="Center">
+                                                        <Frame BackgroundColor="White"
+                                                               CornerRadius="10"
+                                                               Padding="8"
+                                                               HasShadow="True">
+                                                            <Label FormattedText="{Binding NewStockDisplayFormatted}"
+                                                                   FontSize="13"
+                                                                   HorizontalOptions="Start"
+                                                                   VerticalOptions="Center"
+                                                                   LineBreakMode="WordWrap"
+                                                                   MaxLines="2" />
+                                                        </Frame>
+                                                    </VerticalStackLayout>
+                                                </Grid>
+
+                                                <Border Grid.Row="1"
+                                                        BackgroundColor="#FFFFFF"
+                                                        Stroke="#E5D2C1"
+                                                        Margin="0,12,0,0"
+                                                        Padding="12"
+                                                        IsVisible="{Binding IsExpanded}">
+                                                    <Border.StrokeShape>
+                                                        <shapes:RoundRectangle CornerRadius="10" />
+                                                    </Border.StrokeShape>
+                                                    <VerticalStackLayout Spacing="10">
+                                                        <Label Text="{Binding NewStockDisplay}"
+                                                               FontSize="12"
+                                                               TextColor="#3C3C3C"
+                                                               LineBreakMode="WordWrap" />
+                                                        <Label Text="{Binding itemDescription}"
+                                                               FontSize="12"
+                                                               TextColor="#5B4F45"
+                                                               LineBreakMode="WordWrap" />
+                                                        <HorizontalStackLayout Spacing="10">
+                                                            <Button Text="Edit Item"
+                                                                    BackgroundColor="#5B4F45"
+                                                                    TextColor="White"
+                                                                    FontSize="13"
+                                                                    FontAttributes="Bold"
+                                                                    WidthRequest="110"
+                                                                    HeightRequest="36"
+                                                                    CornerRadius="18"
+                                                                    Padding="0"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditInventoryItemCommand}"
+                                                                    CommandParameter="{Binding .}" />
+                                                            <Button Text="Close"
+                                                                    BackgroundColor="#BDAEA2"
+                                                                    TextColor="#5B4F45"
+                                                                    FontSize="13"
+                                                                    WidthRequest="110"
+                                                                    HeightRequest="36"
+                                                                    CornerRadius="18"
+                                                                    Padding="0"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleInventoryItemCommand}"
+                                                                    CommandParameter="{Binding .}" />
+                                                        </HorizontalStackLayout>
+                                                    </VerticalStackLayout>
+                                                </Border>
+                                            </Grid>
+                                        </Frame>
+                                    </DataTemplate>
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
                         </Grid>

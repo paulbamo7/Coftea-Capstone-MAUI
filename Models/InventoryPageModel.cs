@@ -117,6 +117,9 @@ namespace Coftea_Capstone.Models
         [ObservableProperty]
         private bool isSelected;
 
+        [ObservableProperty]
+        private bool isExpanded;
+
         // POS selection inputs
         [ObservableProperty]
         private double inputAmount = 1;

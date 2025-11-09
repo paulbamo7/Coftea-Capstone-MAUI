@@ -199,6 +199,10 @@ namespace Coftea_Capstone.ViewModel
             query = ApplySorting(query);
 
             InventoryItems = new ObservableCollection<InventoryPageModel>(query);
+            foreach (var item in InventoryItems)
+            {
+                item.IsExpanded = false;
+            }
             System.Diagnostics.Debug.WriteLine($"✅ Final result: {InventoryItems.Count} items in InventoryItems collection");
         }
 
@@ -229,6 +233,53 @@ namespace Coftea_Capstone.ViewModel
             ApplyCategoryFilterInternal();
         }
 
+        [RelayCommand]
+        private void ToggleInventoryItem(InventoryPageModel item)
+        {
+            if (item == null) return;
+
+            var wasExpanded = item.IsExpanded;
+
+            foreach (var inv in InventoryItems)
+            {
+                if (inv != null && inv != item)
+                {
+                    inv.IsExpanded = false;
+                }
+            }
+
+            item.IsExpanded = !wasExpanded;
+        }
+
+        [RelayCommand]
+        private async Task EditInventoryItemAsync(InventoryPageModel item)
+        {
+            if (item == null) return;
+
+            try
+            {
+                var app = (App)Application.Current;
+                var editPopup = app?.EditInventoryPopup;
+                if (editPopup?.EditItemCommand != null)
+                {
+                    await editPopup.EditItemCommand.ExecuteAsync(item);
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", "Inventory editor is not available right now.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error opening inventory editor: {ex.Message}");
+                try
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", $"Failed to open inventory editor: {ex.Message}", "OK");
+                }
+                catch { }
+            }
+        }
+        
         [RelayCommand]
         private async Task CreatePurchaseOrderAsync()
         {

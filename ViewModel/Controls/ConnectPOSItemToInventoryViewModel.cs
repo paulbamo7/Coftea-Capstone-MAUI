@@ -291,6 +291,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         public ObservableCollection<Ingredient> Ingredients { get; set; } = new();
         public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
         public ObservableCollection<InventoryPageModel> AllInventoryItems { get; set; } = new();
+        public IReadOnlyList<string> CategoryFilters { get; } = new List<string> { "All", "Ingredients", "Supplies" };
+        public bool CanManageInventory => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
         
         // Addon functionality
         public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new();
@@ -303,6 +305,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty] private string selectedFilter = "All";
         [ObservableProperty] private string searchText = string.Empty;
         [ObservableProperty] private string selectedSort = "Name (A-Z)";
+
+        partial void OnSelectedFilterChanged(string value)
+        {
+            ApplyFilters();
+        }
 
         // Preview-bound properties (populated from parent VM)
         [ObservableProperty] private ImageSource selectedImageSource;
@@ -1149,6 +1156,34 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private async Task EditInventoryItemAsync(InventoryPageModel item)
+        {
+            if (item == null) return;
+
+            if (!CanManageInventory)
+            {
+                try { await Application.Current.MainPage.DisplayAlert("Restricted", "Only staff with inventory management access can edit items.", "OK"); } catch { }
+                return;
+            }
+
+            try
+            {
+                if (Application.Current is not App app || app.EditInventoryPopup?.EditItemCommand == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ EditInventoryItemAsync: EditInventoryPopup is not initialized.");
+                    return;
+                }
+
+                await app.EditInventoryPopup.EditItemCommand.ExecuteAsync(item);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ EditInventoryItemAsync error: {ex.Message}");
+                try { await Application.Current.MainPage.DisplayAlert("Error", "Failed to open the inventory editor. Please try again.", "OK"); } catch { }
+            }
+        }
+
+        [RelayCommand]
         private void ToggleSelect(InventoryPageModel item)
         {
             if (item == null) return;
@@ -1156,6 +1191,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Find the item in AllInventoryItems to update its selection status
             var allItem = AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
             if (allItem == null) return;
+
+            var wasSelected = allItem.IsSelected;
             
             var existing = Ingredients.FirstOrDefault(i => i.Name == allItem.itemName);
             if (existing != null)
@@ -1193,6 +1230,25 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(HasSelectedIngredients));
             OnPropertyChanged(nameof(SelectedInventoryItems));
             OnPropertyChanged(nameof(SelectedIngredientsOnly));
+
+            // Manage expansion state so tapping the frame opens details
+            foreach (var inv in AllInventoryItems.Where(i => i != allItem))
+            {
+                inv.IsExpanded = false;
+            }
+
+            if (!wasSelected && allItem.IsSelected)
+            {
+                allItem.IsExpanded = true;
+            }
+            else if (wasSelected && !allItem.IsSelected)
+            {
+                allItem.IsExpanded = false;
+            }
+            else
+            {
+                allItem.IsExpanded = !allItem.IsExpanded;
+            }
         }
 
         private void UpdateSelectedIngredientsOnly()
@@ -1273,6 +1329,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     item.InputAmount = 0;
                     item.InputUnit = string.Empty;
                     item.AddonQuantity = 0;
+                    item.IsExpanded = false;
                 }
             }
             
@@ -1354,6 +1411,13 @@ namespace Coftea_Capstone.ViewModel.Controls
 
             InventoryItems.Clear();
             foreach (var it in query) InventoryItems.Add(it);
+            foreach (var it in InventoryItems)
+            {
+                if (!it.IsSelected)
+                {
+                    it.IsExpanded = false;
+                }
+            }
             OnPropertyChanged(nameof(SelectedInventoryItems));
         }
 
@@ -1391,6 +1455,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                         Ingredients.Remove(existing);
                     }
                     allItem.IsSelected = false;
+                    allItem.IsExpanded = false;
+                }
+                if (item != null)
+                {
+                    item.IsExpanded = false;
                 }
             }
             OnPropertyChanged(nameof(HasSelectedIngredients));

@@ -17,7 +17,6 @@ namespace Coftea_Capstone.ViewModel.Controls
     {
         private readonly CartStorageService _cartStorage = new CartStorageService();
         private readonly PayMongoService _payMongoService = new PayMongoService();
-        private readonly PayMongoBridgeService _payMongoBridgeService = new PayMongoBridgeService();
         private string? _currentGCashSourceId;
         private string? _currentGCashCheckoutUrl;
         private bool _gcashDeepLinkConfirmed;
@@ -212,29 +211,15 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
 
             _isProcessingPayment = true;
+            var paymentCompleted = false;
 
             try
             {
-                var skipGcachProcessing = IsGCashSelected && _gcashDeepLinkConfirmed;
-
-                if (IsGCashSelected && !skipGcachProcessing)
+                if (IsGCashSelected)
                 {
-                    var gcashResult = await CreateAndLaunchGCashPaymentAsync();
-                    if (!gcashResult)
-                    {
-                        PaymentStatus = "GCash payment cancelled";
-                        return;
-                    }
-
-                    var confirmed = await WaitForGCashCompletionAsync();
-                    if (!confirmed)
-                    {
-                        return;
-                    }
-                }
-                else if (IsGCashSelected && skipGcachProcessing)
-                {
-                    PaymentStatus = "GCash payment confirmed";
+                    PaymentStatus = _gcashDeepLinkConfirmed
+                        ? "GCash payment confirmed"
+                        : "GCash payment confirmed (manual)";
                 }
 
                 System.Diagnostics.Debug.WriteLine("🔵 About to call ProcessPaymentWithSteps");
@@ -476,9 +461,21 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 OnPropertyChanged(nameof(CartItems));
                 OnPropertyChanged(nameof(QrCodeImageSource));
+
+                paymentCompleted = true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Payment confirmation error: {ex.Message}");
+                await HandlePaymentFailureAsync("Payment Error", ex.Message);
             }
             finally
             {
+                if (paymentCompleted)
+                {
+                    _ = AutoClosePaymentPopupAsync();
+                }
+
                 _isProcessingPayment = false;
                 _gcashDeepLinkConfirmed = false;
                 _currentGCashCheckoutUrl = null;
@@ -1241,167 +1238,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private async Task<bool> CreateAndLaunchGCashPaymentAsync()
-        {
-            try
-            {
-                PaymentStatus = "Preparing GCash checkout...";
-                var ensureResult = await EnsureGCashCheckoutAsync();
-
-                if (!ensureResult.Success || string.IsNullOrWhiteSpace(_currentGCashCheckoutUrl))
-                {
-                    await Application.Current.MainPage.DisplayAlert(
-                        "GCash Payment Failed",
-                        ensureResult.ErrorMessage ?? "Unable to create payment link. Please try again.",
-                        "OK");
-                    return false;
-                }
-
-                PaymentStatus = "Awaiting GCash payment...";
-
-                try
-                {
-                    await Browser.Default.OpenAsync(_currentGCashCheckoutUrl, BrowserLaunchMode.SystemPreferred);
-                }
-                catch
-                {
-                    await Application.Current.MainPage.DisplayAlert(
-                        "GCash Checkout",
-                        $"Open this link to complete payment:\n{_currentGCashCheckoutUrl}",
-                        "OK");
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await Application.Current.MainPage.DisplayAlert(
-                    "GCash Payment Error",
-                    ex.Message,
-                    "OK");
-                return false;
-            }
-        }
-
-        private async Task<bool> WaitForGCashCompletionAsync()
-        {
-            if (string.IsNullOrWhiteSpace(_currentGCashSourceId))
-            {
-                await Application.Current.MainPage.DisplayAlert(
-                    "GCash Payment",
-                    "Unable to track the GCash payment source. Please try again.",
-                    "OK");
-                return false;
-            }
-
-            PaymentStatus = "Waiting for GCash confirmation...";
-            var timeout = TimeSpan.FromMinutes(5);
-            var pollDelay = TimeSpan.FromSeconds(4);
-            var startUtc = DateTime.UtcNow;
-
-            while (DateTime.UtcNow - startUtc < timeout)
-            {
-                if (_gcashDeepLinkConfirmed)
-                {
-                    PaymentStatus = "GCash payment confirmed";
-                    _currentGCashSourceId = null;
-                    _currentGCashCheckoutUrl = null;
-                    _gcashDeepLinkConfirmed = false;
-                    return true;
-                }
-
-                try
-                {
-                    if (!Services.NetworkService.HasInternetConnection())
-                    {
-                        PaymentStatus = "Waiting for network to verify payment...";
-                        await Task.Delay(pollDelay);
-                        continue;
-                    }
-
-                    var bridgeResult = await _payMongoBridgeService.GetStatusAsync(_currentGCashSourceId);
-                    if (bridgeResult.Success)
-                    {
-                        var bridgeStatus = (bridgeResult.Status ?? string.Empty).Trim().ToLowerInvariant();
-                        System.Diagnostics.Debug.WriteLine($"🌐 Bridge status for {_currentGCashSourceId}: {bridgeStatus}");
-
-                        if (bridgeStatus == "chargeable" || bridgeStatus == "paid")
-                        {
-                            PaymentStatus = "GCash payment confirmed";
-                            _currentGCashSourceId = null;
-                            _currentGCashCheckoutUrl = null;
-                            return true;
-                        }
-
-                        if (bridgeStatus is "failed" or "cancelled" or "canceled" or "expired")
-                        {
-                            PaymentStatus = "GCash payment not completed";
-                            await Application.Current.MainPage.DisplayAlert(
-                                "GCash Payment",
-                                $"Bridge reported the payment as {bridgeStatus}. Please ask the customer to try again.",
-                                "OK");
-                            _currentGCashSourceId = null;
-                            return false;
-                        }
-                    }
-                    else if (!string.IsNullOrWhiteSpace(bridgeResult.Error) && bridgeResult.Status != "notfound")
-                    {
-                        System.Diagnostics.Debug.WriteLine($"⚠️ Bridge status check failed: {bridgeResult.Error}");
-                    }
-
-                    var (success, status, error) = await _payMongoService.RetrieveSourceStatusAsync(_currentGCashSourceId);
-                    if (!success)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"⚠️ PayMongo status check failed: {error}");
-                        PaymentStatus = "Verifying payment with PayMongo...";
-                        await Task.Delay(pollDelay);
-                        continue;
-                    }
-
-                    var normalized = status?.Trim().ToLowerInvariant() ?? string.Empty;
-                    System.Diagnostics.Debug.WriteLine($"🔍 PayMongo source {_currentGCashSourceId} status: {normalized}");
-
-                    switch (normalized)
-                    {
-                        case "chargeable":
-                        case "paid":
-                            PaymentStatus = "GCash payment confirmed";
-                            _currentGCashSourceId = null;
-                            _currentGCashCheckoutUrl = null;
-                            return true;
-                        case "failed":
-                        case "cancelled":
-                        case "canceled":
-                        case "expired":
-                            PaymentStatus = "GCash payment not completed";
-                            await Application.Current.MainPage.DisplayAlert(
-                                "GCash Payment",
-                                $"GCash reported the payment as {normalized}. Please ask the customer to try again.",
-                                "OK");
-                            _currentGCashSourceId = null;
-                            return false;
-                        default:
-                            PaymentStatus = "Waiting for GCash confirmation...";
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ Error while polling PayMongo: {ex.Message}");
-                    PaymentStatus = "Verifying payment with PayMongo...";
-                }
-
-                await Task.Delay(pollDelay);
-            }
-
-            PaymentStatus = "GCash confirmation timed out";
-            await Application.Current.MainPage.DisplayAlert(
-                "GCash Payment",
-                "We did not receive confirmation from GCash in time. Please verify the payment before proceeding.",
-                "OK");
-            return false;
-        }
-
         public void ConfirmGCashFromDeepLink()
         {
             _gcashDeepLinkConfirmed = true;
@@ -1467,5 +1303,45 @@ namespace Coftea_Capstone.ViewModel.Controls
     {
         public bool IsValid { get; set; }
         public string ErrorMessage { get; set; } = "";
+    }
+
+    public partial class PaymentPopupViewModel
+    {
+        private async Task AutoClosePaymentPopupAsync()
+        {
+            try
+            {
+                await Task.Delay(1000);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (IsPaymentVisible)
+                    {
+                        ClosePayment();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Auto-close failed: {ex.Message}");
+            }
+        }
+
+        private async Task HandlePaymentFailureAsync(string title, string message, bool showAlert = true)
+        {
+            var displayMessage = string.IsNullOrWhiteSpace(message) ? "Payment failed. Please try again." : message;
+            PaymentStatus = displayMessage;
+
+            if (showAlert)
+            {
+                try
+                {
+                    await Application.Current.MainPage.DisplayAlert(title, displayMessage, "OK");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Unable to show failure alert: {ex.Message}");
+                }
+            }
+        }
     }
 }

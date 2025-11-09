@@ -11,6 +11,7 @@ using System;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Models.Service;
 using Coftea_Capstone.Services;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -512,6 +513,16 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"🛒 Adding to CartItems collection...");
                 CartItems.Add(copy);
                 System.Diagnostics.Debug.WriteLine($"✅ Successfully added to cart! Cart now has {CartItems.Count} items");
+
+                // Trigger cart animation in the view
+                try
+                {
+                    MessagingCenter.Send(this, "POSProductAddedToCart", product);
+                }
+                catch (Exception msgEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Failed to send cart animation message: {msgEx.Message}");
+                }
 
                 // Note: Items are enqueued to processing queue only after payment is confirmed in PaymentPopupViewModel
 

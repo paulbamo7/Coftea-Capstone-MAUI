@@ -219,7 +219,7 @@
                     
                     <!-- Cart icon with badge -->
                     <Grid>
-                        <Border BackgroundColor="White" 
+                        <Border x:Name="CartIconBorder" BackgroundColor="White" 
                                Stroke="#8B7355"
                                StrokeThickness="2"
                                StrokeShape="RoundRectangle 25"
@@ -379,7 +379,7 @@
                                 <Grid>
                                     <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10" Padding="10">
                                         <Frame CornerRadius="20" Padding="0" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center">
-                                            <Image Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill" />
+                                            <Image x:Name="SelectedProductImage" Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill" />
                                         </Frame>
 
                                         <Label Text="{Binding SelectedProduct.ProductName, StringFormat='Product Name: {0}'}"
@@ -718,6 +718,21 @@
                 </Grid>
             </Grid>
         </Grid>
+
+        <AbsoluteLayout x:Name="AnimationLayer"
+                        Grid.ColumnSpan="2"
+                        InputTransparent="True"
+                        IsEnabled="False"
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="FillAndExpand"
+                        ZIndex="4500">
+            <Image x:Name="CartFlyoutImage"
+                   IsVisible="False"
+                   Opacity="0"
+                   Aspect="AspectFill"
+                   WidthRequest="120"
+                   HeightRequest="120" />
+        </AbsoluteLayout>
 
         <!-- Popups -->
         <view:Settings x:Name="SettingsPopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2" ZIndex="1000"/>

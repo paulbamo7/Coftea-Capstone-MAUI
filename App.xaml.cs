@@ -1,9 +1,9 @@
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
-using Coftea_Capstone.Services;
 using Coftea_Capstone.Views.Pages;
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using System;
@@ -83,8 +83,6 @@ namespace Coftea_Capstone
 
             // Initialize view models
             InitializeViewModels();
-
-            new PayMongoBridgeService().ConfigureBaseUrl("https://dozier-arthur-wistfully.ngrok-free.dev");
 
             // Set initial page based on login status
             if (isLoggedIn && rememberMe)

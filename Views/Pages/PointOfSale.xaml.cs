@@ -5,6 +5,11 @@ using Microsoft.Maui.Dispatching;
 using Coftea_Capstone;
 using Coftea_Capstone.Services;
 using Microsoft.Maui.Controls;
+using Coftea_Capstone.Models;
+using Coftea_Capstone.C_;
+using System.Threading.Tasks;
+using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Layouts;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -52,6 +57,11 @@ public partial class PointOfSale : ContentPage
             {
                 System.Diagnostics.Debug.WriteLine("🔄 ProfileImageChanged message received in POS - refreshing profile image");
                 await RefreshPopupBindings();
+            });
+
+            MessagingCenter.Subscribe<POSPageViewModel, POSPageModel>(this, "POSProductAddedToCart", async (sender, product) =>
+            {
+                await RunCartAnimationAsync(product);
             });
 
             // RetryConnectionPopup is now handled globally through App.xaml.cs
@@ -243,6 +253,7 @@ public partial class PointOfSale : ContentPage
             MessagingCenter.Unsubscribe<App>(this, "ViewModelsReinitialized");
             MessagingCenter.Unsubscribe<LoginPageViewModel>(this, "ViewModelsReadyAfterLogin");
             MessagingCenter.Unsubscribe<ProfilePopupViewModel, ImageSource>(this, "ProfileImageChanged");
+            MessagingCenter.Unsubscribe<POSPageViewModel, POSPageModel>(this, "POSProductAddedToCart");
         }
         catch { }
 
@@ -489,4 +500,110 @@ public partial class PointOfSale : ContentPage
         }
     }
 
+    private async Task RunCartAnimationAsync(POSPageModel product)
+    {
+        try
+        {
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                try
+                {
+                    var hasVisualRefs = SelectedProductImage != null
+                                        && CartIconBorder != null
+                                        && AnimationLayer != null
+                                        && CartFlyoutImage != null;
+
+                    if (hasVisualRefs)
+                    {
+                        var startRect = GetRelativeBounds(SelectedProductImage, AnimationLayer);
+                        var endRect = GetRelativeBounds(CartIconBorder, AnimationLayer);
+
+                        if (startRect.Width <= 0 || startRect.Height <= 0 || endRect.Width <= 0 || endRect.Height <= 0)
+                        {
+                            await Task.Delay(50);
+                            startRect = GetRelativeBounds(SelectedProductImage, AnimationLayer);
+                            endRect = GetRelativeBounds(CartIconBorder, AnimationLayer);
+                        }
+
+                        if (startRect.Width > 0 && startRect.Height > 0 && endRect.Width > 0 && endRect.Height > 0)
+                        {
+                            AbsoluteLayout.SetLayoutBounds(CartFlyoutImage, startRect);
+                            AbsoluteLayout.SetLayoutFlags(CartFlyoutImage, AbsoluteLayoutFlags.None);
+
+                            CartFlyoutImage.Source = SelectedProductImage.Source;
+                            CartFlyoutImage.TranslationX = 0;
+                            CartFlyoutImage.TranslationY = 0;
+                            CartFlyoutImage.Scale = 1;
+                            CartFlyoutImage.Opacity = 1;
+                            CartFlyoutImage.IsVisible = true;
+
+                            var deltaX = (endRect.X + endRect.Width / 2) - (startRect.X + startRect.Width / 2);
+                            var deltaY = (endRect.Y + endRect.Height / 2) - (startRect.Y + startRect.Height / 2);
+
+                            var flyTask = CartFlyoutImage.TranslateTo(deltaX, deltaY, 450, Easing.SinInOut);
+                            var shrinkTask = CartFlyoutImage.ScaleTo(0.4, 450, Easing.SinIn);
+                            await Task.WhenAll(flyTask, shrinkTask);
+                            await CartFlyoutImage.FadeTo(0, 150, Easing.SinOut);
+
+                            CartFlyoutImage.IsVisible = false;
+                            CartFlyoutImage.TranslationX = 0;
+                            CartFlyoutImage.TranslationY = 0;
+                            CartFlyoutImage.Scale = 1;
+                            CartFlyoutImage.Opacity = 0;
+                        }
+                    }
+
+                    if (CartIconBorder != null)
+                    {
+                        var originalScale = CartIconBorder.Scale;
+                        if (originalScale <= 0)
+                        {
+                            CartIconBorder.Scale = 1.0;
+                            originalScale = 1.0;
+                        }
+                        await CartIconBorder.ScaleTo(1.15, 150, Easing.CubicOut);
+                        await CartIconBorder.ScaleTo(originalScale, 150, Easing.CubicIn);
+                    }
+                }
+                catch (Exception animationEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Cart animation error: {animationEx.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"⚠️ Failed to run cart animation: {ex.Message}");
+        }
+    }
+
+    private Rect GetRelativeBounds(VisualElement element, VisualElement relativeTo)
+    {
+        if (element == null || relativeTo == null)
+        {
+            return Rect.Zero;
+        }
+
+        double x = element.X + element.TranslationX;
+        double y = element.Y + element.TranslationY;
+        double width = element.Width;
+        double height = element.Height;
+
+        var parent = element.Parent as VisualElement;
+        while (parent != null && parent != relativeTo)
+        {
+            x += parent.X + parent.TranslationX;
+            y += parent.Y + parent.TranslationY;
+            parent = parent.Parent as VisualElement;
+        }
+
+        if (parent == null)
+        {
+            return new Rect(x, y, width, height);
+        }
+
+        return new Rect(x, y, width, height);
+    }
+
 }
+
