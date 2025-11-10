@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
              x:Class="Coftea_Capstone.Views.Controls.ConnectPOSItemToInventory"
+             x:Name="Root"
              BackgroundColor="#80000000"
              IsVisible="{Binding IsConnectPOSToInventoryVisible}"
              HorizontalOptions="FillAndExpand"
@@ -170,19 +171,10 @@
                                                    Margin="0,5"
                                                    HasShadow="False"
                                                    BorderColor="#E5D2C1">
-                                                <Frame.Triggers>
-                                                    <DataTrigger TargetType="Frame"
-                                                                 Binding="{Binding IsSelected}"
-                                                                 Value="True">
-                                                        <Setter Property="BackgroundColor" Value="#F2E6DA" />
-                                                        <Setter Property="BorderColor" Value="#D4A574" />
-                                                    </DataTrigger>
-                                                </Frame.Triggers>
                                                 <Frame.GestureRecognizers>
-                                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.ToggleSelectCommand}"
+                                                    <TapGestureRecognizer Command="{Binding Source={x:Reference Root}, Path=BindingContext.ToggleSelectCommand}"
                                                                           CommandParameter="{Binding .}" />
                                                 </Frame.GestureRecognizers>
-
                                                 <Grid RowDefinitions="Auto,Auto">
                                                     <Grid Grid.Row="0"
                                                           ColumnDefinitions="Auto,*,Auto"
@@ -194,8 +186,7 @@
                                                             <CheckBox IsChecked="{Binding IsSelected}"
                                                                       Color="#5B4F45"
                                                                       MinimumWidthRequest="24"
-                                                                      MinimumHeightRequest="24"
-                                                                      InputTransparent="True" />
+                                                                      MinimumHeightRequest="24" />
                                                             <Frame WidthRequest="44"
                                                                    HeightRequest="44"
                                                                    CornerRadius="10"
@@ -237,51 +228,6 @@
                                                         </VerticalStackLayout>
                                                     </Grid>
 
-                                                    <Border Grid.Row="1"
-                                                            BackgroundColor="#FFFFFF"
-                                                            Stroke="#E5D2C1"
-                                                            Margin="0,12,0,0"
-                                                            Padding="12"
-                                                            IsVisible="{Binding IsExpanded}">
-                                                        <Border.StrokeShape>
-                                                            <shapes:RoundRectangle CornerRadius="10" />
-                                                        </Border.StrokeShape>
-                                                        <VerticalStackLayout Spacing="10">
-                                                            <Label Text="{Binding NewStockDisplay}"
-                                                                   FontSize="12"
-                                                                   TextColor="#3C3C3C"
-                                                                   LineBreakMode="WordWrap" />
-                                                            <Label Text="{Binding itemDescription}"
-                                                                   FontSize="12"
-                                                                   TextColor="#5B4F45"
-                                                                   LineBreakMode="WordWrap" />
-                                                            <HorizontalStackLayout Spacing="10">
-                                                                <Button Text="Edit Item"
-                                                                        BackgroundColor="#5B4F45"
-                                                                        TextColor="White"
-                                                                        FontSize="13"
-                                                                        FontAttributes="Bold"
-                                                                        WidthRequest="110"
-                                                                        HeightRequest="36"
-                                                                        CornerRadius="18"
-                                                                        Padding="0"
-                                                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.CanManageInventory}"
-                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.EditInventoryItemCommand}"
-                                                                        CommandParameter="{Binding .}" />
-                                                                <Button Text="Unselect"
-                                                                        BackgroundColor="#BDAEA2"
-                                                                        TextColor="#5B4F45"
-                                                                        FontSize="13"
-                                                                        WidthRequest="110"
-                                                                        HeightRequest="36"
-                                                                        CornerRadius="18"
-                                                                        Padding="0"
-                                                                        IsVisible="{Binding IsSelected}"
-                                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.ToggleSelectCommand}"
-                                                                        CommandParameter="{Binding .}" />
-                                                            </HorizontalStackLayout>
-                                                        </VerticalStackLayout>
-                                                    </Border>
                                                 </Grid>
                                             </Frame>
                                         </DataTemplate>

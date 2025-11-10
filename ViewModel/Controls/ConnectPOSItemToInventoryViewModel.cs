@@ -386,6 +386,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         
         // Only the inventory items that are selected and NOT cups/straws; used for ingredient inputs display
         public ObservableCollection<InventoryPageModel> SelectedIngredientsOnly { get; set; } = new();
+
+        private bool _suppressSelectionNotifications;
         
         private bool IsCupOrStraw(InventoryPageModel item) // Identify cups/straws by name and category
         {
@@ -924,14 +926,21 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (e.PropertyName == nameof(InventoryPageModel.IsSelected))
             {
+                if (_suppressSelectionNotifications) return;
                 var item = sender as InventoryPageModel;
                 System.Diagnostics.Debug.WriteLine($"🔧 Item {item?.itemName} IsSelected changed to: {item?.IsSelected}");
-                
-                // Update the SelectedIngredientsOnly collection when IsSelected changes
-                UpdateSelectedIngredientsOnly();
-                OnPropertyChanged(nameof(HasSelectedIngredients));
-                OnPropertyChanged(nameof(SelectedInventoryItems));
-                OnPropertyChanged(nameof(SelectedIngredientsOnly));
+
+                if (item != null)
+                {
+                    UpdateSelectionState(item, item.IsSelected);
+                }
+                else
+                {
+                    UpdateSelectedIngredientsOnly();
+                    OnPropertyChanged(nameof(HasSelectedIngredients));
+                    OnPropertyChanged(nameof(SelectedInventoryItems));
+                    OnPropertyChanged(nameof(SelectedIngredientsOnly));
+                }
             }
             else if (e.PropertyName == nameof(InventoryPageModel.InputUnit))
             {
@@ -1158,97 +1167,20 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task EditInventoryItemAsync(InventoryPageModel item)
         {
-            if (item == null) return;
-
-            if (!CanManageInventory)
-            {
-                try { await Application.Current.MainPage.DisplayAlert("Restricted", "Only staff with inventory management access can edit items.", "OK"); } catch { }
-                return;
-            }
-
-            try
-            {
-                if (Application.Current is not App app || app.EditInventoryPopup?.EditItemCommand == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ EditInventoryItemAsync: EditInventoryPopup is not initialized.");
-                    return;
-                }
-
-                await app.EditInventoryPopup.EditItemCommand.ExecuteAsync(item);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ EditInventoryItemAsync error: {ex.Message}");
-                try { await Application.Current.MainPage.DisplayAlert("Error", "Failed to open the inventory editor. Please try again.", "OK"); } catch { }
-            }
+            // Editing is disabled in the Connect POS modal
+            await Task.CompletedTask;
         }
 
         [RelayCommand]
         private void ToggleSelect(InventoryPageModel item)
         {
             if (item == null) return;
-            
-            // Find the item in AllInventoryItems to update its selection status
+
             var allItem = AllInventoryItems.FirstOrDefault(i => i.itemID == item.itemID);
             if (allItem == null) return;
 
-            var wasSelected = allItem.IsSelected;
-            
-            var existing = Ingredients.FirstOrDefault(i => i.Name == allItem.itemName);
-            if (existing != null)
-            {
-                Ingredients.Remove(existing);
-                allItem.IsSelected = false;
-            }
-            else
-            {
-                // Initialize defaults ONLY if no prior values exist (preserve last saved values)
-                // Use the inventory item's actual unitOfMeasurement, or DefaultUnit if not set
-                var initUnit = !string.IsNullOrWhiteSpace(allItem.unitOfMeasurement) ? allItem.unitOfMeasurement : allItem.DefaultUnit;
-
-                if (allItem.InputAmountSmall <= 0) allItem.InputAmountSmall = allItem.InputAmountSmall > 0 ? allItem.InputAmountSmall : 1;
-                if (allItem.InputAmountMedium <= 0) allItem.InputAmountMedium = allItem.InputAmountMedium > 0 ? allItem.InputAmountMedium : 1;
-                if (allItem.InputAmountLarge <= 0) allItem.InputAmountLarge = allItem.InputAmountLarge > 0 ? allItem.InputAmountLarge : 1;
-                if (allItem.InputAmount <= 0) allItem.InputAmount = 1;
-
-                if (string.IsNullOrWhiteSpace(allItem.InputUnitSmall)) allItem.InputUnitSmall = string.IsNullOrWhiteSpace(allItem.InputUnitSmall) ? initUnit : allItem.InputUnitSmall;
-                if (string.IsNullOrWhiteSpace(allItem.InputUnitMedium)) allItem.InputUnitMedium = string.IsNullOrWhiteSpace(allItem.InputUnitMedium) ? initUnit : allItem.InputUnitMedium;
-                if (string.IsNullOrWhiteSpace(allItem.InputUnitLarge)) allItem.InputUnitLarge = string.IsNullOrWhiteSpace(allItem.InputUnitLarge) ? initUnit : allItem.InputUnitLarge;
-                if (string.IsNullOrWhiteSpace(allItem.InputUnit)) allItem.InputUnit = initUnit;
-
-                Ingredients.Add(new Ingredient { Name = allItem.itemName, Amount = allItem.InputAmount > 0 ? allItem.InputAmount : 1, Unit = string.IsNullOrWhiteSpace(allItem.InputUnit) ? initUnit : allItem.InputUnit, Selected = true });
-                allItem.IsSelected = true;
-            }
-            
-            // Update the filtered list to reflect changes
-            ApplyFilters();
-            
-            // Update SelectedIngredientsOnly collection
-            UpdateSelectedIngredientsOnly();
-            
-            // Notify property changes
-            OnPropertyChanged(nameof(HasSelectedIngredients));
-            OnPropertyChanged(nameof(SelectedInventoryItems));
-            OnPropertyChanged(nameof(SelectedIngredientsOnly));
-
-            // Manage expansion state so tapping the frame opens details
-            foreach (var inv in AllInventoryItems.Where(i => i != allItem))
-            {
-                inv.IsExpanded = false;
-            }
-
-            if (!wasSelected && allItem.IsSelected)
-            {
-                allItem.IsExpanded = true;
-            }
-            else if (wasSelected && !allItem.IsSelected)
-            {
-                allItem.IsExpanded = false;
-            }
-            else
-            {
-                allItem.IsExpanded = !allItem.IsExpanded;
-            }
+            var nextState = !allItem.IsSelected;
+            UpdateSelectionState(allItem, nextState);
         }
 
         private void UpdateSelectedIngredientsOnly()
@@ -1296,6 +1228,69 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(SelectedIngredientsOnly));
             OnPropertyChanged(nameof(HasSelectedIngredients));
             OnPropertyChanged(nameof(SelectedInventoryItems));
+        }
+
+        private void UpdateSelectionState(InventoryPageModel allItem, bool newState)
+        {
+            if (allItem == null) return;
+
+            if (_suppressSelectionNotifications) return;
+
+            try
+            {
+                _suppressSelectionNotifications = true;
+
+                var existingIngredient = Ingredients.FirstOrDefault(i => i.Name == allItem.itemName);
+
+                if (newState)
+                {
+                    if (existingIngredient == null)
+                    {
+                        var initUnit = !string.IsNullOrWhiteSpace(allItem.unitOfMeasurement) ? allItem.unitOfMeasurement : allItem.DefaultUnit;
+
+                        if (allItem.InputAmountSmall <= 0) allItem.InputAmountSmall = allItem.InputAmountSmall > 0 ? allItem.InputAmountSmall : 1;
+                        if (allItem.InputAmountMedium <= 0) allItem.InputAmountMedium = allItem.InputAmountMedium > 0 ? allItem.InputAmountMedium : 1;
+                        if (allItem.InputAmountLarge <= 0) allItem.InputAmountLarge = allItem.InputAmountLarge > 0 ? allItem.InputAmountLarge : 1;
+                        if (allItem.InputAmount <= 0) allItem.InputAmount = 1;
+
+                        if (string.IsNullOrWhiteSpace(allItem.InputUnitSmall)) allItem.InputUnitSmall = initUnit;
+                        if (string.IsNullOrWhiteSpace(allItem.InputUnitMedium)) allItem.InputUnitMedium = initUnit;
+                        if (string.IsNullOrWhiteSpace(allItem.InputUnitLarge)) allItem.InputUnitLarge = initUnit;
+                        if (string.IsNullOrWhiteSpace(allItem.InputUnit)) allItem.InputUnit = initUnit;
+
+                        Ingredients.Add(new Ingredient
+                        {
+                            Name = allItem.itemName,
+                            Amount = allItem.InputAmount > 0 ? allItem.InputAmount : 1,
+                            Unit = string.IsNullOrWhiteSpace(allItem.InputUnit) ? initUnit : allItem.InputUnit,
+                            Selected = true
+                        });
+                    }
+                }
+                else
+                {
+                    if (existingIngredient != null)
+                    {
+                        Ingredients.Remove(existingIngredient);
+                    }
+                }
+
+                if (allItem.IsSelected != newState)
+                {
+                    allItem.IsSelected = newState;
+                }
+
+                allItem.IsExpanded = false;
+            }
+            finally
+            {
+                _suppressSelectionNotifications = false;
+            }
+
+            UpdateSelectedIngredientsOnly();
+            OnPropertyChanged(nameof(HasSelectedIngredients));
+            OnPropertyChanged(nameof(SelectedInventoryItems));
+            OnPropertyChanged(nameof(SelectedIngredientsOnly));
         }
 
         // Public helper to refresh filters and selection-related bindings after external updates

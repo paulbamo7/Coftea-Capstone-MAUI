@@ -508,22 +508,13 @@ public partial class PointOfSale : ContentPage
             {
                 try
                 {
-                    var hasVisualRefs = SelectedProductImage != null
-                                        && CartIconBorder != null
-                                        && AnimationLayer != null
-                                        && CartFlyoutImage != null;
-
-                    if (hasVisualRefs)
+                    if (SelectedProductImage != null
+                        && CartIconBorder != null
+                        && AnimationLayer != null
+                        && CartFlyoutImage != null)
                     {
-                        var startRect = GetRelativeBounds(SelectedProductImage, AnimationLayer);
-                        var endRect = GetRelativeBounds(CartIconBorder, AnimationLayer);
-
-                        if (startRect.Width <= 0 || startRect.Height <= 0 || endRect.Width <= 0 || endRect.Height <= 0)
-                        {
-                            await Task.Delay(50);
-                            startRect = GetRelativeBounds(SelectedProductImage, AnimationLayer);
-                            endRect = GetRelativeBounds(CartIconBorder, AnimationLayer);
-                        }
+                        var startRect = await GetValidBoundsAsync(SelectedProductImage, AnimationLayer);
+                        var endRect = await GetValidBoundsAsync(CartIconBorder, AnimationLayer);
 
                         if (startRect.Width > 0 && startRect.Height > 0 && endRect.Width > 0 && endRect.Height > 0)
                         {
@@ -575,6 +566,27 @@ public partial class PointOfSale : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"⚠️ Failed to run cart animation: {ex.Message}");
         }
+    }
+
+    private async Task<Rect> GetValidBoundsAsync(VisualElement element, VisualElement relativeTo, int maxAttempts = 5)
+    {
+        if (element == null || relativeTo == null)
+        {
+            return Rect.Zero;
+        }
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            var bounds = GetRelativeBounds(element, relativeTo);
+            if (bounds.Width > 0 && bounds.Height > 0)
+            {
+                return bounds;
+            }
+
+            await Task.Delay(80);
+        }
+
+        return Rect.Zero;
     }
 
     private Rect GetRelativeBounds(VisualElement element, VisualElement relativeTo)

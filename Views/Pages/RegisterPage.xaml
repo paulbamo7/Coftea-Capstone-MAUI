@@ -179,29 +179,6 @@
                                 <Label Text="Passwords match" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
 
-                            <!-- Fifth Row: Phone Number -->
-                            <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="370" BackgroundColor="#F5F1ED">
-                                <Entry Placeholder="Phone Number" 
-                                       Keyboard="Telephone" 
-                                       PlaceholderColor="#8B7355" 
-                                       TextColor="#5B4F45"
-                                       FontFamily="MontserratBlack"
-                                       FontSize="16"
-                                       Margin="20,0"
-                                       Text="{Binding PhoneNumber}" />
-                            </Border>
-
-                            <!-- Seventh Row: Address -->
-                            <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="370" BackgroundColor="#F5F1ED">
-                                <Entry Placeholder="Address" 
-                                       PlaceholderColor="#8B7355" 
-                                       TextColor="#5B4F45"
-                                       FontFamily="MontserratBlack"
-                                       FontSize="16"
-                                       Margin="20,0"
-                                       Text="{Binding Address}"/>
-                            </Border>
-
                             <!-- Terms & Conditions -->
                             <HorizontalStackLayout Spacing="6" Margin="15,5,15,20" HorizontalOptions="Start">
                                 <CheckBox IsChecked="{Binding IsTermsAccepted}" Color="#5B4F45" Scale="1.2"/>

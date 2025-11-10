@@ -103,10 +103,6 @@
                                    FontAttributes="Bold"
                                    TextColor="#000000"/>
                             
-                            <Label Text="{Binding PhoneNumber, StringFormat='Phone Number: {0}'}"
-                                   FontSize="16" FontFamily="MontserratBlack"
-                                   FontAttributes="Bold"
-                                   TextColor="#000000"/>
                         </VerticalStackLayout>
                         
                         <!-- Access Section -->

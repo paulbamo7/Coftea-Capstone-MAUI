@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.Maui.Storage;
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Controls;
@@ -20,9 +21,6 @@ namespace Coftea_Capstone.ViewModel.Controls
 
         [ObservableProperty]
         private string fullName = string.Empty;
-
-        [ObservableProperty]
-        private string phoneNumber = string.Empty;
 
         [ObservableProperty]
         private bool isAdmin = false;
@@ -61,7 +59,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             System.Diagnostics.Debug.WriteLine("ShowProfile called - starting to load user profile");
             // Always reload fresh profile data before showing
             await LoadUserProfile();
-            System.Diagnostics.Debug.WriteLine($"ShowProfile completed - IsProfileVisible set to true. Current data - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, ProfileImage: {ProfileImage}");
+            System.Diagnostics.Debug.WriteLine($"ShowProfile completed - IsProfileVisible set to true. Current data - Email: {Email}, FullName: {FullName}, ProfileImage: {ProfileImage}");
             IsProfileVisible = true;
         }
 
@@ -80,7 +78,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 HasError = false;
                 StatusMessage = "Saving profile...";
 
-                System.Diagnostics.Debug.WriteLine($"SaveProfile called with data - Username: {Username}, Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
+                System.Diagnostics.Debug.WriteLine($"SaveProfile called with data - Username: {Username}, Email: {Email}, FullName: {FullName}");
 
                 // Validate required fields
                 if (string.IsNullOrWhiteSpace(Email))
@@ -106,7 +104,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                     App.CurrentUser.LastName = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : string.Empty;
                     App.CurrentUser.FullName = FullName; // Keep the full name as well
                     
-                    App.CurrentUser.PhoneNumber = PhoneNumber;
                     App.CurrentUser.ProfileImage = ProfileImage;
                     App.CurrentUser.CanAccessInventory = CanAccessInventory;
                     App.CurrentUser.CanAccessSalesReport = CanAccessSalesReport;
@@ -273,7 +270,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // Always load fresh data from database to ensure we have the latest information
                 await LoadUserFromDatabase();
 
-                System.Diagnostics.Debug.WriteLine($"After LoadUserFromDatabase - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, Username: {Username}, ProfileImage: {ProfileImage}");
+                System.Diagnostics.Debug.WriteLine($"After LoadUserFromDatabase - Email: {Email}, FullName: {FullName}, Username: {Username}, ProfileImage: {ProfileImage}");
 
                 // Trigger property change notifications to update UI on main thread
                 MainThread.BeginInvokeOnMainThread(() =>
@@ -318,7 +315,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 if (user != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"User found in database: {user.Email}, {user.FirstName} {user.LastName}, Phone: {user.PhoneNumber}, Username: {user.Username}");
+                    System.Diagnostics.Debug.WriteLine($"User found in database: {user.Email}, {user.FirstName} {user.LastName}, Username: {user.Username}");
                     
                     // Update properties on main thread to ensure UI updates
                     await MainThread.InvokeOnMainThreadAsync(() =>
@@ -334,7 +331,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                         var lastName = user.LastName ?? string.Empty;
                         FullName = $"{firstName} {lastName}".Trim();
                         
-                        PhoneNumber = user.PhoneNumber ?? string.Empty;
                         IsAdmin = user.IsAdmin;
                         ProfileImage = user.ProfileImage ?? "usericon.png";
                         // Clear first to force image reload, then set new source
@@ -357,7 +353,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                         CanAccessSalesReport = user.CanAccessSalesReport;
                     }
                     
-                    System.Diagnostics.Debug.WriteLine($"Profile data loaded from database - Email: {Email}, FullName: {FullName}, Phone: {PhoneNumber}, IsAdmin: {IsAdmin}, CanAccessInventory: {CanAccessInventory}, CanAccessSalesReport: {CanAccessSalesReport}");
+                    System.Diagnostics.Debug.WriteLine($"Profile data loaded from database - Email: {Email}, FullName: {FullName}, IsAdmin: {IsAdmin}, CanAccessInventory: {CanAccessInventory}, CanAccessSalesReport: {CanAccessSalesReport}");
                     System.Diagnostics.Debug.WriteLine($"Database values - IsAdmin: {user.IsAdmin}, CanAccessInventory: {user.CanAccessInventory}, CanAccessSalesReport: {user.CanAccessSalesReport}");
                     
                     // Update App.CurrentUser with fresh data from database
@@ -372,7 +368,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                         App.CurrentUser.FirstName = firstName;
                         App.CurrentUser.LastName = lastName;
                         App.CurrentUser.FullName = $"{firstName} {lastName}".Trim();
-                        App.CurrentUser.PhoneNumber = user.PhoneNumber ?? string.Empty;
                         App.CurrentUser.ProfileImage = user.ProfileImage ?? "usericon.png";
                         App.CurrentUser.CanAccessInventory = CanAccessInventory;
                         App.CurrentUser.CanAccessSalesReport = CanAccessSalesReport;
@@ -400,7 +395,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 Preferences.Set("Username", Username);
                 Preferences.Set("Email", Email);
                 Preferences.Set("FullName", FullName);
-                Preferences.Set("PhoneNumber", PhoneNumber);
                 Preferences.Set("IsAdmin", IsAdmin);
                 Preferences.Set("ProfileImage", ProfileImage);
                 Preferences.Set("CanAccessInventory", CanAccessInventory);
@@ -423,10 +417,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var currentUserId = App.CurrentUser?.ID ?? 1;
                 
                 System.Diagnostics.Debug.WriteLine($"Saving profile to database for user ID: {currentUserId}");
-                System.Diagnostics.Debug.WriteLine($"Data to save - Username: {Username}, Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}");
+                System.Diagnostics.Debug.WriteLine($"Data to save - Username: {Username}, Email: {Email}, FullName: {FullName}");
                 
                 // Update user profile in database
-                var rowsAffected = await database.UpdateUserProfileAsync(currentUserId, Username, Email, FullName, PhoneNumber, ProfileImage, CanAccessInventory, CanAccessSalesReport);
+                var rowsAffected = await database.UpdateUserProfileAsync(currentUserId, Username, Email, FullName, ProfileImage, CanAccessInventory, CanAccessSalesReport);
                 
                 System.Diagnostics.Debug.WriteLine($"Database update completed. Rows affected: {rowsAffected}");
                 
@@ -506,7 +500,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(Username));
                 OnPropertyChanged(nameof(Email));
                 OnPropertyChanged(nameof(FullName));
-                OnPropertyChanged(nameof(PhoneNumber));
                 OnPropertyChanged(nameof(IsAdmin));
                 OnPropertyChanged(nameof(ProfileImage));
                 OnPropertyChanged(nameof(ProfileImageSource));
@@ -514,7 +507,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 OnPropertyChanged(nameof(CanAccessSalesReport));
                 
                 System.Diagnostics.Debug.WriteLine($"Property change notifications sent - Username: '{Username}', ProfileImage: '{ProfileImage}', ProfileImageSource updated");
-                System.Diagnostics.Debug.WriteLine($"Full details - Email: {Email}, FullName: {FullName}, PhoneNumber: {PhoneNumber}, IsAdmin: {IsAdmin}");
+                System.Diagnostics.Debug.WriteLine($"Full details - Email: {Email}, FullName: {FullName}, IsAdmin: {IsAdmin}");
                 
                 // Notify App.CurrentUser changes to trigger UI updates across all pages
                 if (App.CurrentUser != null)

@@ -1,5 +1,6 @@
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -29,6 +30,7 @@ public partial class UserManagement : ContentPage
     {
         base.OnAppearing();
         System.Diagnostics.Debug.WriteLine("🔧 UserManagement page appearing");
+        NavigationStateService.SetCurrentPageType(typeof(UserManagement));
         
         // Ensure data is loaded when page becomes visible
         if (BindingContext is UserManagementPageViewModel vm)

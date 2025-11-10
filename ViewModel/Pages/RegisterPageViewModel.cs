@@ -28,7 +28,6 @@ namespace Coftea_Capstone.ViewModel
             Email = string.Empty;
             Password = string.Empty;
             ConfirmPassword = string.Empty;
-            PhoneNumber = string.Empty;
             IsTermsAccepted = false;
         }
 
@@ -44,7 +43,6 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private string confirmPassword;
         [ObservableProperty] private string firstName;
         [ObservableProperty] private string lastName;
-        [ObservableProperty] private string phoneNumber;
         
         // Password validation properties
         [ObservableProperty] private bool hasUppercase;
@@ -220,18 +218,6 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(PhoneNumber))
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Phone Number is required.", "OK");
-                return;
-            }
-
-            if (!Regex.IsMatch(PhoneNumber.Trim(), @"^\+?\d{10,15}$"))
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "Enter a valid phone number.", "OK");
-                return;
-            }
-
             if (!IsTermsAccepted)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "You must accept the Terms and Conditions to register.", "OK");
@@ -280,7 +266,6 @@ namespace Coftea_Capstone.ViewModel
                         Password = BCrypt.Net.BCrypt.HashPassword(Password),
                         FirstName = FirstName.Trim(),
                         LastName = LastName.Trim(),
-                        PhoneNumber = PhoneNumber.Trim(),
                         IsAdmin = true
                     };
 
@@ -296,7 +281,6 @@ namespace Coftea_Capstone.ViewModel
                         Password = BCrypt.Net.BCrypt.HashPassword(Password),
                         FirstName = FirstName.Trim(),
                         LastName = LastName.Trim(),
-                        PhoneNumber = PhoneNumber.Trim(),
                         RequestDate = DateTime.Now
                     };
 
@@ -323,7 +307,6 @@ namespace Coftea_Capstone.ViewModel
             Email = string.Empty;
             Password = string.Empty;
             ConfirmPassword = string.Empty;
-            PhoneNumber = string.Empty;
             IsTermsAccepted = false;
             
             // Reset validation states

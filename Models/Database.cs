@@ -309,7 +309,6 @@ namespace Coftea_Capstone.Models
                     lastName VARCHAR(100),
                     email VARCHAR(255) UNIQUE NOT NULL,
                     password VARCHAR(255) NOT NULL,
-                    phoneNumber VARCHAR(20),
                     status VARCHAR(50) DEFAULT 'approved',
                     isAdmin BOOLEAN DEFAULT FALSE,
                     can_access_inventory BOOLEAN DEFAULT FALSE,
@@ -468,7 +467,6 @@ namespace Coftea_Capstone.Models
                     password VARCHAR(255) NOT NULL,
                     firstName VARCHAR(100),
                     lastName VARCHAR(100),
-                    phoneNumber VARCHAR(20),
                     registrationDate DATETIME DEFAULT CURRENT_TIMESTAMP
                 );
                 
@@ -2253,7 +2251,6 @@ namespace Coftea_Capstone.Models
                     Password = reader.GetString("password"),
                     FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
                     LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                     IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
                     Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
                     CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
@@ -2298,8 +2295,8 @@ namespace Coftea_Capstone.Models
             }
             
             var sql = hasPOSColumn
-                ? "SELECT id, email, password, firstName, lastName, phoneNumber, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC;"
-                : "SELECT id, email, password, firstName, lastName, phoneNumber, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC;";
+                ? "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC;"
+                : "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC;";
             
             return await QueryAsync(sql, reader => new UserInfoModel
             {
@@ -2308,7 +2305,6 @@ namespace Coftea_Capstone.Models
                 Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
                 FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
                 LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
-                PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                 IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
                 Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
                 ProfileImage = reader.IsDBNull(reader.GetOrdinal("profileImage")) ? "usericon.png" : reader.GetString("profileImage"),
@@ -2336,14 +2332,13 @@ namespace Coftea_Capstone.Models
             // Check if this is the first user
             bool isFirstUser = await IsFirstUserAsync();
             
-            var sql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, status, isAdmin, can_access_inventory, can_access_sales_report) " +
-                      "VALUES (@FirstName,@LastName, @Email, @Password, @PhoneNumber, 'approved', @IsAdmin, @CanAccessInventory, @CanAccessSalesReport);";
+            var sql = "INSERT INTO users (firstName, lastName, email, password, status, isAdmin, can_access_inventory, can_access_sales_report) " +
+                      "VALUES (@FirstName,@LastName, @Email, @Password, 'approved', @IsAdmin, @CanAccessInventory, @CanAccessSalesReport);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@FirstName", user.FirstName);
             cmd.Parameters.AddWithValue("@LastName", user.LastName);
             cmd.Parameters.AddWithValue("@Email", user.Email);
             cmd.Parameters.AddWithValue("@Password", user.Password);
-            cmd.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
             cmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
             cmd.Parameters.AddWithValue("@CanAccessInventory", isFirstUser); // First user gets all permissions
             cmd.Parameters.AddWithValue("@CanAccessSalesReport", isFirstUser); // First user gets all permissions
@@ -2370,7 +2365,6 @@ namespace Coftea_Capstone.Models
                         LastName = reader.GetString("lastName"),
                         Password = reader.GetString("password"),
                         IsAdmin = reader.GetBoolean("isAdmin"),
-                        PhoneNumber = reader.GetString("phoneNumber"),
                         Status = reader.GetString("status"),
                         CanAccessInventory = reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) ? false : reader.GetBoolean("can_access_inventory"),
                         CanAccessSalesReport = reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) ? false : reader.GetBoolean("can_access_sales_report")
@@ -2416,7 +2410,7 @@ namespace Coftea_Capstone.Models
             }
         }
 
-        public async Task<int> UpdateUserProfileAsync(int userId, string username, string email, string fullName, string phoneNumber, string profileImage, bool canAccessInventory, bool canAccessSalesReport)
+        public async Task<int> UpdateUserProfileAsync(int userId, string username, string email, string fullName, string profileImage, bool canAccessInventory, bool canAccessSalesReport)
         {
             try
             {
@@ -2451,7 +2445,6 @@ namespace Coftea_Capstone.Models
                            firstName = @FirstName,
                            lastName = @LastName,
                            fullName = @FullName,
-                           phoneNumber = @PhoneNumber, 
                            profileImage = @ProfileImage,
                            imageData = @ImageData,
                            can_access_inventory = @CanAccessInventory,
@@ -2465,7 +2458,6 @@ namespace Coftea_Capstone.Models
                 cmd.Parameters.AddWithValue("@FirstName", firstName ?? string.Empty);
                 cmd.Parameters.AddWithValue("@LastName", lastName ?? string.Empty);
                 cmd.Parameters.AddWithValue("@FullName", fullName ?? string.Empty);
-                cmd.Parameters.AddWithValue("@PhoneNumber", phoneNumber ?? string.Empty);
                 cmd.Parameters.AddWithValue("@ProfileImage", profileImage ?? "usericon.png");
                 cmd.Parameters.AddWithValue("@ImageData", imageBytes != null ? (object)imageBytes : DBNull.Value);
                 cmd.Parameters.AddWithValue("@CanAccessInventory", canAccessInventory);
@@ -2727,14 +2719,13 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "INSERT INTO pending_registrations (email, password, firstName, lastName, phoneNumber, registrationDate) " +
-                      "VALUES (@Email, @Password, @FirstName, @LastName, @PhoneNumber, @RegistrationDate);";
+            var sql = "INSERT INTO pending_registrations (email, password, firstName, lastName, registrationDate) " +
+                      "VALUES (@Email, @Password, @FirstName, @LastName, @RegistrationDate);";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Email", request.Email);
             cmd.Parameters.AddWithValue("@Password", request.Password);
             cmd.Parameters.AddWithValue("@FirstName", request.FirstName);
             cmd.Parameters.AddWithValue("@LastName", request.LastName);
-            cmd.Parameters.AddWithValue("@PhoneNumber", request.PhoneNumber);
             cmd.Parameters.AddWithValue("@RegistrationDate", request.RequestDate);
 
             return await cmd.ExecuteNonQueryAsync();
@@ -2758,7 +2749,6 @@ namespace Coftea_Capstone.Models
                     LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
                     Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
                     Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                     RequestDate = reader.IsDBNull(reader.GetOrdinal("registrationDate")) ? DateTime.MinValue : reader.GetDateTime("registrationDate"),
                     Status = "pending" // Default status since it's not stored in database
                 });
@@ -2784,7 +2774,6 @@ namespace Coftea_Capstone.Models
                     LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
                     Email = reader.GetString("email"),
                     Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                     RequestDate = reader.IsDBNull(reader.GetOrdinal("registrationDate")) ? DateTime.MinValue : reader.GetDateTime("registrationDate"),
                     Status = "pending"
                 };
@@ -2815,7 +2804,6 @@ namespace Coftea_Capstone.Models
                         Password = reader.GetString("password"),
                         FirstName = reader.GetString("firstName"),
                         LastName = reader.GetString("lastName"),
-                        PhoneNumber = reader.GetString("phoneNumber"),
                         RequestDate = reader.GetDateTime("registrationDate")
                     };
                 }
@@ -2834,14 +2822,13 @@ namespace Coftea_Capstone.Models
                 bool isFirstUser = userCount == 0;
 
                 // Add to users table
-                var addUserSql = "INSERT INTO users (firstName, lastName, email, password, phoneNumber, status, isAdmin) " +
-                                "VALUES (@FirstName, @LastName, @Email, @Password, @PhoneNumber, @Status, @IsAdmin);";
+                var addUserSql = "INSERT INTO users (firstName, lastName, email, password, status, isAdmin) " +
+                                "VALUES (@FirstName, @LastName, @Email, @Password, @Status, @IsAdmin);";
                 await using var addUserCmd = new MySqlCommand(addUserSql, conn, (MySqlTransaction)tx);
                 addUserCmd.Parameters.AddWithValue("@FirstName", registration.FirstName);
                 addUserCmd.Parameters.AddWithValue("@LastName", registration.LastName);
                 addUserCmd.Parameters.AddWithValue("@Email", registration.Email);
                 addUserCmd.Parameters.AddWithValue("@Password", registration.Password);
-                addUserCmd.Parameters.AddWithValue("@PhoneNumber", registration.PhoneNumber);
                 addUserCmd.Parameters.AddWithValue("@Status", "approved");
                 addUserCmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
 
@@ -2901,7 +2888,6 @@ namespace Coftea_Capstone.Models
                     LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
                     Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
                     Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
-                    PhoneNumber = reader.IsDBNull(reader.GetOrdinal("phoneNumber")) ? string.Empty : reader.GetString("phoneNumber"),
                     RequestDate = reader.IsDBNull(reader.GetOrdinal("registrationDate")) ? DateTime.MinValue : reader.GetDateTime("registrationDate"),
                     Status = "pending" // Default status since it's not stored in database
                 });

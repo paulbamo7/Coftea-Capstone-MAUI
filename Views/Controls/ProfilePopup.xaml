@@ -122,15 +122,6 @@
                                            PlaceholderColor="Gray" />
                                 </VerticalStackLayout>
 
-                                <!-- Phone Number -->
-                                <VerticalStackLayout Spacing="5">
-                                    <Label Text="Phone Number" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="Black" />
-                                    <Entry Text="{Binding PhoneNumber}" 
-                                           Placeholder="Enter phone number" 
-                                           BackgroundColor="#F5F5F5" 
-                                           TextColor="Black"
-                                           PlaceholderColor="Gray" />
-                                </VerticalStackLayout>
                             </VerticalStackLayout>
                         </Frame>
 

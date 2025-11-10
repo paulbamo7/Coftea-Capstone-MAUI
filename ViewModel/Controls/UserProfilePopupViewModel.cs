@@ -23,9 +23,6 @@ namespace Coftea_Capstone.ViewModel.Controls
         private string email = string.Empty;
 
         [ObservableProperty]
-        private string phoneNumber = string.Empty;
-
-        [ObservableProperty]
         private bool canEditInventory = false;
 
         [ObservableProperty]
@@ -57,7 +54,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             UserName = !string.IsNullOrWhiteSpace(user.Username) ? user.Username : $"{user.FirstName} {user.LastName}".Trim();
             FullName = $"{user.FirstName} {user.LastName}".Trim();
             Email = MaskEmail(user.Email);
-            PhoneNumber = user.PhoneNumber;
             
             // If user is admin, set all permissions to true
             if (user.IsAdmin)
@@ -184,7 +180,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             UserName = user.Username;
             FullName = user.Username;
             Email = "N/A"; // UserEntry doesn't have email
-            PhoneNumber = "N/A"; // UserEntry doesn't have phone
             
             // If user is admin, set all permissions to true
             if (user.IsAdmin)

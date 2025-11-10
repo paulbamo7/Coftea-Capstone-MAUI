@@ -71,20 +71,11 @@
                                     </VerticalStackLayout>
 
                                     <!-- Registration Details -->
-                                    <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,8,0,0">
-                                        <Label Text="{Binding PhoneNumber, StringFormat='Phone: {0}'}" 
-                                               FontSize="13" 
-                                               FontFamily="OpenSans-Regular"
-                                               TextColor="#8B7355"/>
-                                        <Label Text="{Binding Address, StringFormat='Address: {0}'}" 
-                                               FontSize="13" 
-                                               FontFamily="OpenSans-Regular"
-                                               TextColor="#8B7355"/>
-                                        <Label Text="{Binding RegistrationDate, StringFormat='Registered: {0:MMM dd, yyyy HH:mm}'}" 
-                                               FontSize="13" 
-                                               FontFamily="OpenSans-Regular"
-                                               TextColor="#8B7355"/>
-                                    </VerticalStackLayout>
+                                    <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,8,0,0"
+                                           Text="{Binding RequestDate, StringFormat='Registered: {0:MMM dd, yyyy HH:mm}'}"
+                                           FontSize="13"
+                                           FontFamily="OpenSans-Regular"
+                                           TextColor="#8B7355"/>
 
                                     <!-- Action Buttons -->
                                     <Button Grid.Row="2" Grid.Column="1" 
