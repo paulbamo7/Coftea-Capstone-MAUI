@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -38,6 +40,16 @@ namespace Coftea_Capstone.ViewModel.Controls
         public POSPageModel Source { get; set; }
         public List<IngredientDisplayModel> Ingredients { get; set; } = new();
         public string SizeDisplay { get; set; } // e.g., "16oz" or "18oz"
+        public string OrderGroupId { get; set; }
+    }
+
+    public class ProcessingOrderGroup
+    {
+        public string OrderGroupId { get; set; }
+        public string ProductName { get; set; }
+        public ObservableCollection<ProcessingItemModel> Items { get; set; } = new();
+        public POSPageModel Source { get; set; }
+        public int TotalQuantity => Items?.Sum(i => i?.Quantity ?? 0) ?? 0;
     }
 
     public partial class ProcessingQueuePopupViewModel : ObservableObject
@@ -50,14 +62,32 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ObservableCollection<ProcessingItemModel> pendingItems = new();
 
-        public int QueueCount => PendingItems?.Count ?? 0;
+        [ObservableProperty]
+        private ObservableCollection<ProcessingOrderGroup> pendingOrders = new();
+
+        public int QueueCount => PendingOrders?.Count ?? 0;
         
         public bool HasItems => QueueCount > 0;
+
+        partial void OnPendingItemsChanging(ObservableCollection<ProcessingItemModel> value)
+        {
+            if (value != null)
+            {
+                value.CollectionChanged -= PendingItemsOnCollectionChanged;
+            }
+        }
 
         partial void OnPendingItemsChanged(ObservableCollection<ProcessingItemModel> value)
         {
             OnPropertyChanged(nameof(QueueCount));
             OnPropertyChanged(nameof(HasItems));
+            HookPendingItemsCollectionChanged(value);
+            RebuildOrderGroups();
+        }
+
+        public ProcessingQueuePopupViewModel()
+        {
+            HookPendingItemsCollectionChanged(PendingItems);
         }
 
         [RelayCommand]
@@ -75,6 +105,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         public async Task EnqueueFromCartItem(POSPageModel cartItem)
         {
             if (cartItem == null) return;
+
+            var orderGroupId = Guid.NewGuid().ToString();
 
             // Fetch addon details from database
             var addonsList = await _database.GetProductAddonsAsync(cartItem.ProductID);
@@ -201,7 +233,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     AddonPrice = addOnTotal,
                     UnitPrice = unitPrice,
                     Source = cartItem,
-                    Ingredients = sizeIngredients
+                    Ingredients = sizeIngredients,
+                    OrderGroupId = orderGroupId
                 };
 
                 PendingItems.Add(processingItem);
@@ -227,6 +260,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                 PendingItems.Clear();
                 foreach (var item in items)
                 {
+                    if (string.IsNullOrWhiteSpace(item.OrderGroupId))
+                    {
+                        item.OrderGroupId = Guid.NewGuid().ToString();
+                    }
                     PendingItems.Add(item);
                 }
                 // Notify property changes for queue count
@@ -325,6 +362,69 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to complete all items: {ex.Message}", "OK");
             }
+        }
+
+        [RelayCommand]
+        public async Task CompleteOrder(ProcessingOrderGroup orderGroup)
+        {
+            if (orderGroup == null || orderGroup.Items == null || orderGroup.Items.Count == 0)
+            {
+                return;
+            }
+
+            var items = orderGroup.Items.ToList();
+            foreach (var item in items)
+            {
+                await CompleteItem(item);
+            }
+        }
+
+        private void HookPendingItemsCollectionChanged(ObservableCollection<ProcessingItemModel> collection)
+        {
+            if (collection == null)
+            {
+                return;
+            }
+
+            collection.CollectionChanged -= PendingItemsOnCollectionChanged;
+            collection.CollectionChanged += PendingItemsOnCollectionChanged;
+        }
+
+        private void PendingItemsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            RebuildOrderGroups();
+        }
+
+        private void RebuildOrderGroups()
+        {
+            if (PendingOrders == null)
+            {
+                PendingOrders = new ObservableCollection<ProcessingOrderGroup>();
+            }
+            var grouped = PendingItems
+                .GroupBy(item => string.IsNullOrWhiteSpace(item.OrderGroupId) ? $"item-{item.Id ?? Guid.NewGuid().GetHashCode()}" : item.OrderGroupId)
+                .Select(group =>
+                {
+                    var first = group.First();
+                    return new ProcessingOrderGroup
+                    {
+                        OrderGroupId = group.Key,
+                        ProductName = first.ProductName,
+                        Source = first.Source,
+                        Items = new ObservableCollection<ProcessingItemModel>(group.ToList())
+                    };
+                })
+                .ToList();
+
+            PendingOrders.Clear();
+            foreach (var group in grouped)
+            {
+                PendingOrders.Add(group);
+            }
+
+            OnPropertyChanged(nameof(PendingOrders));
+            OnPropertyChanged(nameof(QueueCount));
+            OnPropertyChanged(nameof(HasItems));
         }
     }
 }

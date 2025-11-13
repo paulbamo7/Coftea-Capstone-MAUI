@@ -1,20 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Coftea_Capstone.Models;
-using Microsoft.Maui.Storage;
+using Coftea_Capstone.Services.Pdf;
 using Microsoft.Maui.Devices;
-using System.Text;
-using System.IO;
-using Syncfusion.Pdf;
-using Syncfusion.Pdf.Graphics;
-using Syncfusion.Drawing;
-using Syncfusion.Pdf.Grid;
-using PointF = Syncfusion.Drawing.PointF;
-using SizeF = Syncfusion.Drawing.SizeF;
-using RectangleF = Syncfusion.Drawing.RectangleF;
-using PdfColor = Syncfusion.Drawing.Color;
+using Microsoft.Maui.Storage;
+using PdfSharpCore.Drawing;
+using PdfSharpCore.Drawing.Layout;
+using PdfSharpCore.Fonts;
+using PdfSharpCore.Pdf;
 
 namespace Coftea_Capstone.Services
 {
@@ -27,6 +25,33 @@ namespace Coftea_Capstone.Services
 
     public class PDFReportService : IPDFReportService
     {
+        private const double Margin = 40;
+
+        private static readonly Lazy<XFont> TitleFontLazy = new(() => new XFont("OpenSans", 24, XFontStyle.Bold));
+        private static readonly Lazy<XFont> SubTitleFontLazy = new(() => new XFont("OpenSans", 14, XFontStyle.Regular));
+        private static readonly Lazy<XFont> SectionTitleFontLazy = new(() => new XFont("OpenSans", 12, XFontStyle.Bold));
+        private static readonly Lazy<XFont> LabelFontLazy = new(() => new XFont("OpenSans", 10, XFontStyle.Regular));
+        private static readonly Lazy<XFont> ValueFontLazy = new(() => new XFont("OpenSans", 14, XFontStyle.Bold));
+        private static readonly Lazy<XFont> TableHeaderFontLazy = new(() => new XFont("OpenSans", 11, XFontStyle.Bold));
+        private static readonly Lazy<XFont> TableRowFontLazy = new(() => new XFont("OpenSans", 10, XFontStyle.Regular));
+        private static readonly Lazy<XFont> SmallFontLazy = new(() => new XFont("OpenSans", 9, XFontStyle.Regular));
+
+        private static readonly XBrush TitleBrush = new XSolidBrush(XColor.FromArgb(0x3E, 0x27, 0x23));
+        private static readonly XBrush TextBrush = new XSolidBrush(XColor.FromArgb(0x4B, 0x3A, 0x2F));
+        private static readonly XBrush MutedBrush = new XSolidBrush(XColor.FromArgb(0x80, 0x80, 0x80));
+        private static readonly XBrush TableHeaderBrush = new XSolidBrush(XColor.FromArgb(0xDA, 0xAB, 0x97));
+        private static readonly XBrush TableRowBrush = new XSolidBrush(XColor.FromArgb(0xFF, 0xFF, 0xFF));
+        private static readonly XPen TableBorderPen = new XPen(XColor.FromArgb(0xE5, 0xD2, 0xC1), 0.75);
+
+        private static XFont TitleFont => TitleFontLazy.Value;
+        private static XFont SubTitleFont => SubTitleFontLazy.Value;
+        private static XFont SectionTitleFont => SectionTitleFontLazy.Value;
+        private static XFont LabelFont => LabelFontLazy.Value;
+        private static XFont ValueFont => ValueFontLazy.Value;
+        private static XFont TableHeaderFont => TableHeaderFontLazy.Value;
+        private static XFont TableRowFont => TableRowFontLazy.Value;
+        private static XFont SmallFont => SmallFontLazy.Value;
+
         private readonly Database _database;
 
         public PDFReportService()
@@ -34,209 +59,17 @@ namespace Coftea_Capstone.Services
             _database = new Database();
         }
 
-        public async Task<string> GenerateWeeklyReportPDFAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems)
-        {
-            try
-            {
-                // Ensure collections are not null
-                transactions = transactions ?? new List<TransactionHistoryModel>();
-                topItems = topItems ?? new List<TrendItem>();
-
-                // Get inventory deductions (with UoM from activity logs)
-                var inventoryDeductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
-                var inventoryDeductions = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.totalDeducted);
-                var unitMap = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.unitOfMeasurement ?? "", StringComparer.OrdinalIgnoreCase);
-                // Merge with inventory items map for items not in activity logs
-                var inventoryUnitMap = await GetInventoryUnitsMapAsync();
-                foreach (var kvp in inventoryUnitMap)
-                {
-                    if (!unitMap.ContainsKey(kvp.Key))
-                    {
-                        unitMap[kvp.Key] = kvp.Value;
-                    }
-                }
-
-                // Calculate totals
-                var totalSales = transactions?.Sum(t => t?.Total ?? 0) ?? 0;
-                var totalOrders = transactions?.Count ?? 0;
-                var cashSales = transactions?.Where(t => t?.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0) ?? 0;
-                var gcashSales = transactions?.Where(t => t?.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0) ?? 0;
-                var bankSales = transactions?.Where(t => t?.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0) ?? 0;
-
-                // Create PDF document
-                using (PdfDocument document = new PdfDocument())
-                {
-                    // Add page
-                    PdfPage page = document.Pages.Add();
-                    PdfGraphics graphics = page.Graphics;
-
-                    float yPosition = 40;
-                    float pageWidth = page.GetClientSize().Width;
-                    float margin = 40;
-
-                    // Header
-                    PdfFont titleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 24, PdfFontStyle.Bold);
-                    PdfFont subTitleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 14);
-                    PdfFont normalFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10);
-                    PdfFont boldFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold);
-
-                    PdfBrush titleBrush = new PdfSolidBrush(PdfColor.FromArgb(68, 68, 68));
-                    PdfBrush textBrush = new PdfSolidBrush(PdfColor.FromArgb(100, 100, 100));
-
-                    graphics.DrawString("Coftea Weekly Sales Report", titleFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 30;
-
-                    graphics.DrawString($"{startDate:MMMM dd, yyyy} - {endDate:MMMM dd, yyyy}", subTitleFont, textBrush, new PointF(margin, yPosition));
-                    yPosition += 40;
-
-                    // Sales Summary
-                    graphics.DrawString("Sales Summary", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    float boxWidth = (pageWidth - margin * 2 - 40) / 3;
-                    float boxHeight = 60;
-                    float boxSpacing = 20;
-
-                    DrawStatBox(graphics, margin, yPosition, boxWidth, boxHeight, "Total Sales", $"₱{totalSales:N2}", PdfColor.FromArgb(200, 230, 255));
-                    DrawStatBox(graphics, margin + boxWidth + boxSpacing, yPosition, boxWidth, boxHeight, "Total Orders", totalOrders.ToString(), PdfColor.FromArgb(200, 230, 255));
-                    DrawStatBox(graphics, margin + (boxWidth + boxSpacing) * 2, yPosition, boxWidth, boxHeight, "Avg Order", $"₱{(totalOrders > 0 ? totalSales / totalOrders : 0):N2}", PdfColor.FromArgb(200, 230, 255));
-                    yPosition += boxHeight + 30;
-
-                    // Payment Methods
-                    graphics.DrawString("Payment Methods", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    DrawStatBox(graphics, margin, yPosition, boxWidth, boxHeight, "Cash", $"₱{cashSales:N2}", PdfColor.FromArgb(200, 255, 230));
-                    DrawStatBox(graphics, margin + boxWidth + boxSpacing, yPosition, boxWidth, boxHeight, "GCash", $"₱{gcashSales:N2}", PdfColor.FromArgb(200, 230, 255));
-                    DrawStatBox(graphics, margin + (boxWidth + boxSpacing) * 2, yPosition, boxWidth, boxHeight, "Bank", $"₱{bankSales:N2}", PdfColor.FromArgb(230, 200, 255));
-                    yPosition += boxHeight + 30;
-
-                    // Top Selling Items Table
-                    graphics.DrawString("Top Selling Items", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    PdfGrid topItemsGrid = new PdfGrid();
-                    topItemsGrid.Columns.Add(2);
-                    topItemsGrid.Headers.Add(1);
-                    PdfGridRow headerRow = topItemsGrid.Headers[0];
-                    headerRow.Cells[0].Value = "Item";
-                    headerRow.Cells[1].Value = "Orders";
-                    headerRow.Cells[0].Style.Font = boldFont;
-                    headerRow.Cells[1].Style.Font = boldFont;
-
-                    int itemCount = 0;
-                    foreach (var item in topItems.Take(10))
-                    {
-                        if (item == null) continue;
-                        PdfGridRow row = topItemsGrid.Rows.Add();
-                        row.Cells[0].Value = $"#{++itemCount} {item.Name ?? "Unknown Item"}";
-                        row.Cells[1].Value = $"{item.Count} orders";
-                    }
-
-                    if (topItems.Count == 0)
-                    {
-                        PdfGridRow row = topItemsGrid.Rows.Add();
-                        row.Cells[0].Value = "No items to display";
-                        topItemsGrid.Columns[0].Width = pageWidth - margin * 2;
-                    }
-
-                    topItemsGrid.Draw(graphics, new RectangleF(margin, yPosition, pageWidth - margin * 2, topItemsGrid.Rows.Count * 25 + 30));
-                    yPosition += topItemsGrid.Rows.Count * 25 + 50;
-
-                    // Check if we need a new page for inventory deductions
-                    if (yPosition > page.GetClientSize().Height - 200)
-                    {
-                        page = document.Pages.Add();
-                        graphics = page.Graphics;
-                        yPosition = 40;
-                    }
-
-                    // Inventory Deductions Table
-                    graphics.DrawString("Inventory Deductions", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    PdfGrid deductionsGrid = new PdfGrid();
-                    deductionsGrid.Columns.Add(2);
-                    deductionsGrid.Headers.Add(1);
-                    PdfGridRow deductionsHeaderRow = deductionsGrid.Headers[0];
-                    deductionsHeaderRow.Cells[0].Value = "Item";
-                    deductionsHeaderRow.Cells[1].Value = "Amount";
-                    deductionsHeaderRow.Cells[0].Style.Font = boldFont;
-                    deductionsHeaderRow.Cells[1].Style.Font = boldFont;
-
-                    foreach (var deduction in inventoryDeductions.OrderByDescending(x => x.Value).Take(15))
-                    {
-                        if (deduction.Key == null) continue;
-                        var unit = unitMap.TryGetValue(deduction.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : null;
-                        if (string.IsNullOrWhiteSpace(unit))
-                        {
-                            // If UoM not found in map, try to get it from inventory directly
-                            try
-                            {
-                                var items = await _database.GetInventoryItemsAsyncCached();
-                                var inventoryItem = items?.FirstOrDefault(i => i?.itemName?.Equals(deduction.Key, StringComparison.OrdinalIgnoreCase) == true);
-                                unit = inventoryItem?.unitOfMeasurement;
-                            }
-                            catch { }
-                        }
-                        // Use actual UoM or empty string instead of "units"
-                        var displayUnit = !string.IsNullOrWhiteSpace(unit) ? unit : "";
-                        PdfGridRow row = deductionsGrid.Rows.Add();
-                        row.Cells[0].Value = deduction.Key;
-                        row.Cells[1].Value = !string.IsNullOrWhiteSpace(displayUnit) 
-                            ? $"{deduction.Value:N1} {displayUnit}" 
-                            : $"{deduction.Value:N1}";
-                    }
-
-                    if (inventoryDeductions.Count == 0)
-                    {
-                        PdfGridRow row = deductionsGrid.Rows.Add();
-                        row.Cells[0].Value = "No inventory deductions to display";
-                        deductionsGrid.Columns[0].Width = pageWidth - margin * 2;
-                    }
-
-                    deductionsGrid.Draw(graphics, new RectangleF(margin, yPosition, pageWidth - margin * 2, deductionsGrid.Rows.Count * 25 + 30));
-
-                    // Footer
-                    PdfPage lastPage = document.Pages[document.Pages.Count - 1];
-                    PdfGraphics footerGraphics = lastPage.Graphics;
-                    PdfFont footerFont = new PdfStandardFont(PdfFontFamily.Helvetica, 9);
-                    PdfBrush footerBrush = new PdfSolidBrush(PdfColor.FromArgb(128, 128, 128));
-                    string footerText = $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Sales Management System";
-                    SizeF footerSize = footerFont.MeasureString(footerText);
-                    footerGraphics.DrawString(footerText, footerFont, footerBrush, new PointF((pageWidth - footerSize.Width) / 2, lastPage.GetClientSize().Height - 30));
-
-                    // Save PDF
-                    var fileName = $"Weekly_Report_{startDate:yyyy_MM_dd}_to_{endDate:yyyy_MM_dd}.pdf";
-                    string filePath = GetDownloadPath(fileName);
-                    FileStream fileStream = new FileStream(filePath, FileMode.Create);
-                    document.Save(fileStream);
-                    fileStream.Dispose();
-                
-                return filePath;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error generating weekly PDF report: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                throw;
-            }
-        }
-
         public async Task<string> GenerateMonthlyReportPDFAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems)
         {
             try
             {
-                // Ensure collections are not null
-                transactions = transactions ?? new List<TransactionHistoryModel>();
-                topItems = topItems ?? new List<TrendItem>();
+                transactions ??= new List<TransactionHistoryModel>();
+                topItems ??= new List<TrendItem>();
 
-                // Get inventory deductions (with UoM from activity logs)
-                var inventoryDeductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
-                var inventoryDeductions = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.totalDeducted);
-                var unitMap = inventoryDeductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.unitOfMeasurement ?? "", StringComparer.OrdinalIgnoreCase);
-                // Merge with inventory items map for items not in activity logs
+                var deductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
+                var inventoryDeductions = deductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.totalDeducted);
+                var unitMap = deductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.unitOfMeasurement ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+
                 var inventoryUnitMap = await GetInventoryUnitsMapAsync();
                 foreach (var kvp in inventoryUnitMap)
                 {
@@ -246,175 +79,87 @@ namespace Coftea_Capstone.Services
                     }
                 }
 
-                // Calculate totals
-                var totalSales = transactions?.Sum(t => t?.Total ?? 0) ?? 0;
-                var totalOrders = transactions?.Count ?? 0;
-                var days = Math.Max(1, (endDate - startDate).Days);
-                var cashSales = transactions?.Where(t => t?.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0) ?? 0;
-                var gcashSales = transactions?.Where(t => t?.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0) ?? 0;
-                var bankSales = transactions?.Where(t => t?.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0) ?? 0;
+                var totalSales = transactions.Sum(t => t?.Total ?? 0);
+                var totalOrders = transactions.Count;
+                var dayCount = Math.Max(1, Math.Abs((endDate.Date - startDate.Date).Days));
+                var cashSales = transactions.Where(t => t?.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0);
+                var gcashSales = transactions.Where(t => t?.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0);
+                var bankSales = transactions.Where(t => t?.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0);
 
-                // Create PDF document
-                using (PdfDocument document = new PdfDocument())
+                using var document = new PdfDocument();
+                using (var context = new PdfPageContext(document, Margin))
                 {
-                    PdfPage page = document.Pages.Add();
-                    PdfGraphics graphics = page.Graphics;
+                    DrawReportHeader(context, "Coftea Monthly Sales Report", startDate.ToString("MMMM yyyy"));
 
-                    float yPosition = 40;
-                    float pageWidth = page.GetClientSize().Width;
-                    float margin = 40;
-
-                    // Fonts
-                    PdfFont titleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 24, PdfFontStyle.Bold);
-                    PdfFont subTitleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 14);
-                    PdfFont normalFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10);
-                    PdfFont boldFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold);
-
-                    PdfBrush titleBrush = new PdfSolidBrush(PdfColor.FromArgb(68, 68, 68));
-                    PdfBrush textBrush = new PdfSolidBrush(PdfColor.FromArgb(100, 100, 100));
-
-                    // Header
-                    graphics.DrawString("Coftea Monthly Sales Report", titleFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 30;
-
-                    graphics.DrawString($"{startDate:MMMM yyyy}", subTitleFont, textBrush, new PointF(margin, yPosition));
-                    yPosition += 40;
-
-                    // Sales Summary (4 boxes)
-                    graphics.DrawString("Sales Summary", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    float boxWidth = (pageWidth - margin * 2 - 60) / 4;
-                    float boxHeight = 60;
-                    float boxSpacing = 15;
-
-                    DrawStatBox(graphics, margin, yPosition, boxWidth, boxHeight, "Total Sales", $"₱{totalSales:N2}", PdfColor.FromArgb(200, 230, 255));
-                    DrawStatBox(graphics, margin + boxWidth + boxSpacing, yPosition, boxWidth, boxHeight, "Total Orders", totalOrders.ToString(), PdfColor.FromArgb(200, 230, 255));
-                    DrawStatBox(graphics, margin + (boxWidth + boxSpacing) * 2, yPosition, boxWidth, boxHeight, "Avg Order", $"₱{(totalOrders > 0 ? totalSales / totalOrders : 0):N2}", PdfColor.FromArgb(200, 230, 255));
-                    DrawStatBox(graphics, margin + (boxWidth + boxSpacing) * 3, yPosition, boxWidth, boxHeight, "Daily Avg", $"₱{(totalSales / days):N2}", PdfColor.FromArgb(200, 230, 255));
-                    yPosition += boxHeight + 30;
-
-                    // Payment Methods
-                    graphics.DrawString("Payment Methods", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    boxWidth = (pageWidth - margin * 2 - 40) / 3;
-                    boxSpacing = 20;
-
-                    DrawStatBox(graphics, margin, yPosition, boxWidth, boxHeight, "Cash", $"₱{cashSales:N2}", PdfColor.FromArgb(200, 255, 230));
-                    DrawStatBox(graphics, margin + boxWidth + boxSpacing, yPosition, boxWidth, boxHeight, "GCash", $"₱{gcashSales:N2}", PdfColor.FromArgb(200, 230, 255));
-                    DrawStatBox(graphics, margin + (boxWidth + boxSpacing) * 2, yPosition, boxWidth, boxHeight, "Bank", $"₱{bankSales:N2}", PdfColor.FromArgb(230, 200, 255));
-                    yPosition += boxHeight + 30;
-
-                    // Top Selling Items Table
-                    graphics.DrawString("Top Selling Items", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    PdfGrid topItemsGrid = new PdfGrid();
-                    topItemsGrid.Columns.Add(2);
-                    topItemsGrid.Headers.Add(1);
-                    PdfGridRow headerRow = topItemsGrid.Headers[0];
-                    headerRow.Cells[0].Value = "Item";
-                    headerRow.Cells[1].Value = "Orders";
-                    headerRow.Cells[0].Style.Font = boldFont;
-                    headerRow.Cells[1].Style.Font = boldFont;
-
-                    int itemCount = 0;
-                    foreach (var item in topItems.Take(15))
+                    DrawSectionTitle(context, "Sales Summary");
+                    DrawStatBoxRow(context, new[]
                     {
-                        if (item == null) continue;
-                        PdfGridRow row = topItemsGrid.Rows.Add();
-                        row.Cells[0].Value = $"#{++itemCount} {item.Name ?? "Unknown Item"}";
-                        row.Cells[1].Value = $"{item.Count} orders";
-                    }
+                        ("Total Sales", $"₱{totalSales:N2}", XColor.FromArgb(200, 230, 255)),
+                        ("Total Orders", $"{totalOrders}", XColor.FromArgb(200, 230, 255)),
+                        ("Average Order", $"₱{(totalOrders > 0 ? totalSales / totalOrders : 0):N2}", XColor.FromArgb(200, 230, 255)),
+                        ("Daily Average", $"₱{(totalSales / dayCount):N2}", XColor.FromArgb(200, 230, 255))
+                    });
 
-                    if (topItems.Count == 0)
+                    DrawSectionTitle(context, "Payment Methods");
+                    DrawStatBoxRow(context, new[]
                     {
-                        PdfGridRow row = topItemsGrid.Rows.Add();
-                        row.Cells[0].Value = "No items to display";
-                        topItemsGrid.Columns[0].Width = pageWidth - margin * 2;
-                    }
+                        ("Cash", $"₱{cashSales:N2}", XColor.FromArgb(200, 255, 230)),
+                        ("GCash", $"₱{gcashSales:N2}", XColor.FromArgb(200, 230, 255)),
+                        ("Bank", $"₱{bankSales:N2}", XColor.FromArgb(230, 200, 255))
+                    });
 
-                    topItemsGrid.Draw(graphics, new RectangleF(margin, yPosition, pageWidth - margin * 2, topItemsGrid.Rows.Count * 25 + 30));
-                    yPosition += topItemsGrid.Rows.Count * 25 + 50;
-
-                    // Check if we need a new page
-                    if (yPosition > page.GetClientSize().Height - 200)
-                    {
-                        page = document.Pages.Add();
-                        graphics = page.Graphics;
-                        yPosition = 40;
-                    }
-
-                    // Inventory Deductions Table
-                    graphics.DrawString("Inventory Deductions", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    PdfGrid deductionsGrid = new PdfGrid();
-                    deductionsGrid.Columns.Add(2);
-                    deductionsGrid.Headers.Add(1);
-                    PdfGridRow deductionsHeaderRow = deductionsGrid.Headers[0];
-                    deductionsHeaderRow.Cells[0].Value = "Item";
-                    deductionsHeaderRow.Cells[1].Value = "Amount";
-                    deductionsHeaderRow.Cells[0].Style.Font = boldFont;
-                    deductionsHeaderRow.Cells[1].Style.Font = boldFont;
-
-                    foreach (var deduction in inventoryDeductions.OrderByDescending(x => x.Value).Take(20))
-                    {
-                        if (deduction.Key == null) continue;
-                        var unit = unitMap.TryGetValue(deduction.Key, out var u) && !string.IsNullOrWhiteSpace(u) ? u : null;
-                        if (string.IsNullOrWhiteSpace(unit))
+                    DrawSectionTitle(context, "Top Selling Items");
+                    var topRows = topItems
+                        .Take(15)
+                        .Select((item, index) => new[]
                         {
-                            // If UoM not found in map, try to get it from inventory directly
-                            try
-                            {
-                                var items = await _database.GetInventoryItemsAsyncCached();
-                                var inventoryItem = items?.FirstOrDefault(i => i?.itemName?.Equals(deduction.Key, StringComparison.OrdinalIgnoreCase) == true);
-                                unit = inventoryItem?.unitOfMeasurement;
-                            }
-                            catch { }
-                        }
-                        // Use actual UoM or empty string instead of "units"
-                        var displayUnit = !string.IsNullOrWhiteSpace(unit) ? unit : "";
-                        PdfGridRow row = deductionsGrid.Rows.Add();
-                        row.Cells[0].Value = deduction.Key;
-                        row.Cells[1].Value = !string.IsNullOrWhiteSpace(displayUnit) 
-                            ? $"{deduction.Value:N1} {displayUnit}" 
-                            : $"{deduction.Value:N1}";
-                    }
+                            $"#{index + 1} {item?.Name ?? "Unknown Item"}",
+                            $"{item?.Count ?? 0} orders"
+                        })
+                        .ToList();
 
-                    if (inventoryDeductions.Count == 0)
+                    if (topRows.Count == 0)
                     {
-                        PdfGridRow row = deductionsGrid.Rows.Add();
-                        row.Cells[0].Value = "No inventory deductions to display";
-                        deductionsGrid.Columns[0].Width = pageWidth - margin * 2;
+                        topRows.Add(new[] { "No items to display", string.Empty });
                     }
 
-                    deductionsGrid.Draw(graphics, new RectangleF(margin, yPosition, pageWidth - margin * 2, deductionsGrid.Rows.Count * 25 + 30));
+                    DrawTable(context, new[] { "Item", "Orders" }, topRows);
 
-                    // Footer
-                    PdfPage lastPage = document.Pages[document.Pages.Count - 1];
-                    PdfGraphics footerGraphics = lastPage.Graphics;
-                    PdfFont footerFont = new PdfStandardFont(PdfFontFamily.Helvetica, 9);
-                    PdfBrush footerBrush = new PdfSolidBrush(PdfColor.FromArgb(128, 128, 128));
-                    string footerText = $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Sales Management System";
-                    SizeF footerSize = footerFont.MeasureString(footerText);
-                    footerGraphics.DrawString(footerText, footerFont, footerBrush, new PointF((pageWidth - footerSize.Width) / 2, lastPage.GetClientSize().Height - 30));
+                    DrawSectionTitle(context, "Inventory Deductions");
+                    var deductionRows = inventoryDeductions
+                        .OrderByDescending(x => x.Value)
+                        .Take(20)
+                        .Select(d =>
+                        {
+                            var unit = unitMap.TryGetValue(d.Key, out var value) ? value : string.Empty;
+                            var amountText = string.IsNullOrWhiteSpace(unit)
+                                ? $"{d.Value:N1}"
+                                : $"{d.Value:N1} {unit}";
+                            return new[] { d.Key, amountText };
+                        })
+                        .ToList();
 
-                    // Save PDF
-                    var fileName = $"Monthly_Report_{startDate:yyyy_MM}_to_{endDate:yyyy_MM}.pdf";
-                    string filePath = GetDownloadPath(fileName);
-                    FileStream fileStream = new FileStream(filePath, FileMode.Create);
-                    document.Save(fileStream);
-                    fileStream.Dispose();
-                
-                return filePath;
+                    if (deductionRows.Count == 0)
+                    {
+                        deductionRows.Add(new[] { "No inventory deductions to display", string.Empty });
+                    }
+
+                    DrawTable(context, new[] { "Item", "Amount" }, deductionRows);
                 }
+
+                DrawFooter(document, $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Sales Management System");
+
+                var monthLabel = startDate.ToString("yyyyMM");
+                var fileName = MakeSafeFileName($"Coftea_MonthlyReports_{monthLabel}.pdf");
+                var filePath = GetDownloadPath(fileName);
+                document.Save(filePath);
+
+                return filePath;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error generating monthly PDF report: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
                 throw;
             }
         }
@@ -423,287 +168,324 @@ namespace Coftea_Capstone.Services
         {
             try
             {
-                // Validate inputs
                 if (order == null)
                 {
                     throw new ArgumentNullException(nameof(order), "Purchase order cannot be null");
                 }
-                items = items ?? new List<PurchaseOrderItemModel>();
 
-                // Create PDF document
-                using (PdfDocument document = new PdfDocument())
+                items ??= new List<PurchaseOrderItemModel>();
+
+                using var document = new PdfDocument();
+                using (var context = new PdfPageContext(document, Margin))
                 {
-                    PdfPage page = document.Pages.Add();
-                    PdfGraphics graphics = page.Graphics;
+                    DrawReportHeader(context, "Purchase Order", $"Order #: {purchaseOrderId}");
 
-                    float yPosition = 40;
-                    float pageWidth = page.GetClientSize().Width;
-                    float margin = 40;
+                    WriteTextLine(context, $"Date: {order.OrderDate:MMMM dd, yyyy}", SectionTitleFont, TextBrush, 18);
+                    WriteTextLine(context, $"Status: {order.Status}", SectionTitleFont, TextBrush, 18);
 
-                    // Fonts
-                    PdfFont titleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 24, PdfFontStyle.Bold);
-                    PdfFont subTitleFont = new PdfStandardFont(PdfFontFamily.Helvetica, 12, PdfFontStyle.Bold);
-                    PdfFont normalFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10);
-                    PdfFont boldFont = new PdfStandardFont(PdfFontFamily.Helvetica, 10, PdfFontStyle.Bold);
+                    WriteSpacing(context, 10);
+                    DrawSectionTitle(context, "Order Information");
+                    WriteTextLine(context, $"Supplier: {order.SupplierName}", LabelFont, TextBrush);
+                    WriteTextLine(context, $"Requested By: {order.RequestedBy}", LabelFont, TextBrush);
 
-                    PdfBrush titleBrush = new PdfSolidBrush(PdfColor.FromArgb(68, 68, 68));
-                    PdfBrush textBrush = new PdfSolidBrush(PdfColor.FromArgb(100, 100, 100));
-
-                    // Header
-                    graphics.DrawString("Purchase Order", titleFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 30;
-
-                    graphics.DrawString($"Order #: {purchaseOrderId}", subTitleFont, textBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    graphics.DrawString($"Date: {order.OrderDate:MMMM dd, yyyy}", normalFont, textBrush, new PointF(margin, yPosition));
-                    yPosition += 15;
-
-                    graphics.DrawString($"Status: {order.Status}", normalFont, textBrush, new PointF(margin, yPosition));
-                    yPosition += 40;
-
-                    // Order Information
-                    graphics.DrawString("Order Information", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    graphics.DrawString($"Supplier: {order.SupplierName}", normalFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 15;
-
-                    graphics.DrawString($"Requested By: {order.RequestedBy}", normalFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 15;
-
-                    if (!string.IsNullOrEmpty(order.ApprovedBy))
+                    if (!string.IsNullOrWhiteSpace(order.ApprovedBy))
                     {
-                        graphics.DrawString($"Approved By: {order.ApprovedBy}", normalFont, titleBrush, new PointF(margin, yPosition));
-                        yPosition += 15;
+                        WriteTextLine(context, $"Approved By: {order.ApprovedBy}", LabelFont, TextBrush);
 
                         if (order.ApprovedDate.HasValue)
                         {
-                            graphics.DrawString($"Approved Date: {order.ApprovedDate.Value:MMMM dd, yyyy HH:mm}", normalFont, titleBrush, new PointF(margin, yPosition));
-                            yPosition += 15;
+                            WriteTextLine(context, $"Approved Date: {order.ApprovedDate.Value:MMMM dd, yyyy HH:mm}", LabelFont, TextBrush);
                         }
                     }
 
-                    yPosition += 20;
+                    WriteSpacing(context, 12);
+                    DrawSectionTitle(context, "Items Needed to Restock");
 
-                    // Items Table
-                    graphics.DrawString("Items Needed to Restock", boldFont, titleBrush, new PointF(margin, yPosition));
-                    yPosition += 20;
-
-                    PdfGrid itemsGrid = new PdfGrid();
-                    itemsGrid.Columns.Add(4);
-                    itemsGrid.Headers.Add(1);
-                    PdfGridRow itemsHeaderRow = itemsGrid.Headers[0];
-                    itemsHeaderRow.Cells[0].Value = "Item Name";
-                    itemsHeaderRow.Cells[1].Value = "Amount";
-                    itemsHeaderRow.Cells[2].Value = "UoM";
-                    itemsHeaderRow.Cells[3].Value = "Quantity";
-                    itemsHeaderRow.Cells[0].Style.Font = boldFont;
-                    itemsHeaderRow.Cells[1].Style.Font = boldFont;
-                    itemsHeaderRow.Cells[2].Style.Font = boldFont;
-                    itemsHeaderRow.Cells[3].Style.Font = boldFont;
-
-                    foreach (var item in items)
+                    var itemRows = items.Select(item =>
                     {
                         var amount = item.ApprovedQuantity > 0 ? item.ApprovedQuantity : item.RequestedQuantity;
-                        // Quantity (packages) - now stored in database
-                        var quantity = item.Quantity > 0 ? item.Quantity : 1; // Use stored quantity, default to 1 if not set
-                        PdfGridRow row = itemsGrid.Rows.Add();
-                        row.Cells[0].Value = item.ItemName ?? "";
-                        row.Cells[1].Value = amount.ToString(); // Amount: how many units are being purchased
-                        row.Cells[2].Value = item.UnitOfMeasurement ?? "pcs";
-                        row.Cells[3].Value = $"x{quantity}"; // Quantity: display as x + number of packages
-                    }
+                        var quantity = item.Quantity > 0 ? item.Quantity : 1;
+                        return new[]
+                        {
+                            item.ItemName ?? string.Empty,
+                            amount.ToString(),
+                            item.UnitOfMeasurement ?? "pcs",
+                            $"x{quantity}"
+                        };
+                    }).ToList();
 
-                    if (items.Count == 0)
+                    if (itemRows.Count == 0)
                     {
-                        PdfGridRow row = itemsGrid.Rows.Add();
-                        row.Cells[0].Value = "No items in this order";
-                        itemsGrid.Columns[0].Width = pageWidth - margin * 2;
+                        itemRows.Add(new[] { "No items in this order", string.Empty, string.Empty, string.Empty });
                     }
 
-                    itemsGrid.Draw(graphics, new RectangleF(margin, yPosition, pageWidth - margin * 2, itemsGrid.Rows.Count * 25 + 30));
-                    yPosition += itemsGrid.Rows.Count * 25 + 50;
+                    DrawTable(context, new[] { "Item Name", "Amount", "Unit", "Quantity" }, itemRows, new[] { 0.45, 0.15, 0.2, 0.2 });
 
-                    // Notes
-                    if (!string.IsNullOrEmpty(order.Notes))
+                    if (!string.IsNullOrWhiteSpace(order.Notes))
                     {
-                        yPosition += 10;
-                        graphics.DrawString("Notes:", boldFont, titleBrush, new PointF(margin, yPosition));
-                        yPosition += 20;
-                        graphics.DrawString(order.Notes, normalFont, titleBrush, new RectangleF(margin, yPosition, pageWidth - margin * 2, 100));
+                        WriteSpacing(context, 8);
+                        DrawSectionTitle(context, "Notes");
+                        WriteParagraph(context, order.Notes, LabelFont, TextBrush, 80);
                     }
-
-                    // Footer
-                    PdfPage lastPage = document.Pages[document.Pages.Count - 1];
-                    PdfGraphics footerGraphics = lastPage.Graphics;
-                    PdfFont footerFont = new PdfStandardFont(PdfFontFamily.Helvetica, 9);
-                    PdfBrush footerBrush = new PdfSolidBrush(PdfColor.FromArgb(128, 128, 128));
-                    string footerText = $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Management System";
-                    SizeF footerSize = footerFont.MeasureString(footerText);
-                    footerGraphics.DrawString(footerText, footerFont, footerBrush, new PointF((pageWidth - footerSize.Width) / 2, lastPage.GetClientSize().Height - 30));
-
-                    // Save PDF
-                    var fileName = $"Purchase_Order_{purchaseOrderId}_{order.OrderDate:yyyy_MM_dd}.pdf";
-                    string filePath = GetDownloadPath(fileName);
-                    FileStream fileStream = new FileStream(filePath, FileMode.Create);
-                    document.Save(fileStream);
-                    fileStream.Dispose();
-
-                    return filePath;
                 }
+
+                DrawFooter(document, $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Management System");
+
+                var supplierLabel = string.IsNullOrWhiteSpace(order.SupplierName)
+                    ? "Supplier"
+                    : order.SupplierName.Replace(' ', '_');
+                var poDate = order.OrderDate.ToString("yyyyMMdd");
+                var fileName = MakeSafeFileName($"Coftea_{supplierLabel}_{poDate}_{purchaseOrderId}.pdf");
+                var filePath = GetDownloadPath(fileName);
+                document.Save(filePath);
+
+                return filePath;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Error generating purchase order PDF: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
-                    System.Diagnostics.Debug.WriteLine($"❌ Inner stack trace: {ex.InnerException.StackTrace}");
-                }
+                System.Diagnostics.Debug.WriteLine($"Error generating purchase order PDF: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
                 throw new Exception($"Failed to generate PDF: {ex.Message}", ex);
             }
         }
 
-        private void DrawStatBox(PdfGraphics graphics, float x, float y, float width, float height, string label, string value, PdfColor backgroundColor)
+        private void DrawReportHeader(PdfPageContext context, string title, string? subtitle)
         {
-            PdfBrush bgBrush = new PdfSolidBrush(backgroundColor);
-            PdfBrush borderBrush = new PdfSolidBrush(PdfColor.FromArgb(200, 200, 200));
-            PdfPen borderPen = new PdfPen(borderBrush, 1);
+            context.EnsureSpace(60);
+            context.Graphics.DrawString(title, TitleFont, TitleBrush, new XRect(context.Left, context.CurrentY, context.ContentWidth, 32), XStringFormats.TopLeft);
+            context.CurrentY += 34;
 
-            graphics.DrawRectangle(borderPen, new RectangleF(x, y, width, height));
-            graphics.DrawRectangle(bgBrush, new RectangleF(x, y, width, height));
+            if (!string.IsNullOrWhiteSpace(subtitle))
+            {
+                context.Graphics.DrawString(subtitle, SubTitleFont, TextBrush, new XRect(context.Left, context.CurrentY, context.ContentWidth, 24), XStringFormats.TopLeft);
+                context.CurrentY += 26;
+            }
 
-            PdfFont labelFont = new PdfStandardFont(PdfFontFamily.Helvetica, 9);
-            PdfFont valueFont = new PdfStandardFont(PdfFontFamily.Helvetica, 14, PdfFontStyle.Bold);
-            PdfBrush textBrush = new PdfSolidBrush(PdfColor.FromArgb(68, 68, 68));
-
-            graphics.DrawString(label, labelFont, textBrush, new PointF(x + 10, y + 10));
-            graphics.DrawString(value, valueFont, textBrush, new PointF(x + 10, y + 30));
+            context.CurrentY += 6;
         }
 
-        private async Task<Dictionary<string, double>> GetInventoryDeductionsForPeriodAsync(DateTime startDate, DateTime endDate)
+        private void DrawSectionTitle(PdfPageContext context, string title)
         {
-            try
+            context.EnsureSpace(24);
+            context.Graphics.DrawString(title, SectionTitleFont, TitleBrush, new XRect(context.Left, context.CurrentY, context.ContentWidth, 20), XStringFormats.TopLeft);
+            context.CurrentY += 22;
+        }
+
+        private void DrawStatBoxRow(PdfPageContext context, IEnumerable<(string Label, string Value, XColor Color)> boxes)
+        {
+            var items = boxes?.ToList() ?? new List<(string Label, string Value, XColor Color)>();
+            if (items.Count == 0)
             {
-                // Use actual inventory activity logs instead of hardcoded deductions
-                var deductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
-                
-                // Convert to simple dictionary with just amounts for backward compatibility
-                var deductions = new Dictionary<string, double>();
-                foreach (var kvp in deductionsWithUnits)
+                return;
+            }
+
+            var spacing = 18d;
+            var width = (context.ContentWidth - spacing * (items.Count - 1)) / items.Count;
+            var height = 60d;
+
+            context.EnsureSpace(height + 18);
+
+            var x = context.Left;
+            foreach (var (label, value, color) in items)
+            {
+                DrawStatBox(context, x, context.CurrentY, width, height, label, value, color);
+                x += width + spacing;
+            }
+
+            context.CurrentY += height + 18;
+        }
+
+        private void DrawStatBox(PdfPageContext context, double x, double y, double width, double height, string label, string value, XColor color)
+        {
+            var rect = new XRect(x, y, width, height);
+            var pen = new XPen(XColor.FromArgb(210, 210, 210), 0.75);
+            var brush = new XSolidBrush(color);
+
+            context.Graphics.DrawRectangle(pen, brush, rect);
+
+            var labelRect = new XRect(rect.X + 8, rect.Y + 6, rect.Width - 16, 18);
+            var valueRect = new XRect(rect.X + 8, rect.Y + 26, rect.Width - 16, rect.Height - 32);
+
+            context.Graphics.DrawString(label, LabelFont, TextBrush, labelRect, XStringFormats.TopLeft);
+            context.Graphics.DrawString(value, ValueFont, TitleBrush, valueRect, XStringFormats.TopLeft);
+        }
+
+        private void DrawTable(PdfPageContext context, string[] headers, IReadOnlyList<string[]> rows, double[]? columnWeights = null)
+        {
+            if (headers == null || headers.Length == 0)
+            {
+                return;
+            }
+
+            var columnCount = headers.Length;
+            var weights = columnWeights != null && columnWeights.Length == columnCount
+                ? columnWeights
+                : Enumerable.Repeat(1d, columnCount).ToArray();
+            var weightTotal = weights.Sum();
+
+            var columnWidths = weights
+                .Select(w => context.ContentWidth * (w / weightTotal))
+                .ToArray();
+
+            var headerHeight = 24d;
+            var rowHeight = 20d;
+            var rowIndex = 0;
+            var hasRows = rows != null && rows.Count > 0;
+
+            while (true)
+            {
+                if (context.EnsureSpace(headerHeight))
                 {
-                    deductions[kvp.Key] = kvp.Value.totalDeducted;
+                    continue;
                 }
-                
-                return deductions;
+
+                DrawTableHeader(context, headers, columnWidths, headerHeight);
+                context.CurrentY += headerHeight;
+
+                if (!hasRows)
+                {
+                    if (context.EnsureSpace(rowHeight))
+                    {
+                        continue;
+                    }
+
+                    DrawTableRow(context, new[] { "No data available" }, columnWidths, rowHeight);
+                    context.CurrentY += rowHeight;
+                    break;
+                }
+
+                while (rowIndex < rows.Count)
+                {
+                    if (context.EnsureSpace(rowHeight))
+                    {
+                        break;
+                    }
+
+                    DrawTableRow(context, rows[rowIndex] ?? Array.Empty<string>(), columnWidths, rowHeight);
+                    context.CurrentY += rowHeight;
+                    rowIndex++;
+                }
+
+                if (rowIndex >= rows.Count)
+                {
+                    break;
+                }
             }
-            catch (Exception ex)
+
+            context.CurrentY += 20;
+        }
+
+        private void DrawTableHeader(PdfPageContext context, string[] headers, double[] widths, double height)
+        {
+            var x = context.Left;
+            for (var i = 0; i < headers.Length; i++)
             {
-                System.Diagnostics.Debug.WriteLine($"Error getting inventory deductions: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                return new Dictionary<string, double>();
+                var rect = new XRect(x, context.CurrentY, widths[i], height);
+                context.Graphics.DrawRectangle(TableBorderPen, TableHeaderBrush, rect);
+                context.Graphics.DrawString(headers[i], TableHeaderFont, XBrushes.White,
+                    new XRect(rect.X + 6, rect.Y, rect.Width - 12, rect.Height), XStringFormats.CenterLeft);
+                x += widths[i];
             }
+        }
+
+        private void DrawTableRow(PdfPageContext context, string[] values, double[] widths, double height)
+        {
+            var x = context.Left;
+            for (var i = 0; i < widths.Length; i++)
+            {
+                var value = i < values.Length ? values[i] ?? string.Empty : string.Empty;
+                var rect = new XRect(x, context.CurrentY, widths[i], height);
+                context.Graphics.DrawRectangle(TableBorderPen, TableRowBrush, rect);
+                context.Graphics.DrawString(value, TableRowFont, TextBrush,
+                    new XRect(rect.X + 6, rect.Y, rect.Width - 12, rect.Height), XStringFormats.CenterLeft);
+                x += widths[i];
+            }
+        }
+
+        private void DrawFooter(PdfDocument document, string footerText)
+        {
+            foreach (var page in document.Pages.Cast<PdfPage>())
+            {
+                using var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
+                var rect = new XRect(Margin, page.Height - Margin + 5, page.Width - Margin * 2, 20);
+                gfx.DrawString(footerText, SmallFont, MutedBrush, rect, XStringFormats.Center);
+            }
+        }
+
+        private void WriteTextLine(PdfPageContext context, string text, XFont font, XBrush brush, double lineHeight = 16)
+        {
+            context.EnsureSpace(lineHeight);
+            context.Graphics.DrawString(text, font, brush, new XRect(context.Left, context.CurrentY, context.ContentWidth, lineHeight), XStringFormats.TopLeft);
+            context.CurrentY += lineHeight;
+        }
+
+        private void WriteParagraph(PdfPageContext context, string text, XFont font, XBrush brush, double blockHeight)
+        {
+            context.EnsureSpace(blockHeight);
+            var formatter = new XTextFormatter(context.Graphics);
+            formatter.DrawString(text, font, brush, new XRect(context.Left, context.CurrentY, context.ContentWidth, blockHeight));
+            context.CurrentY += blockHeight;
+        }
+
+        private void WriteSpacing(PdfPageContext context, double spacing)
+        {
+            context.EnsureSpace(spacing);
+            context.CurrentY += spacing;
+        }
+
+        private static string MakeSafeFileName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return "Coftea_Report.pdf";
+            }
+
+            var invalid = Path.GetInvalidFileNameChars();
+            var builder = new StringBuilder(fileName.Length);
+
+            foreach (var ch in fileName)
+            {
+                if (char.IsWhiteSpace(ch))
+                {
+                    builder.Append('_');
+                }
+                else
+                {
+                    builder.Append(invalid.Contains(ch) ? '_' : ch);
+                }
+            }
+
+            return builder.ToString();
         }
 
         private async Task<Dictionary<string, string>> GetInventoryUnitsMapAsync()
         {
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
             try
             {
                 var items = await _database.GetInventoryItemsAsyncCached();
-                if (items != null)
+                if (items == null)
                 {
-                    foreach (var it in items)
+                    return map;
+                }
+
+                foreach (var item in items)
+                {
+                    if (!string.IsNullOrWhiteSpace(item?.itemName) && !string.IsNullOrWhiteSpace(item.unitOfMeasurement))
                     {
-                        if (it != null && !string.IsNullOrWhiteSpace(it.itemName) && !string.IsNullOrWhiteSpace(it.unitOfMeasurement))
-                        {
-                            map[it.itemName] = it.unitOfMeasurement;
-                        }
+                        map[item.itemName] = item.unitOfMeasurement;
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error getting inventory units map: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"Error building inventory unit map: {ex.Message}");
             }
+
             return map;
         }
 
-        private void AddBasicDeductionsForProduct(Dictionary<string, double> deductions, string productName, int totalQuantity)
-        {
-            try
-            {
-                if (deductions == null || string.IsNullOrWhiteSpace(productName)) return;
-
-                var productNameLower = productName.ToLowerInvariant();
-                
-                if (productNameLower.Contains("coffee"))
-                {
-                    AddDeduction(deductions, "Coffee Beans", totalQuantity * 0.1);
-                    AddDeduction(deductions, "Sugar", totalQuantity * 0.05);
-                    AddDeduction(deductions, "Milk", totalQuantity * 0.2);
-                }
-                else if (productNameLower.Contains("milktea"))
-                {
-                    AddDeduction(deductions, "Tea Leaves", totalQuantity * 0.05);
-                    AddDeduction(deductions, "Milk", totalQuantity * 0.3);
-                    AddDeduction(deductions, "Sugar", totalQuantity * 0.1);
-                    AddDeduction(deductions, "Tapioca Pearls", totalQuantity * 0.1);
-                }
-                else if (productNameLower.Contains("frappe"))
-                {
-                    AddDeduction(deductions, "Ice", totalQuantity * 0.5);
-                    AddDeduction(deductions, "Milk", totalQuantity * 0.2);
-                    AddDeduction(deductions, "Sugar", totalQuantity * 0.08);
-                    AddDeduction(deductions, "Coffee Beans", totalQuantity * 0.08);
-                }
-                else if (productNameLower.Contains("fruit") || productNameLower.Contains("soda"))
-                {
-                    AddDeduction(deductions, "Fruit Syrup", totalQuantity * 0.1);
-                    AddDeduction(deductions, "Soda Water", totalQuantity * 0.3);
-                    AddDeduction(deductions, "Ice", totalQuantity * 0.3);
-                }
-                else
-                {
-                    AddDeduction(deductions, "Base Ingredient", totalQuantity * 0.1);
-                    AddDeduction(deductions, "Sugar", totalQuantity * 0.05);
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error adding basic deductions for {productName}: {ex.Message}");
-            }
-        }
-
-        private void AddDeduction(Dictionary<string, double> deductions, string itemName, double amount)
-        {
-            if (deductions.ContainsKey(itemName))
-            {
-                deductions[itemName] += amount;
-            }
-            else
-            {
-                deductions[itemName] = amount;
-            }
-        }
-
-        private double GetSizeMultiplier(string size)
-        {
-            return size?.ToLowerInvariant() switch
-            {
-                "small" => 1.0,
-                "medium" => 1.5,
-                "large" => 2.0,
-                _ => 1.5
-            };
-        }
-
-        /// <summary>
-        /// Gets the appropriate download path for PDF files based on the platform
-        /// </summary>
         private string GetDownloadPath(string fileName)
         {
             try
@@ -713,8 +495,6 @@ namespace Coftea_Capstone.Services
 
                 if (platform == DevicePlatform.Android)
                 {
-                    // Android: Try to use Downloads folder first
-                    // Multiple possible paths for different Android versions/devices
                     var possiblePaths = new[]
                     {
                         "/storage/emulated/0/Download",
@@ -722,87 +502,32 @@ namespace Coftea_Capstone.Services
                         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Download",
                         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/Downloads"
                     };
-                    
-                    downloadPath = null;
-                    foreach (var path in possiblePaths)
-                    {
-                        try
-                        {
-                            if (Directory.Exists(path))
-                            {
-                                downloadPath = path;
-                                break;
-                            }
-                            else
-                            {
-                                // Try to create the directory
-                                Directory.CreateDirectory(path);
-                                if (Directory.Exists(path))
-                                {
-                                    downloadPath = path;
-                                    break;
-                                }
-                            }
-                        }
-                        catch
-                        {
-                            // Continue to next path
-                            continue;
-                        }
-                    }
-                    
-                    // Fallback to app data directory if Downloads folder is not accessible
+
+                    downloadPath = possiblePaths.FirstOrDefault(Directory.Exists);
+
                     if (string.IsNullOrEmpty(downloadPath))
                     {
                         downloadPath = Path.Combine(FileSystem.AppDataDirectory, "Downloads");
-                        System.Diagnostics.Debug.WriteLine($"⚠️ Android: Could not access Downloads folder, using app data directory: {downloadPath}");
                     }
-                    
-                    // Ensure directory exists
-                    try
+
+                    if (!Directory.Exists(downloadPath))
                     {
-                        if (!Directory.Exists(downloadPath))
-                        {
-                            Directory.CreateDirectory(downloadPath);
-                        }
-                        System.Diagnostics.Debug.WriteLine($"✅ Android: PDF download path set to: {downloadPath}");
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"❌ Android: Failed to create download directory: {ex.Message}");
-                        // Final fallback to app data directory
-                        downloadPath = Path.Combine(FileSystem.AppDataDirectory, "Downloads");
                         Directory.CreateDirectory(downloadPath);
                     }
                 }
                 else if (platform == DevicePlatform.iOS || platform == DevicePlatform.MacCatalyst)
                 {
-                    // iOS/MacCatalyst: Use Documents folder (accessible via Files app)
-                    downloadPath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                        "Downloads");
+                    downloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Downloads");
                 }
-                else if (platform == DevicePlatform.WinUI)
+                else if (platform == DevicePlatform.WinUI || platform == DevicePlatform.macOS)
                 {
-                    // Windows: Use user's Downloads folder
-                    downloadPath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                        "Downloads");
-                }
-                else if (platform == DevicePlatform.macOS)
-                {
-                    // macOS: Use user's Downloads folder
-                    downloadPath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                        "Downloads");
+                    downloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
                 }
                 else
                 {
-                    // Fallback: Use app data directory
                     downloadPath = Path.Combine(FileSystem.AppDataDirectory, "Downloads");
                 }
 
-                // Ensure directory exists
                 if (!Directory.Exists(downloadPath))
                 {
                     Directory.CreateDirectory(downloadPath);
@@ -812,51 +537,158 @@ namespace Coftea_Capstone.Services
             }
             catch (Exception ex)
             {
-                // If all else fails, save to app data directory
-                System.Diagnostics.Debug.WriteLine($"Warning: Could not access Downloads folder, using app data directory: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Warning: Falling back to app data directory for PDF export: {ex.Message}");
                 return Path.Combine(FileSystem.AppDataDirectory, fileName);
             }
         }
 
-        private void AddCupAndStrawDeductions(Dictionary<string, double> deductions, string size, int quantity)
+        private sealed class PdfPageContext : IDisposable
         {
-            if (deductions == null) return;
+            private readonly PdfDocument _document;
 
-            try
-        {
-            var sizeMultiplier = GetSizeMultiplier(size);
-            var totalQuantity = quantity * sizeMultiplier;
-            
-            var cupName = size?.ToLowerInvariant() switch
+            public PdfPageContext(PdfDocument document, double margin)
             {
-                "small" => "Small Cup",
-                "medium" => "Medium Cup",
-                "large" => "Large Cup",
-                _ => "Medium Cup"
-            };
-            
-            if (deductions.ContainsKey(cupName))
-            {
-                deductions[cupName] += totalQuantity;
+                _document = document;
+                Margin = margin;
+                AddPage();
             }
-            else
+
+            public PdfPage Page { get; private set; } = default!;
+            public XGraphics Graphics { get; private set; } = default!;
+            public double Margin { get; }
+            public double CurrentY { get; set; }
+            public double Left => Margin;
+            public double ContentWidth => Page.Width - Margin * 2;
+
+            public bool EnsureSpace(double requiredHeight)
             {
-                deductions[cupName] = totalQuantity;
+                if (CurrentY + requiredHeight <= Page.Height - Margin)
+                {
+                    return false;
+                }
+
+                AddPage();
+                return true;
             }
-            
-            if (deductions.ContainsKey("Straw"))
+
+            private void AddPage()
             {
-                    deductions["Straw"] += quantity;
+                Graphics?.Dispose();
+                Page = _document.AddPage();
+                Graphics = XGraphics.FromPdfPage(Page);
+                CurrentY = Margin;
             }
-            else
+
+            public void Dispose()
             {
-                deductions["Straw"] = quantity;
+                Graphics?.Dispose();
             }
         }
+
+        public async Task<string> GenerateWeeklyReportPDFAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems)
+        {
+            try
+            {
+                transactions ??= new List<TransactionHistoryModel>();
+                topItems ??= new List<TrendItem>();
+
+                var deductionsWithUnits = await _database.GetInventoryDeductionsForPeriodAsync(startDate, endDate);
+                var inventoryDeductions = deductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.totalDeducted);
+                var unitMap = deductionsWithUnits.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.unitOfMeasurement ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+
+                var inventoryUnitMap = await GetInventoryUnitsMapAsync();
+                foreach (var kvp in inventoryUnitMap)
+                {
+                    if (!unitMap.ContainsKey(kvp.Key))
+                    {
+                        unitMap[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                var totalSales = transactions.Sum(t => t?.Total ?? 0);
+                var totalOrders = transactions.Count;
+                var cashSales = transactions.Where(t => t?.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0);
+                var gcashSales = transactions.Where(t => t?.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0);
+                var bankSales = transactions.Where(t => t?.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true).Sum(t => t?.Total ?? 0);
+
+                using var document = new PdfDocument();
+                using (var context = new PdfPageContext(document, Margin))
+                {
+                    DrawReportHeader(context, "Coftea Weekly Sales Report", $"{startDate:MMMM dd, yyyy} - {endDate:MMMM dd, yyyy}");
+
+                    DrawSectionTitle(context, "Sales Summary");
+                    DrawStatBoxRow(context, new[]
+                    {
+                        ("Total Sales", $"₱{totalSales:N2}", XColor.FromArgb(200, 230, 255)),
+                        ("Total Orders", $"{totalOrders}", XColor.FromArgb(200, 230, 255)),
+                        ("Average Order", $"₱{(totalOrders > 0 ? totalSales / totalOrders : 0):N2}", XColor.FromArgb(200, 230, 255))
+                    });
+
+                    DrawSectionTitle(context, "Payment Methods");
+                    DrawStatBoxRow(context, new[]
+                    {
+                        ("Cash", $"₱{cashSales:N2}", XColor.FromArgb(200, 255, 230)),
+                        ("GCash", $"₱{gcashSales:N2}", XColor.FromArgb(200, 230, 255)),
+                        ("Bank", $"₱{bankSales:N2}", XColor.FromArgb(230, 200, 255))
+                    });
+
+                    DrawSectionTitle(context, "Top Selling Items");
+                    var topRows = topItems
+                        .Take(10)
+                        .Select((item, index) => new[]
+                        {
+                            $"#{index + 1} {item?.Name ?? "Unknown Item"}",
+                            $"{item?.Count ?? 0} orders"
+                        })
+                        .ToList();
+
+                    if (topRows.Count == 0)
+                    {
+                        topRows.Add(new[] { "No items to display", string.Empty });
+                    }
+
+                    DrawTable(context, new[] { "Item", "Orders" }, topRows);
+
+                    DrawSectionTitle(context, "Inventory Deductions");
+                    var deductionRows = inventoryDeductions
+                        .OrderByDescending(x => x.Value)
+                        .Take(15)
+                        .Select(d =>
+                        {
+                            var unit = unitMap.TryGetValue(d.Key, out var value) ? value : string.Empty;
+                            var amountText = string.IsNullOrWhiteSpace(unit)
+                                ? $"{d.Value:N1}"
+                                : $"{d.Value:N1} {unit}";
+                            return new[] { d.Key, amountText };
+                        })
+                        .ToList();
+
+                    if (deductionRows.Count == 0)
+                    {
+                        deductionRows.Add(new[] { "No inventory deductions to display", string.Empty });
+                    }
+
+                    DrawTable(context, new[] { "Item", "Amount" }, deductionRows);
+                }
+
+                DrawFooter(document, $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Sales Management System");
+
+                var endInclusive = endDate > startDate ? endDate.AddDays(-1) : endDate;
+                var dateLabel = $"{startDate:yyyyMMdd}-{endInclusive:yyyyMMdd}";
+                var fileName = MakeSafeFileName($"Coftea_WeeklyReports_{dateLabel}.pdf");
+                var filePath = GetDownloadPath(fileName);
+                document.Save(filePath);
+
+                return filePath;
+            }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error adding cup and straw deductions: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error generating weekly PDF report: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                throw;
             }
         }
+
     }
 }
+

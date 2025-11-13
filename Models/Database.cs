@@ -450,6 +450,7 @@ namespace Coftea_Capstone.Models
                     productName VARCHAR(255) NOT NULL,
                     size VARCHAR(50) NOT NULL,
                     sizeDisplay VARCHAR(50),
+                    orderGroupId VARCHAR(64),
                     quantity INT NOT NULL,
                     unitPrice DECIMAL(10,2) NOT NULL,
                     addonPrice DECIMAL(10,2) DEFAULT 0.00,
@@ -460,6 +461,9 @@ namespace Coftea_Capstone.Models
                     INDEX idx_productID (productID),
                     INDEX idx_createdAt (createdAt)
                 );
+
+                ALTER TABLE processing_queue 
+                    ADD COLUMN IF NOT EXISTS orderGroupId VARCHAR(64);
                 
                 CREATE TABLE IF NOT EXISTS pending_registrations (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -4372,14 +4376,15 @@ namespace Coftea_Capstone.Models
                 var addonsJson = System.Text.Json.JsonSerializer.Serialize(item.Addons);
                 
                 var sql = @"INSERT INTO processing_queue 
-                    (productID, productName, size, sizeDisplay, quantity, unitPrice, addonPrice, ingredients, addons) 
-                    VALUES (@ProductID, @ProductName, @Size, @SizeDisplay, @Quantity, @UnitPrice, @AddonPrice, @Ingredients, @Addons);";
+                    (productID, productName, size, sizeDisplay, orderGroupId, quantity, unitPrice, addonPrice, ingredients, addons) 
+                    VALUES (@ProductID, @ProductName, @Size, @SizeDisplay, @OrderGroupId, @Quantity, @UnitPrice, @AddonPrice, @Ingredients, @Addons);";
                 
                 await using var cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@ProductID", item.ProductID);
                 cmd.Parameters.AddWithValue("@ProductName", item.ProductName);
                 cmd.Parameters.AddWithValue("@Size", item.Size);
                 cmd.Parameters.AddWithValue("@SizeDisplay", item.SizeDisplay ?? "");
+                cmd.Parameters.AddWithValue("@OrderGroupId", item.OrderGroupId ?? Guid.NewGuid().ToString());
                 cmd.Parameters.AddWithValue("@Quantity", item.Quantity);
                 cmd.Parameters.AddWithValue("@UnitPrice", item.UnitPrice);
                 cmd.Parameters.AddWithValue("@AddonPrice", item.AddonPrice);
@@ -4422,6 +4427,7 @@ namespace Coftea_Capstone.Models
                         ProductName = reader.GetString("productName"),
                         Size = reader.GetString("size"),
                         SizeDisplay = reader.IsDBNull(reader.GetOrdinal("sizeDisplay")) ? "" : reader.GetString("sizeDisplay"),
+                        OrderGroupId = reader.IsDBNull(reader.GetOrdinal("orderGroupId")) ? null : reader.GetString("orderGroupId"),
                         Quantity = reader.GetInt32("quantity"),
                         UnitPrice = reader.GetDecimal("unitPrice"),
                         AddonPrice = reader.GetDecimal("addonPrice"),

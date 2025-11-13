@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using CommunityToolkit.Maui;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Models;
 using Maui.PDFView;
+using PdfSharpCore.Fonts;
+using Coftea_Capstone.Services.Pdf;
 
 namespace Coftea_Capstone
 {
@@ -15,6 +18,17 @@ namespace Coftea_Capstone
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
                 .UseMauiPdfView();
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            try
+            {
+                GlobalFontSettings.FontResolver = CofteaFontResolver.Instance;
+            }
+            catch (NotImplementedException)
+            {
+                // Some platforms throw while probing the default resolver; suppress because
+                // PdfSharpCore will fall back to our resolver once fonts are requested.
+            }
 
                 builder.ConfigureFonts(fonts =>
                 {

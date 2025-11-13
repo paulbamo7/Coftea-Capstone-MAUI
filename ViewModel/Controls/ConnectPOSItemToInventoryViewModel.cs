@@ -1246,23 +1246,36 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     if (existingIngredient == null)
                     {
-                        var initUnit = !string.IsNullOrWhiteSpace(allItem.unitOfMeasurement) ? allItem.unitOfMeasurement : allItem.DefaultUnit;
+                        var baseUnit = !string.IsNullOrWhiteSpace(allItem.unitOfMeasurement) ? allItem.unitOfMeasurement : allItem.DefaultUnit;
+                        var preferredUnit = GetPreferredUnitForItem(allItem, baseUnit);
 
-                        if (allItem.InputAmountSmall <= 0) allItem.InputAmountSmall = allItem.InputAmountSmall > 0 ? allItem.InputAmountSmall : 1;
-                        if (allItem.InputAmountMedium <= 0) allItem.InputAmountMedium = allItem.InputAmountMedium > 0 ? allItem.InputAmountMedium : 1;
-                        if (allItem.InputAmountLarge <= 0) allItem.InputAmountLarge = allItem.InputAmountLarge > 0 ? allItem.InputAmountLarge : 1;
+                        if (allItem.InputAmountSmall <= 0) allItem.InputAmountSmall = 1;
+                        if (allItem.InputAmountMedium <= 0) allItem.InputAmountMedium = 1;
+                        if (allItem.InputAmountLarge <= 0) allItem.InputAmountLarge = 1;
                         if (allItem.InputAmount <= 0) allItem.InputAmount = 1;
 
-                        if (string.IsNullOrWhiteSpace(allItem.InputUnitSmall)) allItem.InputUnitSmall = initUnit;
-                        if (string.IsNullOrWhiteSpace(allItem.InputUnitMedium)) allItem.InputUnitMedium = initUnit;
-                        if (string.IsNullOrWhiteSpace(allItem.InputUnitLarge)) allItem.InputUnitLarge = initUnit;
-                        if (string.IsNullOrWhiteSpace(allItem.InputUnit)) allItem.InputUnit = initUnit;
+                        var previousLoadingState = allItem._isLoadingFromDatabase;
+                        allItem._isLoadingFromDatabase = true;
+
+                        if (NeedsUnitInitialization(allItem.InputUnitSmall, baseUnit))
+                            allItem.InputUnitSmall = preferredUnit;
+
+                        if (NeedsUnitInitialization(allItem.InputUnitMedium, baseUnit))
+                            allItem.InputUnitMedium = preferredUnit;
+
+                        if (NeedsUnitInitialization(allItem.InputUnitLarge, baseUnit))
+                            allItem.InputUnitLarge = preferredUnit;
+
+                        if (NeedsUnitInitialization(allItem.InputUnit, baseUnit))
+                            allItem.InputUnit = preferredUnit;
+
+                        allItem._isLoadingFromDatabase = previousLoadingState;
 
                         Ingredients.Add(new Ingredient
                         {
                             Name = allItem.itemName,
                             Amount = allItem.InputAmount > 0 ? allItem.InputAmount : 1,
-                            Unit = string.IsNullOrWhiteSpace(allItem.InputUnit) ? initUnit : allItem.InputUnit,
+                            Unit = string.IsNullOrWhiteSpace(allItem.InputUnit) ? preferredUnit : allItem.InputUnit,
                             Selected = true
                         });
                     }
@@ -1337,6 +1350,61 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(SelectedIngredientsOnly));
             
             System.Diagnostics.Debug.WriteLine($"🔧 All selections cleared");
+        }
+
+        private static bool NeedsUnitInitialization(string currentUnit, string baseUnit)
+        {
+            if (string.IsNullOrWhiteSpace(currentUnit))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(baseUnit))
+            {
+                return false;
+            }
+
+            return string.Equals(currentUnit, baseUnit, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetPreferredUnitForItem(InventoryPageModel item, string baseUnit)
+        {
+            if (item == null)
+            {
+                return string.IsNullOrWhiteSpace(baseUnit) ? "pcs" : baseUnit;
+            }
+
+            var resolvedBase = string.IsNullOrWhiteSpace(baseUnit) ? item.DefaultUnit ?? "pcs" : baseUnit;
+            var normalized = resolvedBase.Trim().ToLowerInvariant();
+
+            string ResolveFromAllowed(string desired, string fallback)
+            {
+                if (item.AllowedUnits == null || !item.AllowedUnits.Any())
+                {
+                    return desired ?? fallback;
+                }
+
+                var match = item.AllowedUnits.FirstOrDefault(u => string.Equals(u, desired, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(match))
+                {
+                    return match;
+                }
+
+                match = item.AllowedUnits.FirstOrDefault(u => string.Equals(u, fallback, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(match))
+                {
+                    return match;
+                }
+
+                return desired ?? fallback;
+            }
+
+            return normalized switch
+            {
+                "l" or "liter" or "litre" => ResolveFromAllowed("ml", resolvedBase),
+                "kg" or "kilogram" => ResolveFromAllowed("g", resolvedBase),
+                _ => resolvedBase
+            };
         }
 
         public void ApplyFilters()

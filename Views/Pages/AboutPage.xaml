@@ -62,7 +62,7 @@
                                      Padding="30,0,30,30"
                                      Spacing="18">
 
-                    <!-- Story Card -->
+                    <!-- System Overview -->
                     <Frame BackgroundColor="White"
                            CornerRadius="24"
                            Padding="24"
@@ -71,12 +71,12 @@
                         <VerticalStackLayout Spacing="12">
                             <HorizontalStackLayout Spacing="10">
                                 <Image Source="story_icon.png" WidthRequest="28" HeightRequest="28" />
-                                <Label Text="Our Story"
+                                <Label Text="System Overview"
                                        FontSize="24"
                                        FontAttributes="Bold"
                                        TextColor="#5B4F45" />
                             </HorizontalStackLayout>
-                            <Label Text="Coftea POS is the all-in-one platform crafted for the day-to-day flow of Coftea Café. From brewing schedules to nightly cash-outs, we built the system around the actual steps your team takes behind the counter."
+                            <Label Text="Coftea POS is a cross-platform point-of-sale solution tailored for Coftea Café. It unifies sales processing, inventory tracking, and operational reporting so every shift—from opening prep to closing reconciliation—runs with clear, up-to-date information."
                                    FontSize="15"
                                    TextColor="#4B3A2F"
                                    LineBreakMode="WordWrap" />
@@ -88,10 +88,10 @@
                                        CornerRadius="18"
                                        Padding="16">
                                     <VerticalStackLayout Spacing="4">
-                                        <Label Text="Why it matters"
+                                        <Label Text="What it does"
                                                FontAttributes="Bold"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Coftea launched POS after outgrowing paper logs and spreadsheets. Everything now syncs across POS, inventory, purchase orders, and sales reports."
+                                        <Label Text="Orchestrates daily orders, synchronizes recipe deductions, and centralizes records for audits, marketing, and supply planning."
                                                FontSize="13"
                                                TextColor="#6B5344"
                                                LineBreakMode="WordWrap" />
@@ -102,10 +102,10 @@
                                        CornerRadius="18"
                                        Padding="16">
                                     <VerticalStackLayout Spacing="4">
-                                        <Label Text="Built by students"
+                                        <Label Text="Capstone context"
                                                FontAttributes="Bold"
                                                TextColor="#5B4F45" />
-                                        <Label Text="This capstone is led by the Coftea development team, guided by mentors and IT faculty. Every module evolved from feedback in the actual café operations."
+                                        <Label Text="Guided by IT faculty mentors, the project captures real café workflows and feedback, then turns them into maintainable software modules."
                                                FontSize="13"
                                                TextColor="#6B5344"
                                                LineBreakMode="WordWrap" />
@@ -124,7 +124,7 @@
                         <VerticalStackLayout Spacing="16">
                             <HorizontalStackLayout Spacing="10">
                                 <Image Source="features_icon.png" WidthRequest="28" HeightRequest="28" />
-                                <Label Text="Key Capabilities"
+                                <Label Text="Key Features"
                                        FontSize="24"
                                        FontAttributes="Bold"
                                        TextColor="#5B4F45" />
@@ -139,11 +139,11 @@
                                        Padding="18"
                                        HasShadow="False">
                                     <VerticalStackLayout Spacing="6">
-                                        <Label Text="Point-of-Sale"
+                                        <Label Text="Point of Sale"
                                                FontAttributes="Bold"
                                                FontSize="18"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Rapid item selection with café-friendly screens, QR payment support, and automatic deduction of inventory per recipe."
+                                        <Label Text="Streamlines order entry, size and addon selection, and supports cash or GCash settlements with printable receipts."
                                                FontSize="13"
                                                TextColor="#4B3A2F"
                                                LineBreakMode="WordWrap" />
@@ -155,11 +155,11 @@
                                        Padding="18"
                                        HasShadow="False">
                                     <VerticalStackLayout Spacing="6">
-                                        <Label Text="Inventory Pulse"
+                                        <Label Text="Inventory Management"
                                                FontAttributes="Bold"
                                                FontSize="18"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Real-time stock forecasts, alerts for low cups or syrup, and activity logs that trace each deduction from POS or manual adjustments."
+                                        <Label Text="Tracks ingredient usage per transaction, flags low stocks, and records manual adjustments for accountability."
                                                FontSize="13"
                                                TextColor="#4B3A2F"
                                                LineBreakMode="WordWrap" />
@@ -171,11 +171,11 @@
                                        Padding="18"
                                        HasShadow="False">
                                     <VerticalStackLayout Spacing="6">
-                                        <Label Text="Purchase Order Flow"
+                                        <Label Text="Processing Queue"
                                                FontAttributes="Bold"
                                                FontSize="18"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Raise, approve, and receive supplier orders without leaving the system. Attach notes, unit costs, and print-ready PO summaries."
+                                        <Label Text="Groups in-progress drinks by product, highlights priority orders, and supports kitchen coordination after checkout."
                                                FontSize="13"
                                                TextColor="#4B3A2F"
                                                LineBreakMode="WordWrap" />
@@ -187,11 +187,11 @@
                                        Padding="18"
                                        HasShadow="False">
                                     <VerticalStackLayout Spacing="6">
-                                        <Label Text="Insights for Growth"
+                                        <Label Text="Sales Reporting"
                                                FontAttributes="Bold"
                                                FontSize="18"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Dashboard cards highlight top drinks, peak hours, and staff performance so the team can adjust menus and staffing with confidence."
+                                        <Label Text="Generates daily, weekly, and monthly breakdowns with category filters and export-ready summaries for management."
                                                FontSize="13"
                                                TextColor="#4B3A2F"
                                                LineBreakMode="WordWrap" />
@@ -201,7 +201,7 @@
                         </VerticalStackLayout>
                     </Frame>
 
-                    <!-- Team Section -->
+                    <!-- Project Developers -->
                     <Frame BackgroundColor="White"
                            CornerRadius="24"
                            Padding="24"
@@ -210,7 +210,7 @@
                         <VerticalStackLayout Spacing="16">
                             <HorizontalStackLayout Spacing="10">
                                 <Image Source="team_icon.png" WidthRequest="28" HeightRequest="28" />
-                                <Label Text="Meet the Capstone Crew"
+                                <Label Text="Project Developers"
                                        FontSize="24"
                                        FontAttributes="Bold"
                                        TextColor="#5B4F45" />
@@ -229,7 +229,7 @@
                                                FontAttributes="Bold"
                                                FontSize="16"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Strategizes navigation, oversees POS workflow, and keeps user feedback at the center of every sprint."
+                                        <Label Text="Oversees requirements analysis, aligns stakeholder feedback, and keeps development milestones on track."
                                                FontSize="13"
                                                TextColor="#6B5344"
                                                LineBreakMode="WordWrap" />
@@ -245,7 +245,7 @@
                                                FontAttributes="Bold"
                                                FontSize="16"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Designs the database schema, business rules, and reporting pipeline that powers the café decisions."
+                                        <Label Text="Designs the database schema, transactional logic, and integration services for inventory and reports."
                                                FontSize="13"
                                                TextColor="#6B5344"
                                                LineBreakMode="WordWrap" />
@@ -257,17 +257,76 @@
                                        Padding="16"
                                        HasShadow="False">
                                     <VerticalStackLayout Spacing="4">
-                                        <Label Text="UI Craft &amp; QA"
+                                        <Label Text="UI &amp; Quality Assurance"
                                                FontAttributes="Bold"
                                                FontSize="16"
                                                TextColor="#5B4F45" />
-                                        <Label Text="Shapes the MAUI experience, runs usability tests with baristas, and ensures every release feels smooth on tablet or desktop."
+                                        <Label Text="Shapes the MAUI experience, conducts usability sessions with baristas, and verifies stability across devices."
                                                FontSize="13"
                                                TextColor="#6B5344"
                                                LineBreakMode="WordWrap" />
                                     </VerticalStackLayout>
                                 </Frame>
                             </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Project Information -->
+                    <Frame BackgroundColor="White"
+                           CornerRadius="24"
+                           Padding="24"
+                           HasShadow="True"
+                           BorderColor="#E5D2C1">
+                        <VerticalStackLayout Spacing="12">
+                            <HorizontalStackLayout Spacing="10">
+                                <Image Source="features_icon.png" WidthRequest="28" HeightRequest="28" />
+                                <Label Text="Project Information"
+                                       FontSize="24"
+                                       FontAttributes="Bold"
+                                       TextColor="#5B4F45" />
+                            </HorizontalStackLayout>
+                            <Label Text="Developed as a capstone requirement for the Bachelor of Science in Information Technology program at [School Name]."
+                                   FontSize="15"
+                                   TextColor="#4B3A2F"
+                                   LineBreakMode="WordWrap" />
+                            <Grid ColumnDefinitions="Auto,*"
+                                  RowSpacing="6"
+                                  ColumnSpacing="10"
+                                  Margin="0,4,0,0">
+                                <Label Text="Academic Year:"
+                                       FontAttributes="Bold"
+                                       TextColor="#5B4F45" />
+                                <Label Text="2025 – 2026"
+                                       TextColor="#3E2723" />
+                                <Label Grid.Row="1"
+                                       Text="Adviser:"
+                                       FontAttributes="Bold"
+                                       TextColor="#5B4F45" />
+                                <Label Grid.Row="1"
+                                       Text="[Adviser Name]"
+                                       TextColor="#3E2723" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Mission -->
+                    <Frame BackgroundColor="White"
+                           CornerRadius="24"
+                           Padding="24"
+                           HasShadow="True"
+                           BorderColor="#E5D2C1">
+                        <VerticalStackLayout Spacing="12">
+                            <HorizontalStackLayout Spacing="10">
+                                <Image Source="story_icon.png" WidthRequest="28" HeightRequest="28" />
+                                <Label Text="Our Mission"
+                                       FontSize="24"
+                                       FontAttributes="Bold"
+                                       TextColor="#5B4F45" />
+                            </HorizontalStackLayout>
+                            <Label Text="Empower small beverage businesses with intuitive technology that keeps teams focused on great service while the system handles accuracy, transparency, and growth insights."
+                                   FontSize="15"
+                                   TextColor="#4B3A2F"
+                                   LineBreakMode="WordWrap" />
                         </VerticalStackLayout>
                     </Frame>
 

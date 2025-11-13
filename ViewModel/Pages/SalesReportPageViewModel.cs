@@ -1578,10 +1578,18 @@ namespace Coftea_Capstone.ViewModel
                 }
                 else if (SelectedTimePeriod == "1 Month")
                 {
-                    var monthStart = today.AddMonths(-1);
-                    var monthEnd = today.AddDays(1);
-                    var rangeStart = filterStart > monthStart ? filterStart : monthStart;
-                    var rangeEnd = filterEnd < monthEnd ? filterEnd : monthEnd;
+                    var currentMonthStart = new DateTime(today.Year, today.Month, 1);
+                    var lastMonthStart = currentMonthStart.AddMonths(-1);
+                    var lastMonthEnd = currentMonthStart;
+
+                    var rangeStart = filterStart > lastMonthStart ? filterStart : lastMonthStart;
+                    var rangeEnd = filterEnd < lastMonthEnd ? filterEnd : lastMonthEnd;
+
+                    if (rangeEnd < rangeStart)
+                    {
+                        rangeStart = lastMonthStart;
+                        rangeEnd = lastMonthEnd;
+                    }
 
                     var (cash, gcash, bank, total) = await GetPaymentTotalsAsync(rangeStart, rangeEnd);
                     periodCash = cash;
@@ -1711,26 +1719,26 @@ namespace Coftea_Capstone.ViewModel
                 }
                 else if (SelectedTimePeriod == "1 Month")
                 {
-                    // Compare with previous month (30 days before the current month)
-                    var previousMonthStart = today.AddMonths(-1).AddDays(-30);
-                    var previousMonthEnd = today.AddMonths(-1);
-                    
-                    var previousMonthTransactions = await _database.GetTransactionsByDateRangeAsync(previousMonthStart, previousMonthEnd);
-                    
+                    var currentMonthStart = new DateTime(today.Year, today.Month, 1);
+                    var lastMonthStart = currentMonthStart.AddMonths(-1);
+                    var previousMonthStart = currentMonthStart.AddMonths(-2);
+
+                    var previousMonthTransactions = await _database.GetTransactionsByDateRangeAsync(previousMonthStart, lastMonthStart);
+
                     ComparisonCashTotal = previousMonthTransactions
                         .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
                         .Sum(t => t.Total);
-                    
+
                     ComparisonGCashTotal = previousMonthTransactions
                         .Where(t => t.PaymentMethod?.Equals("GCash", StringComparison.OrdinalIgnoreCase) == true)
                         .Sum(t => t.Total);
-                    
+
                     ComparisonBankTotal = previousMonthTransactions
                         .Where(t => t.PaymentMethod?.Equals("Bank", StringComparison.OrdinalIgnoreCase) == true)
                         .Sum(t => t.Total);
-                    
+
                     ComparisonTotalSales = previousMonthTransactions.Sum(t => t.Total);
-                    ComparisonPeriodLabel = "vs Previous Month";
+                    ComparisonPeriodLabel = $"vs {previousMonthStart:MMMM yyyy}";
                 }
                 else if (SelectedTimePeriod == "All Time")
                 {
