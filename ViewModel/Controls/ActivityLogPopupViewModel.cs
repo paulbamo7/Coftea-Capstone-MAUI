@@ -53,6 +53,9 @@ namespace Coftea_Capstone.ViewModel.Controls
         private bool isDateFilterVisible = false;
 
         [ObservableProperty]
+        private bool isCloseConfirmationVisible;
+
+        [ObservableProperty]
         private DateTime filterStartDate = DateTime.Now.AddDays(-7);
 
         [ObservableProperty]
@@ -71,6 +74,14 @@ namespace Coftea_Capstone.ViewModel.Controls
         public ActivityLogPopupViewModel()
         {
             _database = new Database();
+        }
+
+        partial void OnIsVisibleChanged(bool value)
+        {
+            if (!value)
+            {
+                IsCloseConfirmationVisible = false;
+            }
         }
 
         private void UpdatePagedItems()
@@ -188,7 +199,25 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void Close()
         {
+            if (IsCloseConfirmationVisible)
+            {
+                return;
+            }
+
+            IsCloseConfirmationVisible = true;
+        }
+
+        [RelayCommand]
+        private void ConfirmClose()
+        {
+            IsCloseConfirmationVisible = false;
             IsVisible = false;
+        }
+
+        [RelayCommand]
+        private void CancelClose()
+        {
+            IsCloseConfirmationVisible = false;
         }
 
         partial void OnSearchTextChanged(string value)

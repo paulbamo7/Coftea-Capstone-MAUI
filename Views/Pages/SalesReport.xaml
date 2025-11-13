@@ -378,7 +378,7 @@
                                     CornerRadius="12"
                                     BorderWidth="0"
                                     Margin="0,5,0,0"
-                                    Command="{Binding DownloadWeeklyReportCommand}"/>
+                                    Command="{Binding ShowWeeklyReportDialogCommand}"/>
                         </Grid>
                     </Frame>
 
@@ -481,7 +481,7 @@
                                     CornerRadius="12"
                                     BorderWidth="0"
                                     Margin="0,5,0,0"
-                                    Command="{Binding DownloadMonthlyReportCommand}"/>
+                                    Command="{Binding ShowMonthlyReportDialogCommand}"/>
                         </Grid>
                     </Frame>
                 </Grid>
@@ -579,8 +579,61 @@
                     </VerticalStackLayout>
                 </Frame>
 
-            </VerticalStackLayout>
+    </VerticalStackLayout>
         </ScrollView>
+
+        <!-- Report Confirmation / Info Dialog -->
+        <Grid Grid.ColumnSpan="2"
+              BackgroundColor="#80000000"
+              IsVisible="{Binding IsReportDialogVisible}"
+              InputTransparent="False"
+              Padding="20"
+              ZIndex="3500">
+            <Frame BackgroundColor="White"
+                   CornerRadius="20"
+                   Padding="24"
+                   WidthRequest="420"
+                   MinimumHeightRequest="220"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   HasShadow="True"
+                   InputTransparent="False">
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="{Binding ReportDialogTitle}"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"/>
+
+                    <ScrollView HeightRequest="160">
+                        <Label Text="{Binding ReportDialogMessage}"
+                               FontSize="14"
+                               TextColor="#4B3A2F"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                    </ScrollView>
+
+                    <HorizontalStackLayout Spacing="12" HorizontalOptions="Fill">
+                        <Button Text="{Binding ReportDialogRejectText}"
+                                BackgroundColor="#E0E0E0"
+                                TextColor="#5B4F45"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Command="{Binding RejectReportDialogCommand}"
+                                HorizontalOptions="FillAndExpand"
+                                IsVisible="{Binding ReportDialogHasReject}"/>
+
+                        <Button Text="{Binding ReportDialogAcceptText}"
+                                BackgroundColor="#5B4F45"
+                                TextColor="White"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Command="{Binding AcceptReportDialogAsyncCommand}"
+                                HorizontalOptions="FillAndExpand"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
 
         <!-- All Global Popups -->
         <views:Settings BindingContext="{Binding SettingsPopup}" Grid.ColumnSpan="2"/>

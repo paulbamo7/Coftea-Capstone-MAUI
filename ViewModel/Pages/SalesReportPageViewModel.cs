@@ -35,6 +35,7 @@ namespace Coftea_Capstone.ViewModel
 
         private CancellationTokenSource? _aggregateCts;
         private bool _suppressAggregateModeChanged;
+        private string? _pendingReportType;
 
         // ===================== State & Models =====================
         [ObservableProperty]
@@ -296,6 +297,25 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private bool hasError;
+
+        // Report download dialog state
+        [ObservableProperty]
+        private bool isReportDialogVisible;
+
+        [ObservableProperty]
+        private string reportDialogTitle = string.Empty;
+
+        [ObservableProperty]
+        private string reportDialogMessage = string.Empty;
+
+        [ObservableProperty]
+        private bool reportDialogHasReject;
+
+        [ObservableProperty]
+        private string reportDialogAcceptText = "Accept";
+
+        [ObservableProperty]
+        private string reportDialogRejectText = "Cancel";
 
         // Additional category series (used by filters; can be empty and fall back to name-matching)
         [ObservableProperty]
@@ -1835,33 +1855,113 @@ namespace Coftea_Capstone.ViewModel
 
         // PDF Download Commands
         [RelayCommand]
-        private async Task DownloadWeeklyReport()
+        private void ShowWeeklyReportDialog()
+        {
+            if (IsLoading)
+            {
+                return;
+            }
+
+            var today = DateTime.Today;
+            var weekStart = today.AddDays(-7);
+            var weekEnd = today.AddDays(-1);
+
+            _pendingReportType = "Weekly";
+            ReportDialogTitle = "Generate Weekly Report?";
+            ReportDialogMessage = $"Create a PDF summary for {weekStart:MMM dd} - {today:MMM dd}?";
+            ReportDialogAcceptText = "Generate";
+            ReportDialogRejectText = "Cancel";
+            ReportDialogHasReject = true;
+            IsReportDialogVisible = true;
+        }
+
+        [RelayCommand]
+        private void ShowMonthlyReportDialog()
+        {
+            if (IsLoading)
+            {
+                return;
+            }
+
+            var today = DateTime.Today;
+            var monthStart = today.AddMonths(-1);
+
+            _pendingReportType = "Monthly";
+            ReportDialogTitle = "Generate Monthly Report?";
+            ReportDialogMessage = $"Create a PDF summary for {monthStart:MMM dd} - {today:MMM dd}?";
+            ReportDialogAcceptText = "Generate";
+            ReportDialogRejectText = "Cancel";
+            ReportDialogHasReject = true;
+            IsReportDialogVisible = true;
+        }
+
+        [RelayCommand]
+        private async Task AcceptReportDialogAsync()
+        {
+            if (ReportDialogHasReject && !string.IsNullOrEmpty(_pendingReportType))
+            {
+                var pendingType = _pendingReportType;
+                IsReportDialogVisible = false;
+                _pendingReportType = null;
+
+                if (pendingType == "Weekly")
+                {
+                    await GenerateWeeklyReportAsync();
+                }
+                else if (pendingType == "Monthly")
+                {
+                    await GenerateMonthlyReportAsync();
+                }
+            }
+            else
+            {
+                IsReportDialogVisible = false;
+                _pendingReportType = null;
+            }
+        }
+
+        [RelayCommand]
+        private void RejectReportDialog()
+        {
+            IsReportDialogVisible = false;
+            _pendingReportType = null;
+        }
+
+        private void ShowInfoDialog(string title, string message, string acceptText = "Close")
+        {
+            ReportDialogTitle = title;
+            ReportDialogMessage = message;
+            ReportDialogAcceptText = acceptText;
+            ReportDialogRejectText = string.Empty;
+            ReportDialogHasReject = false;
+            _pendingReportType = null;
+            IsReportDialogVisible = true;
+        }
+
+        private async Task GenerateWeeklyReportAsync()
         {
             try
             {
                 IsLoading = true;
-                
+
                 var today = DateTime.Today;
                 var weekStart = today.AddDays(-7);
                 var weekEnd = today.AddDays(1);
-                
-                // Get transactions for the week
+
                 var transactions = await _database.GetTransactionsByDateRangeAsync(weekStart, weekEnd);
-                
-                // Generate PDF report
+
                 var pdfService = new Services.PDFReportService();
                 var filePath = await pdfService.GenerateWeeklyReportPDFAsync(weekStart, weekEnd, transactions, TopItemsWeekly.ToList());
-                
-                // Show success message with file location
-                await Application.Current.MainPage.DisplayAlert(
-                    "Weekly Report Generated", 
-                    $"Weekly PDF report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past week.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Weekly_Report PDF file", 
-                    "OK");
+
+                ShowInfoDialog(
+                    "Weekly Report Generated",
+                    $"Weekly PDF report saved to:\n{filePath}\n\nThe report contains sales data and inventory deductions for the past 7 days.",
+                    "Got it");
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to generate weekly report: {ex.Message}", "OK");
                 System.Diagnostics.Debug.WriteLine($"Error generating weekly report: {ex.Message}");
+                ShowInfoDialog("Error", $"Failed to generate weekly report: {ex.Message}", "Close");
             }
             finally
             {
@@ -1869,34 +1969,30 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        [RelayCommand]
-        private async Task DownloadMonthlyReport()
+        private async Task GenerateMonthlyReportAsync()
         {
             try
             {
                 IsLoading = true;
-                
+
                 var today = DateTime.Today;
                 var monthStart = today.AddMonths(-1);
                 var monthEnd = today.AddDays(1);
-                
-                // Get transactions for the month
+
                 var transactions = await _database.GetTransactionsByDateRangeAsync(monthStart, monthEnd);
-                
-                // Generate PDF report
+
                 var pdfService = new Services.PDFReportService();
                 var filePath = await pdfService.GenerateMonthlyReportPDFAsync(monthStart, monthEnd, transactions, TopItemsMonthly.ToList());
-                
-                // Show success message with file location
-                await Application.Current.MainPage.DisplayAlert(
-                    "Monthly Report Generated", 
-                    $"Monthly PDF report has been saved successfully!\n\nFile location: {filePath}\n\nThe report includes sales data and inventory deductions for the past month.\n\nTo find the file in your emulator:\n1. Open File Manager\n2. Go to Download folder\n3. Look for the Monthly_Report PDF file", 
-                    "OK");
+
+                ShowInfoDialog(
+                    "Monthly Report Generated",
+                    $"Monthly PDF report saved to:\n{filePath}\n\nThe report contains sales data and inventory deductions for the past month.",
+                    "Got it");
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to generate monthly report: {ex.Message}", "OK");
                 System.Diagnostics.Debug.WriteLine($"Error generating monthly report: {ex.Message}");
+                ShowInfoDialog("Error", $"Failed to generate monthly report: {ex.Message}", "Close");
             }
             finally
             {

@@ -44,14 +44,24 @@
                            FontAttributes="Bold" 
                            TextColor="#5B4F45"
                            VerticalOptions="Center"/>
-                    <Button Grid.Column="1" 
-                            Text="✕" 
-                            FontSize="18"
-                            TextColor="#666666"
-                            BackgroundColor="Transparent"
-                            WidthRequest="30"
-                            HeightRequest="30"
-                            Command="{Binding HideDateFilterCommand}"/>
+                    <Border Grid.Column="1"
+                            WidthRequest="32"
+                            HeightRequest="32"
+                            BackgroundColor="#F5F5F5"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding HideDateFilterCommand}"/>
+                        </Border.GestureRecognizers>
+                        <Label Text="✕"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+                    </Border>
                 </Grid>
                 
                 <!-- Date inputs -->
@@ -364,19 +374,19 @@
                             <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
                                 <VerticalStackLayout Spacing="0">
                                     <!-- Table Header -->
-                                    <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12" MinimumWidthRequest="1100">
+                                    <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="40"/>   <!-- # -->
-                                        <ColumnDefinition Width="120"/>  <!-- Date & Time -->
-                                        <ColumnDefinition Width="100"/>  <!-- User -->
-                                        <ColumnDefinition Width="90"/>   <!-- Action -->
-                                        <ColumnDefinition Width="160"/>  <!-- Item -->
-                                        <ColumnDefinition Width="70"/>   <!-- Qty Change -->
-                                        <ColumnDefinition Width="60"/>   <!-- UoM -->
-                                        <ColumnDefinition Width="70"/>   <!-- Prev Qty -->
-                                        <ColumnDefinition Width="70"/>   <!-- New Qty -->
-                                        <ColumnDefinition Width="140"/>  <!-- Used for Product -->
-                                        <ColumnDefinition Width="120"/>  <!-- Remarks -->
+                                        <ColumnDefinition Width="Auto"/>    <!-- # -->
+                                        <ColumnDefinition Width="1.1*"/>   <!-- Date & Time -->
+                                        <ColumnDefinition Width="1*"/>     <!-- User -->
+                                        <ColumnDefinition Width="0.9*"/>   <!-- Action -->
+                                        <ColumnDefinition Width="1.2*"/>   <!-- Item -->
+                                        <ColumnDefinition Width="0.8*"/>   <!-- Qty Change -->
+                                        <ColumnDefinition Width="0.6*"/>   <!-- UoM -->
+                                        <ColumnDefinition Width="0.8*"/>   <!-- Prev Qty -->
+                                        <ColumnDefinition Width="0.8*"/>   <!-- New Qty -->
+                                        <ColumnDefinition Width="1.1*"/>   <!-- Used for Product -->
+                                        <ColumnDefinition Width="1.3*"/>   <!-- Remarks -->
                                     </Grid.ColumnDefinitions>
                                     
                                     <Label Grid.Column="0" Text="#" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Start"/>
@@ -396,19 +406,19 @@
                                 <CollectionView ItemsSource="{Binding PagedActivityLog}">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}" ColumnSpacing="12" MinimumWidthRequest="1100">
+                                            <Grid Padding="10,8" BackgroundColor="{Binding RowBackgroundColor}" ColumnSpacing="12">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="40"/>   <!-- # -->
-                                                    <ColumnDefinition Width="120"/>  <!-- Date & Time -->
-                                                    <ColumnDefinition Width="100"/>  <!-- User -->
-                                                    <ColumnDefinition Width="90"/>   <!-- Action -->
-                                                    <ColumnDefinition Width="160"/>  <!-- Item -->
-                                                    <ColumnDefinition Width="70"/>   <!-- Qty Change -->
-                                                    <ColumnDefinition Width="60"/>   <!-- UoM -->
-                                                    <ColumnDefinition Width="70"/>   <!-- Prev Qty -->
-                                                    <ColumnDefinition Width="70"/>   <!-- New Qty -->
-                                                    <ColumnDefinition Width="140"/>  <!-- Used for Product -->
-                                                    <ColumnDefinition Width="120"/>  <!-- Remarks -->
+                                                    <ColumnDefinition Width="Auto"/>    <!-- # -->
+                                                    <ColumnDefinition Width="1.1*"/>   <!-- Date & Time -->
+                                                    <ColumnDefinition Width="1*"/>     <!-- User -->
+                                                    <ColumnDefinition Width="0.9*"/>   <!-- Action -->
+                                                    <ColumnDefinition Width="1.2*"/>   <!-- Item -->
+                                                    <ColumnDefinition Width="0.8*"/>   <!-- Qty Change -->
+                                                    <ColumnDefinition Width="0.6*"/>   <!-- UoM -->
+                                                    <ColumnDefinition Width="0.8*"/>   <!-- Prev Qty -->
+                                                    <ColumnDefinition Width="0.8*"/>   <!-- New Qty -->
+                                                    <ColumnDefinition Width="1.1*"/>   <!-- Used for Product -->
+                                                    <ColumnDefinition Width="1.3*"/>   <!-- Remarks -->
                                                 </Grid.ColumnDefinitions>
                                                 
                                                 <Label Grid.Column="0" Text="{Binding RowNumber}" FontSize="10" TextColor="#333" HorizontalOptions="Start" VerticalOptions="Center"/>
@@ -420,8 +430,8 @@
                                                 <Label Grid.Column="6" Text="{Binding UnitOfMeasurement}" FontSize="10" TextColor="#666" VerticalOptions="Center"/>
                                                 <Label Grid.Column="7" Text="{Binding PreviousQuantityText}" FontSize="10" TextColor="#666" HorizontalOptions="End" VerticalOptions="Center"/>
                                                 <Label Grid.Column="8" Text="{Binding NewQuantityText}" FontSize="10" TextColor="#333" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
-                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
-                                                <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
+                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center"/>
+                                                <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="WordWrap" VerticalOptions="Center"/>
                                                 
                                                 <!-- Separator Line -->
                                                 <BoxView Grid.ColumnSpan="11" HeightRequest="1" BackgroundColor="#E0E0E0" VerticalOptions="End"/>
@@ -454,5 +464,48 @@
                 </Grid>
             </Grid>
         </Frame>
+
+        <!-- Close Confirmation Dialog -->
+        <Grid IsVisible="{Binding IsCloseConfirmationVisible}"
+              BackgroundColor="#80000000"
+              InputTransparent="False"
+              ZIndex="5000"
+              Padding="20">
+            <Frame BackgroundColor="White"
+                   CornerRadius="18"
+                   Padding="24"
+                   WidthRequest="360"
+                   HasShadow="True"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Close Activity Log?"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Any selections and filters will stay in place the next time you open the log."
+                           FontSize="13"
+                           TextColor="#574D45"
+                           HorizontalTextAlignment="Center"/>
+                    <HorizontalStackLayout Spacing="12" HorizontalOptions="Fill">
+                        <Button Text="Stay"
+                                BackgroundColor="#E0E0E0"
+                                TextColor="#5B4F45"
+                                CornerRadius="12"
+                                HeightRequest="42"
+                                Command="{Binding CancelCloseCommand}"
+                                HorizontalOptions="FillAndExpand"/>
+                        <Button Text="Close"
+                                BackgroundColor="#5B4F45"
+                                TextColor="White"
+                                CornerRadius="12"
+                                HeightRequest="42"
+                                Command="{Binding ConfirmCloseCommand}"
+                                HorizontalOptions="FillAndExpand"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
     </Grid>
 </ContentView>
