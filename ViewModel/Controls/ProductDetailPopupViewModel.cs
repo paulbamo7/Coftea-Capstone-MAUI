@@ -1,0 +1,122 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Coftea_Capstone.Models;
+using Coftea_Capstone.C_;
+
+namespace Coftea_Capstone.ViewModel.Controls
+{
+    public partial class ProductDetailPopupViewModel : ObservableObject
+    {
+        private readonly Database _database = new Database();
+
+        [ObservableProperty]
+        private bool isVisible;
+
+        [ObservableProperty]
+        private string productName = string.Empty;
+
+        [ObservableProperty]
+        private string productCategory = string.Empty;
+
+        // Today's stats
+        [ObservableProperty]
+        private int todayOrders;
+
+        [ObservableProperty]
+        private decimal todaySales;
+
+        // Week's stats
+        [ObservableProperty]
+        private int weekOrders;
+
+        [ObservableProperty]
+        private decimal weekSales;
+
+        // Month's stats
+        [ObservableProperty]
+        private int monthOrders;
+
+        [ObservableProperty]
+        private decimal monthSales;
+
+        [ObservableProperty]
+        private bool isLoading;
+
+        [RelayCommand]
+        private void Close()
+        {
+            IsVisible = false;
+        }
+
+        public async Task LoadProductDetailsAsync(string productName)
+        {
+            try
+            {
+                IsLoading = true;
+                ProductName = productName;
+
+                var today = DateTime.Today;
+                var todayStart = today;
+                var todayEnd = today.AddDays(1);
+
+                var weekStart = today.AddDays(-7);
+                var weekEnd = today.AddDays(1);
+
+                var monthStart = new DateTime(today.Year, today.Month, 1);
+                var monthEnd = monthStart.AddMonths(1);
+
+                // Get transactions only for the date ranges we need (optimize performance)
+                var earliestDate = monthStart; // We need at least a month back
+                var latestDate = todayEnd;
+                
+                var allTransactions = await _database.GetTransactionsByDateRangeAsync(earliestDate, latestDate);
+
+                // Filter by product name
+                var productTransactions = allTransactions
+                    .Where(t => t?.DrinkName?.Equals(productName, StringComparison.OrdinalIgnoreCase) == true)
+                    .ToList();
+
+                // Calculate today's stats
+                var todayTransactions = productTransactions
+                    .Where(t => t.TransactionDate >= todayStart && t.TransactionDate < todayEnd)
+                    .ToList();
+                TodayOrders = todayTransactions.Sum(t => t.Quantity > 0 ? t.Quantity : 1);
+                TodaySales = todayTransactions.Sum(t => t.Total);
+
+                // Calculate week's stats
+                var weekTransactions = productTransactions
+                    .Where(t => t.TransactionDate >= weekStart && t.TransactionDate < weekEnd)
+                    .ToList();
+                WeekOrders = weekTransactions.Sum(t => t.Quantity > 0 ? t.Quantity : 1);
+                WeekSales = weekTransactions.Sum(t => t.Total);
+
+                // Calculate month's stats
+                var monthTransactions = productTransactions
+                    .Where(t => t.TransactionDate >= monthStart && t.TransactionDate < monthEnd)
+                    .ToList();
+                MonthOrders = monthTransactions.Sum(t => t.Quantity > 0 ? t.Quantity : 1);
+                MonthSales = monthTransactions.Sum(t => t.Total);
+
+                // Get product category
+                var products = await _database.GetProductsAsync();
+                var product = products.FirstOrDefault(p => p.ProductName?.Equals(productName, StringComparison.OrdinalIgnoreCase) == true);
+                ProductCategory = product?.Category ?? "Unknown";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading product details: {ex.Message}");
+                TodayOrders = 0;
+                TodaySales = 0;
+                WeekOrders = 0;
+                WeekSales = 0;
+                MonthOrders = 0;
+                MonthSales = 0;
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+    }
+}
+

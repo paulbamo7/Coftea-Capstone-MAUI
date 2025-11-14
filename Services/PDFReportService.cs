@@ -21,6 +21,7 @@ namespace Coftea_Capstone.Services
         Task<string> GenerateWeeklyReportPDFAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
         Task<string> GenerateMonthlyReportPDFAsync(DateTime startDate, DateTime endDate, List<TransactionHistoryModel> transactions, List<TrendItem> topItems);
         Task<string> GeneratePurchaseOrderPDFAsync(int purchaseOrderId, PurchaseOrderModel order, List<PurchaseOrderItemModel> items);
+        Task<string> GenerateActivityLogPDFAsync(DateTime startDate, DateTime endDate, List<InventoryActivityLog> entries);
     }
 
     public class PDFReportService : IPDFReportService
@@ -125,6 +126,45 @@ namespace Coftea_Capstone.Services
 
                     DrawTable(context, new[] { "Item", "Orders" }, topRows);
 
+                    // Add new section: All Products by Category
+                    DrawSectionTitle(context, "All Products - Order Summary by Category");
+                    var allProducts = await _database.GetProductsAsync();
+                    var productOrderCounts = transactions
+                        .Where(t => !string.IsNullOrWhiteSpace(t.DrinkName))
+                        .GroupBy(t => t.DrinkName.Trim(), StringComparer.OrdinalIgnoreCase)
+                        .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity > 0 ? x.Quantity : 1), StringComparer.OrdinalIgnoreCase);
+
+                    // Group products by category
+                    var productsByCategory = allProducts
+                        .Where(p => !string.IsNullOrWhiteSpace(p.ProductName))
+                        .GroupBy(p => string.IsNullOrWhiteSpace(p.Category) ? "Other" : p.Category.Trim())
+                        .OrderBy(g => g.Key)
+                        .ToList();
+
+                    foreach (var categoryGroup in productsByCategory)
+                    {
+                        context.EnsureSpace(30);
+                        WriteTextLine(context, $"{categoryGroup.Key}:", SectionTitleFont, TitleBrush, 16);
+                        context.CurrentY += 4;
+
+                        var categoryRows = categoryGroup
+                            .OrderBy(p => p.ProductName)
+                            .Select(p =>
+                            {
+                                var orderCount = productOrderCounts.TryGetValue(p.ProductName, out var count) ? count : 0;
+                                return new[] { p.ProductName ?? "Unknown", orderCount.ToString() };
+                            })
+                            .ToList();
+
+                        if (categoryRows.Count == 0)
+                        {
+                            categoryRows.Add(new[] { "No products in this category", "0" });
+                        }
+
+                        DrawTable(context, new[] { "Product Name", "Orders" }, categoryRows, new[] { 0.7, 0.3 });
+                        context.CurrentY += 8;
+                    }
+
                     DrawSectionTitle(context, "Inventory Deductions");
                     var deductionRows = inventoryDeductions
                         .OrderByDescending(x => x.Value)
@@ -153,7 +193,7 @@ namespace Coftea_Capstone.Services
                 var fileName = MakeSafeFileName($"Coftea_MonthlyReports_{monthLabel}.pdf");
                 var filePath = GetDownloadPath(fileName);
                 document.Save(filePath);
-
+                
                 return filePath;
             }
             catch (Exception ex)
@@ -238,7 +278,7 @@ namespace Coftea_Capstone.Services
                 var fileName = MakeSafeFileName($"Coftea_{supplierLabel}_{poDate}_{purchaseOrderId}.pdf");
                 var filePath = GetDownloadPath(fileName);
                 document.Save(filePath);
-
+                
                 return filePath;
             }
             catch (Exception ex)
@@ -246,6 +286,92 @@ namespace Coftea_Capstone.Services
                 System.Diagnostics.Debug.WriteLine($"Error generating purchase order PDF: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine(ex.StackTrace);
                 throw new Exception($"Failed to generate PDF: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<string> GenerateActivityLogPDFAsync(DateTime startDate, DateTime endDate, List<InventoryActivityLog> entries)
+        {
+            try
+            {
+                entries ??= new List<InventoryActivityLog>();
+
+                var safeFileName = MakeSafeFileName($"Coftea_ActivityLog_{startDate:yyyy_MM_dd}_to_{endDate:yyyy_MM_dd}.pdf");
+                var filePath = GetDownloadPath(safeFileName);
+
+                using var document = new PdfDocument();
+                using (var context = new PdfPageContext(document, Margin))
+                {
+                    DrawReportHeader(context, "Inventory Activity Log", $"{startDate:MMMM dd, yyyy} - {endDate:MMMM dd, yyyy}");
+
+                    var summaryText = entries.Count == 1
+                        ? "1 inventory activity entry exported."
+                        : $"{entries.Count} inventory activity entries exported.";
+                    WriteTextLine(context, summaryText, LabelFont, TextBrush, 18);
+                    WriteSpacing(context, 10);
+
+                    var headers = new[]
+                    {
+                        "#",
+                        "Date & Time",
+                        "User",
+                        "Action",
+                        "Item",
+                        "Qty Δ",
+                        "Prev Qty",
+                        "New Qty",
+                        "Used For",
+                        "Remarks"
+                    };
+
+                    var weights = new[]
+                    {
+                        0.45,
+                        1.25,
+                        1.15,
+                        0.9,
+                        1.35,
+                        0.75,
+                        0.95,
+                        0.95,
+                        1.1,
+                        1.55
+                    };
+
+                    var rows = entries
+                        .Select((entry, index) =>
+                        {
+                            var unit = entry?.UnitOfMeasurement ?? string.Empty;
+                            var previousQty = SanitizeCell(CombineQuantity(entry?.PreviousQuantityText, unit));
+                            var newQty = SanitizeCell(CombineQuantity(entry?.NewQuantityText, unit));
+
+                            return new[]
+                            {
+                                (index + 1).ToString(),
+                                SanitizeCell(entry?.FormattedTimestampShort),
+                                SanitizeCell(entry?.UserDisplay ?? entry?.UserFullName ?? entry?.UserEmail),
+                                SanitizeCell(entry?.ActionDisplay ?? entry?.ActionText ?? entry?.Action),
+                                SanitizeCell(entry?.ItemName),
+                                SanitizeCell(entry?.QuantityChangeDisplay ?? entry?.QuantityChangeText),
+                                previousQty,
+                                newQty,
+                                SanitizeCell(entry?.UsedForProductText),
+                                SanitizeCell(entry?.RemarksText)
+                            };
+                        })
+                        .ToList();
+
+                    DrawTable(context, headers, rows, weights);
+                }
+
+                DrawFooter(document, $"Generated on {DateTime.Now:MMMM dd, yyyy 'at' HH:mm} | Coftea Inventory Activity Log");
+                document.Save(filePath);
+                return filePath;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error generating activity log PDF: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                throw;
             }
         }
 
@@ -433,6 +559,33 @@ namespace Coftea_Capstone.Services
             context.CurrentY += spacing;
         }
 
+        private static string CombineQuantity(string? value, string? unit)
+        {
+            var quantity = string.IsNullOrWhiteSpace(value) ? "—" : value.Trim();
+            if (string.IsNullOrWhiteSpace(unit))
+            {
+                return quantity;
+            }
+
+            return $"{quantity} {unit}".Trim();
+        }
+
+        private static string SanitizeCell(string? value, int maxLength = 80)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return "—";
+            }
+
+            var sanitized = value.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (sanitized.Length > maxLength)
+            {
+                sanitized = sanitized[..(maxLength - 1)] + "…";
+            }
+
+            return sanitized;
+        }
+
         private static string MakeSafeFileName(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
@@ -522,9 +675,9 @@ namespace Coftea_Capstone.Services
                 else if (platform == DevicePlatform.WinUI || platform == DevicePlatform.macOS)
                 {
                     downloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-                }
-                else
-                {
+            }
+            else
+            {
                     downloadPath = Path.Combine(FileSystem.AppDataDirectory, "Downloads");
                 }
 
@@ -648,6 +801,45 @@ namespace Coftea_Capstone.Services
                     }
 
                     DrawTable(context, new[] { "Item", "Orders" }, topRows);
+
+                    // Add new section: All Products by Category
+                    DrawSectionTitle(context, "All Products - Order Summary by Category");
+                    var allProducts = await _database.GetProductsAsync();
+                    var productOrderCounts = transactions
+                        .Where(t => !string.IsNullOrWhiteSpace(t.DrinkName))
+                        .GroupBy(t => t.DrinkName.Trim(), StringComparer.OrdinalIgnoreCase)
+                        .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity > 0 ? x.Quantity : 1), StringComparer.OrdinalIgnoreCase);
+
+                    // Group products by category
+                    var productsByCategory = allProducts
+                        .Where(p => !string.IsNullOrWhiteSpace(p.ProductName))
+                        .GroupBy(p => string.IsNullOrWhiteSpace(p.Category) ? "Other" : p.Category.Trim())
+                        .OrderBy(g => g.Key)
+                        .ToList();
+
+                    foreach (var categoryGroup in productsByCategory)
+                    {
+                        context.EnsureSpace(30);
+                        WriteTextLine(context, $"{categoryGroup.Key}:", SectionTitleFont, TitleBrush, 16);
+                        context.CurrentY += 4;
+
+                        var categoryRows = categoryGroup
+                            .OrderBy(p => p.ProductName)
+                            .Select(p =>
+                            {
+                                var orderCount = productOrderCounts.TryGetValue(p.ProductName, out var count) ? count : 0;
+                                return new[] { p.ProductName ?? "Unknown", orderCount.ToString() };
+                            })
+                            .ToList();
+
+                        if (categoryRows.Count == 0)
+                        {
+                            categoryRows.Add(new[] { "No products in this category", "0" });
+                        }
+
+                        DrawTable(context, new[] { "Product Name", "Orders" }, categoryRows, new[] { 0.7, 0.3 });
+                        context.CurrentY += 8;
+                    }
 
                     DrawSectionTitle(context, "Inventory Deductions");
                     var deductionRows = inventoryDeductions

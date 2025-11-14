@@ -174,14 +174,27 @@
             <Grid RowDefinitions="Auto, *, Auto">
                 <!-- Header -->
                 <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="20">
-                    <Grid ColumnDefinitions="*, Auto">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
                         <Label Grid.Column="0" 
                                Text="Inventory Activity Log" 
                                FontSize="24" FontFamily="MontserratBlack" 
                                FontAttributes="Bold" 
                                TextColor="White" 
                                VerticalOptions="Center"/>
-                        <Button Grid.Column="1" 
+                        <Button Grid.Column="1"
+                                Text="📄 Export PDF"
+                                BackgroundColor="#F3D5B5"
+                                TextColor="#5B4F45"
+                                BorderColor="#8B7355"
+                                BorderWidth="2"
+                                CornerRadius="18"
+                                FontSize="13"
+                                HeightRequest="40"
+                                Padding="16,0"
+                                HorizontalOptions="End"
+                                VerticalOptions="Center"
+                                Command="{Binding ShowPrintDialogCommand}"/>
+                        <Button Grid.Column="2" 
                                     Text="×" 
                                 BackgroundColor="Transparent" 
                                 TextColor="White" 
@@ -464,6 +477,61 @@
                 </Grid>
             </Grid>
         </Frame>
+
+        <!-- Print Confirmation / Status Dialog -->
+        <Grid IsVisible="{Binding IsPrintDialogVisible}"
+              BackgroundColor="#80000000"
+              InputTransparent="False"
+              ZIndex="4500"
+              Padding="20">
+            <Frame BackgroundColor="White"
+                   CornerRadius="18"
+                   Padding="24"
+                   WidthRequest="380"
+                   HasShadow="True"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="{Binding PrintDialogTitle}"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"/>
+
+                    <ScrollView HeightRequest="160">
+                        <Label Text="{Binding PrintDialogMessage}"
+                               FontSize="13"
+                               TextColor="#574D45"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                    </ScrollView>
+
+                    <ActivityIndicator IsVisible="{Binding IsPrintProcessing}"
+                                       IsRunning="{Binding IsPrintProcessing}"
+                                       Color="#5B4F45"
+                                       HorizontalOptions="Center"/>
+
+                    <HorizontalStackLayout Spacing="12" HorizontalOptions="Fill">
+                        <Button Text="{Binding PrintDialogRejectText}"
+                                BackgroundColor="#E0E0E0"
+                                TextColor="#5B4F45"
+                                CornerRadius="12"
+                                HeightRequest="42"
+                                Command="{Binding RejectPrintDialogCommand}"
+                                HorizontalOptions="FillAndExpand"
+                                IsVisible="{Binding PrintDialogHasReject}"/>
+                        <Button Text="{Binding PrintDialogAcceptText}"
+                                BackgroundColor="#5B4F45"
+                                TextColor="White"
+                                CornerRadius="12"
+                                HeightRequest="42"
+                                Command="{Binding AcceptPrintDialogAsyncCommand}"
+                                HorizontalOptions="FillAndExpand"
+                                IsEnabled="{Binding IsPrintProcessing, Converter={StaticResource InvertBoolConverter}}"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
 
         <!-- Close Confirmation Dialog -->
         <Grid IsVisible="{Binding IsCloseConfirmationVisible}"

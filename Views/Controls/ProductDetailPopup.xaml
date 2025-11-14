@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.ProductDetailPopup"
+             x:Name="Root"
+             IsVisible="{Binding IsVisible}"
+             BackgroundColor="#80000000">
+    <Grid HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
+        <Frame BackgroundColor="White" CornerRadius="24" Padding="0" HasShadow="True"
+               WidthRequest="500" MaximumHeightRequest="600"
+               HorizontalOptions="Center" VerticalOptions="Center">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="0">
+                <!-- Header -->
+                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15" ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout>
+                        <Label Text="{Binding ProductName}" FontAttributes="Bold" FontSize="18" TextColor="White" VerticalOptions="Center"/>
+                        <Label Text="{Binding ProductCategory, StringFormat='Category: {0}'}" FontSize="12" TextColor="#E0E0E0" VerticalOptions="Center" Margin="0,4,0,0"/>
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="✕" FontSize="18" BackgroundColor="Transparent" TextColor="White" 
+                            Command="{Binding CloseCommand}" WidthRequest="35" HeightRequest="35" Padding="0"/>
+                </Grid>
+                
+                <!-- Content -->
+                <ScrollView Grid.Row="1" Padding="20">
+                    <VerticalStackLayout Spacing="20">
+                        <ActivityIndicator IsVisible="{Binding IsLoading}" IsRunning="{Binding IsLoading}" Color="#5B4F45" HorizontalOptions="Center"/>
+
+                        <!-- Today's Stats -->
+                        <Frame BackgroundColor="#E8F5E9" CornerRadius="12" Padding="16" HasShadow="False">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Today" FontAttributes="Bold" FontSize="16" TextColor="#2E7D32"/>
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                    <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Orders" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding TodayOrders, StringFormat='{0}'}" FontSize="20" FontAttributes="Bold" TextColor="#2E7D32"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Sales" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding TodaySales, StringFormat='₱{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="#2E7D32"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Week's Stats -->
+                        <Frame BackgroundColor="#E3F2FD" CornerRadius="12" Padding="16" HasShadow="False">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="This Week" FontAttributes="Bold" FontSize="16" TextColor="#1976D2"/>
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                    <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Orders" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding WeekOrders, StringFormat='{0}'}" FontSize="20" FontAttributes="Bold" TextColor="#1976D2"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Sales" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding WeekSales, StringFormat='₱{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="#1976D2"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Frame>
+
+                        <!-- Month's Stats -->
+                        <Frame BackgroundColor="#F3E5F5" CornerRadius="12" Padding="16" HasShadow="False">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="This Month" FontAttributes="Bold" FontSize="16" TextColor="#7B1FA2"/>
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                    <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Orders" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding MonthOrders, StringFormat='{0}'}" FontSize="20" FontAttributes="Bold" TextColor="#7B1FA2"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                    <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Sales" FontSize="12" TextColor="#666"/>
+                                            <Label Text="{Binding MonthSales, StringFormat='₱{0:N2}'}" FontSize="20" FontAttributes="Bold" TextColor="#7B1FA2"/>
+                                        </VerticalStackLayout>
+                                    </Frame>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- Footer -->
+                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="20,12">
+                    <Button Text="Close" BackgroundColor="#5B4F45" TextColor="White" CornerRadius="12"
+                            HeightRequest="40" Command="{Binding CloseCommand}"/>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>
+

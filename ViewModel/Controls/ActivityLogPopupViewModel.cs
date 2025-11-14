@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,14 +8,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.ViewModel.Others;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
     public partial class ActivityLogPopupViewModel : BaseViewModel
     {
         private readonly Database _database;
+        private readonly IPDFReportService _pdfReportService;
         private ObservableCollection<InventoryActivityLog> _allActivityLog = new();
         private string _selectedFilter = "All";
+        private bool _awaitingPrintConfirmation;
 
         [ObservableProperty]
         private bool isVisible;
@@ -56,6 +60,27 @@ namespace Coftea_Capstone.ViewModel.Controls
         private bool isCloseConfirmationVisible;
 
         [ObservableProperty]
+        private bool isPrintDialogVisible;
+
+        [ObservableProperty]
+        private string printDialogTitle = string.Empty;
+
+        [ObservableProperty]
+        private string printDialogMessage = string.Empty;
+
+        [ObservableProperty]
+        private string printDialogAcceptText = "Generate";
+
+        [ObservableProperty]
+        private string printDialogRejectText = "Cancel";
+
+        [ObservableProperty]
+        private bool printDialogHasReject = true;
+
+        [ObservableProperty]
+        private bool isPrintProcessing;
+
+        [ObservableProperty]
         private DateTime filterStartDate = DateTime.Now.AddDays(-7);
 
         [ObservableProperty]
@@ -74,6 +99,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         public ActivityLogPopupViewModel()
         {
             _database = new Database();
+            _pdfReportService = new PDFReportService();
         }
 
         partial void OnIsVisibleChanged(bool value)
@@ -81,6 +107,9 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (!value)
             {
                 IsCloseConfirmationVisible = false;
+                IsPrintDialogVisible = false;
+                _awaitingPrintConfirmation = false;
+                IsPrintProcessing = false;
             }
         }
 
@@ -199,6 +228,17 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void Close()
         {
+            if (IsPrintDialogVisible)
+            {
+                return;
+            }
+
+            if (IsDateFilterVisible)
+            {
+                IsDateFilterVisible = false;
+                return;
+            }
+
             if (IsCloseConfirmationVisible)
             {
                 return;
@@ -218,6 +258,108 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void CancelClose()
         {
             IsCloseConfirmationVisible = false;
+        }
+
+        [RelayCommand]
+        private void ShowPrintDialog()
+        {
+            if (IsPrintProcessing)
+            {
+                return;
+            }
+
+            var entryCount = FilteredActivityLog?.Count ?? 0;
+            var rangeLabel = _hasDateFilter
+                ? $"{FilterStartDate:MMMM dd, yyyy} - {FilterEndDate:MMMM dd, yyyy}"
+                : "the current activity log view";
+
+            PrintDialogTitle = "Export Activity Log?";
+            PrintDialogMessage = entryCount > 0
+                ? $"Generate a PDF summary for {entryCount} activity entries covering {rangeLabel}?"
+                : $"There are no activity log entries in the current view. You can still export an empty report for {rangeLabel}.";
+            PrintDialogAcceptText = "Generate";
+            PrintDialogRejectText = "Cancel";
+            PrintDialogHasReject = true;
+            _awaitingPrintConfirmation = true;
+            IsPrintDialogVisible = true;
+        }
+
+        [RelayCommand]
+        private void RejectPrintDialog()
+        {
+            if (IsPrintProcessing)
+            {
+                return;
+            }
+
+            _awaitingPrintConfirmation = false;
+            IsPrintDialogVisible = false;
+        }
+
+        [RelayCommand]
+        private async Task AcceptPrintDialogAsync()
+        {
+            if (IsPrintProcessing)
+            {
+                return;
+            }
+
+            if (_awaitingPrintConfirmation)
+            {
+                await GenerateActivityLogPdfAsync();
+                return;
+            }
+
+            IsPrintDialogVisible = false;
+        }
+
+        private async Task GenerateActivityLogPdfAsync()
+        {
+            try
+            {
+                IsPrintProcessing = true;
+                PrintDialogHasReject = false;
+                PrintDialogAcceptText = "Close";
+                PrintDialogRejectText = string.Empty;
+                _awaitingPrintConfirmation = false;
+
+                PrintDialogTitle = "Exporting Activity Log…";
+                PrintDialogMessage = "Please wait while we generate the PDF report.";
+
+                var entries = FilteredActivityLog?.ToList() ?? new List<InventoryActivityLog>();
+
+                if (entries.Count == 0)
+                {
+                    var rangeLabel = _hasDateFilter
+                        ? $"{FilterStartDate:MMMM dd, yyyy} - {FilterEndDate:MMMM dd, yyyy}"
+                        : "the selected criteria";
+
+                    PrintDialogTitle = "No Entries Found";
+                    PrintDialogMessage = $"There are no inventory activity entries to export for {rangeLabel}.";
+                    return;
+                }
+
+                var startDate = _hasDateFilter
+                    ? FilterStartDate.Date
+                    : entries.Min(e => e?.Timestamp ?? DateTime.Now).Date;
+                var endDate = _hasDateFilter
+                    ? FilterEndDate.Date
+                    : entries.Max(e => e?.Timestamp ?? DateTime.Now).Date;
+
+                var filePath = await _pdfReportService.GenerateActivityLogPDFAsync(startDate, endDate, entries);
+
+                PrintDialogTitle = "Activity Log Exported";
+                PrintDialogMessage = $"PDF saved successfully at:\n{filePath}";
+            }
+            catch (Exception ex)
+            {
+                PrintDialogTitle = "Export Failed";
+                PrintDialogMessage = $"We couldn’t generate the activity log PDF.\nReason: {ex.Message}";
+            }
+            finally
+            {
+                IsPrintProcessing = false;
+            }
         }
 
         partial void OnSearchTextChanged(string value)

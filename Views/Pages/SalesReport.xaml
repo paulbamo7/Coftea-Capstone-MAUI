@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              x:Class="Coftea_Capstone.Views.Pages.SalesReport" 
+             x:Name="Root"
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel" 
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:charts="clr-namespace:Coftea_Capstone.Views.Controls"
@@ -199,27 +200,82 @@
                                                       Item2HasTrend="{Binding Item2HasTrend}"
                                                       Item3HasTrend="{Binding Item3HasTrend}"/>
 
-                                <VerticalStackLayout Grid.Column="1" Spacing="14" HorizontalOptions="Start" VerticalOptions="Center" Margin="8,10,8,10">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="2">
-                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#66BB6A"/>
-                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item1Name}" FontSize="14" TextColor="#5B4F45" LineBreakMode="WordWrap"/>
-                                        <Label Grid.Column="2" Grid.Row="0" Text="1" FontSize="13" TextColor="#5B4F45" FontAttributes="Bold"/>
-                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item1Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
-                                        <Label Grid.Column="2" Grid.Row="1" Text=""/>
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="14"
+                                                     HorizontalOptions="Start"
+                                                     VerticalOptions="Center"
+                                                     Margin="8,10,8,10">
+                                    <Grid ColumnDefinitions="Auto,*"
+                                          RowDefinitions="Auto,Auto"
+                                          ColumnSpacing="8"
+                                          RowSpacing="2">
+                                        <BoxView Grid.RowSpan="2"
+                                                 WidthRequest="10"
+                                                 HeightRequest="10"
+                                                 VerticalOptions="Start"
+                                                 Color="#66BB6A"/>
+                                        <Label Grid.Column="1"
+                                               Grid.Row="0"
+                                               Text="{Binding Item1Name}"
+                                               FontSize="14"
+                                               TextColor="#5B4F45"
+                                               LineBreakMode="WordWrap"
+                                               MaxLines="2"
+                                               HorizontalOptions="Start"/>
+                                        <Label Grid.Column="1"
+                                               Grid.Row="1"
+                                               Text="{Binding Item1Count, StringFormat='{0} orders'}"
+                                               FontSize="12"
+                                               TextColor="Gray"
+                                               HorizontalOptions="Start"/>
                                     </Grid>
-                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="2">
-                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#8D6E63"/>
-                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item2Name}" FontSize="14" TextColor="#5B4F45" LineBreakMode="WordWrap"/>
-                                        <Label Grid.Column="2" Grid.Row="0" Text="2" FontSize="13" TextColor="#5B4F45" FontAttributes="Bold"/>
-                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item2Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
-                                        <Label Grid.Column="2" Grid.Row="1" Text=""/>
+                                    <Grid ColumnDefinitions="Auto,*"
+                                          RowDefinitions="Auto,Auto"
+                                          ColumnSpacing="8"
+                                          RowSpacing="2">
+                                        <BoxView Grid.RowSpan="2"
+                                                 WidthRequest="10"
+                                                 HeightRequest="10"
+                                                 VerticalOptions="Start"
+                                                 Color="#8D6E63"/>
+                                        <Label Grid.Column="1"
+                                               Grid.Row="0"
+                                               Text="{Binding Item2Name}"
+                                               FontSize="14"
+                                               TextColor="#5B4F45"
+                                               LineBreakMode="WordWrap"
+                                               MaxLines="2"
+                                               HorizontalOptions="Start"/>
+                                        <Label Grid.Column="1"
+                                               Grid.Row="1"
+                                               Text="{Binding Item2Count, StringFormat='{0} orders'}"
+                                               FontSize="12"
+                                               TextColor="Gray"
+                                               HorizontalOptions="Start"/>
                                     </Grid>
-                                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="2">
-                                        <BoxView Grid.RowSpan="2" WidthRequest="10" HeightRequest="10" VerticalOptions="Center" Color="#795548"/>
-                                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Item3Name}" FontSize="14" TextColor="#5B4F45" LineBreakMode="WordWrap"/>
-                                        <Label Grid.Column="2" Grid.Row="0" Text="3" FontSize="13" TextColor="#5B4F45" FontAttributes="Bold"/>
-                                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Item3Count, StringFormat='{0} orders'}" FontSize="12" TextColor="Gray"/>
-                                        <Label Grid.Column="2" Grid.Row="1" Text=""/>
+                                    <Grid ColumnDefinitions="Auto,*"
+                                          RowDefinitions="Auto,Auto"
+                                          ColumnSpacing="8"
+                                          RowSpacing="2">
+                                        <BoxView Grid.RowSpan="2"
+                                                 WidthRequest="10"
+                                                 HeightRequest="10"
+                                                 VerticalOptions="Start"
+                                                 Color="#795548"/>
+                                        <Label Grid.Column="1"
+                                               Grid.Row="0"
+                                               Text="{Binding Item3Name}"
+                                               FontSize="14"
+                                               TextColor="#5B4F45"
+                                               LineBreakMode="WordWrap"
+                                               MaxLines="2"
+                                               HorizontalOptions="Start"/>
+                                        <Label Grid.Column="1"
+                                               Grid.Row="1"
+                                               Text="{Binding Item3Count, StringFormat='{0} orders'}"
+                                               FontSize="12"
+                                               TextColor="Gray"
+                                               HorizontalOptions="Start"/>
                                     </Grid>
                                 </VerticalStackLayout>
                             </Grid>
@@ -545,7 +601,11 @@
                                                 <DataTemplate>
                                                     <Border Stroke="#E0D4C3" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="0">
                                                         <Grid ColumnDefinitions="180,80,120,120,120,120" ColumnSpacing="0" Padding="0,6,8,6">
-                                                            <Label Text="{Binding GroupLabel}" TextColor="#424242" FontSize="13" LineBreakMode="WordWrap" Padding="12,0"/>
+                                                            <Label Text="{Binding GroupLabel}" TextColor="#4A90E2" FontSize="13" LineBreakMode="WordWrap" Padding="12,0" FontAttributes="Bold">
+                                                                <Label.GestureRecognizers>
+                                                                    <TapGestureRecognizer Command="{Binding Source={x:Reference Root}, Path=BindingContext.ShowProductDetailsCommand}" CommandParameter="{Binding GroupLabel}"/>
+                                                                </Label.GestureRecognizers>
+                                                            </Label>
                                                             <BoxView Grid.Column="1" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
                                                             <Label Grid.Column="1" Text="{Binding TotalQuantityDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0"/>
                                                             <BoxView Grid.Column="2" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
@@ -662,5 +722,8 @@
         
         <!-- Date Filter Popup -->
         <controls:DateFilterPopup BindingContext="{Binding DateFilterPopup}" Grid.ColumnSpan="2" ZIndex="2900"/>
+        
+        <!-- Product Detail Popup -->
+        <controls:ProductDetailPopup BindingContext="{Binding ProductDetailPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
     </Grid>
 </ContentPage>

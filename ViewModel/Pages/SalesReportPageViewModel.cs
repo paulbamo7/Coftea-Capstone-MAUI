@@ -22,6 +22,7 @@ namespace Coftea_Capstone.ViewModel
         public SettingsPopUpViewModel SettingsPopup { get; set; }
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
         public ViewModel.Controls.DateFilterPopupViewModel DateFilterPopup { get; set; }
+        public ViewModel.Controls.ProductDetailPopupViewModel ProductDetailPopup { get; set; }
 
         private readonly Database _database;
         private readonly Services.ISalesReportService _salesReportService;
@@ -388,6 +389,7 @@ namespace Coftea_Capstone.ViewModel
             SettingsPopup = settingsPopup;
             _salesReportService = salesReportService ?? new Services.DatabaseSalesReportService();
             DateFilterPopup = new ViewModel.Controls.DateFilterPopupViewModel();
+            ProductDetailPopup = new ViewModel.Controls.ProductDetailPopupViewModel();
             
             // Initialize Y-axis values with default scale (20, 40, 60, 80, 100)
             CalculateYAxisScale(100, WeeklyYAxisValues);
@@ -1998,6 +2000,16 @@ namespace Coftea_Capstone.ViewModel
             {
                 IsLoading = false;
             }
+        }
+
+        [RelayCommand]
+        private async Task ShowProductDetails(string productName)
+        {
+            if (string.IsNullOrWhiteSpace(productName))
+                return;
+
+            ProductDetailPopup.IsVisible = true;
+            await ProductDetailPopup.LoadProductDetailsAsync(productName);
         }
     }
 }
