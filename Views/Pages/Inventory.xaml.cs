@@ -179,12 +179,6 @@ public partial class Inventory : ContentPage
                 try
                 {
                     // Explicitly rebind all popup controls to the new ViewModel instances
-                    if (app?.SettingsPopup != null && SettingsPopupControl != null)
-                    {
-                        SettingsPopupControl.BindingContext = app.SettingsPopup;
-                        System.Diagnostics.Debug.WriteLine("✅ Inventory SettingsPopup binding refreshed");
-                    }
-                    
                     if (app?.NotificationPopup != null && NotificationPopupControl != null)
                     {
                         NotificationPopupControl.BindingContext = app.NotificationPopup;

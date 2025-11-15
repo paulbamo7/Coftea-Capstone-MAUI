@@ -129,6 +129,18 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
+                // Check network connectivity first
+                if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ No internet connection - showing retry popup");
+                    var app = (App)Application.Current;
+                    app?.RetryConnectionPopup?.ShowRetryPopup(
+                        LoadTodaysMetricsAsync,
+                        "No internet connection detected. Please check your network settings and try again."
+                    );
+                    return;
+                }
+                
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)); // Increased timeout
                 System.Diagnostics.Debug.WriteLine("🔄 Starting LoadTodaysMetricsAsync...");
                 

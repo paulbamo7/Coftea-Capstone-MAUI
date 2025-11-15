@@ -232,7 +232,6 @@
         </VerticalStackLayout>
 
         <!-- Popups -->
-        <views:Settings x:Name="SettingsPopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=SettingsPopup}" Grid.ColumnSpan="2" ZIndex="1000"/>
         <otherViews:NotificationPopup x:Name="NotificationPopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="2500"/>
         <otherViews:ProfilePopup x:Name="ProfilePopupControl" BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="2600"/>
         <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="2700"/>

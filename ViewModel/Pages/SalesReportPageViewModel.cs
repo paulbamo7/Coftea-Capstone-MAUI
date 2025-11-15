@@ -710,6 +710,15 @@ namespace Coftea_Capstone.ViewModel
                 StatusMessage = "Loading sales reports...";
                 HasError = false;
 
+                // Check internet connectivity first
+                if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+                {
+                    HasError = true;
+                    StatusMessage = "No internet connection detected.";
+                    GetRetryConnectionPopup().ShowRetryPopup(LoadDataAsync, "No internet connection detected. Please check your network settings and try again.");
+                    return;
+                }
+
                 // Check DB connectivity (XAMPP/MySQL); warn if server is down
                 var dbReachable = await _database.CanConnectAsync(cts.Token);
                 if (!dbReachable)

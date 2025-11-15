@@ -74,7 +74,32 @@ public partial class EmployeeDashboard : ContentPage
 			// Small delay to ensure ViewModels are fully initialized
 			await Task.Delay(100);
 			await RefreshPopupBindings();
-			await LoadTodaysMetricsAsync();
+			
+			// Check network connectivity before loading data
+			var app = (App)Application.Current;
+			var settingsPopup = app?.SettingsPopup;
+			if (settingsPopup != null)
+			{
+				// Check if we have internet connection
+				if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+				{
+					// Show retry popup if no internet
+					app.RetryConnectionPopup?.ShowRetryPopup(
+						async () => await settingsPopup.LoadTodaysMetricsAsync(),
+						"No internet connection detected. Please check your network settings and try again."
+					);
+				}
+				else
+				{
+					// Load data if we have internet
+					await LoadTodaysMetricsAsync();
+				}
+			}
+			else
+			{
+				// If SettingsPopup is not ready, try loading anyway (it will handle the check)
+				await LoadTodaysMetricsAsync();
+			}
 		};
 		
 	// Use shared SettingsPopup from App directly
@@ -122,12 +147,6 @@ public partial class EmployeeDashboard : ContentPage
                 try
                 {
                     // Explicitly rebind all popup controls to the new ViewModel instances
-                    if (app?.SettingsPopup != null && SettingsPopupControl != null)
-                    {
-                        SettingsPopupControl.BindingContext = app.SettingsPopup;
-                        System.Diagnostics.Debug.WriteLine("✅ SettingsPopup binding refreshed");
-                    }
-                    
                     if (app?.NotificationPopup != null && NotificationPopupControl != null)
                     {
                         NotificationPopupControl.BindingContext = app.NotificationPopup;
@@ -305,36 +324,6 @@ public partial class EmployeeDashboard : ContentPage
             System.Diagnostics.Debug.WriteLine($"⚠️ Stack trace: {ex.StackTrace}");
         }
     }
-    
-    private void OnSettingsClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            var app = (App)Application.Current;
-            if (app?.SettingsPopup != null)
-            {
-                app.SettingsPopup.ShowSettingsPopup();
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("⚠️ SettingsPopup is null - ViewModels may not be initialized");
-                // Try to refresh bindings and retry
-                MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    await RefreshPopupBindings();
-                    if (app?.SettingsPopup != null)
-                    {
-                        app.SettingsPopup.ShowSettingsPopup();
-                    }
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"⚠️ Error opening settings: {ex.Message}");
-            System.Diagnostics.Debug.WriteLine($"⚠️ Stack trace: {ex.StackTrace}");
-        }
-    }
 
 	private async Task LoadTodaysMetricsAsync()
 	{
@@ -377,10 +366,6 @@ public partial class EmployeeDashboard : ContentPage
 
     }
     private void SalesReportButton_Clicked(object sender, EventArgs e)
-    {
-
-    }
-    private void SettingsButton_Clicked(object sender, EventArgs e)
     {
 
     }

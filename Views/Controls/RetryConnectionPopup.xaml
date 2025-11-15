@@ -59,20 +59,24 @@
                 <!-- Buttons -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="15" Margin="0,10,0,0">
                     <Button Grid.Column="0"
-                            Text="Cancel"
+                            Text="CANCEL"
                             BackgroundColor="#D2691E"
                             TextColor="White"
                             CornerRadius="10"
                             HeightRequest="40"
+                            FontFamily="MontserratBlack"
+                            FontSize="14"
                             Command="{Binding CancelRetryCommand}"
                             IsEnabled="{Binding IsRetrying, Converter={StaticResource InvertBoolConverter}}" />
                     
                     <Button Grid.Column="1"
-                            Text="Retry"
+                            Text="RETRY"
                             BackgroundColor="#8B4513"
                             TextColor="White"
                             CornerRadius="10"
                             HeightRequest="40"
+                            FontFamily="MontserratBlack"
+                            FontSize="14"
                             Command="{Binding RetryConnectionCommand}"
                             IsEnabled="{Binding IsRetrying, Converter={StaticResource InvertBoolConverter}}" />
                 </Grid>

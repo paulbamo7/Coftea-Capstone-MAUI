@@ -7,6 +7,7 @@ using Coftea_Capstone.C_;
 using System.Linq;
 using Coftea_Capstone.ViewModel.Controls;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Networking;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -167,10 +168,22 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        private RetryConnectionPopupViewModel GetRetryConnectionPopup()
+        {
+            return ((App)Application.Current).RetryConnectionPopup;
+        }
+
         private async Task LoadUsersAsync() // Load users from database and populate the Users collection
         {
             try
             {
+                // Check internet connectivity first
+                if (Microsoft.Maui.Networking.Connectivity.Current.NetworkAccess != Microsoft.Maui.Networking.NetworkAccess.Internet)
+                {
+                    GetRetryConnectionPopup()?.ShowRetryPopup(LoadUsersAsync, "No internet connection detected. Please check your network settings and try again.");
+                    return;
+                }
+
                 System.Diagnostics.Debug.WriteLine("🔧 Loading users from database...");
                 var allUsers = await _database.GetAllUsersAsync();
                 System.Diagnostics.Debug.WriteLine($"🔧 Loaded {allUsers?.Count ?? 0} users from database");
