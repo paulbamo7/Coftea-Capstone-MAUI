@@ -130,7 +130,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             try
             {
-                var inventoryItems = await _database.GetInventoryItemsAsync();
+                var inventoryItems = await _database.GetInventoryItemsAsyncCached();
                 _allAddons.Clear();
                 AvailableAddons.Clear();
 

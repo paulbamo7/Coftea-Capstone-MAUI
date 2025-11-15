@@ -5,6 +5,8 @@ using System.Globalization;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Models.Reports;
 using Coftea_Capstone.C_;
+using System;
+using System.Threading;
 
 namespace Coftea_Capstone.Services
 {
@@ -96,14 +98,21 @@ namespace Coftea_Capstone.Services
 
         public async Task<SalesReportSummary> GetSummaryAsync(DateTime startDate, DateTime endDate)
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            // Use cache for frequently accessed date ranges (today, this week, this month)
+            var cacheKey = $"sales_summary_{startDate:yyyy-MM-dd}_{endDate:yyyy-MM-dd}";
+            var isToday = startDate.Date == DateTime.Today && endDate.Date >= DateTime.Today;
+            var cacheDuration = isToday ? TimeSpan.FromMinutes(1) : TimeSpan.FromMinutes(5);
             
-            try
+            return await CacheService.GetOrSetAsync(cacheKey, async () =>
             {
-                System.Diagnostics.Debug.WriteLine($"🔍 SalesReportService: Getting summary from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
                 
-                // Get all transactions for the date range
-                var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔍 SalesReportService: Getting summary from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+                    
+                    // Get all transactions for the date range
+                    var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
                 System.Diagnostics.Debug.WriteLine($"📊 Found {transactions.Count} transactions");
                 
                 // Calculate basic metrics
@@ -223,55 +232,56 @@ namespace Coftea_Capstone.Services
                     TopFruitSodaWeekly = fruitSodaProducts.Take(5),
                     Reports = new List<SalesReportPageModel>()
                 };
-            }
-            catch (OperationCanceledException)
-            {
-                System.Diagnostics.Debug.WriteLine("⏰ SalesReportService: Operation canceled/timeout");
-                return new SalesReportSummary
+                }
+                catch (OperationCanceledException)
                 {
-                    ActiveDays = 0,
-                    MostBoughtToday = "No data available",
-                    TrendingToday = "No data available",
-                    TrendingPercentage = 0,
-                    TotalSalesToday = 0,
-                    TotalOrdersToday = 0,
-                    TotalOrdersThisWeek = 0,
-                    TopCoffeeToday = new List<TrendItem>(),
-                    TopMilkteaToday = new List<TrendItem>(),
-                    TopFrappeToday = new List<TrendItem>(),
-                    TopFruitSodaToday = new List<TrendItem>(),
-                    TopCoffeeWeekly = new List<TrendItem>(),
-                    TopMilkteaWeekly = new List<TrendItem>(),
-                    TopFrappeWeekly = new List<TrendItem>(),
-                    TopFruitSodaWeekly = new List<TrendItem>(),
-                    Reports = new List<SalesReportPageModel>()
-                };
-            }
-            catch (Exception ex)
-            {
-                // Return empty data on error
-                System.Diagnostics.Debug.WriteLine($"❌ SalesReportService error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
-                return new SalesReportSummary
+                    System.Diagnostics.Debug.WriteLine("⏰ SalesReportService: Operation canceled/timeout");
+                    return new SalesReportSummary
+                    {
+                        ActiveDays = 0,
+                        MostBoughtToday = "No data available",
+                        TrendingToday = "No data available",
+                        TrendingPercentage = 0,
+                        TotalSalesToday = 0,
+                        TotalOrdersToday = 0,
+                        TotalOrdersThisWeek = 0,
+                        TopCoffeeToday = new List<TrendItem>(),
+                        TopMilkteaToday = new List<TrendItem>(),
+                        TopFrappeToday = new List<TrendItem>(),
+                        TopFruitSodaToday = new List<TrendItem>(),
+                        TopCoffeeWeekly = new List<TrendItem>(),
+                        TopMilkteaWeekly = new List<TrendItem>(),
+                        TopFrappeWeekly = new List<TrendItem>(),
+                        TopFruitSodaWeekly = new List<TrendItem>(),
+                        Reports = new List<SalesReportPageModel>()
+                    };
+                }
+                catch (Exception ex)
                 {
-                    ActiveDays = 0,
-                    MostBoughtToday = "No data available",
-                    TrendingToday = "No data available",
-                    TrendingPercentage = 0,
-                    TotalSalesToday = 0,
-                    TotalOrdersToday = 0,
-                    TotalOrdersThisWeek = 0,
-                    TopCoffeeToday = new List<TrendItem>(),
-                    TopMilkteaToday = new List<TrendItem>(),
-                    TopFrappeToday = new List<TrendItem>(),
-                    TopFruitSodaToday = new List<TrendItem>(),
-                    TopCoffeeWeekly = new List<TrendItem>(),
-                    TopMilkteaWeekly = new List<TrendItem>(),
-                    TopFrappeWeekly = new List<TrendItem>(),
-                    TopFruitSodaWeekly = new List<TrendItem>(),
-                    Reports = new List<SalesReportPageModel>()
-                };
-            }
+                    // Return empty data on error
+                    System.Diagnostics.Debug.WriteLine($"❌ SalesReportService error: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                    return new SalesReportSummary
+                    {
+                        ActiveDays = 0,
+                        MostBoughtToday = "No data available",
+                        TrendingToday = "No data available",
+                        TrendingPercentage = 0,
+                        TotalSalesToday = 0,
+                        TotalOrdersToday = 0,
+                        TotalOrdersThisWeek = 0,
+                        TopCoffeeToday = new List<TrendItem>(),
+                        TopMilkteaToday = new List<TrendItem>(),
+                        TopFrappeToday = new List<TrendItem>(),
+                        TopFruitSodaToday = new List<TrendItem>(),
+                        TopCoffeeWeekly = new List<TrendItem>(),
+                        TopMilkteaWeekly = new List<TrendItem>(),
+                        TopFrappeWeekly = new List<TrendItem>(),
+                        TopFruitSodaWeekly = new List<TrendItem>(),
+                        Reports = new List<SalesReportPageModel>()
+                    };
+                }
+            }, cacheDuration);
         }
 
         private static (string Key, string Label, DateTime SortDate) ResolveGrouping(TransactionHistoryModel transaction, SalesAggregateGrouping grouping)

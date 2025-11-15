@@ -747,7 +747,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         public async Task LoadInventoryAsync()
         {
-            var list = await _database.GetInventoryItemsAsync();
+            var list = await _database.GetInventoryItemsAsyncCached();
             
             // Load cup sizes from database
             await LoadCupSizesAsync();
@@ -870,7 +870,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             try
             {
                 // Load cup sizes from database - look for Small Cup, Medium Cup, Large Cup
-                var inventoryItems = await _database.GetInventoryItemsAsync();
+                var inventoryItems = await _database.GetInventoryItemsAsyncCached();
                 
                 // Find the specific cup items
                 var smallCup = inventoryItems.FirstOrDefault(item => 
@@ -1536,7 +1536,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         private async Task AddAddons()
         {
             // Load addons from inventory (items categorized as "Addons")
-            var inventoryItems = await _database.GetInventoryItemsAsync();
+            var inventoryItems = await _database.GetInventoryItemsAsyncCached();
             AvailableAddons.Clear();
             SelectedAddons.Clear();
             

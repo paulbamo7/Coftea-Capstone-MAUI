@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Models.Reports;
@@ -341,6 +342,51 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedCategory = "Overview";
 
+        // Advanced filtering properties
+        [ObservableProperty]
+        private ObservableCollection<string> selectedPaymentMethods = new();
+
+        [ObservableProperty]
+        private ObservableCollection<string> selectedCategories = new();
+
+        [ObservableProperty]
+        private ObservableCollection<string> selectedSizes = new();
+
+        public IReadOnlyList<string> AvailablePaymentMethods { get; } = new List<string> { "Cash", "GCash", "Bank" };
+        public IReadOnlyList<string> AvailableSizes { get; } = new List<string> { "Small", "Medium", "Large" };
+
+        // Comparison features
+        [ObservableProperty]
+        private bool isComparisonEnabled;
+
+        [ObservableProperty]
+        private string comparisonType = "PeriodOverPeriod"; // PeriodOverPeriod, YearOverYear, Custom
+
+        [ObservableProperty]
+        private decimal comparisonPeriodSales;
+
+        [ObservableProperty]
+        private string comparisonLabel = string.Empty; // e.g., "vs Last Week"
+
+        // Pagination properties
+        [ObservableProperty]
+        private int currentPage = 1;
+
+        [ObservableProperty]
+        private int pageSize = 50;
+
+        [ObservableProperty]
+        private int totalItems;
+
+        [ObservableProperty]
+        private int totalPages;
+
+        public bool HasNextPage => CurrentPage < TotalPages;
+        public bool HasPreviousPage => CurrentPage > 1;
+
+        // Debouncing for date filter
+        private CancellationTokenSource _dateFilterDebounceCts;
+
         [ObservableProperty]
         private bool showCoffee = true;
 
@@ -474,10 +520,20 @@ namespace Coftea_Capstone.ViewModel
             
             try
             {
-                // Get recent transactions using date filter
+                // Get recent transactions using date filter with advanced filtering
                 var startDate = GetFilterStartDate();
                 var endDate = GetFilterEndDateExclusive();
-                var recentTransactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                
+                // Apply filters if any are selected
+                var (recentTransactions, _) = await _database.GetTransactionsFilteredAsync(
+                    startDate,
+                    endDate,
+                    SelectedPaymentMethods.Count > 0 ? SelectedPaymentMethods.ToList() : null,
+                    SelectedCategories.Count > 0 ? SelectedCategories.ToList() : null,
+                    SelectedSizes.Count > 0 ? SelectedSizes.ToList() : null,
+                    1, // First page for recent orders
+                    10 // Show 10 most recent
+                );
                 
                 // Sort by transaction date descending and take the most recent 10
                 var sortedTransactions = recentTransactions
@@ -744,8 +800,25 @@ namespace Coftea_Capstone.ViewModel
                 TotalOrdersToday = summary.TotalOrdersToday;
                 TotalOrdersThisWeek = summary.TotalOrdersThisWeek;
 
-                // Load recent orders
+                // Load recent orders (with pagination)
                 await LoadRecentOrdersAsync();
+
+                // Update pagination info
+                var paginationStartDate = GetFilterStartDate();
+                var paginationEndDate = GetFilterEndDateExclusive();
+                var (_, totalCount) = await _database.GetTransactionsFilteredAsync(
+                    paginationStartDate,
+                    paginationEndDate,
+                    SelectedPaymentMethods.ToList(),
+                    SelectedCategories.ToList(),
+                    SelectedSizes.ToList(),
+                    CurrentPage,
+                    PageSize
+                );
+                TotalItems = totalCount;
+                TotalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+                OnPropertyChanged(nameof(HasNextPage));
+                OnPropertyChanged(nameof(HasPreviousPage));
 
                 // Calculate payment method totals for today
                 await CalculatePaymentMethodTotalsAsync();
@@ -992,9 +1065,22 @@ namespace Coftea_Capstone.ViewModel
                         }
                     }
 
-                    // Reload data with the new date filter
+                    // Reload data with the new date filter (debounced)
                     SelectedTimePeriod = "All Time";
-                    _ = LoadDataAsync();
+                    _dateFilterDebounceCts?.Cancel();
+                    _dateFilterDebounceCts = new CancellationTokenSource();
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await Task.Delay(500, _dateFilterDebounceCts.Token); // 500ms debounce
+                            await LoadDataAsync();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Debounce was cancelled, ignore
+                        }
+                    });
                 }, SelectedStartDate, SelectedEndDate);
             }
             catch (Exception ex)
@@ -2019,6 +2105,234 @@ namespace Coftea_Capstone.ViewModel
 
             ProductDetailPopup.IsVisible = true;
             await ProductDetailPopup.LoadProductDetailsAsync(productName);
+        }
+
+        // ===================== Advanced Filtering Methods =====================
+
+        [RelayCommand]
+        private void TogglePaymentMethodFilter(string paymentMethod)
+        {
+            if (SelectedPaymentMethods.Contains(paymentMethod))
+            {
+                SelectedPaymentMethods.Remove(paymentMethod);
+            }
+            else
+            {
+                SelectedPaymentMethods.Add(paymentMethod);
+            }
+            ApplyAdvancedFilters();
+        }
+
+        [RelayCommand]
+        private void ToggleCategoryFilter(string category)
+        {
+            if (SelectedCategories.Contains(category))
+            {
+                SelectedCategories.Remove(category);
+            }
+            else
+            {
+                SelectedCategories.Add(category);
+            }
+            ApplyAdvancedFilters();
+        }
+
+        [RelayCommand]
+        private void ToggleSizeFilter(string size)
+        {
+            if (SelectedSizes.Contains(size))
+            {
+                SelectedSizes.Remove(size);
+            }
+            else
+            {
+                SelectedSizes.Add(size);
+            }
+            ApplyAdvancedFilters();
+        }
+
+        [RelayCommand]
+        private void ClearAllFilters()
+        {
+            SelectedPaymentMethods.Clear();
+            SelectedCategories.Clear();
+            SelectedSizes.Clear();
+            ApplyAdvancedFilters();
+        }
+
+        private async void ApplyAdvancedFilters()
+        {
+            // Debounce filter application
+            _dateFilterDebounceCts?.Cancel();
+            _dateFilterDebounceCts = new CancellationTokenSource();
+            
+            try
+            {
+                await Task.Delay(500, _dateFilterDebounceCts.Token); // 500ms debounce
+                await LoadDataAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                // Debounce was cancelled, ignore
+            }
+        }
+
+        // ===================== Enhanced Comparison Methods =====================
+
+        [RelayCommand]
+        private async Task ToggleComparison()
+        {
+            IsComparisonEnabled = !IsComparisonEnabled;
+            if (IsComparisonEnabled)
+            {
+                await CalculateEnhancedComparisonAsync();
+            }
+        }
+
+        [RelayCommand]
+        private async Task ChangeComparisonType(string type)
+        {
+            ComparisonType = type;
+            if (IsComparisonEnabled)
+            {
+                await CalculateEnhancedComparisonAsync();
+            }
+        }
+
+        private async Task CalculateEnhancedComparisonAsync()
+        {
+            try
+            {
+                DateTime comparisonStart, comparisonEnd;
+                string label;
+
+                switch (ComparisonType)
+                {
+                    case "PeriodOverPeriod":
+                        // This week vs last week
+                        var today = DateTime.Today;
+                        var weekStart = today.AddDays(-(int)today.DayOfWeek);
+                        var weekEnd = weekStart.AddDays(7);
+                        var lastWeekStart = weekStart.AddDays(-7);
+                        var lastWeekEnd = weekStart;
+                        
+                        comparisonStart = lastWeekStart;
+                        comparisonEnd = lastWeekEnd;
+                        label = "vs Last Week";
+                        break;
+
+                    case "YearOverYear":
+                        // This month vs same month last year
+                        var currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                        var lastYearMonth = currentMonth.AddYears(-1);
+                        
+                        comparisonStart = lastYearMonth;
+                        comparisonEnd = lastYearMonth.AddMonths(1);
+                        label = $"vs {lastYearMonth:MMMM yyyy}";
+                        break;
+
+                    default:
+                        // Use existing comparison logic
+                        await CalculateComparisonPeriodTotalsAsync();
+                        ComparisonPeriodSales = ComparisonTotalSales;
+                        ComparisonLabel = ComparisonPeriodLabel;
+                        OnPropertyChanged(nameof(ComparisonDifference));
+                        OnPropertyChanged(nameof(ComparisonPercentageChange));
+                        OnPropertyChanged(nameof(ComparisonDifferenceText));
+                        OnPropertyChanged(nameof(ComparisonPercentageText));
+                        OnPropertyChanged(nameof(IsComparisonPositive));
+                        return;
+                }
+
+                // Get comparison period totals
+                var comparisonTransactions = await _database.GetTransactionsByDateRangeAsync(comparisonStart, comparisonEnd);
+                ComparisonPeriodSales = comparisonTransactions.Sum(t => t.Total);
+                ComparisonTotalSales = ComparisonPeriodSales; // Update for existing comparison properties
+                ComparisonLabel = label;
+                ComparisonPeriodLabel = label; // Update for existing comparison properties
+
+                OnPropertyChanged(nameof(ComparisonDifference));
+                OnPropertyChanged(nameof(ComparisonPercentageChange));
+                OnPropertyChanged(nameof(ComparisonDifferenceText));
+                OnPropertyChanged(nameof(ComparisonPercentageText));
+                OnPropertyChanged(nameof(IsComparisonPositive));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error calculating enhanced comparison: {ex.Message}");
+            }
+        }
+
+        // ===================== Pagination Methods =====================
+
+        [RelayCommand]
+        private async Task GoToNextPage()
+        {
+            if (HasNextPage)
+            {
+                CurrentPage++;
+                await LoadDataAsync();
+            }
+        }
+
+        [RelayCommand]
+        private async Task GoToPreviousPage()
+        {
+            if (HasPreviousPage)
+            {
+                CurrentPage--;
+                await LoadDataAsync();
+            }
+        }
+
+        [RelayCommand]
+        private async Task GoToPage(int page)
+        {
+            if (page >= 1 && page <= TotalPages)
+            {
+                CurrentPage = page;
+                await LoadDataAsync();
+            }
+        }
+
+        partial void OnSelectedStartDateChanged(DateTime? value)
+        {
+            // Debounce date filter changes
+            _dateFilterDebounceCts?.Cancel();
+            _dateFilterDebounceCts = new CancellationTokenSource();
+            
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(800, _dateFilterDebounceCts.Token); // 800ms debounce for date changes
+                    await LoadDataAsync();
+                }
+                catch (OperationCanceledException)
+                {
+                    // Debounce was cancelled, ignore
+                }
+            });
+        }
+
+        partial void OnSelectedEndDateChanged(DateTime? value)
+        {
+            // Debounce date filter changes
+            _dateFilterDebounceCts?.Cancel();
+            _dateFilterDebounceCts = new CancellationTokenSource();
+            
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(800, _dateFilterDebounceCts.Token); // 800ms debounce for date changes
+                    await LoadDataAsync();
+                }
+                catch (OperationCanceledException)
+                {
+                    // Debounce was cancelled, ignore
+                }
+            });
         }
     }
 }

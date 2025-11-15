@@ -2244,6 +2244,135 @@ namespace Coftea_Capstone.Models
             return transactions;
         }
 
+        /// <summary>
+        /// Gets transactions with advanced filtering and pagination support
+        /// </summary>
+        public async Task<(List<TransactionHistoryModel> Transactions, int TotalCount)> GetTransactionsFilteredAsync(
+            DateTime startDate, 
+            DateTime endDate,
+            List<string> paymentMethods = null,
+            List<string> categories = null,
+            List<string> sizes = null,
+            int page = 1,
+            int pageSize = 50)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            // Build WHERE clause with filters
+            var whereConditions = new List<string> { "t.transactionDate >= @StartDate AND t.transactionDate < @EndDate" };
+            var parameters = new Dictionary<string, object>
+            {
+                { "@StartDate", startDate },
+                { "@EndDate", endDate }
+            };
+
+            if (paymentMethods != null && paymentMethods.Count > 0)
+            {
+                var paymentPlaceholders = string.Join(",", paymentMethods.Select((_, i) => $"@PaymentMethod{i}"));
+                whereConditions.Add($"t.paymentMethod IN ({paymentPlaceholders})");
+                for (int i = 0; i < paymentMethods.Count; i++)
+                {
+                    parameters.Add($"@PaymentMethod{i}", paymentMethods[i]);
+                }
+            }
+
+            if (sizes != null && sizes.Count > 0)
+            {
+                var sizePlaceholders = string.Join(",", sizes.Select((_, i) => $"@Size{i}"));
+                whereConditions.Add($"ti.size IN ({sizePlaceholders})");
+                for (int i = 0; i < sizes.Count; i++)
+                {
+                    parameters.Add($"@Size{i}", sizes[i]);
+                }
+            }
+
+            var whereClause = string.Join(" AND ", whereConditions);
+
+            // Get total count
+            var countSql = $@"SELECT COUNT(DISTINCT t.transactionID) as totalCount
+                            FROM transactions t
+                            LEFT JOIN transaction_items ti ON t.transactionID = ti.transactionID
+                            WHERE {whereClause}";
+
+            await using var countCmd = new MySqlCommand(countSql, conn);
+            AddParameters(countCmd, parameters);
+            var totalCount = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+
+            // Get paginated transactions
+            var offset = (page - 1) * pageSize;
+            var sql = $@"SELECT t.transactionID, t.total, t.transactionDate, t.status, t.paymentMethod,
+                        ti.productName, ti.quantity, ti.price, ti.smallPrice, ti.mediumPrice, ti.largePrice, ti.addonPrice, ti.addOns, ti.size
+                        FROM transactions t
+                        LEFT JOIN transaction_items ti ON t.transactionID = ti.transactionID
+                        WHERE {whereClause}
+                        ORDER BY t.transactionDate DESC
+                        LIMIT @PageSize OFFSET @Offset";
+
+            await using var cmd = new MySqlCommand(sql, conn);
+            AddParameters(cmd, parameters);
+            cmd.Parameters.AddWithValue("@PageSize", pageSize);
+            cmd.Parameters.AddWithValue("@Offset", offset);
+
+            var transactions = new List<TransactionHistoryModel>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var transaction = new TransactionHistoryModel
+                {
+                    TransactionId = reader.GetInt32("transactionID"),
+                    Total = reader.GetDecimal("total"),
+                    TransactionDate = reader.GetDateTime("transactionDate"),
+                    Status = reader.GetString("status"),
+                    PaymentMethod = reader.IsDBNull(reader.GetOrdinal("paymentMethod")) ? "Cash" : reader.GetString("paymentMethod")
+                };
+
+                if (!reader.IsDBNull(reader.GetOrdinal("productName")))
+                {
+                    transaction.DrinkName = reader.GetString("productName");
+                    transaction.Quantity = reader.GetInt32("quantity");
+                    transaction.Price = reader.GetDecimal("price");
+                    
+                    try
+                    {
+                        transaction.SmallPrice = reader.IsDBNull(reader.GetOrdinal("smallPrice")) ? 0 : reader.GetDecimal("smallPrice");
+                        transaction.MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice");
+                        transaction.LargePrice = reader.IsDBNull(reader.GetOrdinal("largePrice")) ? 0 : reader.GetDecimal("largePrice");
+                        transaction.AddonPrice = reader.IsDBNull(reader.GetOrdinal("addonPrice")) ? 0 : reader.GetDecimal("addonPrice");
+                    }
+                    catch
+                    {
+                        // Fallback for old schema
+                        transaction.SmallPrice = 0;
+                        transaction.MediumPrice = 0;
+                        transaction.LargePrice = 0;
+                        transaction.AddonPrice = 0;
+                    }
+                    
+                    transaction.Size = reader.IsDBNull(reader.GetOrdinal("size")) ? "" : reader.GetString("size");
+                    transaction.AddOns = reader.IsDBNull(reader.GetOrdinal("addOns")) ? "No add-ons" : reader.GetString("addOns");
+                }
+
+                transactions.Add(transaction);
+            }
+
+            // Apply category filter in memory (since categories are in products table)
+            if (categories != null && categories.Count > 0)
+            {
+                var allProducts = await GetProductsAsyncCached();
+                var categoryProducts = allProducts
+                    .Where(p => categories.Contains(p.Category, StringComparer.OrdinalIgnoreCase))
+                    .Select(p => p.ProductName)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                transactions = transactions
+                    .Where(t => !string.IsNullOrWhiteSpace(t.DrinkName) && categoryProducts.Contains(t.DrinkName))
+                    .ToList();
+            }
+
+            return (transactions, totalCount);
+        }
+
         public async Task<Dictionary<string, int>> GetTopProductsByDateRangeAsync(DateTime startDate, DateTime endDate, int limit = 10)
         {
             await using var conn = await GetOpenConnectionAsync();

@@ -98,7 +98,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 MonthSales = monthTransactions.Sum(t => t.Total);
 
                 // Get product category
-                var products = await _database.GetProductsAsync();
+                var products = await _database.GetProductsAsyncCached();
                 var product = products.FirstOrDefault(p => p.ProductName?.Equals(productName, StringComparison.OrdinalIgnoreCase) == true);
                 ProductCategory = product?.Category ?? "Unknown";
             }
