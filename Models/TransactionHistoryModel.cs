@@ -68,5 +68,25 @@ namespace Coftea_Capstone.Models
         public string FormattedVAT => $"P{Vat:F2}";
         
         public string FormattedTotal => $"P{Total:F2}";
+        
+        // Display all sizes with their prices
+        public string AllSizesDisplay
+        {
+            get
+            {
+                var sizes = new System.Collections.Generic.List<string>();
+                if (SmallPrice > 0) sizes.Add($"S: ₱{SmallPrice:F2}");
+                if (MediumPrice > 0) sizes.Add($"M: ₱{MediumPrice:F2}");
+                if (LargePrice > 0) sizes.Add($"L: ₱{LargePrice:F2}");
+                
+                if (sizes.Count == 0)
+                {
+                    // Fallback to the stored size if no price breakdown
+                    return string.IsNullOrWhiteSpace(Size) ? "-" : Size;
+                }
+                
+                return string.Join("\n", sizes);
+            }
+        }
     }
 }
