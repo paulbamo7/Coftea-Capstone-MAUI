@@ -103,6 +103,25 @@ namespace Coftea_Capstone.Models
         public ObservableCollection<InventoryPageModel> MediumAddons { get; set; } = new();
         public ObservableCollection<InventoryPageModel> LargeAddons { get; set; } = new();
 
+        // Size breakdown properties for display
+        public decimal SmallSubtotal => SmallQuantity > 0 && SmallPrice.HasValue ? SmallQuantity * SmallPrice.Value : 0;
+        public decimal MediumSubtotal => MediumQuantity > 0 ? MediumQuantity * MediumPrice : 0;
+        public decimal LargeSubtotal => LargeQuantity > 0 ? LargeQuantity * LargePrice : 0;
+        
+        public bool HasSmall => SmallQuantity > 0 && SmallPrice.HasValue;
+        public bool HasMedium => MediumQuantity > 0;
+        public bool HasLarge => LargeQuantity > 0;
+        
+        // Display strings for size breakdown
+        public string SmallDisplay => HasSmall ? $"₱{SmallPrice.Value:F2} × {SmallQuantity}" : "";
+        public string MediumDisplay => HasMedium ? $"₱{MediumPrice:F2} × {MediumQuantity}" : "";
+        public string LargeDisplay => HasLarge ? $"₱{LargePrice:F2} × {LargeQuantity}" : "";
+        
+        // Compact display strings with size prefix
+        public string SmallDisplayCompact => HasSmall ? $"S: {SmallDisplay}" : "";
+        public string MediumDisplayCompact => HasMedium ? $"M: {MediumDisplay}" : "";
+        public string LargeDisplayCompact => HasLarge ? $"L: {LargeDisplay}" : "";
+
         private string GetSizeDisplay() // Displays quantities for each size
         {
             var sizes = new List<string>();

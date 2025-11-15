@@ -402,37 +402,44 @@
                                 <CollectionView ItemsSource="{Binding CartItems}" HeightRequest="300">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Padding="8,4" Margin="0,2">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <!-- Product Name and Sizes -->
-                                                <StackLayout Grid.Column="0" Spacing="2">
-                                                    <Label Text="{Binding ProductName}" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="Black" />
-                                                    <StackLayout Orientation="Horizontal" Spacing="8">
-                                                        <Label Text="{Binding SmallQuantity, StringFormat='S:{0}'}" 
-                                                               FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" 
-                                                               IsVisible="{Binding SmallQuantity, Converter={StaticResource IsPositiveConverter}}" />
-                                                        <Label Text="{Binding MediumQuantity, StringFormat='M:{0}'}" 
-                                                               FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" 
-                                                               IsVisible="{Binding MediumQuantity, Converter={StaticResource IsPositiveConverter}}" />
-                                                        <Label Text="{Binding LargeQuantity, StringFormat='L:{0}'}" 
-                                                               FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" 
-                                                               IsVisible="{Binding LargeQuantity, Converter={StaticResource IsPositiveConverter}}" />
+                                            <Border StrokeThickness="0" Padding="10,8" Margin="0,3" BackgroundColor="#F8F8F8" StrokeShape="RoundRectangle 6">
+                                                <Grid RowDefinitions="Auto, Auto, Auto, Auto">
+                                                    <!-- Product Name -->
+                                                    <Label Grid.Row="0" Text="{Binding ProductName}" 
+                                                           FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" 
+                                                           TextColor="Black" Margin="0,0,0,4" />
+                                                    
+                                                    <!-- Size Breakdown -->
+                                                    <StackLayout Grid.Row="1" Spacing="3" Margin="0,0,0,3">
+                                                        <Label Text="{Binding SmallDisplayCompact}" 
+                                                               FontSize="11" FontFamily="MontserratBlack" TextColor="#666666" 
+                                                               IsVisible="{Binding HasSmall}" />
+                                                        <Label Text="{Binding MediumDisplayCompact}" 
+                                                               FontSize="11" FontFamily="MontserratBlack" TextColor="#666666" 
+                                                               IsVisible="{Binding HasMedium}" />
+                                                        <Label Text="{Binding LargeDisplayCompact}" 
+                                                               FontSize="11" FontFamily="MontserratBlack" TextColor="#666666" 
+                                                               IsVisible="{Binding HasLarge}" />
                                                     </StackLayout>
                                                     
                                                     <!-- Add-ons -->
-                                                    <Label Text="{Binding AddOnsDisplay}" 
-                                                           FontSize="12" FontFamily="MontserratBlack" TextColor="#8B5CF6" 
-                                                           IsVisible="{Binding AddOnsDisplay, Converter={StaticResource NullToBoolConverter}}" />
-                                                </StackLayout>
-                                                
-                                                <!-- Price -->
-                                                <Label Grid.Column="1" Text="{Binding TotalPrice, StringFormat='₱{0:F2}'}" 
-                                                       FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45" VerticalOptions="Center" />
-                                            </Grid>
+                                                    <Label Grid.Row="2" Text="{Binding AddOnsDisplay}" 
+                                                           FontSize="10" FontFamily="MontserratBlack" TextColor="#8B5CF6" 
+                                                           IsVisible="{Binding AddOnsDisplay, Converter={StaticResource NullToBoolConverter}}"
+                                                           Margin="0,0,0,3"
+                                                           LineBreakMode="TailTruncation" />
+                                                    
+                                                    <!-- Item Total -->
+                                                    <Grid Grid.Row="3" ColumnDefinitions="*, Auto">
+                                                        <Label Grid.Column="0" Text="Subtotal:" 
+                                                               FontSize="11" FontFamily="MontserratBlack" FontAttributes="Bold" 
+                                                               TextColor="#5B4F45" />
+                                                        <Label Grid.Column="1" Text="{Binding TotalPrice, StringFormat='₱{0:F2}'}" 
+                                                               FontSize="12" FontFamily="MontserratBlack" FontAttributes="Bold" 
+                                                               TextColor="#5B4F45" />
+                                                    </Grid>
+                                                </Grid>
+                                            </Border>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>

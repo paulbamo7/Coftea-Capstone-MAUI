@@ -1,11 +1,13 @@
 using Coftea_Capstone.Models;
 using MySqlConnector;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Storage;
 using System.IO;
+using System.Threading;
 
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Services;
@@ -17,11 +19,14 @@ namespace Coftea_Capstone.Models
     {
         private readonly string _db;
         // In-memory caches to reduce repeated DB calls during UI updates
+        // Thread-safe caches for concurrent access
         private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(60);
+        private static readonly object _productsCacheLock = new object();
         private static (DateTime ts, List<POSPageModel> items)? _productsCache;
+        private static readonly object _inventoryCacheLock = new object();
         private static (DateTime ts, List<InventoryPageModel> items)? _inventoryCache;
-        private static readonly Dictionary<int, (DateTime ts, List<(InventoryPageModel item, double amount, string unit, string role)> items)> _productIngredientsCache = new();
-        private static readonly Dictionary<int, (DateTime ts, List<InventoryPageModel> items)> _productAddonsCache = new();
+        private static readonly ConcurrentDictionary<int, (DateTime ts, List<(InventoryPageModel item, double amount, string unit, string role)> items)> _productIngredientsCache = new();
+        private static readonly ConcurrentDictionary<int, (DateTime ts, List<InventoryPageModel> items)> _productAddonsCache = new();
 
         // Public properties to expose connection details
         public string Host { get; private set; }
@@ -46,7 +51,14 @@ namespace Coftea_Capstone.Models
                 Database = "coftea_db",
                 UserID = "root",
                 Password = "",
-                SslMode = MySqlSslMode.None
+                SslMode = MySqlSslMode.None,
+                // Connection pool settings for stress testing
+                MaximumPoolSize = 100, // Maximum connections in pool
+                MinimumPoolSize = 5,  // Minimum connections to maintain
+                ConnectionTimeout = 30, // Connection timeout in seconds
+                DefaultCommandTimeout = 30, // Command timeout in seconds
+                ConnectionReset = true, // Reset connection state when retrieved from pool
+                Pooling = true // Enable connection pooling
             }.ConnectionString;
         }
 
@@ -242,12 +254,24 @@ namespace Coftea_Capstone.Models
 
 		// Cache helpers
 		private static bool IsFresh(DateTime ts) => (DateTime.UtcNow - ts) < CacheDuration;
-		private static void InvalidateProductsCache() => _productsCache = null;
-		public void InvalidateInventoryCache() => _inventoryCache = null;
+		private static void InvalidateProductsCache()
+		{
+			lock (_productsCacheLock)
+			{
+				_productsCache = null;
+			}
+		}
+		public void InvalidateInventoryCache()
+		{
+			lock (_inventoryCacheLock)
+			{
+				_inventoryCache = null;
+			}
+		}
 		private static void InvalidateProductLinksCache(int productId)
 		{
-			_productIngredientsCache.Remove(productId);
-			_productAddonsCache.Remove(productId);
+			_productIngredientsCache.TryRemove(productId, out _);
+			_productAddonsCache.TryRemove(productId, out _);
 		}
 
         // Database initialization
@@ -613,16 +637,23 @@ namespace Coftea_Capstone.Models
 			// Restore images from database for products where app data file is missing (background task)
 			_ = Task.Run(async () =>
 			{
-				foreach (var product in products)
+				try
 				{
-					if (!string.IsNullOrWhiteSpace(product.ImageSet))
+					foreach (var product in products)
 					{
-						var imagePath = Services.ImagePersistenceService.GetImagePath(product.ImageSet);
-						if (!File.Exists(imagePath))
+						if (!string.IsNullOrWhiteSpace(product.ImageSet))
 						{
-							await GetProductImageAsync(product.ProductID);
+							var imagePath = Services.ImagePersistenceService.GetImagePath(product.ImageSet);
+							if (!File.Exists(imagePath))
+							{
+								await GetProductImageAsync(product.ProductID);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					System.Diagnostics.Debug.WriteLine($"⚠️ Error in background image restoration task: {ex.Message}");
 				}
 			});
 
@@ -630,11 +661,17 @@ namespace Coftea_Capstone.Models
 		}
 		public async Task<List<POSPageModel>> GetProductsAsyncCached() // Gets all products with caching
         {
-			if (_productsCache.HasValue && IsFresh(_productsCache.Value.ts))
-				return _productsCache.Value.items;
+			lock (_productsCacheLock)
+			{
+				if (_productsCache.HasValue && IsFresh(_productsCache.Value.ts))
+					return _productsCache.Value.items;
+			}
 
 			var items = await GetProductsAsync();
-			_productsCache = (DateTime.UtcNow, items);
+			lock (_productsCacheLock)
+			{
+				_productsCache = (DateTime.UtcNow, items);
+			}
 			return items;
 		}
 
@@ -1232,16 +1269,23 @@ namespace Coftea_Capstone.Models
 			// Restore images from database for inventory items where app data file is missing (background task)
 			_ = Task.Run(async () =>
 			{
-				foreach (var item in items)
+				try
 				{
-					if (!string.IsNullOrWhiteSpace(item.ImageSet))
+					foreach (var item in items)
 					{
-						var imagePath = Services.ImagePersistenceService.GetImagePath(item.ImageSet);
-						if (!File.Exists(imagePath))
+						if (!string.IsNullOrWhiteSpace(item.ImageSet))
 						{
-							await GetInventoryImageAsync(item.itemID);
+							var imagePath = Services.ImagePersistenceService.GetImagePath(item.ImageSet);
+							if (!File.Exists(imagePath))
+							{
+								await GetInventoryImageAsync(item.itemID);
+							}
 						}
 					}
+				}
+				catch (Exception ex)
+				{
+					System.Diagnostics.Debug.WriteLine($"⚠️ Error in background inventory image restoration task: {ex.Message}");
 				}
 			});
 
@@ -1261,11 +1305,17 @@ namespace Coftea_Capstone.Models
 
 		public async Task<List<InventoryPageModel>> GetInventoryItemsAsyncCached() // Gets all inventory items with caching
         {
-			if (_inventoryCache.HasValue && IsFresh(_inventoryCache.Value.ts))
-				return _inventoryCache.Value.items;
+			lock (_inventoryCacheLock)
+			{
+				if (_inventoryCache.HasValue && IsFresh(_inventoryCache.Value.ts))
+					return _inventoryCache.Value.items;
+			}
 
 			var items = await GetInventoryItemsAsync();
-			_inventoryCache = (DateTime.UtcNow, items);
+			lock (_inventoryCacheLock)
+			{
+				_inventoryCache = (DateTime.UtcNow, items);
+			}
 			return items;
 		}
 

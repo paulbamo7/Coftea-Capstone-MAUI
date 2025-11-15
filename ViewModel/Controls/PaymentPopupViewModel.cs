@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.ApplicationModel;
@@ -170,7 +171,11 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
-        private bool _isProcessingPayment = false;
+        private int _isProcessingPayment = 0; // Use int for Interlocked operations (0 = false, 1 = true)
+        private readonly SemaphoreSlim _paymentSemaphore = new SemaphoreSlim(1, 1); // Thread-safe payment processing
+        
+        // Helper property to check if payment is processing (for clarity and to avoid IDE confusion)
+        private bool IsProcessingPayment => Volatile.Read(ref _isProcessingPayment) != 0;
 
         [RelayCommand]
         private async Task ConfirmPayment() // Confirm and process payment
@@ -204,13 +209,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                 }
             }
 
-            if (_isProcessingPayment)
+            // Thread-safe check: Try to acquire semaphore (non-blocking)
+            if (!await _paymentSemaphore.WaitAsync(0))
             {
                 System.Diagnostics.Debug.WriteLine("⚠️ ConfirmPayment aborted because processing is already running");
                 return;
             }
 
-            _isProcessingPayment = true;
+            // Set flag atomically
+            if (Interlocked.CompareExchange(ref _isProcessingPayment, 1, 0) != 0)
+            {
+                _paymentSemaphore.Release();
+                System.Diagnostics.Debug.WriteLine("⚠️ ConfirmPayment aborted because processing is already running");
+                return;
+            }
             var paymentCompleted = false;
 
             try
@@ -476,7 +488,9 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ = AutoClosePaymentPopupAsync();
                 }
 
-                _isProcessingPayment = false;
+                // Thread-safe flag reset and semaphore release
+                Interlocked.Exchange(ref _isProcessingPayment, 0);
+                _paymentSemaphore.Release();
                 _gcashDeepLinkConfirmed = false;
                 _currentGCashCheckoutUrl = null;
                 _currentGCashSourceId = null;
@@ -1242,7 +1256,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             _gcashDeepLinkConfirmed = true;
 
-            if (!_isProcessingPayment && ConfirmPaymentCommand.CanExecute(null))
+            if (!IsProcessingPayment && ConfirmPaymentCommand.CanExecute(null))
             {
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {

@@ -239,12 +239,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 return;
             }
 
-            if (IsCloseConfirmationVisible)
-            {
-                return;
-            }
-
-            IsCloseConfirmationVisible = true;
+            // Close the popup directly
+            IsVisible = false;
         }
 
         [RelayCommand]
