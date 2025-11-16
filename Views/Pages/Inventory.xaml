@@ -12,6 +12,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -313,10 +314,18 @@
                                                                FontSize="12"
                                                                TextColor="#3C3C3C"
                                                                LineBreakMode="WordWrap" />
+                                                        <Label Text="Description:"
+                                                               FontSize="12"
+                                                               FontAttributes="Bold"
+                                                               TextColor="#5B4F45"
+                                                               IsVisible="{Binding itemDescription, Converter={StaticResource StringToBoolConverter}}"
+                                                               Margin="0,4,0,0"/>
                                                         <Label Text="{Binding itemDescription}"
                                                                FontSize="12"
                                                                TextColor="#5B4F45"
-                                                               LineBreakMode="WordWrap" />
+                                                               LineBreakMode="WordWrap"
+                                                               IsVisible="{Binding itemDescription, Converter={StaticResource StringToBoolConverter}}"
+                                                               Margin="0,0,0,4"/>
                                                         <HorizontalStackLayout Spacing="10">
                                                             <Button Text="Edit Item"
                                                                     BackgroundColor="#5B4F45"

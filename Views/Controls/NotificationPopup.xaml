@@ -17,21 +17,29 @@
         <!-- Dropdown positioned below the bell (top-right) -->
         <Grid VerticalOptions="Start" HorizontalOptions="End" Margin="0,60,45,0" InputTransparent="False">
             <Frame Padding="12" BackgroundColor="#FFFFFF" CornerRadius="14" HasShadow="True" WidthRequest="250">
-                <VerticalStackLayout Spacing="10">
-                    <!-- Individual notification items (limited height ~3 items, scrollable) -->
+                <VerticalStackLayout Spacing="6">
+                    <!-- Individual notification items (limited height, scrollable) -->
                     <CollectionView ItemsSource="{Binding Notifications}"
                                     SelectionMode="None"
                                     ItemsLayout="VerticalList"
                                     HeightRequest="240"
                                     VerticalScrollBarVisibility="Always">
+                        <CollectionView.Triggers>
+                            <DataTrigger TargetType="CollectionView" Binding="{Binding IsExpanded}" Value="False">
+                                <Setter Property="HeightRequest" Value="240"/>
+                            </DataTrigger>
+                            <DataTrigger TargetType="CollectionView" Binding="{Binding IsExpanded}" Value="True">
+                                <Setter Property="HeightRequest" Value="480"/>
+                            </DataTrigger>
+                        </CollectionView.Triggers>
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Frame BackgroundColor="#E9E1D9" CornerRadius="15" Padding="12" HasShadow="False">
-                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
-                                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16" FontFamily="MontserratBlack" TextColor="Black"/>
-                                        <Label Grid.Row="1" Text="{Binding Message}" FontSize="13" FontFamily="MontserratBlack" TextColor="Black"/>
-                                        <Label Grid.Row="2" Text="{Binding Type}" FontSize="11" FontFamily="MontserratBlack" TextColor="Gray" HorizontalOptions="Start"/>
-                                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding CreatedAt, StringFormat='{0:HH:mm}'}" FontSize="11" FontFamily="MontserratBlack" TextColor="Gray" HorizontalOptions="End"/>
+                                <Frame BackgroundColor="#E9E1D9" CornerRadius="12" Padding="8" HasShadow="False" Margin="0,0,0,4">
+                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="2">
+                                        <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="13" FontFamily="MontserratBlack" TextColor="Black"/>
+                                        <Label Grid.Row="1" Text="{Binding Message}" FontSize="11" FontFamily="MontserratBlack" TextColor="Black" LineBreakMode="TailTruncation" MaxLines="2"/>
+                                        <Label Grid.Row="2" Text="{Binding Type}" FontSize="9" FontFamily="MontserratBlack" TextColor="Gray" HorizontalOptions="Start"/>
+                                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding CreatedAt, StringFormat='{0:h:mm tt}'}" FontSize="9" FontFamily="MontserratBlack" TextColor="Gray" HorizontalOptions="End"/>
                                     </Grid>
                                 </Frame>
                             </DataTemplate>
@@ -40,9 +48,17 @@
 
                     <!-- Action buttons -->
                     <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
-                        <Label Text="View All" TextDecorations="Underline" TextColor="#1F4E79" HorizontalOptions="Center">
+                        <Label TextDecorations="Underline" TextColor="#1F4E79" HorizontalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsExpanded}" Value="False">
+                                    <Setter Property="Text" Value="Expand"/>
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsExpanded}" Value="True">
+                                    <Setter Property="Text" Value="Collapse"/>
+                                </DataTrigger>
+                            </Label.Triggers>
                             <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding CloseNotificationCommand}"/>
+                                <TapGestureRecognizer Command="{Binding ToggleExpandCommand}"/>
                             </Label.GestureRecognizers>
                         </Label>
                         <Label Text="Clear All" TextDecorations="Underline" TextColor="#D9534F" HorizontalOptions="Center">

@@ -179,11 +179,11 @@
                             <!-- Chart area with grid lines and bars -->
                             <Grid Grid.Column="1" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End">
                                 <!-- Y-axis grid lines -->
-                                <BoxView Grid.Row="0" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                <BoxView Grid.Row="1" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                <BoxView Grid.Row="2" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                <BoxView Grid.Row="3" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                <BoxView Grid.Row="4" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
                                 
                                 <!-- X-axis line -->
                                 <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>

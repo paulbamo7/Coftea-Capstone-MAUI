@@ -173,7 +173,7 @@
                     </VerticalStackLayout>
 
                     <!-- Middle Column: Top 3 Picks Today - Pie Chart -->
-                    <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" HeightRequest="240" VerticalOptions="Start">
+                    <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" VerticalOptions="Start">
                         <Grid RowDefinitions="Auto,*,Auto">
                             <!-- Header -->
                             <Grid ColumnDefinitions="*,Auto">
@@ -201,9 +201,9 @@
                                                       Item3HasTrend="{Binding Item3HasTrend}"/>
 
                                 <VerticalStackLayout Grid.Column="1"
-                                                     Spacing="14"
+                                                     Spacing="10"
                                                      HorizontalOptions="Start"
-                                                     VerticalOptions="Center"
+                                                     VerticalOptions="Start"
                                                      Margin="8,10,8,10">
                                     <Grid ColumnDefinitions="Auto,*"
                                           RowDefinitions="Auto,Auto"
@@ -256,7 +256,8 @@
                                     <Grid ColumnDefinitions="Auto,*"
                                           RowDefinitions="Auto,Auto"
                                           ColumnSpacing="8"
-                                          RowSpacing="2">
+                                          RowSpacing="2"
+                                          VerticalOptions="Start">
                                         <BoxView Grid.RowSpan="2"
                                                  WidthRequest="10"
                                                  HeightRequest="10"
@@ -269,13 +270,15 @@
                                                TextColor="#5B4F45"
                                                LineBreakMode="WordWrap"
                                                MaxLines="2"
-                                               HorizontalOptions="Start"/>
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Start"/>
                                         <Label Grid.Column="1"
                                                Grid.Row="1"
                                                Text="{Binding Item3Count, StringFormat='{0} orders'}"
                                                FontSize="12"
                                                TextColor="Gray"
-                                               HorizontalOptions="Start"/>
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Start"/>
                                     </Grid>
                                 </VerticalStackLayout>
                             </Grid>
@@ -384,11 +387,11 @@
                                 <!-- Chart area with grid lines and bars -->
                                 <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End">
                                     <!-- Y-axis grid lines -->
-                                    <BoxView Grid.Row="0" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="1" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="2" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="3" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="4" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
                                     
                                     <!-- X-axis line -->
                                     <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
@@ -412,7 +415,7 @@
                                     </CollectionView>
                                 </Grid>
                             </Grid>
-                            <CollectionView ItemsSource="{Binding TopItemsWeekly}" HeightRequest="60" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
+                            <CollectionView ItemsSource="{Binding TopItemsWeekly}" HeightRequest="100" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
@@ -487,11 +490,11 @@
                                 <!-- Chart area with grid lines and bars -->
                                 <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End">
                                     <!-- Y-axis grid lines -->
-                                    <BoxView Grid.Row="0" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="1" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="2" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="3" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="4" Color="#E0E0E0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
                                     
                                     <!-- X-axis line -->
                                     <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
@@ -515,7 +518,7 @@
                                     </CollectionView>
                                 </Grid>
                             </Grid>
-                            <CollectionView ItemsSource="{Binding TopItemsMonthly}" HeightRequest="60" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
+                            <CollectionView ItemsSource="{Binding TopItemsMonthly}" HeightRequest="100" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,0">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
@@ -560,15 +563,20 @@
                                     Padding="12,6"/>
                         </Grid>
 
-                        <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsAggregateSectionVisible}">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" IsVisible="{Binding IsAggregateSectionVisible}">
                             <Label Text="Group by:" FontSize="12" TextColor="#5B4F45" VerticalOptions="Center"/>
-                            <Picker Grid.Column="1"
-                                    ItemsSource="{Binding AggregateModes}"
-                                    SelectedItem="{Binding SelectedAggregateMode}"
+                            <Button Grid.Column="1"
+                                    Text="{Binding SelectedAggregateMode}"
                                     FontSize="12"
-                                    TextColor="#5B4F45"
-                                    HorizontalOptions="End"
-                                    WidthRequest="200"/>
+                                    FontAttributes="Bold"
+                                    TextColor="#2E7D32"
+                                    BackgroundColor="White"
+                                    BorderColor="#C8E6C9"
+                                    BorderWidth="1"
+                                    CornerRadius="8"
+                                    Padding="12,6"
+                                    Command="{Binding ShowAggregateModePickerCommand}"
+                                    HorizontalOptions="Start"/>
                         </Grid>
 
                         <ActivityIndicator IsVisible="{Binding IsAggregateLoading}" IsRunning="{Binding IsAggregateLoading}" Color="#2E7D32"/>
@@ -577,19 +585,28 @@
                             <StackLayout IsVisible="{Binding HasAggregateRows}">
                                 <ScrollView Orientation="Horizontal">
                                     <VerticalStackLayout Spacing="8">
-                                        <Border Stroke="#D5C3AB" StrokeThickness="1" StrokeShape="RoundRectangle 6" Padding="0">
-                                            <Grid ColumnDefinitions="180,80,120,120,120,120" Padding="0,0,8,0" RowDefinitions="Auto">
+                                        <Button Text="Browse Products"
+                                                BackgroundColor="#FFB3D9"
+                                                TextColor="#5B4F45"
+                                                FontAttributes="Bold"
+                                                HeightRequest="36"
+                                                CornerRadius="10"
+                                                Padding="12,6"
+                                                Command="{Binding BrowseProductsCommand}"
+                                                HorizontalOptions="Start"/>
+                                        <Border BackgroundColor="#FFF5EC" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="0">
+                                            <Grid ColumnDefinitions="220,80,120,120,120,120" Padding="0,0,8,0" RowDefinitions="Auto">
                                                 <Label Text="Group" FontAttributes="Bold" TextColor="#5B4F45" Padding="12,8"/>
-                                                <BoxView Grid.Column="1" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="1" Text="Total Qty" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="2" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="2" Text="Total Revenue" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="3" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="3" Text="Cash (Qty / ₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="4" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="4" Text="GCash (Qty / ₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="5" Color="#E0E0E0" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="5" Text="Bank (Qty / ₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="1" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="1" Text="Qty" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="2" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="2" Text="Revenue (₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="3" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="3" Text="Cash" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="4" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="4" Text="GCash" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                                <BoxView Grid.Column="5" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="5" Text="Bank" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
                                             </Grid>
                                         </Border>
 
@@ -599,31 +616,61 @@
                                             </CollectionView.ItemsLayout>
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Stroke="#E0D4C3" StrokeThickness="1" StrokeShape="RoundRectangle 4" Padding="0">
-                                                        <Grid ColumnDefinitions="180,80,120,120,120,120" ColumnSpacing="0" Padding="0,6,8,6">
-                                                            <Label Text="{Binding GroupLabel}" TextColor="#4A90E2" FontSize="13" LineBreakMode="WordWrap" Padding="12,0" FontAttributes="Bold">
+                                                    <Border Stroke="#EADCCD" StrokeThickness="1" BackgroundColor="{Binding RowBackgroundColor}" StrokeShape="RoundRectangle 8" Padding="0">
+                                                        <Grid ColumnDefinitions="220,80,120,120,120,120" ColumnSpacing="0" Padding="10,10,10,10">
+                                                            <Grid Padding="0" ColumnDefinitions="Auto,*">
+                                                                <Label Text="{Binding GroupLabel}" TextColor="#4A90E2" FontSize="13" LineBreakMode="TailTruncation" Padding="0" FontAttributes="Bold"/>
+                                                                <Button Grid.Column="1"
+                                                                        Text="VIEW"
+                                                                        FontSize="11"
+                                                                        BackgroundColor="#FFB3D9"
+                                                                        TextColor="#5B4F45"
+                                                                        CornerRadius="10"
+                                                                        HeightRequest="26"
+                                                                        Padding="12,2"
+                                                                        HorizontalOptions="End"
+                                                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.ShowProductDetailsCommand}"
+                                                                        CommandParameter="{Binding GroupLabel}"/>
+                                                            </Grid>
                                                                 <Label.GestureRecognizers>
                                                                     <TapGestureRecognizer Command="{Binding Source={x:Reference Root}, Path=BindingContext.ShowProductDetailsCommand}" CommandParameter="{Binding GroupLabel}"/>
                                                                 </Label.GestureRecognizers>
-                                                            </Label>
-                                                            <BoxView Grid.Column="1" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <BoxView Grid.Column="1" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
                                                             <Label Grid.Column="1" Text="{Binding TotalQuantityDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0"/>
-                                                            <BoxView Grid.Column="2" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <Label Grid.Column="2" Text="{Binding TotalRevenueDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0"/>
-                                                            <BoxView Grid.Column="3" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <VerticalStackLayout Grid.Column="3" Spacing="2" HorizontalOptions="Center" Padding="12,0">
-                                                                <Label Text="{Binding Cash.QuantityDisplay}" TextColor="#424242" FontSize="12" HorizontalTextAlignment="Center"/>
-                                                                <Label Text="{Binding Cash.RevenueDisplay}" TextColor="#2E7D32" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                            <BoxView Grid.Column="2" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <Label Grid.Column="2" Text="{Binding TotalRevenueDisplay}" TextColor="#2E7D32" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0" FontAttributes="Bold"/>
+                                                            <BoxView Grid.Column="3" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="3" Spacing="4" HorizontalOptions="Center" Padding="8,0">
+                                                                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                                                                    <Border BackgroundColor="#E8F5E8" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
+                                                                        <Label Text="{Binding Cash.QuantityDisplay}" TextColor="#2E7D32" FontSize="11"/>
+                                                                    </Border>
+                                                                    <Border Grid.Column="1" BackgroundColor="#E8F5E8" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
+                                                                        <Label Text="{Binding Cash.RevenueDisplay}" TextColor="#2E7D32" FontSize="11"/>
+                                                                    </Border>
+                                                                </Grid>
                                                             </VerticalStackLayout>
-                                                            <BoxView Grid.Column="4" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <VerticalStackLayout Grid.Column="4" Spacing="2" HorizontalOptions="Center" Padding="12,0">
-                                                                <Label Text="{Binding GCash.QuantityDisplay}" TextColor="#424242" FontSize="12" HorizontalTextAlignment="Center"/>
-                                                                <Label Text="{Binding GCash.RevenueDisplay}" TextColor="#1976D2" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                            <BoxView Grid.Column="4" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="4" Spacing="4" HorizontalOptions="Center" Padding="8,0">
+                                                                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                                                                    <Border BackgroundColor="#E3F2FD" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
+                                                                        <Label Text="{Binding GCash.QuantityDisplay}" TextColor="#1976D2" FontSize="11"/>
+                                                                    </Border>
+                                                                    <Border Grid.Column="1" BackgroundColor="#E3F2FD" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
+                                                                        <Label Text="{Binding GCash.RevenueDisplay}" TextColor="#1976D2" FontSize="11"/>
+                                                                    </Border>
+                                                                </Grid>
                                                             </VerticalStackLayout>
-                                                            <BoxView Grid.Column="5" Color="#EFE2D3" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <VerticalStackLayout Grid.Column="5" Spacing="2" HorizontalOptions="Center" Padding="12,0">
-                                                                <Label Text="{Binding Bank.QuantityDisplay}" TextColor="#424242" FontSize="12" HorizontalTextAlignment="Center"/>
-                                                                <Label Text="{Binding Bank.RevenueDisplay}" TextColor="#7B1FA2" FontSize="12" HorizontalTextAlignment="Center"/>
+                                                            <BoxView Grid.Column="5" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="5" Spacing="4" HorizontalOptions="Center" Padding="8,0">
+                                                                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
+                                                                    <Border BackgroundColor="#F3E5F5" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
+                                                                        <Label Text="{Binding Bank.QuantityDisplay}" TextColor="#7B1FA2" FontSize="11"/>
+                                                                    </Border>
+                                                                    <Border Grid.Column="1" BackgroundColor="#F3E5F5" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
+                                                                        <Label Text="{Binding Bank.RevenueDisplay}" TextColor="#7B1FA2" FontSize="11"/>
+                                                                    </Border>
+                                                                </Grid>
                                                             </VerticalStackLayout>
                                                         </Grid>
                                                     </Border>
@@ -724,5 +771,7 @@
         
         <!-- Product Detail Popup -->
         <controls:ProductDetailPopup BindingContext="{Binding ProductDetailPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
+        <!-- Product Picker Popup -->
+        <controls:ProductPickerPopup BindingContext="{Binding ProductPickerPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
     </Grid>
 </ContentPage>

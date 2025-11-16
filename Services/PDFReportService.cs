@@ -358,8 +358,8 @@ namespace Coftea_Capstone.Services
                                 SanitizeCell(entry?.RemarksText)
                             };
                         })
-                        .ToList();
-
+                    .ToList();
+                
                     DrawTable(context, headers, rows, weights);
                 }
 

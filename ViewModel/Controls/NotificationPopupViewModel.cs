@@ -12,12 +12,10 @@ namespace Coftea_Capstone.ViewModel.Controls
         
         public ObservableCollection<NotificationItem> Notifications { get; } = new();
         [ObservableProperty] private bool isNotificationVisible = false;
-        [ObservableProperty] private string notificationMessage = "";
-        [ObservableProperty] private string notificationType = "Success"; // Success, Error, Info, Warning
-        [ObservableProperty] private bool isAutoHide = true;
-        [ObservableProperty] private int autoHideDelay = 3000; // 3 seconds
         // Badge count for notification bell
         [ObservableProperty] private int notificationCount = 0;
+        // Expanded state for showing more notifications
+        [ObservableProperty] private bool isExpanded = false;
 
         public NotificationPopupViewModel()
         {
@@ -30,10 +28,6 @@ namespace Coftea_Capstone.ViewModel.Controls
             if (string.IsNullOrWhiteSpace(message))
                 return;
                 
-            NotificationMessage = message;
-            NotificationType = type;
-            IsAutoHide = autoHide;
-            AutoHideDelay = delay;
             NotificationCount++;
         }
 
@@ -60,8 +54,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             Notifications.Insert(0, notification);
             
-            // Keep last 10 in memory, but store more persistently
-            while (Notifications.Count > 10)
+            // Keep last 20 in memory, but store more persistently
+            while (Notifications.Count > 20)
                 Notifications.RemoveAt(Notifications.Count - 1);
             
             NotificationCount++;
@@ -85,12 +79,14 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void CloseNotification() // Close notification popup
         {
             IsNotificationVisible = false;
+            IsExpanded = false; // Reset expanded state when closing
         }
 
+
         [RelayCommand]
-        private void HideNotification() // Hide notification popup
+        private void ToggleExpand() // Toggle expanded state
         {
-            IsNotificationVisible = false;
+            IsExpanded = !IsExpanded;
         }
         public async Task LoadStoredNotificationsAsync() // Load notifications from storage
         {
@@ -183,8 +179,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             
             Notifications.Insert(0, notification);
             
-            // Keep last 10 in memory
-            while (Notifications.Count > 10)
+            // Keep last 20 in memory
+            while (Notifications.Count > 20)
                 Notifications.RemoveAt(Notifications.Count - 1);
             
             NotificationCount++;

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Coftea_Capstone.Views.Controls.ProductPickerPopup"
+             x:Name="Root"
+             IsVisible="{Binding IsVisible}"
+             BackgroundColor="#80000000"
+             InputTransparent="False">
+	<Grid HorizontalOptions="Fill" VerticalOptions="Fill" InputTransparent="False">
+		<!-- Click-blocking overlay -->
+		<BoxView BackgroundColor="#80000000" 
+		         HorizontalOptions="Fill" 
+		         VerticalOptions="Fill"
+		         InputTransparent="False">
+			<BoxView.GestureRecognizers>
+				<TapGestureRecognizer Command="{Binding CloseCommand}"/>
+			</BoxView.GestureRecognizers>
+		</BoxView>
+		
+		<!-- Popup Content -->
+		<Frame HorizontalOptions="Center"
+		       VerticalOptions="Center"
+		       BackgroundColor="White"
+		       InputTransparent="False"
+               CornerRadius="20"
+               HasShadow="True"
+               Padding="0"
+               WidthRequest="820"
+               HeightRequest="560">
+			<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="0" Padding="0">
+				<!-- Header -->
+				<Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="18" ColumnDefinitions="*,Auto">
+					<Label Text="Select a Product" FontSize="18" FontAttributes="Bold" TextColor="White"/>
+					<Button Grid.Column="1" Text="✕" BackgroundColor="Transparent" TextColor="White" FontSize="18" WidthRequest="36" HeightRequest="36" Padding="0" Command="{Binding CloseCommand}"/>
+				</Grid>
+
+				<!-- Category Filters -->
+				<VerticalStackLayout Grid.Row="1" Spacing="8" Padding="16,12,16,0">
+					<ScrollView Orientation="Horizontal" HorizontalOptions="Center">
+						<HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+							<CollectionView ItemsSource="{Binding AvailableCategories}" SelectionMode="Single">
+								<CollectionView.ItemsLayout>
+									<LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
+								</CollectionView.ItemsLayout>
+								<CollectionView.ItemTemplate>
+									<DataTemplate>
+										<Button Text="{Binding .}"
+												HeightRequest="36"
+												Padding="12,6"
+												CornerRadius="16"
+												BackgroundColor="#EFE2D3"
+												TextColor="#5B4F45"
+												FontAttributes="Bold"
+												Command="{Binding Source={x:Reference Root}, Path=BindingContext.SelectCategoryCommand}"
+												CommandParameter="{Binding .}">
+											<Button.Triggers>
+												<DataTrigger TargetType="Button" Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedCategory}" Value="{Binding .}">
+													<Setter Property="BackgroundColor" Value="#D4A574"/>
+													<Setter Property="TextColor" Value="#2b2b2b"/>
+												</DataTrigger>
+											</Button.Triggers>
+										</Button>
+									</DataTemplate>
+								</CollectionView.ItemTemplate>
+							</CollectionView>
+						</HorizontalStackLayout>
+					</ScrollView>
+
+					<!-- Subcategory Filters (visible for Coffee and Fruit/Soda) -->
+					<ScrollView Orientation="Horizontal" IsVisible="{Binding IsSubcategoryVisible}" HorizontalOptions="Center">
+						<HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+							<CollectionView ItemsSource="{Binding AvailableSubcategories}" SelectionMode="Single">
+								<CollectionView.ItemsLayout>
+									<LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
+								</CollectionView.ItemsLayout>
+								<CollectionView.ItemTemplate>
+									<DataTemplate>
+										<Button Text="{Binding .}"
+												HeightRequest="32"
+												Padding="10,4"
+												CornerRadius="14"
+												BackgroundColor="#F6E7EF"
+												TextColor="#5B4F45"
+												FontAttributes="Bold"
+												Command="{Binding Source={x:Reference Root}, Path=BindingContext.SelectSubcategoryCommand}"
+												CommandParameter="{Binding .}">
+											<Button.Triggers>
+												<DataTrigger TargetType="Button" Binding="{Binding Source={x:Reference Root}, Path=BindingContext.SelectedSubcategory}" Value="{Binding .}">
+													<Setter Property="BackgroundColor" Value="#FFB3D9"/>
+													<Setter Property="TextColor" Value="#5B4F45"/>
+												</DataTrigger>
+											</Button.Triggers>
+										</Button>
+									</DataTemplate>
+								</CollectionView.ItemTemplate>
+							</CollectionView>
+						</HorizontalStackLayout>
+					</ScrollView>
+				</VerticalStackLayout>
+
+				<!-- Product Grid -->
+				<CollectionView Grid.Row="2" ItemsSource="{Binding FilteredProducts}" Margin="16,8" SelectionMode="None">
+					<CollectionView.ItemsLayout>
+						<GridItemsLayout Orientation="Vertical" Span="3" HorizontalItemSpacing="12" VerticalItemSpacing="12"/>
+					</CollectionView.ItemsLayout>
+					<CollectionView.ItemTemplate>
+						<DataTemplate>
+							<Border Stroke="#E0D4C3" StrokeThickness="1" StrokeShape="RoundRectangle 12" Margin="0" Padding="10">
+								<VerticalStackLayout Spacing="8" WidthRequest="240">
+									<Frame Padding="0" HasShadow="False" BackgroundColor="#FAF7F2" CornerRadius="10" HeightRequest="120">
+										<Image Source="{Binding ImageSource}" Aspect="AspectFill"/>
+									</Frame>
+									<Label Text="{Binding Name}" FontAttributes="Bold" FontSize="14" TextColor="#5B4F45" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
+									<HorizontalStackLayout Spacing="8" VerticalOptions="Center" HorizontalOptions="Center">
+										<Label Text="{Binding Category}" FontSize="12" TextColor="#8B7355"/>
+										<Button Text="View"
+												BackgroundColor="#FFB3D9"
+												TextColor="#5B4F45"
+												CornerRadius="10"
+												HeightRequest="32"
+												Padding="12,4"
+												Command="{Binding Source={x:Reference Root}, Path=BindingContext.SelectProductCommand}"
+												CommandParameter="{Binding Name}"/>
+									</HorizontalStackLayout>
+								</VerticalStackLayout>
+							</Border>
+						</DataTemplate>
+					</CollectionView.ItemTemplate>
+				</CollectionView>
+
+				<!-- Footer -->
+				<Grid Grid.Row="3" BackgroundColor="#F5F5F5" Padding="16">
+					<HorizontalStackLayout HorizontalOptions="End" Spacing="10">
+						<Button Text="Close" BackgroundColor="#5B4F45" TextColor="White" CornerRadius="12" HeightRequest="40" Command="{Binding CloseCommand}"/>
+					</HorizontalStackLayout>
+				</Grid>
+			</Grid>
+		</Frame>
+	</Grid>
+</ContentView>
+

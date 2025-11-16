@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Coftea_Capstone.ViewModel
@@ -30,6 +29,13 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private string itemCategory = string.Empty;
+
+        public string CategoryDisplayText => string.IsNullOrWhiteSpace(ItemCategory) ? "Select Category" : ItemCategory;
+
+        [ObservableProperty]
+        private bool isCategoryDropdownVisible = false;
+
+        public bool IsAnyDropdownVisible => IsCategoryDropdownVisible;
 
         [ObservableProperty]
         private bool isPiecesOnlyCategory = false;
@@ -120,8 +126,33 @@ namespace Coftea_Capstone.ViewModel
             _database = new Database(); // Will use auto-detected host
         }
 
+        [RelayCommand]
+        private void ShowCategoryPicker()
+        {
+            IsCategoryDropdownVisible = !IsCategoryDropdownVisible;
+        }
+
+        [RelayCommand]
+        private void SelectCategory(string category)
+        {
+            if (!string.IsNullOrWhiteSpace(category) && Categories.Contains(category))
+            {
+                ItemCategory = category;
+                IsCategoryDropdownVisible = false;
+            }
+        }
+
+        [RelayCommand]
+        private void CloseCategoryDropdown()
+        {
+            IsCategoryDropdownVisible = false;
+        }
+
         partial void OnItemCategoryChanged(string value) // Triggered when item category changes
         {
+            // Notify display text change
+            OnPropertyChanged(nameof(CategoryDisplayText));
+
             // Validate that selected category is in the Categories list
             if (!string.IsNullOrWhiteSpace(value) && !Categories.Contains(value))
             {
@@ -383,6 +414,12 @@ namespace Coftea_Capstone.ViewModel
             if (string.IsNullOrWhiteSpace(ItemName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Item name is required.", "OK");
+                return;
+            }
+            // Reject names with no letters (e.g., only digits)
+            if (!ItemName.Any(char.IsLetter))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Item name must contain letters (e.g., 'IPhone 14'). Pure numbers are not allowed.", "OK");
                 return;
             }
 

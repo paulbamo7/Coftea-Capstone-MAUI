@@ -158,8 +158,47 @@
                                 </CollectionView.ItemTemplate>
                             </CollectionView>
 
-                            <!-- Action Buttons -->
-                            <HorizontalStackLayout HorizontalOptions="End" Padding="10" Spacing="15">
+                            <!-- Pagination + Action Buttons -->
+                            <Grid ColumnDefinitions="*,Auto,Auto" Padding="10">
+                                <!-- Pagination controls -->
+                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                                    <Button Text="Prev"
+                                            BackgroundColor="#E0D6CC"
+                                            TextColor="#5B4F45"
+                                            CornerRadius="8"
+                                            HeightRequest="36"
+                                            WidthRequest="80"
+                                            Command="{Binding GoToPreviousPageCommand}"
+                                            IsEnabled="{Binding HasPreviousPage}"/>
+
+                                    <Label Text="{Binding CurrentPage, StringFormat='Page {0}'}"
+                                           FontSize="14"
+                                           TextColor="#5B4F45"
+                                           VerticalTextAlignment="Center"/>
+                                    <Label Text="{Binding TotalPages, StringFormat='of {0}'}"
+                                           FontSize="14"
+                                           TextColor="#8B7355"
+                                           VerticalTextAlignment="Center"
+                                           Margin="4,0,0,0"/>
+
+                                    <Label Text="{Binding TotalUsers, StringFormat='• {0} users'}"
+                                           FontSize="14"
+                                           TextColor="#8B7355"
+                                           VerticalTextAlignment="Center"
+                                           Margin="10,0,0,0"/>
+
+                                    <Button Text="Next"
+                                            BackgroundColor="#E0D6CC"
+                                            TextColor="#5B4F45"
+                                            CornerRadius="8"
+                                            HeightRequest="36"
+                                            WidthRequest="80"
+                                            Command="{Binding GoToNextPageCommand}"
+                                            IsEnabled="{Binding HasNextPage}"/>
+                                </HorizontalStackLayout>
+
+                                <!-- Action Buttons -->
+                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" Padding="0" Spacing="15">
                                 <Button Text="Add User" 
                                         BackgroundColor="#BDAEA2" 
                                         TextColor="#5B4F45" 
@@ -180,8 +219,11 @@
                                         Command="{Binding DeleteUserCommand}" 
                                         WidthRequest="140"
                                         HeightRequest="45"/>
-                                <!-- Test Request removed; access is managed per-user -->
-                            </HorizontalStackLayout>
+                                </HorizontalStackLayout>
+
+                                <!-- Spacer to align buttons to the right -->
+                                <BoxView Grid.Column="2" WidthRequest="1" Opacity="0"/>
+                            </Grid>
 
                         </VerticalStackLayout>
                     </Frame>

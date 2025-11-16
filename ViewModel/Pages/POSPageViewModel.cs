@@ -74,9 +74,29 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnCartItemsChanged(ObservableCollection<POSPageModel> value)
         {
+            // Unsubscribe from previous collection
+            if (CartItems != null)
+            {
+                CartItems.CollectionChanged -= OnCartItemsCollectionChanged;
+            }
+            
+            // Subscribe to new collection
+            if (value != null)
+            {
+                value.CollectionChanged += OnCartItemsCollectionChanged;
+            }
+            
             OnPropertyChanged(nameof(IsCartVisible));
             OnPropertyChanged(nameof(CartCount));
             OnPropertyChanged(nameof(CartHasItems));
+        }
+        
+        private void OnCartItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            // Automatically update cart count when items are added/removed
+            OnPropertyChanged(nameof(CartCount));
+            OnPropertyChanged(nameof(CartHasItems));
+            OnPropertyChanged(nameof(IsCartVisible));
         }
         
         private void OnProcessingQueueItemsChanged()
@@ -514,6 +534,11 @@ namespace Coftea_Capstone.ViewModel
                 CartItems.Add(copy);
                 System.Diagnostics.Debug.WriteLine($"✅ Successfully added to cart! Cart now has {CartItems.Count} items");
 
+                // Immediately update cart count property
+                OnPropertyChanged(nameof(CartCount));
+                OnPropertyChanged(nameof(CartHasItems));
+                OnPropertyChanged(nameof(IsCartVisible));
+
                 // Trigger cart animation in the view
                 try
                 {
@@ -934,8 +959,13 @@ namespace Coftea_Capstone.ViewModel
             if (SelectedProduct?.ProductID == product.ProductID)
                 SelectedProduct = null;
 
-        // Persist cart update
-        _ = _cartStorage.SaveCartAsync(CartItems);
+            // Immediately update cart count property
+            OnPropertyChanged(nameof(CartCount));
+            OnPropertyChanged(nameof(CartHasItems));
+            OnPropertyChanged(nameof(IsCartVisible));
+
+            // Persist cart update
+            _ = _cartStorage.SaveCartAsync(CartItems);
         }
 
 
@@ -1256,6 +1286,12 @@ namespace Coftea_Capstone.ViewModel
         {
             System.Diagnostics.Debug.WriteLine("🧹 Clearing cart in POSPageViewModel");
             CartItems.Clear();
+            
+            // Immediately update cart count property
+            OnPropertyChanged(nameof(CartCount));
+            OnPropertyChanged(nameof(CartHasItems));
+            OnPropertyChanged(nameof(IsCartVisible));
+            
             await _cartStorage.SaveCartAsync(new ObservableCollection<POSPageModel>());
             
             // Also clear and close the cart popup if it's open

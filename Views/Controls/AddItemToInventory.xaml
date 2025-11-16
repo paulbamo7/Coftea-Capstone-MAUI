@@ -16,14 +16,31 @@
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <Grid HorizontalOptions="Center" VerticalOptions="Center">
-        <Frame
-            BackgroundColor="#F8E8D7"
-            CornerRadius="20"
-            HasShadow="True"
-            Padding="0"
-            WidthRequest="1050"
-            HeightRequest="700">
+    <AbsoluteLayout HorizontalOptions="Fill" VerticalOptions="Fill">
+        <!-- Click-blocking overlay -->
+        <BoxView BackgroundColor="#80000000" 
+                 HorizontalOptions="Fill" 
+                 VerticalOptions="Fill"
+                 AbsoluteLayout.LayoutBounds="0,0,1,1"
+                 AbsoluteLayout.LayoutFlags="All"
+                 InputTransparent="{Binding IsAnyDropdownVisible}">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseAddItemToInventoryCommand}"/>
+            </BoxView.GestureRecognizers>
+        </BoxView>
+        
+        <!-- Popup Content -->
+        <Frame HorizontalOptions="Center" 
+               VerticalOptions="Center"
+               BackgroundColor="#F8E8D7"
+               CornerRadius="20"
+               HasShadow="True"
+               Padding="0"
+               WidthRequest="1050"
+               HeightRequest="700"
+               AbsoluteLayout.LayoutBounds="0.5,0.5,-1,-1"
+               AbsoluteLayout.LayoutFlags="PositionProportional"
+               InputTransparent="False">
 
             <Grid ColumnDefinitions="500,2,*" RowDefinitions="*" BackgroundColor="#F8E8D7">
 
@@ -119,13 +136,18 @@
 
                     <!-- PRODUCT CATEGORY -->
                     <Label Text="PRODUCT CATEGORY" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45" Margin="0,20,0,5" />
-                    <Picker Title="Select Category"
-                            ItemsSource="{Binding Categories}"
-                            SelectedItem="{Binding ItemCategory}"
-                            FontSize="17"
+                    <Button x:Name="CategoryButton"
+                            Text="{Binding CategoryDisplayText}"
+                            Command="{Binding ShowCategoryPickerCommand}"
+                            BackgroundColor="White"
                             TextColor="#5B4F45"
-                            TitleColor="#8B7355"
-                            HeightRequest="45"/>
+                            BorderColor="#8B7355"
+                            BorderWidth="1"
+                            CornerRadius="10"
+                            HeightRequest="45"
+                            HorizontalOptions="Start"
+                            Padding="12,8"
+                            WidthRequest="200"/>
                 </VerticalStackLayout>
 
                 <!-- VERTICAL SEPARATOR -->
@@ -264,5 +286,57 @@
                 </ScrollView>
             </Grid>
         </Frame>
-    </Grid>
+        
+        <!-- Category Dropdown (positioned outside popup to extend beyond boundaries) -->
+        <Frame IsVisible="{Binding IsCategoryDropdownVisible}"
+               BackgroundColor="White"
+               CornerRadius="8"
+               HasShadow="True"
+               Padding="0"
+               WidthRequest="200"
+               AbsoluteLayout.LayoutBounds="0.25,0.4,200,300"
+               AbsoluteLayout.LayoutFlags="PositionProportional"
+               ZIndex="10001"
+               InputTransparent="False">
+            <Grid RowDefinitions="Auto,*">
+                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="12,8">
+                    <Label Text="Select Category" 
+                           FontSize="14" FontFamily="MontserratBlack" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           HorizontalOptions="Center"/>
+                    <Button Text="✕" 
+                            FontSize="12" 
+                            TextColor="White" 
+                            BackgroundColor="Transparent" 
+                            HorizontalOptions="End"
+                            Command="{Binding CloseCategoryDropdownCommand}"/>
+                </Grid>
+                <ScrollView Grid.Row="1" 
+                          VerticalOptions="FillAndExpand">
+                    <CollectionView ItemsSource="{Binding Categories}"
+                                  SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="#F8E8D7" 
+                                   CornerRadius="0" 
+                                   Padding="12,10" 
+                                   HasShadow="False"
+                                   Margin="0,0,0,2">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={x:Reference CategoryButton}, Path=BindingContext.SelectCategoryCommand}" 
+                                                          CommandParameter="{Binding .}"/>
+                                </Frame.GestureRecognizers>
+                                <Label Text="{Binding .}" 
+                                       FontSize="14" 
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="#5B4F45"/>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </ScrollView>
+            </Grid>
+        </Frame>
+    </AbsoluteLayout>
 </ContentView>

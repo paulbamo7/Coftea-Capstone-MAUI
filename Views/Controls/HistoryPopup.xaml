@@ -15,12 +15,16 @@
             
             <!-- Shared style for filter buttons -->
             <Style x:Key="FilterButtonStyle" TargetType="Button">
-                <Setter Property="BackgroundColor" Value="LightGray" />
-                <Setter Property="TextColor" Value="Black" />
+                <Setter Property="BackgroundColor" Value="White" />
+                <Setter Property="TextColor" Value="#2E7D32" />
                 <Setter Property="FontAttributes" Value="Bold" />
                 <Setter Property="FontFamily" Value="MontserratBlack" />
                 <Setter Property="FontSize" Value="14" />
-                <Setter Property="HeightRequest" Value="40" />
+                <Setter Property="HeightRequest" Value="36" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="BorderColor" Value="#C8E6C9" />
+                <Setter Property="BorderWidth" Value="1" />
+                <Setter Property="Padding" Value="12,6" />
                 <Setter Property="VisualStateManager.VisualStateGroups">
                     <VisualStateGroupList>
                         <VisualStateGroup x:Name="CommonStates">

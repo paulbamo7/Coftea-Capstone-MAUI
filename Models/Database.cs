@@ -2497,6 +2497,68 @@ namespace Coftea_Capstone.Models
                 CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
             });
         }
+
+        /// <summary>
+        /// Returns a page of users and the total count for pagination.
+        /// </summary>
+        public async Task<(List<UserInfoModel> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            await using var conn = await GetOpenConnectionAsync();
+
+            // Check optional can_access_pos column once per call
+            bool hasPOSColumn = false;
+            try
+            {
+                var checkSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'can_access_pos';";
+                await using var checkCmd = new MySqlCommand(checkSql, conn);
+                hasPOSColumn = await checkCmd.ExecuteScalarAsync() != null;
+            }
+            catch
+            {
+                hasPOSColumn = false;
+            }
+
+            // Get total count
+            var countSql = "SELECT COUNT(*) FROM users;";
+            await using var countCmd = new MySqlCommand(countSql, conn);
+            var totalCount = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+
+            // Get page
+            var offset = (page - 1) * pageSize;
+            var pageSql = hasPOSColumn
+                ? "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC LIMIT @PageSize OFFSET @Offset;"
+                : "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC LIMIT @PageSize OFFSET @Offset;";
+
+            await using var pageCmd = new MySqlCommand(pageSql, conn);
+            pageCmd.Parameters.AddWithValue("@PageSize", pageSize);
+            pageCmd.Parameters.AddWithValue("@Offset", offset);
+
+            var users = new List<UserInfoModel>();
+            await using var reader = await pageCmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                users.Add(new UserInfoModel
+                {
+                    ID = reader.GetInt32("id"),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString("email"),
+                    Password = reader.IsDBNull(reader.GetOrdinal("password")) ? string.Empty : reader.GetString("password"),
+                    FirstName = reader.IsDBNull(reader.GetOrdinal("firstName")) ? string.Empty : reader.GetString("firstName"),
+                    LastName = reader.IsDBNull(reader.GetOrdinal("lastName")) ? string.Empty : reader.GetString("lastName"),
+                    IsAdmin = reader.IsDBNull(reader.GetOrdinal("isAdmin")) ? false : reader.GetBoolean("isAdmin"),
+                    Status = reader.IsDBNull(reader.GetOrdinal("status")) ? "approved" : reader.GetString("status"),
+                    ProfileImage = reader.IsDBNull(reader.GetOrdinal("profileImage")) ? "usericon.png" : reader.GetString("profileImage"),
+                    CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
+                    CanAccessPOS = hasPOSColumn && !reader.IsDBNull(reader.GetOrdinal("can_access_pos")) && reader.GetBoolean("can_access_pos"),
+                    CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report"),
+                    CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
+                });
+            }
+
+            return (users, totalCount);
+        }
         public async Task<bool> IsFirstUserAsync()
         {
             await using var conn = await GetOpenConnectionAsync();

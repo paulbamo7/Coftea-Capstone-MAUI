@@ -42,18 +42,33 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private bool isLoading;
 
+		// Period context (optional: use Sales Report selected dates)
+		[ObservableProperty]
+		private DateTime? periodStartDate;
+
+		[ObservableProperty]
+		private DateTime? periodEndDate;
+
+		[ObservableProperty]
+		private int periodOrders;
+
+		[ObservableProperty]
+		private decimal periodSales;
+
         [RelayCommand]
         private void Close()
         {
             IsVisible = false;
         }
 
-        public async Task LoadProductDetailsAsync(string productName)
+		public async Task LoadProductDetailsAsync(string productName, DateTime? start = null, DateTime? end = null)
         {
             try
             {
                 IsLoading = true;
                 ProductName = productName;
+				PeriodStartDate = start;
+				PeriodEndDate = end;
 
                 var today = DateTime.Today;
                 var todayStart = today;
@@ -69,14 +84,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var earliestDate = monthStart; // We need at least a month back
                 var latestDate = todayEnd;
                 
-                var allTransactions = await _database.GetTransactionsByDateRangeAsync(earliestDate, latestDate);
+				var allTransactions = await _database.GetTransactionsByDateRangeAsync(earliestDate, latestDate);
 
                 // Filter by product name
                 var productTransactions = allTransactions
                     .Where(t => t?.DrinkName?.Equals(productName, StringComparison.OrdinalIgnoreCase) == true)
                     .ToList();
 
-                // Calculate today's stats
+				// Calculate today's stats
                 var todayTransactions = productTransactions
                     .Where(t => t.TransactionDate >= todayStart && t.TransactionDate < todayEnd)
                     .ToList();
@@ -96,6 +111,16 @@ namespace Coftea_Capstone.ViewModel.Controls
                     .ToList();
                 MonthOrders = monthTransactions.Sum(t => t.Quantity > 0 ? t.Quantity : 1);
                 MonthSales = monthTransactions.Sum(t => t.Total);
+
+				// Calculate selected period (if provided)
+				if (start.HasValue && end.HasValue)
+				{
+					var periodTx = productTransactions
+						.Where(t => t.TransactionDate >= start.Value && t.TransactionDate < end.Value)
+						.ToList();
+					PeriodOrders = periodTx.Sum(t => t.Quantity > 0 ? t.Quantity : 1);
+					PeriodSales = periodTx.Sum(t => t.Total);
+				}
 
                 // Get product category
                 var products = await _database.GetProductsAsyncCached();

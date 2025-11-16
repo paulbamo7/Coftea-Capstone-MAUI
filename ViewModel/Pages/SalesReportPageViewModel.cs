@@ -14,6 +14,7 @@ using Coftea_Capstone.Services;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Networking;
 using System.Windows.Input;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel
 {
@@ -24,6 +25,7 @@ namespace Coftea_Capstone.ViewModel
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
         public ViewModel.Controls.DateFilterPopupViewModel DateFilterPopup { get; set; }
         public ViewModel.Controls.ProductDetailPopupViewModel ProductDetailPopup { get; set; }
+        public ViewModel.Controls.ProductPickerPopupViewModel ProductPickerPopup { get; set; }
 
         private readonly Database _database;
         private readonly Services.ISalesReportService _salesReportService;
@@ -415,6 +417,15 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedAggregateMode;
 
+        // Product filter for Sales Breakdown
+        [ObservableProperty]
+        private string? selectedProductFilter;
+
+        [ObservableProperty]
+        private ObservableCollection<string> availableProducts = new();
+
+        private ObservableCollection<SalesAggregateRow> _allAggregateRows = new();
+
         public string AggregateToggleText => IsAggregateSectionVisible ? "Hide breakdown" : "View breakdown";
 
         private static readonly DateTime DefaultReportStartDate = new DateTime(2020, 1, 1);
@@ -436,6 +447,11 @@ namespace Coftea_Capstone.ViewModel
             _salesReportService = salesReportService ?? new Services.DatabaseSalesReportService();
             DateFilterPopup = new ViewModel.Controls.DateFilterPopupViewModel();
             ProductDetailPopup = new ViewModel.Controls.ProductDetailPopupViewModel();
+            ProductPickerPopup = new ViewModel.Controls.ProductPickerPopupViewModel();
+            ProductPickerPopup.OnProductSelected += async (name) =>
+            {
+                await ShowProductDetailsForSelectedPeriodAsync(name);
+            };
             
             // Initialize Y-axis values with default scale (20, 40, 60, 80, 100)
             CalculateYAxisScale(100, WeeklyYAxisValues);
@@ -937,13 +953,14 @@ namespace Coftea_Capstone.ViewModel
 
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    SalesAggregateRows.Clear();
+                    _allAggregateRows.Clear();
                     foreach (var row in rows)
                     {
-                        SalesAggregateRows.Add(row);
+                        _allAggregateRows.Add(row);
                     }
 
-                    HasAggregateRows = SalesAggregateRows.Count > 0;
+                    // Apply product filter if selected
+                    ApplyProductFilter();
                 });
             }
             catch (OperationCanceledException)
@@ -1032,8 +1049,114 @@ namespace Coftea_Capstone.ViewModel
 
             if (IsAggregateSectionVisible)
             {
+                await LoadAvailableProductsAsync();
+                // Set default to "All Products" if not already set
+                if (string.IsNullOrWhiteSpace(SelectedProductFilter) && AvailableProducts.Contains("All Products"))
+                {
+                    SelectedProductFilter = "All Products";
+                }
                 await LoadAggregateRowsAsync(ignoreVisibility: true);
             }
+        }
+
+        [RelayCommand]
+        private async Task BrowseProducts()
+        {
+            await ProductPickerPopup.InitializeAsync();
+            ProductPickerPopup.IsVisible = true;
+        }
+
+        private async Task ShowProductDetailsForSelectedPeriodAsync(string productName)
+        {
+            var start = GetFilterStartDate();
+            var end = GetFilterEndDateExclusive();
+            ProductDetailPopup.IsVisible = true;
+            await ProductDetailPopup.LoadProductDetailsAsync(productName, start, end);
+        }
+
+        [RelayCommand]
+        private async Task ShowAggregateModePicker()
+        {
+            try
+            {
+                var options = AggregateModes?.ToArray() ?? Array.Empty<string>();
+                if (options.Length == 0) return;
+
+                var selected = await Application.Current.MainPage.DisplayActionSheet(
+                    "Group by", "Cancel", null, options);
+
+                if (!string.IsNullOrWhiteSpace(selected) && selected != "Cancel")
+                {
+                    SelectedAggregateMode = selected;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing aggregate mode picker: {ex.Message}");
+            }
+        }
+
+        private void ApplyProductFilter()
+        {
+            SalesAggregateRows.Clear();
+            
+            if (string.IsNullOrWhiteSpace(SelectedProductFilter) || SelectedProductFilter == "All Products")
+            {
+                // Show all products
+                foreach (var row in _allAggregateRows)
+                {
+                    SalesAggregateRows.Add(row);
+                }
+            }
+            else
+            {
+                // Filter by selected product
+                var filtered = _allAggregateRows
+                    .Where(row => row.GroupLabel?.Equals(SelectedProductFilter, StringComparison.OrdinalIgnoreCase) == true)
+                    .ToList();
+                
+                foreach (var row in filtered)
+                {
+                    SalesAggregateRows.Add(row);
+                }
+            }
+
+            HasAggregateRows = SalesAggregateRows.Count > 0;
+        }
+
+        private async Task LoadAvailableProductsAsync()
+        {
+            try
+            {
+                var products = await _database.GetProductsAsyncCached();
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    AvailableProducts.Clear();
+                    AvailableProducts.Add("All Products"); // Default option
+                    foreach (var product in products.OrderBy(p => p.ProductName))
+                    {
+                        if (!string.IsNullOrWhiteSpace(product.ProductName))
+                        {
+                            AvailableProducts.Add(product.ProductName);
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading available products: {ex.Message}");
+            }
+        }
+
+        partial void OnSelectedProductFilterChanged(string? value)
+        {
+            ApplyProductFilter();
+        }
+
+        [RelayCommand]
+        private void ClearProductFilter()
+        {
+            SelectedProductFilter = "All Products";
         }
 
         [RelayCommand]

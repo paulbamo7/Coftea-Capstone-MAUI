@@ -46,8 +46,15 @@
                     <ImageButton Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Command="{Binding ShowNotificationBellCommand}"/>
                     <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
                            HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
+                           WidthRequest="20" HeightRequest="20"
                            IsVisible="{Binding NotificationPopup.NotificationCount, Converter={StaticResource IsPositiveConverter}}">
-                        <Label Text="{Binding NotificationPopup.NotificationCount}" FontSize="10" TextColor="White" Margin="4,0"/>
+                        <Label Text="{Binding NotificationPopup.NotificationCount}" 
+                               FontSize="10" 
+                               TextColor="White" 
+                               HorizontalOptions="Center" 
+                               VerticalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center"/>
                     </Frame>
                 </Grid>
                 
@@ -70,10 +77,10 @@
             <Grid Grid.Row="1" ColumnDefinitions="*, Auto" VerticalOptions="Center" Margin="70,10,0,0">
                 <!-- Categories -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
-                    <StackLayout Orientation="Horizontal" Spacing="10" Margin="25,0,0,0">
+                    <StackLayout Orientation="Horizontal" Spacing="10" Margin="0,0,0,0">
                         <!-- Subcategories for Coffee (leftmost) -->
                         <Button Text="Americano" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                                BackgroundColor="#E0D6CC" WidthRequest="110" HeightRequest="36" 
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Americano"
                                 IsVisible="{Binding IsCoffeeSubcategoryVisible}">
                             <Button.Triggers>
@@ -84,7 +91,7 @@
                             </Button.Triggers>
                         </Button>
                         <Button Text="Latte" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                                BackgroundColor="#E0D6CC" WidthRequest="110" HeightRequest="36" 
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Latte"
                                 IsVisible="{Binding IsCoffeeSubcategoryVisible}">
                             <Button.Triggers>
@@ -97,7 +104,7 @@
                         
                         <!-- Subcategories for Fruit/Soda -->
                         <Button Text="Fruit" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                                BackgroundColor="#E0D6CC" WidthRequest="110" HeightRequest="36" 
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Fruit"
                                 IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
                             <Button.Triggers>
@@ -108,7 +115,7 @@
                             </Button.Triggers>
                         </Button>
                         <Button Text="Soda" FontAttributes="Bold" FontFamily="OpenSansSemibold" TextColor="#5B4F45" FontSize="14"
-                                BackgroundColor="#E8D5C4" WidthRequest="100" HeightRequest="40" 
+                                BackgroundColor="#E0D6CC" WidthRequest="110" HeightRequest="36" 
                                 Command="{Binding FilterBySubcategoryCommand}" CommandParameter="Soda"
                                 IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
                             <Button.Triggers>
@@ -250,8 +257,15 @@
                         </Border>
                         <Frame Padding="0" BackgroundColor="#D9534F" CornerRadius="10" HasShadow="False"
                                HorizontalOptions="End" VerticalOptions="Start" TranslationX="10" TranslationY="-8"
+                               WidthRequest="20" HeightRequest="20"
                                IsVisible="{Binding CartCount, Converter={StaticResource IsPositiveConverter}}">
-                            <Label Text="{Binding CartCount}" FontSize="10" TextColor="White" Margin="4,0"/>
+                            <Label Text="{Binding CartCount}" 
+                                   FontSize="10" 
+                                   TextColor="White" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"/>
                         </Frame>
                     </Grid>
                 </StackLayout>

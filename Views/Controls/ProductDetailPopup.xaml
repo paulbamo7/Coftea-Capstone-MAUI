@@ -4,11 +4,29 @@
              x:Class="Coftea_Capstone.Views.Controls.ProductDetailPopup"
              x:Name="Root"
              IsVisible="{Binding IsVisible}"
-             BackgroundColor="#80000000">
-    <Grid HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
-        <Frame BackgroundColor="White" CornerRadius="24" Padding="0" HasShadow="True"
-               WidthRequest="500" MaximumHeightRequest="600"
-               HorizontalOptions="Center" VerticalOptions="Center">
+             BackgroundColor="#80000000"
+             InputTransparent="False">
+    <Grid HorizontalOptions="Fill" VerticalOptions="Fill" InputTransparent="False">
+        <!-- Click-blocking overlay -->
+        <BoxView BackgroundColor="#80000000" 
+                 HorizontalOptions="Fill" 
+                 VerticalOptions="Fill"
+                 InputTransparent="False">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseCommand}"/>
+            </BoxView.GestureRecognizers>
+        </BoxView>
+        
+        <!-- Popup Content -->
+        <Frame HorizontalOptions="Center" 
+               VerticalOptions="Center"
+               BackgroundColor="White" 
+               CornerRadius="24" 
+               Padding="0" 
+               HasShadow="True"
+               WidthRequest="500" 
+               MaximumHeightRequest="600"
+               InputTransparent="False">
             <Grid RowDefinitions="Auto,*,Auto" RowSpacing="0">
                 <!-- Header -->
                 <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15" ColumnDefinitions="*,Auto">

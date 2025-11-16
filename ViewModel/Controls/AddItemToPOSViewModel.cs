@@ -44,6 +44,10 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private string selectedCategory;
 
+        public string CategoryDisplayText => string.IsNullOrWhiteSpace(SelectedCategory) ? "Select Category" : SelectedCategory;
+
+        public string SubcategoryDisplayText => string.IsNullOrWhiteSpace(SelectedSubcategory) ? "Select Subcategory" : SelectedSubcategory;
+
         public ObservableCollection<string> FruitSodaSubcategories { get; } = new ObservableCollection<string> // Predefined subcategories for Fruit/Soda
         {
             "Fruit",
@@ -57,7 +61,15 @@ namespace Coftea_Capstone.ViewModel
         };
 
         [ObservableProperty]
-        private string selectedSubcategory; 
+        private string selectedSubcategory;
+
+        [ObservableProperty]
+        private bool isCategoryDropdownVisible = false;
+
+        [ObservableProperty]
+        private bool isSubcategoryDropdownVisible = false;
+
+        public bool IsAnyDropdownVisible => IsCategoryDropdownVisible || IsSubcategoryDropdownVisible;
 
         public bool IsFruitSodaSubcategoryVisible => string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase); // Show when Fruit/Soda is selected
 
@@ -77,6 +89,59 @@ namespace Coftea_Capstone.ViewModel
                     ? (string.IsNullOrWhiteSpace(SelectedSubcategory) ? null : SelectedSubcategory)
                     : SelectedCategory; // Use Subcategory for Fruit/Soda and Coffee, else Category
 
+        [RelayCommand]
+        private void ShowCategoryPicker()
+        {
+            IsCategoryDropdownVisible = !IsCategoryDropdownVisible;
+            IsSubcategoryDropdownVisible = false; // Close subcategory dropdown when opening category
+        }
+
+        [RelayCommand]
+        private void ShowSubcategoryPicker()
+        {
+            IsSubcategoryDropdownVisible = !IsSubcategoryDropdownVisible;
+            IsCategoryDropdownVisible = false; // Close category dropdown when opening subcategory
+        }
+
+        [RelayCommand]
+        private void SelectCategory(string category)
+        {
+            if (!string.IsNullOrWhiteSpace(category) && Categories.Contains(category))
+            {
+                SelectedCategory = category;
+                IsCategoryDropdownVisible = false;
+            }
+        }
+
+        [RelayCommand]
+        private void SelectSubcategory(string subcategory)
+        {
+            if (!string.IsNullOrWhiteSpace(subcategory))
+            {
+                if (IsFruitSodaSubcategoryVisible && FruitSodaSubcategories.Contains(subcategory))
+                {
+                    SelectedSubcategory = subcategory;
+                }
+                else if (IsCoffeeSubcategoryVisible && CoffeeSubcategories.Contains(subcategory))
+                {
+                    SelectedSubcategory = subcategory;
+                }
+                IsSubcategoryDropdownVisible = false;
+            }
+        }
+
+        [RelayCommand]
+        private void CloseCategoryDropdown()
+        {
+            IsCategoryDropdownVisible = false;
+        }
+
+        [RelayCommand]
+        private void CloseSubcategoryDropdown()
+        {
+            IsSubcategoryDropdownVisible = false;
+        }
+
         partial void OnSelectedCategoryChanged(string value) // Handle category changes
         {
             // Validate that selected category is in the Categories list
@@ -86,6 +151,9 @@ namespace Coftea_Capstone.ViewModel
                 SelectedCategory = null;
                 return;
             }
+
+            // Notify display text change
+            OnPropertyChanged(nameof(CategoryDisplayText));
 
             // Notify visibility change for subcategory UI
             OnPropertyChanged(nameof(IsFruitSodaSubcategoryVisible));
@@ -105,6 +173,9 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSelectedSubcategoryChanged(string value) // Handle subcategory changes
         {
+            // Notify display text change
+            OnPropertyChanged(nameof(SubcategoryDisplayText));
+
             if (string.IsNullOrWhiteSpace(value)) return;
 
             // Validate Fruit/Soda subcategory
@@ -213,6 +284,12 @@ namespace Coftea_Capstone.ViewModel
             if (string.IsNullOrWhiteSpace(ProductName))
             {
                 await Application.Current.MainPage.DisplayAlert("Error", "Product name is required.", "OK");
+                return;
+            }
+            // Reject names with no letters (e.g., only digits)
+            if (!ProductName.Any(char.IsLetter))
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Product name must contain letters (e.g., 'IPhone 14'). Pure numbers are not allowed.", "OK");
                 return;
             }
 

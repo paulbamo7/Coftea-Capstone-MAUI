@@ -166,7 +166,7 @@
                Margin="20"
                VerticalOptions="Center"
                HorizontalOptions="Center"
-               WidthRequest="920"
+               WidthRequest="1120"
                HeightRequest="700"
                InputTransparent="False"
                ZIndex="1000">
@@ -439,28 +439,29 @@
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
                                 </CollectionView>
-                                    <!-- Pagination Controls -->
-                                    <Grid Padding="10" BackgroundColor="#FFF" ColumnDefinitions="Auto,*,Auto" Margin="0,5,0,0" MinimumWidthRequest="1100">
-                                        <Button Grid.Column="0" Text="Prev" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
-                                                IsEnabled="{Binding CanGoToPreviousPage}"
-                                                Command="{Binding PrevPageCommand}"/>
-                                        <Label Grid.Column="1" Text="{Binding CurrentPage, StringFormat='Page {0}'}" HorizontalOptions="Center" VerticalOptions="Center"/>
-                                        <Button Grid.Column="2" Text="Next" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
-                                                IsEnabled="{Binding CanGoToNextPage}"
-                                                Command="{Binding NextPageCommand}"/>
-                                    </Grid>
                                 </VerticalStackLayout>
                             </ScrollView>
                         </ScrollView>
                     </Grid>
                 </Grid>
 
-                <!-- Footer -->
-                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="20">
-                    <Label Text="{Binding StatusMessage}" 
+                <!-- Footer with status and pagination (always visible) -->
+                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="12" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
+                    <Label Grid.Column="0"
+                           Text="{Binding StatusMessage}" 
                            TextColor="Gray" 
-                           FontSize="12" FontFamily="MontserratBlack" 
-                           HorizontalOptions="Center"/>
+                           FontSize="12" 
+                           FontFamily="MontserratBlack"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Start"/>
+                    
+                    <Button Grid.Column="1" Text="Prev" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
+                            IsEnabled="{Binding CanGoToPreviousPage}"
+                            Command="{Binding PrevPageCommand}"/>
+                    <Label Grid.Column="2" Text="{Binding CurrentPage, StringFormat='Page {0}'}" VerticalOptions="Center" HorizontalOptions="Center"/>
+                    <Button Grid.Column="3" Text="Next" BackgroundColor="#BDAEA2" TextColor="#5B4F45" CornerRadius="8"
+                            IsEnabled="{Binding CanGoToNextPage}"
+                            Command="{Binding NextPageCommand}"/>
                 </Grid>
             </Grid>
         </Frame>

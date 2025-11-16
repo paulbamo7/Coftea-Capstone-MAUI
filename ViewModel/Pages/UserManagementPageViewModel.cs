@@ -27,6 +27,18 @@ namespace Coftea_Capstone.ViewModel
         private int currentPage = 1;
 
         [ObservableProperty]
+        private int pageSize = 10;
+
+        [ObservableProperty]
+        private int totalUsers;
+
+        [ObservableProperty]
+        private int totalPages;
+
+        public bool HasNextPage => CurrentPage < TotalPages;
+        public bool HasPreviousPage => CurrentPage > 1;
+
+        [ObservableProperty]
         private string searchText = string.Empty;
 
         [ObservableProperty]
@@ -184,11 +196,13 @@ namespace Coftea_Capstone.ViewModel
                     return;
                 }
 
-                System.Diagnostics.Debug.WriteLine("🔧 Loading users from database...");
-                var allUsers = await _database.GetAllUsersAsync();
-                System.Diagnostics.Debug.WriteLine($"🔧 Loaded {allUsers?.Count ?? 0} users from database");
+                System.Diagnostics.Debug.WriteLine($"🔧 Loading users (page {CurrentPage}, size {PageSize}) from database...");
+                var (usersPage, total) = await _database.GetUsersPagedAsync(CurrentPage, PageSize);
+                TotalUsers = total;
+                TotalPages = Math.Max(1, (int)Math.Ceiling(total / (double)PageSize));
+                System.Diagnostics.Debug.WriteLine($"🔧 Loaded {usersPage?.Count ?? 0} users from database (total {TotalUsers})");
 
-                Users = new ObservableCollection<UserEntry>(allUsers.Select(u => new UserEntry
+                Users = new ObservableCollection<UserEntry>(usersPage.Select(u => new UserEntry
                 {
                     Id = u.ID,
                     Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
@@ -214,6 +228,30 @@ namespace Coftea_Capstone.ViewModel
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error loading users: {ex.Message}");
             }
+        }
+
+        [RelayCommand]
+        private async Task GoToNextPage()
+        {
+            if (!HasNextPage) return;
+            CurrentPage += 1;
+            await LoadUsersAsync();
+        }
+
+        [RelayCommand]
+        private async Task GoToPreviousPage()
+        {
+            if (!HasPreviousPage) return;
+            CurrentPage -= 1;
+            await LoadUsersAsync();
+        }
+
+        [RelayCommand]
+        private async Task GoToPage(int page)
+        {
+            if (page < 1 || page > TotalPages) return;
+            CurrentPage = page;
+            await LoadUsersAsync();
         }
 
         public async Task ForceReloadDataAsync() // Force reload user data from database
