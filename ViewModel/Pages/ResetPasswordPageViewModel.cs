@@ -30,6 +30,8 @@ namespace Coftea_Capstone.ViewModel
 		public ResetPasswordPageViewModel(string email)
 		{
 			_email = email;
+			// Clear any previous messages when ViewModel is created
+			ClearMessages();
 		}
 
 		private RetryConnectionPopupViewModel GetRetryConnectionPopup() // Access the RetryConnectionPopupViewModel
@@ -173,7 +175,7 @@ namespace Coftea_Capstone.ViewModel
 		}
 
         [RelayCommand]
-        private async Task GoBack() // Navigate back to forgot password page
+        private async Task GoBack() // Navigate back to login page
         {
             // Clear all fields
             Code = string.Empty;
@@ -184,7 +186,7 @@ namespace Coftea_Capstone.ViewModel
             // Clear the stored email when going back
             App.ResetPasswordEmail = null;
 
-            await SimpleNavigationService.NavigateToAsync("//forgotpassword");
+            await SimpleNavigationService.NavigateToAsync("//login");
         }
 
     
@@ -202,7 +204,7 @@ namespace Coftea_Capstone.ViewModel
 			HasError = false;
 		}
 
-		private void ClearMessages() // Clear error and success messages
+		public void ClearMessages() // Clear error and success messages (made public for page access)
         {
 			ErrorMessage = string.Empty;
 			SuccessMessage = string.Empty;

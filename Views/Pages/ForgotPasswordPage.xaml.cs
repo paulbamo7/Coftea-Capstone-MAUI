@@ -15,6 +15,15 @@ public partial class ForgotPasswordPage : ContentPage
         
         // Set RetryConnectionPopup binding context
         RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
+        
+        // Clear email and messages when page appears (especially after password reset)
+        if (BindingContext is ForgotPasswordPageViewModel vm)
+        {
+            vm.Email = string.Empty;
+            vm.ClearMessages();
+        }
+        // Also clear the stored email
+        App.ResetPasswordEmail = null;
     }
 
     protected override void OnDisappearing()

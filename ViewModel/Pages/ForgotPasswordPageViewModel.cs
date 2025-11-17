@@ -122,11 +122,14 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
-        private async Task GoBack() // Navigate back to login page
+        private async Task GoBack() // Navigate to login page
         {
             // Clear all fields and messages
             Email = string.Empty;
             ClearMessages();
+            
+            // Clear the stored email
+            App.ResetPasswordEmail = null;
             
             await SimpleNavigationService.NavigateToAsync("//login");
         }
@@ -139,7 +142,7 @@ namespace Coftea_Capstone.ViewModel
         }
 
 
-        private void ClearMessages() // Clear error and success messages
+        public void ClearMessages() // Clear error and success messages (made public for page access)
         {
             ErrorMessage = string.Empty;
             SuccessMessage = string.Empty;

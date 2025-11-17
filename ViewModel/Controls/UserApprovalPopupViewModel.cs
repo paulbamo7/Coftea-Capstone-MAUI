@@ -5,12 +5,14 @@ using Coftea_Capstone.Models;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.C_;
+using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
     public partial class UserApprovalPopupViewModel : ObservableObject
     {
         private readonly Database _database = new();
+        private readonly EmailService _emailService;
 
         [ObservableProperty]
         private bool isUserApprovalPopupVisible = false;
@@ -19,6 +21,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         private ObservableCollection<UserPendingRequest> pendingRequests = new();
 
         public event Action OnUserApprovedOrDenied;
+
+        public UserApprovalPopupViewModel()
+        {
+            _emailService = new EmailService();
+        }
 
         [RelayCommand]
         private async Task CloseUserApprovalPopup()
@@ -42,6 +49,39 @@ namespace Coftea_Capstone.ViewModel.Controls
                     await Application.Current.MainPage.DisplayAlert("Success", $"User {request.FirstName} {request.LastName} approved successfully!", "OK");
                     await LoadPendingRequests();
                     OnUserApprovedOrDenied?.Invoke(); // Notify parent to refresh
+                    
+                    // Add notification
+                    var app = (App)Application.Current;
+                    await app?.NotificationPopup?.AddNotification(
+                        "User Approved",
+                        $"User {request.FirstName} {request.LastName} has been approved and added to the system",
+                        $"Email: {request.Email}",
+                        "Info");
+                    
+                    // Send approval email to the user
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"📧 Attempting to send approval email to: {request.Email}");
+                        var emailSent = await _emailService.SendRegistrationSuccessEmailAsync(
+                            request.Email,
+                            request.FirstName,
+                            request.LastName,
+                            isAdmin: false
+                        );
+                        if (emailSent)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"✅ Approval email sent successfully to {request.Email}!");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Approval email send returned false (check logs above for details)");
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Exception caught while sending approval email: {emailEx.Message}");
+                        // Don't block approval if email fails
+                    }
                 }
                 else
                 {

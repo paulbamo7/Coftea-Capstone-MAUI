@@ -412,6 +412,7 @@ namespace Coftea_Capstone.Models
                     cost DECIMAL(10,2) DEFAULT NULL,
                     orderId VARCHAR(100),
                     productName VARCHAR(255) DEFAULT NULL COMMENT 'POS product name that used this ingredient',
+                    productSize VARCHAR(50) DEFAULT NULL COMMENT 'Product size (Small, Medium, Large)',
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     notes TEXT,
                     FOREIGN KEY (itemId) REFERENCES inventory(itemID) ON DELETE CASCADE,
@@ -421,8 +422,13 @@ namespace Coftea_Capstone.Models
                     INDEX idx_action (action),
                     INDEX idx_userEmail (userEmail),
                     INDEX idx_orderId (orderId),
-                    INDEX idx_productName (productName)
+                    INDEX idx_productName (productName),
+                    INDEX idx_productSize (productSize)
                 );
+                
+                -- Add productSize column if it doesn't exist (for existing databases)
+                ALTER TABLE inventory_activity_log 
+                    ADD COLUMN IF NOT EXISTS productSize VARCHAR(50) DEFAULT NULL COMMENT 'Product size (Small, Medium, Large)';
                 
                 CREATE TABLE IF NOT EXISTS product_ingredients (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1400,7 +1406,7 @@ namespace Coftea_Capstone.Models
 		}
 
         // Deduct inventory quantities by item name and amount
-        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount, string originalUnit, double originalAmount)> deductions, string productName = null) // Deducts inventory quantities
+        public async Task<int> DeductInventoryAsync(IEnumerable<(string name, double amount, string originalUnit, double originalAmount, string size)> deductions, string productName = null) // Deducts inventory quantities
         {
             System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Starting with {deductions?.Count() ?? 0} deductions for product: {productName ?? "Unknown"}");
             
@@ -1410,7 +1416,7 @@ namespace Coftea_Capstone.Models
             int totalAffected = 0;
             try
             {
-                foreach (var (name, amount, originalUnit, originalAmount) in deductions)
+                foreach (var (name, amount, originalUnit, originalAmount, size) in deductions)
                 {
                     System.Diagnostics.Debug.WriteLine($"🔧 DeductInventoryAsync: Processing {name} - {amount}");
                     
@@ -1475,8 +1481,9 @@ namespace Coftea_Capstone.Models
                             ChangedBy = "POS",
                             OrderId = null, // Will be set by calling code if available
                             ProductName = productName, // Store the POS product name
+                            ProductSize = size, // Store the product size
                             Notes = !string.IsNullOrWhiteSpace(productName) 
-                                ? $"Deducted {logAmount} {logUnit} (converted: {amount} {unitOfMeasurement}) for {productName}"
+                                ? $"Deducted {logAmount} {logUnit} (converted: {amount} {unitOfMeasurement}) for {productName}" + (!string.IsNullOrWhiteSpace(size) ? $" - {size}" : "")
                                 : $"Deducted {logAmount} {logUnit} (converted: {amount} {unitOfMeasurement}) for POS order"
                         };
                         
@@ -1825,10 +1832,10 @@ namespace Coftea_Capstone.Models
             var sql = @"INSERT INTO inventory_activity_log 
                         (itemId, itemName, itemCategory, action, quantityChanged, previousQuantity, 
                          newQuantity, unitOfMeasurement, reason, userEmail, userFullName, userId, 
-                         changedBy, cost, orderId, productName, notes) 
+                         changedBy, cost, orderId, productName, productSize, notes) 
                         VALUES (@ItemId, @ItemName, @ItemCategory, @Action, @QuantityChanged, 
                                 @PreviousQuantity, @NewQuantity, @UnitOfMeasurement, @Reason, 
-                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @ProductName, @Notes);";
+                                @UserEmail, @UserFullName, @UserId, @ChangedBy, @Cost, @OrderId, @ProductName, @ProductSize, @Notes);";
             
             await using var cmd = new MySqlCommand(sql, conn, tx);
             cmd.Parameters.AddWithValue("@ItemId", logEntry.ItemId);
@@ -1847,6 +1854,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Cost", (object?)logEntry.Cost ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@OrderId", (object?)logEntry.OrderId ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ProductName", (object?)logEntry.ProductName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProductSize", (object?)logEntry.ProductSize ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Notes", (object?)logEntry.Notes ?? DBNull.Value);
             
             return await cmd.ExecuteNonQueryAsync();
@@ -1895,6 +1903,7 @@ namespace Coftea_Capstone.Models
                     Cost = reader.IsDBNull(reader.GetOrdinal("cost")) ? (double?)null : reader.GetDouble("cost"),
                     OrderId = reader.IsDBNull(reader.GetOrdinal("orderId")) ? null : reader.GetString("orderId"),
                     ProductName = reader.IsDBNull(reader.GetOrdinal("productName")) ? null : reader.GetString("productName"),
+                    ProductSize = reader.IsDBNull(reader.GetOrdinal("productSize")) ? null : reader.GetString("productSize"),
                     Timestamp = reader.GetDateTime("timestamp"),
                     Notes = reader.IsDBNull(reader.GetOrdinal("notes")) ? null : reader.GetString("notes")
                 });
@@ -3714,12 +3723,13 @@ namespace Coftea_Capstone.Models
                                 var approvedQuantity = Convert.ToDouble(approvedQuantityProp.GetValue(customItem));
                                 var approvedUoM = approvedUoMProp.GetValue(customItem)?.ToString() ?? "";
 
-                                // Get current inventory item info
-                                var getItemSqlCustom = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
+                                // Get current inventory item info (including maximumQuantity)
+                                var getItemSqlCustom = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement, maximumQuantity FROM inventory WHERE itemID = @ItemID;";
                                 await using var getItemCmdCustom = new MySqlCommand(getItemSqlCustom, conn, (MySqlTransaction)tx);
                                 getItemCmdCustom.Parameters.AddWithValue("@ItemID", inventoryItemId);
 
                                 double currentQuantity = 0;
+                                double maximumQuantity = 0;
                                 string itemCategory = "";
                                 string inventoryUoM = "";
 
@@ -3729,6 +3739,10 @@ namespace Coftea_Capstone.Models
                                     currentQuantity = readerCustom.GetDouble("itemQuantity");
                                     itemCategory = readerCustom.IsDBNull(readerCustom.GetOrdinal("itemCategory")) ? "" : readerCustom.GetString("itemCategory");
                                     inventoryUoM = readerCustom.IsDBNull(readerCustom.GetOrdinal("unitOfMeasurement")) ? "" : readerCustom.GetString("unitOfMeasurement");
+                                    
+                                    // Get maximumQuantity (may be NULL or 0)
+                                    var maxQtyOrdinal = readerCustom.GetOrdinal("maximumQuantity");
+                                    maximumQuantity = readerCustom.IsDBNull(maxQtyOrdinal) ? 0 : readerCustom.GetDouble(maxQtyOrdinal);
                                 }
                                 await readerCustom.CloseAsync();
 
@@ -3739,10 +3753,22 @@ namespace Coftea_Capstone.Models
                                     quantityToAdd = UnitConversionService.Convert(approvedQuantity, approvedUoM, inventoryUoM);
                                 }
 
-                                // Update inventory
-                                var updateSqlCustom = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity, updatedAt = @updatedAt WHERE itemID = @ItemID;";
+                                // Calculate new quantity after adding
+                                double calculatedNewQuantity = currentQuantity + quantityToAdd;
+                                
+                                // Check if new quantity exceeds maximum stock, and adjust maximum if needed
+                                if (maximumQuantity > 0 && calculatedNewQuantity > maximumQuantity)
+                                {
+                                    // Automatically adjust maximum stock to accommodate the new quantity
+                                    System.Diagnostics.Debug.WriteLine($"📊 New quantity ({calculatedNewQuantity}) exceeds maximum stock ({maximumQuantity}). Adjusting maximum stock to {calculatedNewQuantity}.");
+                                    maximumQuantity = calculatedNewQuantity;
+                                }
+
+                                // Update inventory (quantity and maximumQuantity if adjusted)
+                                var updateSqlCustom = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity, maximumQuantity = @MaximumQuantity, updatedAt = @updatedAt WHERE itemID = @ItemID;";
                                 await using var updateCmdCustom = new MySqlCommand(updateSqlCustom, conn, (MySqlTransaction)tx);
                                 updateCmdCustom.Parameters.AddWithValue("@Quantity", quantityToAdd);
+                                updateCmdCustom.Parameters.AddWithValue("@MaximumQuantity", maximumQuantity);
                                 updateCmdCustom.Parameters.AddWithValue("@updatedAt", DateTime.Now);
                                 updateCmdCustom.Parameters.AddWithValue("@ItemID", inventoryItemId);
                                 await updateCmdCustom.ExecuteNonQueryAsync();
@@ -4220,12 +4246,13 @@ namespace Coftea_Capstone.Models
                 
                 System.Diagnostics.Debug.WriteLine($"✅ Connection opened and transaction started");
 
-                // Get current inventory item info
-                var getItemSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement FROM inventory WHERE itemID = @ItemID;";
+                // Get current inventory item info (including maximumQuantity)
+                var getItemSql = "SELECT itemID, itemName, itemCategory, itemQuantity, unitOfMeasurement, maximumQuantity FROM inventory WHERE itemID = @ItemID;";
                 await using var getItemCmd = new MySqlCommand(getItemSql, conn, tx);
                 getItemCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
 
                 double currentQuantity = 0;
+                double maximumQuantity = 0;
                 string itemName = "";
                 string itemCategory = "";
                 string inventoryUoM = "";
@@ -4243,6 +4270,10 @@ namespace Coftea_Capstone.Models
                 itemName = reader.GetString("itemName");
                 itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory");
                 inventoryUoM = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement");
+                
+                // Get maximumQuantity (may be NULL or 0)
+                var maxQtyOrdinal = reader.GetOrdinal("maximumQuantity");
+                maximumQuantity = reader.IsDBNull(maxQtyOrdinal) ? 0 : reader.GetDouble(maxQtyOrdinal);
                 await reader.CloseAsync();
                 
                 // Calculate total quantity to add: approvedQuantity (units per package) * quantity (number of packages)
@@ -4271,11 +4302,23 @@ namespace Coftea_Capstone.Models
                     }
                 }
 
-                // Update inventory
-                System.Diagnostics.Debug.WriteLine($"🔍 Step 1: About to update inventory - ItemID={inventoryItemId}, QuantityToAdd={quantityToAdd}");
-                var updateSql = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity WHERE itemID = @ItemID;";
+                // Calculate new quantity after adding
+                double newQuantity = currentQuantity + quantityToAdd;
+                
+                // Check if new quantity exceeds maximum stock, and adjust maximum if needed
+                if (maximumQuantity > 0 && newQuantity > maximumQuantity)
+                {
+                    // Automatically adjust maximum stock to accommodate the new quantity
+                    System.Diagnostics.Debug.WriteLine($"📊 New quantity ({newQuantity}) exceeds maximum stock ({maximumQuantity}). Adjusting maximum stock to {newQuantity}.");
+                    maximumQuantity = newQuantity;
+                }
+                
+                // Update inventory (quantity and maximumQuantity if adjusted)
+                System.Diagnostics.Debug.WriteLine($"🔍 Step 1: About to update inventory - ItemID={inventoryItemId}, QuantityToAdd={quantityToAdd}, NewMax={maximumQuantity}");
+                var updateSql = "UPDATE inventory SET itemQuantity = itemQuantity + @Quantity, maximumQuantity = @MaximumQuantity WHERE itemID = @ItemID;";
                 await using var updateCmd = new MySqlCommand(updateSql, conn, tx);
                 updateCmd.Parameters.AddWithValue("@Quantity", quantityToAdd);
+                updateCmd.Parameters.AddWithValue("@MaximumQuantity", maximumQuantity);
                 updateCmd.Parameters.AddWithValue("@ItemID", inventoryItemId);
                 System.Diagnostics.Debug.WriteLine($"🔍 Step 2: Executing UPDATE command...");
                 var rowsAffected = await updateCmd.ExecuteNonQueryAsync();
@@ -4319,8 +4362,7 @@ namespace Coftea_Capstone.Models
                     System.Diagnostics.Debug.WriteLine($"✅ Updated purchase_order_items: {poRowsAffected} row(s) affected");
                 }
 
-                // Get new quantity after update
-                double newQuantity = currentQuantity + quantityToAdd;
+                // Get new quantity after update (verify it matches our calculation)
                 try
                 {
                     var getNewSql = "SELECT itemQuantity FROM inventory WHERE itemID = @ItemID;";
@@ -4329,7 +4371,12 @@ namespace Coftea_Capstone.Models
                     var result = await getNewCmd.ExecuteScalarAsync();
                     if (result != null && result != DBNull.Value)
                     {
-                        newQuantity = Convert.ToDouble(result);
+                        var dbNewQuantity = Convert.ToDouble(result);
+                        if (Math.Abs(dbNewQuantity - newQuantity) > 0.01) // Allow small floating point differences
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Calculated new quantity ({newQuantity}) differs from database value ({dbNewQuantity}). Using database value.");
+                            newQuantity = dbNewQuantity;
+                        }
                     }
                 }
                 catch (Exception qtyEx)

@@ -31,6 +31,23 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<InventoryPageModel> inventoryItems = new();
 
+        [ObservableProperty]
+        private ObservableCollection<InventoryPageModel> paginatedInventoryItems = new();
+
+        // Pagination properties
+        [ObservableProperty]
+        private int currentPage = 1;
+
+        [ObservableProperty]
+        private int pageSize = 15;
+
+        [ObservableProperty]
+        private int totalPages = 1;
+
+        public bool HasNextPage => CurrentPage < TotalPages;
+        public bool HasPreviousPage => CurrentPage > 1;
+        public bool HasMultiplePages => TotalPages > 1;
+
         // Search text entered by user to filter by item name
         [ObservableProperty]
         private string searchText = string.Empty;
@@ -149,6 +166,7 @@ namespace Coftea_Capstone.ViewModel
         private void FilterByCategory(string category) // Filter inventory by category
         {
             SelectedCategory = category ?? string.Empty;
+            CurrentPage = 1; // Reset to first page when category changes
             ApplyCategoryFilterInternal();
         }
 
@@ -211,6 +229,63 @@ namespace Coftea_Capstone.ViewModel
                 item.IsExpanded = false;
             }
             System.Diagnostics.Debug.WriteLine($"✅ Final result: {InventoryItems.Count} items in InventoryItems collection");
+            
+            // Apply pagination
+            ApplyPagination();
+        }
+
+        private void ApplyPagination()
+        {
+            // Reset to page 1 if current page is out of bounds
+            var totalItems = InventoryItems.Count;
+            TotalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)PageSize));
+            
+            if (CurrentPage > TotalPages)
+            {
+                CurrentPage = 1;
+            }
+            
+            // Get items for current page
+            var skip = (CurrentPage - 1) * PageSize;
+            var pageItems = InventoryItems.Skip(skip).Take(PageSize).ToList();
+            
+            PaginatedInventoryItems = new ObservableCollection<InventoryPageModel>(pageItems);
+            
+            OnPropertyChanged(nameof(HasNextPage));
+            OnPropertyChanged(nameof(HasPreviousPage));
+            OnPropertyChanged(nameof(HasMultiplePages));
+            
+            System.Diagnostics.Debug.WriteLine($"📄 Page {CurrentPage} of {TotalPages}: Showing {PaginatedInventoryItems.Count} items");
+        }
+
+        [RelayCommand]
+        private void GoToNextPage()
+        {
+            if (HasNextPage)
+            {
+                CurrentPage++;
+                ApplyPagination();
+            }
+        }
+
+        [RelayCommand]
+        private void GoToPreviousPage()
+        {
+            if (HasPreviousPage)
+            {
+                CurrentPage--;
+                ApplyPagination();
+            }
+        }
+
+        [RelayCommand]
+        private void GoToFirstPage()
+        {
+            if (CurrentPage != 1)
+            {
+                CurrentPage = 1;
+                ApplyPagination();
+            }
         }
 
         private IEnumerable<InventoryPageModel> ApplySorting(IEnumerable<InventoryPageModel> query) // Apply sorting based on selected index
@@ -227,11 +302,13 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSearchTextChanged(string value) // Apply search filter
         {
+            CurrentPage = 1; // Reset to first page when search changes
             ApplyCategoryFilterInternal();
         }
 
         partial void OnSelectedSortIndexChanged(int value) // Apply sorting
         {
+            CurrentPage = 1; // Reset to first page when sort changes
             ApplyCategoryFilterInternal();
         }
 

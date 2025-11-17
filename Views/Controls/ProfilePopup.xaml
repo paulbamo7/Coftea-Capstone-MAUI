@@ -73,13 +73,13 @@
                                     <VerticalStackLayout IsVisible="{Binding IsImagePickerVisible}" Spacing="10">
                                         <Label Text="Select Profile Image:" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center" />
                                         <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
-                                            <Button Text="🔄" 
-                                                    BackgroundColor="#8B7355" 
-                                                    TextColor="White" 
-                                                    CornerRadius="20"
-                                                    WidthRequest="40"
-                                                    HeightRequest="40"
-                                                    Command="{Binding ChangeProfileImageCommand}" />
+                                            <ImageButton Source="refreshicon.png"
+                                                         BackgroundColor="#8B7355" 
+                                                         CornerRadius="20"
+                                                         WidthRequest="40"
+                                                         HeightRequest="40"
+                                                         Padding="0"
+                                                         Command="{Binding ChangeProfileImageCommand}" />
                                             <Label Text="Cycle through options" FontSize="12" FontFamily="MontserratBlack" TextColor="Gray" VerticalOptions="Center" />
                                         </HorizontalStackLayout>
                                     </VerticalStackLayout>

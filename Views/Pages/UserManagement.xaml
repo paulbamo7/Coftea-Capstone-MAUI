@@ -51,154 +51,177 @@
                     </Grid>
                 </Grid>
 
-                <VerticalStackLayout Padding="20" Spacing="16">
-
-
-                    <!-- Search & Sort (wrap on narrow screens) -->
-                    <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="Center" JustifyContent="SpaceBetween" AlignContent="Start">
-                    <Label Text="{Binding Users.Count, StringFormat='Users: {0}'}"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           FontFamily="Montserrat-Black"
-                           TextColor="#5B4F45"/>
-                        <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
-                            <Border Stroke="#8B7355" 
-                                    StrokeShape="RoundRectangle 15" 
-                                    StrokeThickness="2" 
-                                    HeightRequest="45" 
-                                    BackgroundColor="White"
-                                    WidthRequest="250">
-                                <Entry Placeholder="Search" 
-                                       Text="{Binding SearchText, Mode=TwoWay}" 
-                                       PlaceholderColor="#8B7355" 
-                                       TextColor="#5B4F45"
-                                       BackgroundColor="Transparent"
-                                       Margin="15,0"/>
-                            </Border>
-                            <Button Text="⚙ Sort By" 
-                                    Command="{Binding SortByCommand}" 
-                                    BackgroundColor="#BDAEA2" 
-                                    TextColor="#5B4F45" 
-                                    BorderColor="#8B7355"
-                                    BorderWidth="2"
-                                    CornerRadius="20"
-                                    FontSize="14"
-                                    FontAttributes="Bold"
-                                    WidthRequest="120"
-                                    HeightRequest="45"/>
-                        </HorizontalStackLayout>
-                    </FlexLayout>
-
-                    <!-- Users Table -->
-                    <Frame BackgroundColor="White" CornerRadius="15" Padding="0" HasShadow="True">
-                        <VerticalStackLayout Spacing="0">
-
-                            <!-- Table Header -->
-                            <Grid ColumnDefinitions="2*,3*,2*" BackgroundColor="#BDAEA2" Padding="10">
-                                <Label Text="Username" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
-                                <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
-                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45" HorizontalTextAlignment="Center"/>
-                            </Grid>
-
-                            <!-- Users List -->
-                            <CollectionView ItemsSource="{Binding FilteredUsers}">
-                                <CollectionView.ItemTemplate>
-                                    <DataTemplate>
-                                        <VerticalStackLayout Spacing="0">
-                                            <Grid ColumnDefinitions="2*,3*,2*,Auto" Padding="10" RowSpacing="0">
-                                                <Label Text="{Binding Username}" FontSize="16" FontFamily="OpenSansSemibold" VerticalOptions="Center" TextColor="#5B4F45"/>
-
-                                                <VerticalStackLayout Grid.Column="1" Spacing="8">
-                                                    <!-- Show access toggles only for non-admin users -->
-                                                    <VerticalStackLayout IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}" Spacing="8">
-                                                        <!-- Inventory Access -->
-                                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                                            <Label Text="Inventory Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
-                                                            <Switch IsToggled="{Binding CanAccessInventory}"/>
-                                                        </HorizontalStackLayout>
-                                                        
-                                                        <!-- Manage POS Access -->
-                                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                                            <Label Text="Manage POS Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
-                                                            <Switch IsToggled="{Binding CanAccessPOS}"/>
-                                                        </HorizontalStackLayout>
-                                                        
-                                                        <!-- Sales Report Access -->
-                                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                                            <Label Text="Sales Report Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
-                                                            <Switch IsToggled="{Binding CanAccessSalesReport}"/>
-                                                        </HorizontalStackLayout>
-                                                    </VerticalStackLayout>
-                                                </VerticalStackLayout>
-
-                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" TextColor="#8B7355"/>
-
-                                                <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
-                                                <Grid Grid.Column="3" HorizontalOptions="End" VerticalOptions="Center">
-                                                    <Button Text="⋮" 
-                                                            FontSize="18"
-                                                            FontAttributes="Bold"
-                                                            BackgroundColor="#BDAEA2" 
-                                                            TextColor="#5B4F45" 
-                                                            BorderColor="#8B7355"
-                                                            BorderWidth="1"
-                                                            WidthRequest="40" 
-                                                            HeightRequest="35" 
-                                                            CornerRadius="8" 
-                                                            Padding="0"
-                                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=OpenRowMenuCommand}"
-                                                            CommandParameter="{Binding .}"/>
-                                                </Grid>
-                                            </Grid>
-                                            
-                                            <!-- Separator line between users -->
-                                            <BoxView HeightRequest="1" BackgroundColor="#E5DDD3" Margin="15,5,15,5" CornerRadius="0"/>
-                                        </VerticalStackLayout>
-                                    </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
-
-                            <!-- Pagination + Action Buttons -->
-                            <Grid ColumnDefinitions="*,Auto,Auto" Padding="10">
-                                <!-- Pagination controls -->
-                                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                                    <Button Text="Prev"
-                                            BackgroundColor="#E0D6CC"
-                                            TextColor="#5B4F45"
-                                            CornerRadius="8"
-                                            HeightRequest="36"
-                                            WidthRequest="80"
-                                            Command="{Binding GoToPreviousPageCommand}"
-                                            IsEnabled="{Binding HasPreviousPage}"/>
-
-                                    <Label Text="{Binding CurrentPage, StringFormat='Page {0}'}"
-                                           FontSize="14"
-                                           TextColor="#5B4F45"
-                                           VerticalTextAlignment="Center"/>
-                                    <Label Text="{Binding TotalPages, StringFormat='of {0}'}"
-                                           FontSize="14"
-                                           TextColor="#8B7355"
-                                           VerticalTextAlignment="Center"
-                                           Margin="4,0,0,0"/>
-
-                                    <Label Text="{Binding TotalUsers, StringFormat='• {0} users'}"
-                                           FontSize="14"
-                                           TextColor="#8B7355"
-                                           VerticalTextAlignment="Center"
-                                           Margin="10,0,0,0"/>
-
-                                    <Button Text="Next"
-                                            BackgroundColor="#E0D6CC"
-                                            TextColor="#5B4F45"
-                                            CornerRadius="8"
-                                            HeightRequest="36"
-                                            WidthRequest="80"
-                                            Command="{Binding GoToNextPageCommand}"
-                                            IsEnabled="{Binding HasNextPage}"/>
+                <!-- Fixed Frame with Scrollable Content -->
+                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="20" HasShadow="False" HeightRequest="660">
+                    <Grid RowDefinitions="Auto,*,Auto">
+                        
+                        <!-- Search & Sort (Fixed at top) -->
+                        <Grid Grid.Row="0" RowDefinitions="Auto,Auto" Spacing="16" Margin="0,0,0,15">
+                            <Label Grid.Row="0"
+                                   Text="{Binding Users.Count, StringFormat='Users: {0}'}"
+                                   FontSize="22"
+                                   FontAttributes="Bold"
+                                   FontFamily="Montserrat-Black"
+                                   TextColor="White"/>
+                            
+                            <FlexLayout Grid.Row="1" 
+                                       Direction="Row" 
+                                       Wrap="Wrap" 
+                                       AlignItems="Center" 
+                                       JustifyContent="SpaceBetween" 
+                                       AlignContent="Start">
+                                <HorizontalStackLayout Spacing="15" HorizontalOptions="End">
+                                    <Border Stroke="#8B7355" 
+                                            StrokeShape="RoundRectangle 15" 
+                                            StrokeThickness="2" 
+                                            HeightRequest="45" 
+                                            BackgroundColor="White"
+                                            WidthRequest="250">
+                                        <Entry Placeholder="Search" 
+                                               Text="{Binding SearchText, Mode=TwoWay}" 
+                                               PlaceholderColor="#8B7355" 
+                                               TextColor="#5B4F45"
+                                               BackgroundColor="Transparent"
+                                               Margin="15,0"/>
+                                    </Border>
+                                    <Button Text="⚙ Sort By" 
+                                            Command="{Binding SortByCommand}" 
+                                            BackgroundColor="#BDAEA2" 
+                                            TextColor="#5B4F45" 
+                                            BorderColor="#8B7355"
+                                            BorderWidth="2"
+                                            CornerRadius="20"
+                                            FontSize="14"
+                                            FontAttributes="Bold"
+                                            WidthRequest="120"
+                                            HeightRequest="45"/>
                                 </HorizontalStackLayout>
+                            </FlexLayout>
+                        </Grid>
 
-                                <!-- Action Buttons -->
-                                <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" Padding="0" Spacing="15">
+                        <!-- Scrollable Users Table -->
+                        <ScrollView Grid.Row="1" Orientation="Vertical">
+                            <Frame BackgroundColor="White" CornerRadius="15" Padding="0" HasShadow="True">
+                                <VerticalStackLayout Spacing="0">
+                                    <!-- Table Header -->
+                                    <Grid ColumnDefinitions="2*,3*,2*" BackgroundColor="#BDAEA2" Padding="10">
+                                        <Label Text="Username" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
+                                        <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
+                                        <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45" HorizontalTextAlignment="Center"/>
+                                    </Grid>
+
+                                    <!-- Users List -->
+                                    <CollectionView ItemsSource="{Binding FilteredUsers}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <VerticalStackLayout Spacing="0">
+                                                    <Grid ColumnDefinitions="2*,3*,2*,Auto" Padding="10" RowSpacing="0">
+                                                        <Label Text="{Binding Username}" FontSize="16" FontFamily="OpenSansSemibold" VerticalOptions="Center" TextColor="#5B4F45"/>
+
+                                                        <VerticalStackLayout Grid.Column="1" Spacing="8">
+                                                            <!-- Show access toggles only for non-admin users -->
+                                                            <VerticalStackLayout IsVisible="{Binding IsAdmin, Converter={StaticResource InvertBoolConverter}}" Spacing="8">
+                                                                <!-- Inventory Access -->
+                                                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                                    <Label Text="Inventory Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
+                                                                    <Switch IsToggled="{Binding CanAccessInventory}"/>
+                                                                </HorizontalStackLayout>
+                                                                
+                                                                <!-- Manage POS Access -->
+                                                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                                    <Label Text="Manage POS Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
+                                                                    <Switch IsToggled="{Binding CanAccessPOS}"/>
+                                                                </HorizontalStackLayout>
+                                                                
+                                                                <!-- Sales Report Access -->
+                                                                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                                                    <Label Text="Sales Report Access:" FontSize="13" FontFamily="OpenSans-Regular" TextColor="#8B7355" VerticalOptions="Center"/>
+                                                                    <Switch IsToggled="{Binding CanAccessSalesReport}"/>
+                                                                </HorizontalStackLayout>
+                                                            </VerticalStackLayout>
+                                                        </VerticalStackLayout>
+
+                                                        <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" TextColor="#8B7355"/>
+
+                                                        <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
+                                                        <Grid Grid.Column="3" HorizontalOptions="End" VerticalOptions="Center">
+                                                            <Button Text="⋮" 
+                                                                    FontSize="18"
+                                                                    FontAttributes="Bold"
+                                                                    BackgroundColor="#BDAEA2" 
+                                                                    TextColor="#5B4F45" 
+                                                                    BorderColor="#8B7355"
+                                                                    BorderWidth="1"
+                                                                    WidthRequest="40" 
+                                                                    HeightRequest="35" 
+                                                                    CornerRadius="8" 
+                                                                    Padding="0"
+                                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:UserManagementPageViewModel}}, Path=OpenRowMenuCommand}"
+                                                                    CommandParameter="{Binding .}"/>
+                                                        </Grid>
+                                                    </Grid>
+                                                    
+                                                    <!-- Separator line between users -->
+                                                    <BoxView HeightRequest="1" BackgroundColor="#E5DDD3" Margin="15,5,15,5" CornerRadius="0"/>
+                                                </VerticalStackLayout>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+                                </VerticalStackLayout>
+                            </Frame>
+                        </ScrollView>
+
+                        <!-- Pagination + Action Buttons (Fixed at bottom) -->
+                        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Padding="10" Margin="0,15,0,0">
+                            <!-- Pagination controls -->
+                            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                                <Button Text="⏮ Return to Page 1"
+                                        BackgroundColor="#E0D6CC"
+                                        TextColor="#5B4F45"
+                                        CornerRadius="8"
+                                        HeightRequest="36"
+                                        Padding="12,8"
+                                        Command="{Binding GoToFirstPageCommand}"
+                                        IsVisible="{Binding HasMultiplePages}"/>
+                                
+                                <Button Text="◀ Prev"
+                                        BackgroundColor="#E0D6CC"
+                                        TextColor="#5B4F45"
+                                        CornerRadius="8"
+                                        HeightRequest="36"
+                                        WidthRequest="80"
+                                        Command="{Binding GoToPreviousPageCommand}"
+                                        IsEnabled="{Binding HasPreviousPage}"/>
+
+                                <Label FontSize="14"
+                                       TextColor="White"
+                                       VerticalTextAlignment="Center">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="Page {0} of {1}">
+                                            <Binding Path="CurrentPage"/>
+                                            <Binding Path="TotalPages"/>
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+
+                                <Label Text="{Binding TotalUsers, StringFormat='• {0} users'}"
+                                       FontSize="14"
+                                       TextColor="#E0D6CC"
+                                       VerticalTextAlignment="Center"
+                                       Margin="10,0,0,0"/>
+
+                                <Button Text="Next ▶"
+                                        BackgroundColor="#E0D6CC"
+                                        TextColor="#5B4F45"
+                                        CornerRadius="8"
+                                        HeightRequest="36"
+                                        WidthRequest="80"
+                                        Command="{Binding GoToNextPageCommand}"
+                                        IsEnabled="{Binding HasNextPage}"/>
+                            </HorizontalStackLayout>
+
+                            <!-- Action Buttons -->
+                            <HorizontalStackLayout Grid.Column="1" HorizontalOptions="End" Padding="0" Spacing="15">
                                 <Button Text="Add User" 
                                         BackgroundColor="#BDAEA2" 
                                         TextColor="#5B4F45" 
@@ -219,15 +242,13 @@
                                         Command="{Binding DeleteUserCommand}" 
                                         WidthRequest="140"
                                         HeightRequest="45"/>
-                                </HorizontalStackLayout>
+                            </HorizontalStackLayout>
 
-                                <!-- Spacer to align buttons to the right -->
-                                <BoxView Grid.Column="2" WidthRequest="1" Opacity="0"/>
-                            </Grid>
-
-                        </VerticalStackLayout>
-                    </Frame>
-                </VerticalStackLayout>
+                            <!-- Spacer to align buttons to the right -->
+                            <BoxView Grid.Column="2" WidthRequest="1" Opacity="0"/>
+                        </Grid>
+                    </Grid>
+                </Frame>
             </VerticalStackLayout>
         </Grid>
 

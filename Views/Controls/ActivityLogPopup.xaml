@@ -333,16 +333,16 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <Button Grid.Column="2" 
-                                    Text="🔄" 
-                                    BackgroundColor="#BDAEA2" 
-                                    TextColor="#5B4F45" 
-                                    BorderColor="#8B7355"
-                                    BorderWidth="2"
-                                    WidthRequest="55" 
-                                    HeightRequest="45"
-                                    CornerRadius="20"
-                                    Command="{Binding RefreshCommand}"/>
+                            <ImageButton Grid.Column="2" 
+                                         Source="refreshicon.png"
+                                         BackgroundColor="#BDAEA2" 
+                                         BorderColor="#8B7355"
+                                         BorderWidth="2"
+                                         WidthRequest="55" 
+                                         HeightRequest="45"
+                                         CornerRadius="20"
+                                         Padding="0"
+                                         Command="{Binding RefreshCommand}"/>
                         </Grid>
                         
                         <!-- Date Filter Indicator -->

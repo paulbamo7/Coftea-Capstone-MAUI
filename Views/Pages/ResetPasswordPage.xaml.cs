@@ -15,6 +15,16 @@ public partial class ResetPasswordPage : ContentPage
         RetryConnectionPopup.BindingContext = ((App)Application.Current).RetryConnectionPopup;
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        // Clear messages when page appears
+        if (BindingContext is ResetPasswordPageViewModel vm)
+        {
+            vm.ClearMessages();
+        }
+    }
+
     private void OnToggleNewPasswordVisibility(object sender, EventArgs e)
     {
         if (NewPasswordEntry == null) return;

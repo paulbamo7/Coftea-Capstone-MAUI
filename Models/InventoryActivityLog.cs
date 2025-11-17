@@ -22,6 +22,7 @@ namespace Coftea_Capstone.Models
         public double? Cost { get; set; }
         public string OrderId { get; set; } // Reference to POS order or purchase order
         public string ProductName { get; set; } // POS product name that used this ingredient
+        public string ProductSize { get; set; } // Product size (Small, Medium, Large)
         public DateTime Timestamp { get; set; }
         public string Notes { get; set; }
 
@@ -110,7 +111,20 @@ namespace Coftea_Capstone.Models
             }
         }
         
-        public string UsedForProductText => !string.IsNullOrWhiteSpace(ProductName) ? ProductName : "—";
+        public string UsedForProductText
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(ProductName))
+                    return "—";
+                
+                // Include size if available
+                if (!string.IsNullOrWhiteSpace(ProductSize))
+                    return $"{ProductName} - {ProductSize}";
+                
+                return ProductName;
+            }
+        }
         
         public string RowBackgroundColor => RowNumber % 2 == 0 ? "#F9F9F9" : "#FFFFFF";
         

@@ -214,6 +214,14 @@ namespace Coftea_Capstone.ViewModel
                     AllItems.Remove(item);
                     Items.Remove(item);
                     MessagingCenter.Send(this, "InventoryChanged");
+                    
+                    // Add notification
+                    var app = (App)Application.Current;
+                    await app?.NotificationPopup?.AddNotification(
+                        "Inventory Item Deleted",
+                        $"{item.itemName} has been deleted from inventory",
+                        $"ID: {item.itemID}",
+                        "Warning");
                 }
                 else
                 {

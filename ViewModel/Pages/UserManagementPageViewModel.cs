@@ -27,7 +27,7 @@ namespace Coftea_Capstone.ViewModel
         private int currentPage = 1;
 
         [ObservableProperty]
-        private int pageSize = 10;
+        private int pageSize = 15;
 
         [ObservableProperty]
         private int totalUsers;
@@ -37,6 +37,7 @@ namespace Coftea_Capstone.ViewModel
 
         public bool HasNextPage => CurrentPage < TotalPages;
         public bool HasPreviousPage => CurrentPage > 1;
+        public bool HasMultiplePages => TotalPages > 1;
 
         [ObservableProperty]
         private string searchText = string.Empty;
@@ -262,6 +263,16 @@ namespace Coftea_Capstone.ViewModel
             await LoadUsersAsync();
         }
 
+        [RelayCommand]
+        private async Task GoToFirstPage()
+        {
+            if (CurrentPage != 1)
+            {
+                CurrentPage = 1;
+                await LoadUsersAsync();
+            }
+        }
+
         public async Task ForceReloadDataAsync() // Force reload user data from database
         {
             _hasLoadedData = false; // Reset the flag to show loading
@@ -286,11 +297,13 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSearchTextChanged(string value)
         {
+            CurrentPage = 1; // Reset to first page when search changes
             ApplyFilters();
         }
 
         partial void OnSelectedSortOptionChanged(string value)
         {
+            CurrentPage = 1; // Reset to first page when sort changes
             ApplyFilters();
         }
 

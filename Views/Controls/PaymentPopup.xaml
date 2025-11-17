@@ -126,7 +126,9 @@
                 <!-- Payment Content -->
                 <Grid Grid.Row="1" Padding="30" ColumnDefinitions="1.2*, *" ColumnSpacing="20">
                     <!-- Left Side: Payment Details -->
-                    <ScrollView Grid.Column="0">
+                    <ScrollView Grid.Column="0" 
+                                VerticalScrollBarVisibility="Never" 
+                                HorizontalScrollBarVisibility="Never">
                         <Grid RowDefinitions="Auto, Auto, *">
                             <!-- Payment Method Selector -->
                             <Grid Grid.Row="0" ColumnDefinitions="Auto, Auto" Margin="0,0,0,20">
@@ -525,7 +527,9 @@
                     </ScrollView>
 
                     <!-- Right Side: Order Summary -->
-                    <ScrollView Grid.Column="1">
+                    <ScrollView Grid.Column="1" 
+                                VerticalScrollBarVisibility="Never" 
+                                HorizontalScrollBarVisibility="Never">
                         <Frame Padding="15" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True">
                             <VerticalStackLayout Spacing="8">
                                 <Label Text="Order Summary" FontSize="18" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center" />

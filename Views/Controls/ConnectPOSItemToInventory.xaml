@@ -70,18 +70,28 @@
                                             TextColor="Black" />
                                 </Frame>
 
-                                <Button Text="🔄 Refresh" 
-                                        BackgroundColor="#D4A574" 
-                                        TextColor="White" 
-                                        BorderColor="#8B7355"
-                                        BorderWidth="2"
-                                        FontAttributes="Bold"
-                                        FontSize="13"
+                                <Border BackgroundColor="#D4A574" 
+                                        Stroke="#8B7355"
+                                        StrokeThickness="2"
+                                        StrokeShape="RoundRectangle 20"
                                         HeightRequest="40"
                                         WidthRequest="100"
-                                        CornerRadius="20"
-                                        Padding="10,0"
-                                        Command="{Binding RefreshInventoryCommand}"/>
+                                        Padding="10,0">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding RefreshInventoryCommand}"/>
+                                    </Border.GestureRecognizers>
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Image Source="refreshicon.png" 
+                                               WidthRequest="16" 
+                                               HeightRequest="16" 
+                                               VerticalOptions="Center"/>
+                                        <Label Text="Refresh" 
+                                               TextColor="White" 
+                                               FontAttributes="Bold"
+                                               FontSize="13"
+                                               VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </Border>
 
                                 <!-- Sort -->
                                 <Frame CornerRadius="12" Padding="8,0" BackgroundColor="White" HasShadow="False" VerticalOptions="Center">
