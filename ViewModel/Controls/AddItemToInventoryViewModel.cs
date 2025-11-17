@@ -573,14 +573,21 @@ namespace Coftea_Capstone.ViewModel
                 }
                 if (rowsAffected > 0)
                 {
+                    var app = (App)Application.Current;
                     if (_editingItemId.HasValue)
                     {
-                        var app = (App)Application.Current;
                         app?.SuccessCardPopup?.Show(
                             "Inventory Item Updated",
                             $"{inventoryItem.itemName} has been updated",
                             $"ID: {inventoryItem.itemID}",
                             1500);
+                        
+                        // Add notification
+                        await app?.NotificationPopup?.AddNotification(
+                            "Inventory Updated",
+                            $"{inventoryItem.itemName} has been updated successfully",
+                            $"ID: {inventoryItem.itemID}",
+                            "Info");
                     }
                     else
                     {
@@ -589,12 +596,18 @@ namespace Coftea_Capstone.ViewModel
                         var latestItems = await _database.GetInventoryItemsAsync();
                         var created = latestItems.OrderByDescending(i => i.itemID).FirstOrDefault(i => i.itemName == inventoryItem.itemName);
                         int createdId = created?.itemID ?? 0;
-                        var app = (App)Application.Current;
                         app?.SuccessCardPopup?.Show(
                             "Inventory Item Added",
                             $"{inventoryItem.itemName} has been added",
                             $"ID: {createdId}",
                             1500);
+                        
+                        // Add notification
+                        await app?.NotificationPopup?.AddNotification(
+                            "Inventory Item Added",
+                            $"{inventoryItem.itemName} has been added to inventory",
+                            $"ID: {createdId}",
+                            "Info");
                     }
                     // Notify listeners (e.g., Inventory page) to refresh
                     MessagingCenter.Send(this, "InventoryChanged");

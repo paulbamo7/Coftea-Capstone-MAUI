@@ -17,16 +17,6 @@ public partial class PaymentPopup : ContentView
         }
     }
 
-    private void OnQuickAmountClicked(object sender, EventArgs e)
-    {
-        if (sender is Button button && BindingContext is PaymentPopupViewModel viewModel)
-        {
-            // Extract amount from button text (remove ₱ symbol)
-            string amountText = button.Text.Replace("₱", "");
-            viewModel.UpdateAmountPaid(amountText);
-        }
-    }
-
     private void OnPaymentMethodChanged(object sender, CheckedChangedEventArgs e)
     {
         if (sender is RadioButton radioButton && e.Value && BindingContext is PaymentPopupViewModel viewModel)

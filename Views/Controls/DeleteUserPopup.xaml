@@ -63,9 +63,7 @@
                                                FontAttributes="Bold" 
                                                TextColor="Black"
                                                Text="{Binding Username}"/>
-                                        <Label Text="{Binding LastActive, StringFormat='Last Active: {0}'}" 
-                                               FontSize="14" FontFamily="MontserratBlack" 
-                                               TextColor="Gray"/>
+                                        <!-- Last Active removed - database doesn't track last login time -->
                                     </VerticalStackLayout>
 
                                     <!-- User Details -->

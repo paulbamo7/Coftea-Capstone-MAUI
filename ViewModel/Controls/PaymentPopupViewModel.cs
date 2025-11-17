@@ -21,6 +21,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         private string? _currentGCashSourceId;
         private string? _currentGCashCheckoutUrl;
         private bool _gcashDeepLinkConfirmed;
+        private CancellationTokenSource? _paymentCancellationTokenSource;
         
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
@@ -50,10 +51,31 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private string selectedPaymentMethod = "Cash";
 
+        [ObservableProperty]
+        private bool isCancelConfirmationVisible = false;
+
+        [ObservableProperty]
+        private bool isPaymentPaused = false;
+
         // Convenience flags used by UI/logic
         public bool IsCashSelected => string.Equals(SelectedPaymentMethod, "Cash", System.StringComparison.OrdinalIgnoreCase);
         public bool IsGCashSelected => string.Equals(SelectedPaymentMethod, "GCash", System.StringComparison.OrdinalIgnoreCase);
         public bool IsBankSelected => string.Equals(SelectedPaymentMethod, "Bank", System.StringComparison.OrdinalIgnoreCase);
+
+        // Property to check if payment can be confirmed (requires internet and sufficient amount for cash)
+        public bool CanConfirmPayment
+        {
+            get
+            {
+                // For cash payments, need both internet and sufficient amount
+                if (IsCashSelected)
+                {
+                    return Services.NetworkService.HasInternetConnection() && Change >= 0;
+                }
+                // For GCash and Bank, only need internet (amount is auto-set)
+                return Services.NetworkService.HasInternetConnection();
+            }
+        }
 
         [ObservableProperty]
         private List<CartItem> cartItems = new();
@@ -81,8 +103,8 @@ namespace Coftea_Capstone.ViewModel.Controls
             TotalAmount = total;
             CartItems = items;
             AmountPaid = 0;
-            Change = 0;
-            PaymentStatus = "Pending";
+            Change = -TotalAmount;
+            UpdatePaymentStatus();
             IsPaymentVisible = true;
             System.Diagnostics.Debug.WriteLine($"PaymentPopup IsPaymentVisible set to: {IsPaymentVisible}");
 
@@ -101,10 +123,33 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private void ClosePayment() // Close payment popup
         {
+            // Cancel payment processing if it's running
+            if (IsProcessingPayment)
+            {
+                CancelPaymentProcessing();
+            }
+            
             IsPaymentVisible = false;
             _currentGCashCheckoutUrl = null;
             _currentGCashSourceId = null;
             _gcashDeepLinkConfirmed = false;
+        }
+
+        private void CancelPaymentProcessing() // Cancel ongoing payment processing
+        {
+            if (_paymentCancellationTokenSource != null && !_paymentCancellationTokenSource.Token.IsCancellationRequested)
+            {
+                _paymentCancellationTokenSource.Cancel();
+                System.Diagnostics.Debug.WriteLine("🛑 Payment processing cancelled");
+            }
+        }
+
+        partial void OnSelectedPaymentMethodChanged(string value)
+        {
+            OnPropertyChanged(nameof(IsCashSelected));
+            OnPropertyChanged(nameof(IsGCashSelected));
+            OnPropertyChanged(nameof(IsBankSelected));
+            OnPropertyChanged(nameof(CanConfirmPayment));
         }
 
         [RelayCommand]
@@ -148,7 +193,7 @@ namespace Coftea_Capstone.ViewModel.Controls
             {
                 AmountPaid = 0;
                 Change = -TotalAmount;
-                PaymentStatus = "Pending";
+                UpdatePaymentStatus();
                 QrCodeImageSource = null;
             }
         }
@@ -157,17 +202,192 @@ namespace Coftea_Capstone.ViewModel.Controls
         {
             if (decimal.TryParse(amount, out decimal paid))
             {
+                // Prevent negative numbers
+                if (paid < 0)
+                {
+                    paid = 0;
+                }
+                
                 AmountPaid = paid;
                 Change = AmountPaid - TotalAmount;
                 
-                if (Change >= 0)
-                {
-                    PaymentStatus = "Ready to Confirm";
-                }
-                else
-                {
-                    PaymentStatus = "Insufficient Amount";
-                }
+                UpdatePaymentStatus();
+            }
+        }
+
+        private void UpdatePaymentStatus() // Update payment status based on amount and internet connectivity
+        {
+            // Check internet connection first
+            if (!Services.NetworkService.HasInternetConnection())
+            {
+                PaymentStatus = "No Internet Connection";
+                OnPropertyChanged(nameof(CanConfirmPayment));
+                return;
+            }
+            
+            // If internet is available, check amount
+            if (Change >= 0)
+            {
+                PaymentStatus = "Ready to Confirm";
+            }
+            else
+            {
+                PaymentStatus = "Insufficient Amount";
+            }
+            OnPropertyChanged(nameof(CanConfirmPayment));
+        }
+
+        [RelayCommand]
+        private void AddToAmountPaid(object parameter) // Add amount to current amount paid
+        {
+            if (parameter == null) return;
+            
+            decimal amount = 0;
+            if (parameter is decimal dec)
+            {
+                amount = dec;
+            }
+            else if (parameter is string str && decimal.TryParse(str, out decimal parsed))
+            {
+                amount = parsed;
+            }
+            else if (parameter is int intVal)
+            {
+                amount = intVal;
+            }
+            
+            var newAmount = AmountPaid + amount;
+            // Prevent negative numbers
+            if (newAmount < 0)
+            {
+                newAmount = 0;
+            }
+            AmountPaid = newAmount;
+            Change = AmountPaid - TotalAmount;
+            
+            UpdatePaymentStatus();
+        }
+
+        [RelayCommand]
+        private void SubtractFromAmountPaid(object parameter) // Subtract amount from current amount paid
+        {
+            if (parameter == null) return;
+            
+            decimal amount = 0;
+            if (parameter is decimal dec)
+            {
+                amount = dec;
+            }
+            else if (parameter is string str && decimal.TryParse(str, out decimal parsed))
+            {
+                amount = parsed;
+            }
+            else if (parameter is int intVal)
+            {
+                amount = intVal;
+            }
+            
+            var newAmount = AmountPaid - amount;
+            // Prevent negative numbers
+            if (newAmount < 0)
+            {
+                newAmount = 0;
+            }
+            AmountPaid = newAmount;
+            Change = AmountPaid - TotalAmount;
+            
+            if (Change >= 0)
+            {
+                PaymentStatus = "Ready to Confirm";
+            }
+            else
+            {
+                PaymentStatus = "Insufficient Amount";
+            }
+        }
+
+        [RelayCommand]
+        private void ClearAmountPaid() // Reset amount paid to 0
+        {
+            AmountPaid = 0;
+            Change = -TotalAmount;
+            UpdatePaymentStatus();
+        }
+
+        [RelayCommand]
+        private void CancelPayment() // Show cancel confirmation UI
+        {
+            // If payment is processing, show confirmation UI to pause
+            if (IsProcessingPayment)
+            {
+                IsCancelConfirmationVisible = true;
+            }
+            else
+            {
+                // If not processing, show confirmation UI to reset
+                IsCancelConfirmationVisible = true;
+            }
+        }
+
+        [RelayCommand]
+        private void ConfirmCancel() // Confirm cancellation - pause if processing, reset if not
+        {
+            IsCancelConfirmationVisible = false;
+            
+            // If payment is processing, pause it
+            if (IsProcessingPayment)
+            {
+                PausePaymentProcessing();
+            }
+            else
+            {
+                // If not processing, just reset amounts
+                AmountPaid = 0;
+                Change = -TotalAmount;
+                UpdatePaymentStatus();
+            }
+        }
+
+        [RelayCommand]
+        private void DismissCancelConfirmation() // Dismiss cancel confirmation UI
+        {
+            IsCancelConfirmationVisible = false;
+        }
+
+        private void PausePaymentProcessing() // Pause ongoing payment processing
+        {
+            if (IsProcessingPayment)
+            {
+                IsPaymentPaused = true;
+                PaymentStatus = "Paused";
+                CancelPaymentProcessing();
+                OnPropertyChanged(nameof(IsProcessingPayment));
+                System.Diagnostics.Debug.WriteLine("⏸️ Payment processing paused");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ResumePayment() // Resume paused payment
+        {
+            if (IsPaymentPaused)
+            {
+                IsPaymentPaused = false;
+                OnPropertyChanged(nameof(IsProcessingPayment));
+                // Restart payment processing
+                await ConfirmPayment();
+            }
+        }
+
+        [RelayCommand]
+        private void FullyCancelPayment() // Fully cancel paused payment
+        {
+            if (IsPaymentPaused)
+            {
+                IsPaymentPaused = false;
+                AmountPaid = 0;
+                Change = -TotalAmount;
+                UpdatePaymentStatus();
+                System.Diagnostics.Debug.WriteLine("🛑 Payment fully cancelled");
             }
         }
 
@@ -175,7 +395,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         private readonly SemaphoreSlim _paymentSemaphore = new SemaphoreSlim(1, 1); // Thread-safe payment processing
         
         // Helper property to check if payment is processing (for clarity and to avoid IDE confusion)
-        private bool IsProcessingPayment => Volatile.Read(ref _isProcessingPayment) != 0;
+        public bool IsProcessingPayment => Volatile.Read(ref _isProcessingPayment) != 0;
 
         [RelayCommand]
         private async Task ConfirmPayment() // Confirm and process payment
@@ -223,10 +443,17 @@ namespace Coftea_Capstone.ViewModel.Controls
                 System.Diagnostics.Debug.WriteLine("⚠️ ConfirmPayment aborted because processing is already running");
                 return;
             }
+            
+            // Create cancellation token source for this payment
+            _paymentCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _paymentCancellationTokenSource.Token;
             var paymentCompleted = false;
 
             try
             {
+                // Check if cancelled before starting
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 if (IsGCashSelected)
                 {
                     PaymentStatus = _gcashDeepLinkConfirmed
@@ -252,9 +479,12 @@ namespace Coftea_Capstone.ViewModel.Controls
                     });
                 }
                 
-                // Process payment with realistic steps
-                await ProcessPaymentWithSteps();
+                // Process payment with realistic steps (with cancellation support)
+                await ProcessPaymentWithSteps(cancellationToken);
                 System.Diagnostics.Debug.WriteLine("🔵 ProcessPaymentWithSteps completed");
+                
+                // Check if cancelled after processing steps
+                cancellationToken.ThrowIfCancellationRequested();
 
                 System.Diagnostics.Debug.WriteLine("🔵 About to call SaveTransaction");
                 // Save transaction to database and shared store
@@ -476,6 +706,12 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 paymentCompleted = true;
             }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("🛑 Payment processing was cancelled");
+                PaymentStatus = "Payment Cancelled";
+                // Don't show error popup for cancellation - it's intentional
+            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Payment confirmation error: {ex.Message}");
@@ -488,8 +724,19 @@ namespace Coftea_Capstone.ViewModel.Controls
                     _ = AutoClosePaymentPopupAsync();
                 }
 
+                // Clean up cancellation token
+                _paymentCancellationTokenSource?.Dispose();
+                _paymentCancellationTokenSource = null;
+
+                // Reset paused flag if payment completed
+                if (paymentCompleted)
+                {
+                    IsPaymentPaused = false;
+                }
+
                 // Thread-safe flag reset and semaphore release
                 Interlocked.Exchange(ref _isProcessingPayment, 0);
+                OnPropertyChanged(nameof(IsProcessingPayment));
                 _paymentSemaphore.Release();
                 _gcashDeepLinkConfirmed = false;
                 _currentGCashCheckoutUrl = null;
@@ -497,7 +744,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                 QrCodeImageSource = null;
             }
         }
-        private async Task ProcessPaymentWithSteps() // Simulate payment processing steps
+        private async Task ProcessPaymentWithSteps(CancellationToken cancellationToken = default) // Simulate payment processing steps
         {
             try
             {
@@ -505,51 +752,68 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     // Cash payment - simple processing
                     PaymentStatus = "Processing Cash Payment...";
-                    await Task.Delay(800);
+                    await Task.Delay(800, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     PaymentStatus = "Payment Successful";
                 }
                 else if (SelectedPaymentMethod == "GCash")
                 {
                     // GCash payment simulation
                     PaymentStatus = "Initializing GCash Payment...";
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Generating QR Code...";
-                    await Task.Delay(1200);
+                    await Task.Delay(1200, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Waiting for Customer Scan...";
-                    await Task.Delay(1500);
+                    await Task.Delay(1500, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Verifying Payment...";
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Payment Confirmed";
-                    await Task.Delay(500);
+                    await Task.Delay(500, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
                 else if (SelectedPaymentMethod == "Bank")
                 {
                     // Bank transfer simulation
                     PaymentStatus = "Preparing Bank Transfer...";
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Validating Account Details...";
-                    await Task.Delay(1200);
+                    await Task.Delay(1200, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Processing Transfer...";
-                    await Task.Delay(1500);
+                    await Task.Delay(1500, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Verifying Transaction...";
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                     
                     PaymentStatus = "Transfer Completed";
-                    await Task.Delay(500);
+                    await Task.Delay(500, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                PaymentStatus = "Payment Cancelled";
+                System.Diagnostics.Debug.WriteLine("🛑 Payment processing cancelled");
+                throw; // Re-throw to be handled by caller
             }
             catch (Exception ex)
             {
                 PaymentStatus = "Payment Failed";
                 System.Diagnostics.Debug.WriteLine($"Payment processing error: {ex.Message}");
-                await Task.Delay(1000);
+                await Task.Delay(1000, cancellationToken);
             }
         }
         private async Task<List<TransactionHistoryModel>> SaveTransaction() // Save transaction to database and in-memory store

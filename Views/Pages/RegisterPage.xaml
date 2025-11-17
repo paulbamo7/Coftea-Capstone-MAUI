@@ -179,21 +179,6 @@
                                 <Label Text="Passwords match" FontSize="13" TextColor="#8B7355" FontFamily="MontserratBlack"/>
                             </StackLayout>
 
-                            <!-- Terms & Conditions -->
-                            <HorizontalStackLayout Spacing="6" Margin="15,5,15,20" HorizontalOptions="Start">
-                                <CheckBox IsChecked="{Binding IsTermsAccepted}" Color="#5B4F45" Scale="1.2"/>
-                                <Label Text="I agree to the " 
-                                       VerticalOptions="Center" 
-                                       TextColor="#5B4F45"
-                                       FontFamily="MontserratBlack"
-                                       FontSize="15"/>
-                                <Label Text="Terms and Conditions" 
-                                       TextColor="#8B7355" 
-                                       VerticalOptions="Center"
-                                       FontFamily="MontserratBlack"
-                                       FontSize="15"/>
-                            </HorizontalStackLayout>
-                            
                             <!-- Action Buttons -->
                             <Grid ColumnDefinitions="1.2*,*" ColumnSpacing="20" RowDefinitions="Auto" Margin="15,0,15,0">
                                 <Button Grid.Column="0" 

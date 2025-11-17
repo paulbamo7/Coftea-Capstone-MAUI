@@ -2,6 +2,8 @@ using Coftea_Capstone;
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Views.Controls;
+using Coftea_Capstone.ViewModel;
+using Microsoft.Maui.Storage;
 using SQLite;
 
 namespace Coftea_Capstone.Views.Pages;
@@ -25,6 +27,22 @@ public partial class LoginPage : ContentPage
         if (sender is ImageButton btn)
         {
             btn.Source = LoginPasswordEntry.IsPassword ? "show.png" : "hidden.png";
+        }
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        
+        // Clear email if Remember Me is not checked (after logout)
+        if (BindingContext is LoginPageViewModel viewModel)
+        {
+            bool rememberMe = Preferences.Get("RememberMe", false);
+            if (!rememberMe)
+            {
+                viewModel.Email = string.Empty;
+                viewModel.RememberMe = false;
+            }
         }
     }
 

@@ -26,8 +26,22 @@
             <VerticalStackLayout Padding="0" Spacing="20">
 
                 <!-- Top Bar -->
-                <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
                     <Label Text="Inventory" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
+                    
+                    <!-- Refresh Button -->
+                    <Button Grid.Column="1" 
+                            Text="🔄 Refresh" 
+                            FontSize="12" 
+                            FontAttributes="Bold"
+                            TextColor="#5B4F45" 
+                            BackgroundColor="#C1A892"
+                            BorderColor="#8B7355"
+                            BorderWidth="1"
+                            CornerRadius="8"
+                            Padding="12,8"
+                            HeightRequest="36"
+                            Command="{Binding RefreshDataCommand}"/>
                     
                     <!-- Connectivity Status Indicator -->
                     <otherViews:ConnectivityStatusIndicator Grid.Column="2" VerticalOptions="Center"/>

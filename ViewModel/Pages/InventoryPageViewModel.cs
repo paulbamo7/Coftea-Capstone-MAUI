@@ -131,6 +131,12 @@ namespace Coftea_Capstone.ViewModel
             await LoadDataAsync();
         }
 
+        [RelayCommand]
+        private async Task RefreshData() // Refresh button command
+        {
+            await ForceReloadDataAsync();
+        }
+
         // Selected category from UI buttons: "Ingredients" or "Supplies"
         [ObservableProperty]
         private string selectedCategory = "";

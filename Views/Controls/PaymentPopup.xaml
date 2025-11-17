@@ -24,6 +24,70 @@
             <TapGestureRecognizer Command="{Binding ClosePaymentCommand}" />
         </Grid.GestureRecognizers>
         
+        <!-- Cancel Confirmation Overlay -->
+        <Frame IsVisible="{Binding IsCancelConfirmationVisible}"
+               BackgroundColor="#E0000000"
+               VerticalOptions="Fill"
+               HorizontalOptions="Fill"
+               Padding="0"
+               HasShadow="False"
+               InputTransparent="False"
+               ZIndex="10000">
+            <Grid VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="False">
+                <Frame BackgroundColor="#F8E8D7"
+                       CornerRadius="20"
+                       Padding="30"
+                       WidthRequest="400"
+                       HasShadow="True"
+                       InputTransparent="False">
+                    <VerticalStackLayout Spacing="20">
+                        <Label Text="Pause Payment"
+                               FontSize="20" FontFamily="MontserratBlack" FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               IsVisible="{Binding IsProcessingPayment}" />
+                        <Label Text="Cancel Payment"
+                               FontSize="20" FontFamily="MontserratBlack" FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               IsVisible="{Binding IsProcessingPayment, Converter={StaticResource InvertBoolConverter}}" />
+                        <Label Text="Payment is currently being processed. Do you want to pause it?"
+                               FontSize="14" FontFamily="MontserratBlack"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding IsProcessingPayment}" />
+                        <Label Text="Are you sure you want to cancel this payment? All entered amounts will be reset."
+                               FontSize="14" FontFamily="MontserratBlack"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding IsProcessingPayment, Converter={StaticResource InvertBoolConverter}}" />
+                        <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                            <Button Text="Yes"
+                                    BackgroundColor="#4CAF50"
+                                    TextColor="White"
+                                    FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold"
+                                    CornerRadius="15"
+                                    WidthRequest="100"
+                                    HeightRequest="40"
+                                    Command="{Binding ConfirmCancelCommand}" />
+                            <Button Text="No"
+                                    BackgroundColor="#BDAEA2"
+                                    TextColor="White"
+                                    FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold"
+                                    CornerRadius="15"
+                                    WidthRequest="100"
+                                    HeightRequest="40"
+                                    Command="{Binding DismissCancelConfirmationCommand}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+        </Frame>
+        
         <!-- Payment Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
@@ -146,58 +210,178 @@
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" 
                                            VerticalOptions="Center" />
+                                    <VerticalStackLayout Grid.Column="1" Spacing="5" IsVisible="{Binding IsPaymentPaused}">
+                                        <Label Text="{Binding PaymentStatus}" 
+                                               FontSize="16" FontFamily="MontserratBlack" 
+                                               FontAttributes="Bold"
+                                               TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
+                                               VerticalOptions="Center" />
+                                        <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                                            <Button Text="Resume"
+                                                    BackgroundColor="#4CAF50"
+                                                    TextColor="White"
+                                                    FontSize="12" FontFamily="MontserratBlack" FontAttributes="Bold"
+                                                    CornerRadius="10"
+                                                    Padding="15,5"
+                                                    HeightRequest="30"
+                                                    Command="{Binding ResumePaymentCommand}" />
+                                            <Button Text="Cancel"
+                                                    BackgroundColor="#C62828"
+                                                    TextColor="White"
+                                                    FontSize="12" FontFamily="MontserratBlack" FontAttributes="Bold"
+                                                    CornerRadius="10"
+                                                    Padding="15,5"
+                                                    HeightRequest="30"
+                                                    Command="{Binding FullyCancelPaymentCommand}" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
                                     <Label Grid.Column="1" Text="{Binding PaymentStatus}" 
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold"
                                            TextColor="{Binding PaymentStatus, Converter={StaticResource StatusColorConverter}}"
-                                           VerticalOptions="Center" />
+                                           VerticalOptions="Center"
+                                           IsVisible="{Binding IsPaymentPaused, Converter={StaticResource InvertBoolConverter}}" />
                                 </Grid>
 
                                 <!-- Quick Amount Buttons -->
                                 <VerticalStackLayout Grid.Row="4" Margin="0,0,0,20" Spacing="8">
-                                    <Label Text="Quick Amounts:" 
+                                    <Label Text="Quick Amounts (Add):" 
                                            FontSize="14" FontFamily="MontserratBlack" 
                                            TextColor="Gray"
                                            LineBreakMode="NoWrap"
                                            HorizontalOptions="Start"
                                            VerticalOptions="Start" />
                                     <HorizontalStackLayout Spacing="10" HorizontalOptions="Start">
-                                        <Button Text="₱50" 
+                                        <Button Text="+₱50" 
                                                 FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
                                                 Padding="0"
-                                                WidthRequest="50"
+                                                WidthRequest="55"
                                                 HeightRequest="30"
-                                                Clicked="OnQuickAmountClicked" />
-                                        <Button Text="₱100" 
+                                                Command="{Binding AddToAmountPaidCommand}"
+                                                CommandParameter="50" />
+                                        <Button Text="+₱100" 
                                                 FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
                                                 Padding="0"
-                                                WidthRequest="50"
+                                                WidthRequest="60"
                                                 HeightRequest="30"
-                                                Clicked="OnQuickAmountClicked" />
-                                        <Button Text="₱200" 
+                                                Command="{Binding AddToAmountPaidCommand}"
+                                                CommandParameter="100" />
+                                        <Button Text="+₱200" 
                                                 FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
                                                 Padding="0"
-                                                WidthRequest="50"
+                                                WidthRequest="60"
                                                 HeightRequest="30"
-                                                Clicked="OnQuickAmountClicked" />
-                                        <Button Text="₱500" 
+                                                Command="{Binding AddToAmountPaidCommand}"
+                                                CommandParameter="200" />
+                                        <Button Text="+₱500" 
                                                 FontSize="12" FontFamily="MontserratBlack"
                                                 BackgroundColor="#E8D5C4"
                                                 TextColor="Black"
                                                 CornerRadius="15"
                                                 Padding="0"
-                                                WidthRequest="50"
+                                                WidthRequest="60"
                                                 HeightRequest="30"
-                                                Clicked="OnQuickAmountClicked" />
+                                                Command="{Binding AddToAmountPaidCommand}"
+                                                CommandParameter="500" />
+                                        <Button Text="+₱1000" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#E8D5C4"
+                                                TextColor="Black"
+                                                CornerRadius="15"
+                                                Padding="0"
+                                                WidthRequest="65"
+                                                HeightRequest="30"
+                                                Command="{Binding AddToAmountPaidCommand}"
+                                                CommandParameter="1000" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <Label Text="Quick Amounts (Subtract):" 
+                                           FontSize="14" FontFamily="MontserratBlack" 
+                                           TextColor="Gray"
+                                           LineBreakMode="NoWrap"
+                                           HorizontalOptions="Start"
+                                           VerticalOptions="Start"
+                                           Margin="0,8,0,0" />
+                                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Start">
+                                        <Button Text="-₱50" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#D4A574"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                Padding="0"
+                                                WidthRequest="55"
+                                                HeightRequest="30"
+                                                Command="{Binding SubtractFromAmountPaidCommand}"
+                                                CommandParameter="50" />
+                                        <Button Text="-₱100" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#D4A574"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                Padding="0"
+                                                WidthRequest="60"
+                                                HeightRequest="30"
+                                                Command="{Binding SubtractFromAmountPaidCommand}"
+                                                CommandParameter="100" />
+                                        <Button Text="-₱200" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#D4A574"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                Padding="0"
+                                                WidthRequest="60"
+                                                HeightRequest="30"
+                                                Command="{Binding SubtractFromAmountPaidCommand}"
+                                                CommandParameter="200" />
+                                        <Button Text="-₱500" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#D4A574"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                Padding="0"
+                                                WidthRequest="60"
+                                                HeightRequest="30"
+                                                Command="{Binding SubtractFromAmountPaidCommand}"
+                                                CommandParameter="500" />
+                                        <Button Text="-₱1000" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#D4A574"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                Padding="0"
+                                                WidthRequest="65"
+                                                HeightRequest="30"
+                                                Command="{Binding SubtractFromAmountPaidCommand}"
+                                                CommandParameter="1000" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <!-- Clear and Cancel Buttons -->
+                                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Start" Margin="0,8,0,0">
+                                        <Button Text="Clear" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#BDAEA2"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                Padding="15,0"
+                                                HeightRequest="30"
+                                                Command="{Binding ClearAmountPaidCommand}" />
+                                        <Button Text="Cancel Payment" 
+                                                FontSize="12" FontFamily="MontserratBlack"
+                                                BackgroundColor="#C62828"
+                                                TextColor="White"
+                                                CornerRadius="15"
+                                                Padding="15,0"
+                                                HeightRequest="30"
+                                                Command="{Binding CancelPaymentCommand}" />
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
 
@@ -211,13 +395,14 @@
                                         CornerRadius="20"
                                         HeightRequest="50"
                                         Command="{Binding ConfirmPaymentCommand}"
-                                        IsEnabled="{Binding Change, Converter={StaticResource IsPositiveConverter}}" />
+                                        IsEnabled="{Binding CanConfirmPayment}"
+                                        Margin="0,10,0,0" />
                             </Grid>
                         </Grid>
 
                         <!-- GCASH SECTION (realistic simulation) -->
                         <Grid Grid.Row="1" IsVisible="{Binding Source={x:Reference GCashRadio}, Path=IsChecked}">
-                            <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto">
+                            <Grid RowDefinitions="Auto, Auto, Auto, Auto">
                                 <!-- Total Amount -->
                                 <Grid Grid.Row="0" Margin="0,0,0,20">
                                     <Label Text="Total Amount:" 
@@ -231,60 +416,8 @@
                                            HorizontalOptions="End" />
                                 </Grid>
 
-                                <!-- GCash QR Code -->
-                                <Frame Grid.Row="1" Padding="20" BackgroundColor="#FFFFFF" CornerRadius="12" HasShadow="True" Margin="0,0,0,15">
-                                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
-                                        <Label Text="GCash QR Payment" FontSize="16" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#0EA5E9" HorizontalOptions="Center" />
-                                        
-                                        <!-- QR Code Display -->
-                                        <Border BackgroundColor="White" 
-                                               Stroke="#E0E0E0"
-                                               StrokeThickness="1"
-                                               StrokeShape="RoundRectangle 10"
-                                               Padding="12">
-                                            <Grid>
-                                                <!-- Actual QR Code Image -->
-                                                <Image Source="{Binding QrCodeImageSource}" 
-                                                       WidthRequest="260" 
-                                                       HeightRequest="260" 
-                                                       Aspect="AspectFit"
-                                                       HorizontalOptions="Center"
-                                                       VerticalOptions="Center"
-                                                       IsVisible="{Binding QrCodeImageSource, Converter={StaticResource NullToBoolConverter}}" />
-                                                
-                                                <!-- Loading indicator while generating -->
-                                                <VerticalStackLayout IsVisible="{Binding QrCodeImageSource, Converter={StaticResource InvertBoolConverter}}"
-                                                                     HorizontalOptions="Center"
-                                                                     VerticalOptions="Center"
-                                                                     Spacing="8">
-                                                    <ActivityIndicator IsRunning="True" 
-                                                                       Color="#0EA5E9" 
-                                                                       WidthRequest="30" 
-                                                                       HeightRequest="30" />
-                                                    <Label Text="Generating QR Code..." 
-                                                           FontSize="12" 
-                                                           TextColor="#666666" 
-                                                           HorizontalOptions="Center" />
-                                                </VerticalStackLayout>
-                                            </Grid>
-                                        </Border>
-                                        
-                                        <Label Text="Scan QR code with GCash app" 
-                                               FontSize="12" 
-                                               FontFamily="MontserratBlack" 
-                                               TextColor="#666666" 
-                                               HorizontalOptions="Center" />
-                                        <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" 
-                                               FontSize="14" 
-                                               FontFamily="MontserratBlack" 
-                                               FontAttributes="Bold" 
-                                               TextColor="#0EA5E9" 
-                                               HorizontalOptions="Center" />
-                                    </VerticalStackLayout>
-                                </Frame>
-
                                 <!-- Payment Status -->
-                                <VerticalStackLayout Grid.Row="2" Spacing="4" Margin="0,0,0,15">
+                                <VerticalStackLayout Grid.Row="1" Spacing="4" Margin="0,0,0,15">
                                     <Label Text="Payment Status:" 
                                            FontSize="16" FontFamily="MontserratBlack" 
                                            TextColor="Black" />
@@ -295,19 +428,18 @@
                                 </VerticalStackLayout>
 
                                 <!-- GCash Payment Steps -->
-                                <Frame Grid.Row="3" Padding="15" BackgroundColor="#F0F9FF" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">
+                                <Frame Grid.Row="2" Padding="15" BackgroundColor="#F0F9FF" CornerRadius="10" HasShadow="False" Margin="0,0,0,15">
                                     <VerticalStackLayout Spacing="8">
                                         <Label Text="Payment Steps:" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#0EA5E9" />
-                                        <Label Text="1. Open GCash app on your phone" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
-                                        <Label Text="2. Tap 'Scan QR' and scan the code above" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
-                                        <Label Text="3. Enter amount and confirm payment" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
-                                        <Label Text="4. Wait for payment confirmation" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="1. Customer pays via GCash app" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="2. Verify payment in GCash app" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
+                                        <Label Text="3. Confirm payment received" FontSize="12" FontFamily="MontserratBlack" TextColor="#374151" />
                                     </VerticalStackLayout>
                                 </Frame>
 
-                                <!-- Simulate Payment Button -->
-                                <Button Grid.Row="4"
-                                        Text="Simulate GCash Payment"
+                                <!-- Mark as Paid Button -->
+                                <Button Grid.Row="3"
+                                        Text="Mark as Paid"
                                         FontSize="16" FontFamily="MontserratBlack"
                                         FontAttributes="Bold"
                                         BackgroundColor="#0EA5E9" 
@@ -377,9 +509,9 @@
                                     </VerticalStackLayout>
                                 </Frame>
 
-                                <!-- Simulate Payment Button -->
+                                <!-- Mark as Paid Button -->
                                 <Button Grid.Row="4"
-                                        Text="Simulate Bank Transfer"
+                                        Text="Mark as Paid"
                                         FontSize="16" FontFamily="MontserratBlack"
                                         FontAttributes="Bold"
                                         BackgroundColor="#8B5CF6" 

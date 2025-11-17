@@ -12,11 +12,14 @@ namespace Coftea_Capstone.ViewModel.Others
                 {
                     "Ready to Confirm" => Colors.Green,
                     "Insufficient Amount" => Colors.Red,
+                    "No Internet Connection" => Colors.Red,
+                    "Paused" => Colors.Orange,
                     "Processing..." => Colors.Orange,
                     "Payment Confirmed" => Colors.Green,
                     "Pending" => Colors.Orange,
                     "Accepted" => Colors.Green,
                     "Canceled" => Colors.Red,
+                    "Payment Cancelled" => Colors.Red,
                     _ => Colors.Black
                 };
             }

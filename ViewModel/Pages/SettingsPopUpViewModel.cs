@@ -302,12 +302,26 @@ namespace Coftea_Capstone.ViewModel
         {
             DashboardYAxisValues.Clear();
             
-            // Generate Y-axis values: 20, 40, 60, 80, 100, 120, 140, etc.
-            // Add in reverse order for display (top to bottom)
+            // Ensure we have at least 5 values to display, with the top value being >= maxYValue
+            // Calculate step size to show 5 evenly spaced values
+            int stepSize = (int)Math.Ceiling((double)maxYValue / 4.0); // Divide by 4 to get 5 values (0, step, 2*step, 3*step, 4*step)
+            
+            // Round step size to a nice number (10, 20, 50, 100, etc.)
+            if (stepSize <= 10) stepSize = 10;
+            else if (stepSize <= 20) stepSize = 20;
+            else if (stepSize <= 50) stepSize = 50;
+            else if (stepSize <= 100) stepSize = 100;
+            else stepSize = ((stepSize / 50) + 1) * 50; // Round up to nearest 50
+            
+            // Calculate the top value (must be >= maxYValue)
+            int topValue = ((maxYValue / stepSize) + 1) * stepSize;
+            if (topValue < maxYValue) topValue = maxYValue + stepSize;
+            
+            // Generate 5 values from 0 to topValue
             var values = new List<int>();
-            for (int value = 20; value <= maxYValue; value += 20)
+            for (int i = 0; i <= 4; i++)
             {
-                values.Add(value);
+                values.Add((topValue * i) / 4);
             }
             
             // Reverse to show from top (highest) to bottom (lowest)

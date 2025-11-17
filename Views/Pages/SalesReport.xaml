@@ -16,6 +16,7 @@
             <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
             <converters:StringToColorConverter x:Key="StringToColorConverter"/>
             <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
             
             <!-- Style for Time Period Buttons -->
             <Style x:Key="TimePeriodButtonStyle" TargetType="Button">
@@ -46,8 +47,15 @@
             <VerticalStackLayout Padding="20" Spacing="16">
 
                 <!-- Top Bar -->
-                <Grid ColumnDefinitions="*,Auto,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
-                    <Label Text="Sales Report" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Sales Report" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
+                        <Label Text="{Binding LastRefreshedText}" 
+                               FontSize="10" 
+                               TextColor="#666666" 
+                               FontFamily="OpenSansSemibold"
+                               IsVisible="{Binding LastRefreshedText, Converter={StaticResource StringToBoolConverter}}"/>
+                    </VerticalStackLayout>
                     <Button Grid.Column="1" 
                             Text="{Binding DateFilterText}" 
                             FontSize="12" 

@@ -325,6 +325,26 @@ namespace Coftea_Capstone.Models
                 System.Diagnostics.Debug.WriteLine($"⚠️ Error checking/adding imageData columns: {ex.Message}");
             }
 
+            // Add last_login column to users table if it doesn't exist
+            try
+            {
+                var checkLastLoginColumnSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'last_login';";
+                await using var checkLastLoginColumnCmd = new MySqlCommand(checkLastLoginColumnSql, conn);
+                var lastLoginColumnExists = await checkLastLoginColumnCmd.ExecuteScalarAsync() != null;
+                
+                if (!lastLoginColumnExists)
+                {
+                    var addLastLoginColumnSql = "ALTER TABLE users ADD COLUMN last_login DATETIME NULL;";
+                    await using var addLastLoginColumnCmd = new MySqlCommand(addLastLoginColumnSql, conn);
+                    await addLastLoginColumnCmd.ExecuteNonQueryAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Added last_login column to users table");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Error checking/adding last_login column: {ex.Message}");
+            }
+
             // Create tables if they don't exist
             var createTablesSql = @"
                 CREATE TABLE IF NOT EXISTS users (
@@ -2445,6 +2465,29 @@ namespace Coftea_Capstone.Models
                 user.FullName = reader.IsDBNull(reader.GetOrdinal("fullName")) ? string.Empty : reader.GetString("fullName");
                 user.ProfileImage = reader.IsDBNull(reader.GetOrdinal("profileImage")) ? "usericon.png" : reader.GetString("profileImage");
                 
+                // Handle last_login field (may be NULL for users who haven't logged in yet)
+                try
+                {
+                    var lastLoginOrdinal = reader.GetOrdinal("last_login");
+                    user.LastLogin = reader.IsDBNull(lastLoginOrdinal) ? null : (DateTime?)reader.GetDateTime(lastLoginOrdinal);
+                }
+                catch
+                {
+                    // Column doesn't exist yet (old database), set to null
+                    user.LastLogin = null;
+                }
+                
+                // Handle created_at field
+                try
+                {
+                    var createdAtOrdinal = reader.GetOrdinal("created_at");
+                    user.CreatedAt = reader.IsDBNull(createdAtOrdinal) ? DateTime.Now : reader.GetDateTime(createdAtOrdinal);
+                }
+                catch
+                {
+                    user.CreatedAt = DateTime.Now;
+                }
+                
                 return user;
             }
             return null; 
@@ -2456,6 +2499,16 @@ namespace Coftea_Capstone.Models
             return await ExecuteNonQueryAsync(sql, new Dictionary<string, object?>
             {
                 {"@Password", newHashedPassword},
+                {"@Id", userId}
+            });
+        }
+
+        public async Task<int> UpdateUserLastLoginAsync(int userId) // Updates the last_login timestamp for a user
+        {
+            var sql = "UPDATE users SET last_login = @LastLogin WHERE id = @Id;";
+            return await ExecuteNonQueryAsync(sql, new Dictionary<string, object?>
+            {
+                {"@LastLogin", DateTime.Now},
                 {"@Id", userId}
             });
         }
@@ -2478,8 +2531,8 @@ namespace Coftea_Capstone.Models
             }
             
             var sql = hasPOSColumn
-                ? "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC;"
-                : "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC;";
+                ? "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at, last_login FROM users ORDER BY id ASC;"
+                : "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at, last_login FROM users ORDER BY id ASC;";
             
             return await QueryAsync(sql, reader => new UserInfoModel
             {
@@ -2494,7 +2547,8 @@ namespace Coftea_Capstone.Models
                 CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
                 CanAccessPOS = hasPOSColumn && !reader.IsDBNull(reader.GetOrdinal("can_access_pos")) && reader.GetBoolean("can_access_pos"),
                 CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report"),
-                CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
+                CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now,
+                LastLogin = HasColumn(reader, "last_login") && !reader.IsDBNull(reader.GetOrdinal("last_login")) ? (DateTime?)reader.GetDateTime("last_login") : null
             });
         }
 
@@ -2529,8 +2583,8 @@ namespace Coftea_Capstone.Models
             // Get page
             var offset = (page - 1) * pageSize;
             var pageSql = hasPOSColumn
-                ? "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC LIMIT @PageSize OFFSET @Offset;"
-                : "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at FROM users ORDER BY id ASC LIMIT @PageSize OFFSET @Offset;";
+                ? "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_pos, 0) AS can_access_pos, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at, last_login FROM users ORDER BY id ASC LIMIT @PageSize OFFSET @Offset;"
+                : "SELECT id, email, password, firstName, lastName, isAdmin, status, profileImage, IFNULL(can_access_inventory, 0) AS can_access_inventory, IFNULL(can_access_sales_report, 0) AS can_access_sales_report, created_at, last_login FROM users ORDER BY id ASC LIMIT @PageSize OFFSET @Offset;";
 
             await using var pageCmd = new MySqlCommand(pageSql, conn);
             pageCmd.Parameters.AddWithValue("@PageSize", pageSize);
@@ -2553,7 +2607,8 @@ namespace Coftea_Capstone.Models
                     CanAccessInventory = !reader.IsDBNull(reader.GetOrdinal("can_access_inventory")) && reader.GetBoolean("can_access_inventory"),
                     CanAccessPOS = hasPOSColumn && !reader.IsDBNull(reader.GetOrdinal("can_access_pos")) && reader.GetBoolean("can_access_pos"),
                     CanAccessSalesReport = !reader.IsDBNull(reader.GetOrdinal("can_access_sales_report")) && reader.GetBoolean("can_access_sales_report"),
-                    CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
+                    CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now,
+                    LastLogin = HasColumn(reader, "last_login") && !reader.IsDBNull(reader.GetOrdinal("last_login")) ? (DateTime?)reader.GetDateTime("last_login") : null
                 });
             }
 

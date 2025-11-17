@@ -40,6 +40,7 @@ namespace Coftea_Capstone.ViewModel
         private CancellationTokenSource? _aggregateCts;
         private bool _suppressAggregateModeChanged;
         private string? _pendingReportType;
+        private DateTime _lastDataLoadDate = DateTime.MinValue;
 
         // ===================== State & Models =====================
         [ObservableProperty]
@@ -278,6 +279,14 @@ namespace Coftea_Capstone.ViewModel
 
         [ObservableProperty]
         private int item3Count = 0;
+
+        // Last refreshed timestamp
+        [ObservableProperty]
+        private DateTime? lastRefreshed;
+
+        public string LastRefreshedText => LastRefreshed.HasValue 
+            ? $"Last refreshed: {LastRefreshed.Value:MMM dd, yyyy h:mm tt}" 
+            : string.Empty;
 
         // Pie chart trend indicators
         [ObservableProperty]
@@ -608,6 +617,17 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
+        public async Task CheckAndRefreshIfDayChangedAsync() // Check if day changed and refresh if needed
+        {
+            var today = DateTime.Today;
+            if (_lastDataLoadDate != DateTime.MinValue && _lastDataLoadDate.Date < today)
+            {
+                System.Diagnostics.Debug.WriteLine("🔄 Day has changed - automatically refreshing today's data");
+                await RefreshTodayAsync();
+                _lastDataLoadDate = today;
+            }
+        }
+
         public async Task RefreshTodayAsync() // Public method to refresh today's section and totals
         {
             try
@@ -778,6 +798,15 @@ namespace Coftea_Capstone.ViewModel
             
             try
             {
+                // Check if day has changed and refresh today's data if needed
+                var today = DateTime.Today;
+                if (_lastDataLoadDate != DateTime.MinValue && _lastDataLoadDate.Date < today)
+                {
+                    System.Diagnostics.Debug.WriteLine("🔄 Day has changed - refreshing today's data");
+                    await RefreshTodayAsync();
+                }
+                _lastDataLoadDate = today;
+                
                 IsLoading = true;
                 StatusMessage = "Loading sales reports...";
                 HasError = false;
@@ -872,6 +901,10 @@ namespace Coftea_Capstone.ViewModel
                 UpdateHeaderRanges();
 
                 await LoadAggregateRowsAsync(ignoreVisibility: true);
+                
+                // Update last refreshed timestamp
+                LastRefreshed = DateTime.Now;
+                OnPropertyChanged(nameof(LastRefreshedText));
             }
             catch (OperationCanceledException)
             {

@@ -14,7 +14,21 @@ public partial class SalesReport : ContentPage
 		InitializeComponent();
 		
 		// Update navigation state for indicator
-		Appearing += (_, __) => NavigationStateService.SetCurrentPageType(typeof(SalesReport));
+		Appearing += async (_, __) => 
+		{
+			NavigationStateService.SetCurrentPageType(typeof(SalesReport));
+			
+			// Check if day has changed and refresh today's data
+			var app = (App)Application.Current;
+			var viewModel = app.SalesReportVM;
+			var today = DateTime.Today;
+			
+			// Check if we need to refresh today's data (day changed)
+			if (viewModel != null)
+			{
+				await viewModel.CheckAndRefreshIfDayChangedAsync();
+			}
+		};
 		
 		// Use shared SalesReportVM from App to prevent memory leaks
 		var app = (App)Application.Current;

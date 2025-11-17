@@ -35,5 +35,8 @@ namespace Coftea_Capstone.Models
 
         // Date when user was created/added
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Date when user last logged in
+        public DateTime? LastLogin { get; set; }
     }
 }

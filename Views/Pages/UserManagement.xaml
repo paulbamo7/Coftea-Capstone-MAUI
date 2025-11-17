@@ -97,7 +97,7 @@
                             <Grid ColumnDefinitions="2*,3*,2*" BackgroundColor="#BDAEA2" Padding="10">
                                 <Label Text="Username" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
                                 <Label Text="Access" Grid.Column="1" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
-                                <Label Text="Date Added" Grid.Column="2" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45"/>
+                                <Label Text="Last Active" Grid.Column="2" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45" HorizontalTextAlignment="Center"/>
                             </Grid>
 
                             <!-- Users List -->
@@ -131,7 +131,7 @@
                                                     </VerticalStackLayout>
                                                 </VerticalStackLayout>
 
-                                                <Label Grid.Column="2" Text="{Binding DateAdded}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" TextColor="#8B7355"/>
+                                                <Label Grid.Column="2" Text="{Binding LastActive}" FontSize="15" FontFamily="OpenSans-Regular" VerticalOptions="Center" HorizontalOptions="Center" HorizontalTextAlignment="Center" TextColor="#8B7355"/>
 
                                                 <!-- Rightmost: Row menu (uses ActionSheet for compatibility) -->
                                                 <Grid Grid.Column="3" HorizontalOptions="End" VerticalOptions="Center">

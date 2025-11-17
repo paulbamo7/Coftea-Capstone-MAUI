@@ -31,13 +31,19 @@ namespace Coftea_Capstone.ViewModel
             _emailService = new EmailService();
             PasswordResetPopup = ((App)Application.Current).PasswordResetPopup;
 
-            // Load saved "Remember Me" preferences
+            // Load saved "Remember Me" preferences (only email, not password for security)
             bool savedRememberMe = Preferences.Get("RememberMe", false);
             if (savedRememberMe)
             {
                 Email = Preferences.Get("Email", string.Empty);
-                Password = Preferences.Get("Password", string.Empty);
+                // Password is NOT stored for security reasons - user must enter it each time
                 RememberMe = true;
+            }
+            else
+            {
+                // Clear email if Remember Me is not enabled
+                Email = string.Empty;
+                RememberMe = false;
             }
         }
 
@@ -103,6 +109,18 @@ namespace Coftea_Capstone.ViewModel
                     user.CanAccessInventory = true;
                     user.CanAccessSalesReport = true;
                 }
+                
+                // Update last login timestamp
+                try
+                {
+                    await _database.UpdateUserLastLoginAsync(user.ID);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Failed to update last login: {ex.Message}");
+                    // Don't block login if this fails
+                }
+                
                 App.SetCurrentUser(user);
 
                 // Save preferences
@@ -116,15 +134,15 @@ namespace Coftea_Capstone.ViewModel
                 {
                     Preferences.Set("RememberMe", true);
                     Preferences.Set("Email", Email);
-                    Preferences.Set("Password", Password);
+                    // Password is NOT stored for security reasons
                     System.Diagnostics.Debug.WriteLine($"✅ Remember Me enabled - Email: {Email}");
                 }
                 else
                 {
                     Preferences.Set("RememberMe", false);
                     Preferences.Remove("Email");
-                    Preferences.Remove("Password");
-                    System.Diagnostics.Debug.WriteLine("❌ Remember Me disabled - Credentials cleared");
+                    // Password was never stored, so no need to remove it
+                    System.Diagnostics.Debug.WriteLine("❌ Remember Me disabled - Email cleared");
                 }
                 
                 // Verify preferences were saved
@@ -247,6 +265,7 @@ namespace Coftea_Capstone.ViewModel
             }
             else
             {
+                // Keep email if Remember Me is checked, but always clear password for security
                 Password = string.Empty;
             }
         }

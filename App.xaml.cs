@@ -81,6 +81,13 @@ namespace Coftea_Capstone
                 SetCurrentUser(user);
             }
 
+            // Configure Gmail SMTP FIRST (before any EmailService instances are created)
+            EmailService.ConfigureGmail(
+                gmailAddress: "paulbamo7@gmail.com",
+                appPassword: "lcft ibsp stnm bdeg"
+            );
+            System.Diagnostics.Debug.WriteLine("✅ Gmail SMTP configured in App.xaml.cs");
+
             // Initialize view models
             InitializeViewModels();
 
@@ -368,7 +375,7 @@ namespace Coftea_Capstone
             Preferences.Set("IsAdmin", false);
             Preferences.Remove("UserID");
             Preferences.Remove("Email");
-            Preferences.Remove("Password");
+            // Password was never stored, so no need to remove it
             Preferences.Remove("RememberMe");
 
             // Close all popups before disposing

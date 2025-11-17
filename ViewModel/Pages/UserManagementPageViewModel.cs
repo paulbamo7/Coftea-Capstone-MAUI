@@ -162,6 +162,14 @@ namespace Coftea_Capstone.ViewModel
                     await _database.DeleteUserAsync(user.Id);
                     await ForceReloadDataAsync(); // Force refresh the user list
                     await Application.Current.MainPage.DisplayAlert("Success", $"User '{user.Username}' has been deleted.", "OK");
+                    
+                    // Add notification
+                    var app = (App)Application.Current;
+                    await app?.NotificationPopup?.AddNotification(
+                        "User Deleted",
+                        $"User '{user.Username}' has been deleted from the system",
+                        $"ID: {user.Id}",
+                        "Warning");
                 }
                 catch (Exception ex)
                 {
@@ -206,8 +214,8 @@ namespace Coftea_Capstone.ViewModel
                 {
                     Id = u.ID,
                     Username = string.Join(" ", new[]{u.FirstName, u.LastName}.Where(s => !string.IsNullOrWhiteSpace(s))).Trim(),
-                    LastActive = GetLastActiveText(u.ID), // Get real last active data
-                    DateAdded = FormatDateAdded(u.CreatedAt), // Use actual created_at date from database
+                    LastActive = FormatLastActive(u.LastLogin), // Use last_login from database, or "Never" if null
+                    DateAdded = FormatDateAdded(u.CreatedAt), // Keep for sorting purposes
                     CreatedAt = u.CreatedAt, // Store actual date for accurate sorting
                     IsAdmin = u.IsAdmin,
                     // Admin users always have full access, regular users use database values
@@ -260,17 +268,20 @@ namespace Coftea_Capstone.ViewModel
             await InitializeAsync();
         }
 
-        private string GetLastActiveText(int userId)
-        {
-            // For now, return a placeholder. In a real app, you'd query the database for actual last login time
-            // This could be stored in a separate login_logs table or a last_login column in the users table
-            return DateTime.Now.AddDays(-new Random().Next(1, 30)).ToString("MMM dd, yyyy");
-        }
-
         private string FormatDateAdded(DateTime dateAdded) 
         {
             // Format the actual created_at date from database
             return dateAdded.ToString("MMM dd, yyyy");
+        }
+
+        private string FormatLastActive(DateTime? lastLogin)
+        {
+            // Format last login time, or return "Never" if user hasn't logged in
+            if (lastLogin.HasValue)
+            {
+                return lastLogin.Value.ToString("MMM dd, yyyy");
+            }
+            return "Never";
         }
 
         partial void OnSearchTextChanged(string value)

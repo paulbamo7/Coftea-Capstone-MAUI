@@ -16,11 +16,13 @@ namespace Coftea_Capstone.ViewModel
     public partial class RegisterPageViewModel : ObservableObject
     {
         private readonly Database _database;
+        private readonly EmailService _emailService;
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
 
         public RegisterPageViewModel()
         {
             _database = new Database();
+            _emailService = new EmailService();
             
             // Initialize properties
             FirstName = string.Empty;
@@ -28,7 +30,6 @@ namespace Coftea_Capstone.ViewModel
             Email = string.Empty;
             Password = string.Empty;
             ConfirmPassword = string.Empty;
-            IsTermsAccepted = false;
         }
 
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
@@ -37,7 +38,6 @@ namespace Coftea_Capstone.ViewModel
         }
 
         // ===================== State =====================
-        [ObservableProperty] private bool isTermsAccepted;
         [ObservableProperty] private string email;
         [ObservableProperty] private string password;
         [ObservableProperty] private string confirmPassword;
@@ -218,11 +218,6 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            if (!IsTermsAccepted)
-            {
-                await Application.Current.MainPage.DisplayAlert("Error", "You must accept the Terms and Conditions to register.", "OK");
-                return;
-            }
 
             try
             {
@@ -270,6 +265,34 @@ namespace Coftea_Capstone.ViewModel
                     };
 
                     await _database.AddUserAsync(user);
+                    
+                    // Send registration success email
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"📧 Attempting to send registration email to: {Email.Trim()}");
+                        var emailSent = await _emailService.SendRegistrationSuccessEmailAsync(
+                            Email.Trim(), 
+                            FirstName.Trim(), 
+                            LastName.Trim(), 
+                            isAdmin: true
+                        );
+                        if (emailSent)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"✅ Registration email sent successfully!");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Registration email send returned false (check logs above for details)");
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Exception caught while sending registration email: {emailEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"   Type: {emailEx.GetType().Name}");
+                        System.Diagnostics.Debug.WriteLine($"   Stack: {emailEx.StackTrace}");
+                        // Don't block registration if email fails
+                    }
+                    
                     await Application.Current.MainPage.DisplayAlert("Success", "Account created successfully! You are the first user and have been granted admin privileges.", "OK");
                 }
                 else
@@ -285,6 +308,34 @@ namespace Coftea_Capstone.ViewModel
                     };
 
                     await _database.AddPendingUserRequestAsync(pendingRequest);
+                    
+                    // Send registration success email (pending approval)
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine($"📧 Attempting to send registration email to: {Email.Trim()}");
+                        var emailSent = await _emailService.SendRegistrationSuccessEmailAsync(
+                            Email.Trim(), 
+                            FirstName.Trim(), 
+                            LastName.Trim(), 
+                            isAdmin: false
+                        );
+                        if (emailSent)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"✅ Registration email sent successfully!");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Registration email send returned false (check logs above for details)");
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Exception caught while sending registration email: {emailEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"   Type: {emailEx.GetType().Name}");
+                        System.Diagnostics.Debug.WriteLine($"   Stack: {emailEx.StackTrace}");
+                        // Don't block registration if email fails
+                    }
+                    
                     await Application.Current.MainPage.DisplayAlert("Success", "Registration request submitted! An admin will review and approve your account.", "OK");
                 }
                 
@@ -307,7 +358,6 @@ namespace Coftea_Capstone.ViewModel
             Email = string.Empty;
             Password = string.Empty;
             ConfirmPassword = string.Empty;
-            IsTermsAccepted = false;
             
             // Reset validation states
             IsEmailValid = true;
