@@ -62,11 +62,10 @@ namespace Coftea_Capstone.ViewModel.Controls
                     try
                     {
                         System.Diagnostics.Debug.WriteLine($"📧 Attempting to send approval email to: {request.Email}");
-                        var emailSent = await _emailService.SendRegistrationSuccessEmailAsync(
+                        var emailSent = await _emailService.SendAccountApprovalEmailAsync(
                             request.Email,
                             request.FirstName,
-                            request.LastName,
-                            isAdmin: false
+                            request.LastName
                         );
                         if (emailSent)
                         {
@@ -80,6 +79,7 @@ namespace Coftea_Capstone.ViewModel.Controls
                     catch (Exception emailEx)
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Exception caught while sending approval email: {emailEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {emailEx.StackTrace}");
                         // Don't block approval if email fails
                     }
                 }

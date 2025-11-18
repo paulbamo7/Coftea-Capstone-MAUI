@@ -163,4 +163,56 @@ public partial class SalesReport : ContentPage
     {
         return BackButtonHandler.HandleBackButton(this);
     }
+
+    private void OnDialogBackgroundTapped(object sender, EventArgs e)
+    {
+        // Consume the tap to prevent background interaction
+        // Don't close dialog on background tap - user must use buttons
+    }
+
+    private void OnDialogBackgroundPan(object sender, PanUpdatedEventArgs e)
+    {
+        // Consume pan gestures to prevent background dragging
+        e.Handled = true;
+    }
+
+    private void OnDialogFrameTapped(object sender, EventArgs e)
+    {
+        // Consume the tap on the frame to prevent event bubbling
+        // This allows buttons inside to work properly
+    }
+
+    private async void OnGenerateButtonClicked(object sender, EventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine("🔵 Generate button clicked directly!");
+        try
+        {
+            var app = (App)Application.Current;
+            var viewModel = app.SalesReportVM;
+            if (viewModel != null)
+            {
+                System.Diagnostics.Debug.WriteLine("🔵 Calling AcceptReportDialogAsyncCommand");
+                // Manually trigger the command if it exists
+                var command = viewModel.AcceptReportDialogAsyncCommand;
+                if (command != null && command.CanExecute(null))
+                {
+                    System.Diagnostics.Debug.WriteLine("🔵 Command exists and can execute, executing...");
+                    await command.ExecuteAsync(null);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ AcceptReportDialogAsyncCommand issue - Command is null: {command == null}, CanExecute: {command?.CanExecute(null)}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("❌ ViewModel is null!");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"❌ Error in OnGenerateButtonClicked: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+        }
+    }
 }

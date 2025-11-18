@@ -400,8 +400,6 @@ Dear {fullName},
 
 Thank you for registering with Coftea Management System!{adminNote}
 
-You can now log in using your registered email and password.
-
 If you have any questions, please contact your system administrator.
 
 Best regards,
@@ -439,6 +437,150 @@ Coftea Management System
             <p>Dear {fullName},</p>
             <p>Thank you for registering with Coftea Management System!</p>
             {adminNote}
+            <p>If you have any questions, please contact your system administrator.</p>
+        </div>
+        <div class='footer'>
+            <p>Best regards,<br>Coftea Management System</p>
+        </div>
+    </div>
+</body>
+</html>";
+        }
+
+        public async Task<bool> SendAccountApprovalEmailAsync(string email, string firstName, string lastName)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"📧 ===== Starting approval email send process =====");
+                System.Diagnostics.Debug.WriteLine($"   Recipient: {email}");
+                System.Diagnostics.Debug.WriteLine($"   Name: {firstName} {lastName}");
+                
+                // Check internet connectivity
+                if (!NetworkService.HasInternetConnection())
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ No internet connection - cannot send email");
+                    return false;
+                }
+                
+                // Re-read Preferences to ensure we have latest Gmail config
+                _useGmail = Preferences.Get("UseGmailSMTP", false);
+                _gmailAddress = Preferences.Get("GmailAddress", string.Empty);
+                _gmailAppPassword = Preferences.Get("GmailAppPassword", string.Empty);
+                
+                System.Diagnostics.Debug.WriteLine($"   Gmail Config - UseGmail: {_useGmail}, Address: {(_gmailAddress ?? "null")}, Password: {(!string.IsNullOrWhiteSpace(_gmailAppPassword) ? "SET" : "NOT SET")}");
+                
+                // Validate Gmail configuration if using Gmail
+                if (_useGmail && (string.IsNullOrWhiteSpace(_gmailAddress) || string.IsNullOrWhiteSpace(_gmailAppPassword)))
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Gmail is enabled but credentials are missing!");
+                    return false;
+                }
+                
+                // Create SMTP client after updating instance variables
+                using var client = CreateSmtpClient();
+                
+                var fullName = $"{firstName} {lastName}".Trim();
+                var htmlBody = CreateAccountApprovalEmailBody(fullName);
+                var plainTextBody = CreateAccountApprovalEmailPlainText(fullName);
+
+                var fromAddress = GetFromAddress();
+                System.Diagnostics.Debug.WriteLine($"   From Address: {fromAddress.Address} ({fromAddress.DisplayName})");
+
+                var message = new MailMessage
+                {
+                    From = fromAddress,
+                    Subject = "Account Approved - Coftea Management System",
+                    Body = htmlBody,
+                    IsBodyHtml = true,
+                    BodyEncoding = Encoding.UTF8,
+                    SubjectEncoding = Encoding.UTF8
+                };
+
+                var htmlView = AlternateView.CreateAlternateViewFromString(htmlBody, Encoding.UTF8, "text/html");
+                var plainTextView = AlternateView.CreateAlternateViewFromString(plainTextBody, Encoding.UTF8, "text/plain");
+                message.AlternateViews.Add(htmlView);
+                message.AlternateViews.Add(plainTextView);
+
+                message.To.Add(email);
+                System.Diagnostics.Debug.WriteLine($"   To Address: {email}");
+
+                System.Diagnostics.Debug.WriteLine($"📤 Sending approval email via SMTP...");
+                await client.SendMailAsync(message);
+                System.Diagnostics.Debug.WriteLine($"✅ Approval email sent successfully to {email}!");
+                System.Diagnostics.Debug.WriteLine($"📧 ===== Approval email send process completed =====");
+                return true;
+            }
+            catch (SmtpException smtpEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ SMTP Error sending approval email:");
+                System.Diagnostics.Debug.WriteLine($"   Status Code: {smtpEx.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"   Message: {smtpEx.Message}");
+                if (smtpEx.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"   Inner: {smtpEx.InnerException.Message}");
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Failed to send approval email:");
+                System.Diagnostics.Debug.WriteLine($"   Exception type: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"   Message: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"   Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"   Inner exception: {ex.InnerException.GetType().Name} - {ex.InnerException.Message}");
+                }
+                return false;
+            }
+        }
+
+        private string CreateAccountApprovalEmailPlainText(string fullName)
+        {
+            return $@"
+Account Approved - Coftea Management System
+
+Dear {fullName},
+
+Great news! Your account has been approved by an administrator.
+
+You can now log in using your registered email and password.
+
+If you have any questions, please contact your system administrator.
+
+Best regards,
+Coftea Management System
+";
+        }
+
+        private string CreateAccountApprovalEmailBody(string fullName)
+        {
+            return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Account Approved - Coftea</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background-color: #5B4F45; color: white; padding: 20px; text-align: center; }}
+        .content {{ padding: 20px; background-color: #f9f9f9; }}
+        .approval-box {{ background-color: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745; margin: 20px 0; }}
+        .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #666; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>Account Approved!</h1>
+        </div>
+        <div class='content'>
+            <h2>Welcome to Coftea</h2>
+            <p>Dear {fullName},</p>
+            <div class='approval-box'>
+                <p><strong>Great news!</strong> Your account has been approved by an administrator.</p>
+            </div>
             <p>You can now log in using your registered email and password.</p>
             <p>If you have any questions, please contact your system administrator.</p>
         </div>

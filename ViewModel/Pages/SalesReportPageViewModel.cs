@@ -2254,6 +2254,7 @@ namespace Coftea_Capstone.ViewModel
 
         private void ShowInfoDialog(string title, string message, string acceptText = "Close")
         {
+            System.Diagnostics.Debug.WriteLine($"🔵 ShowInfoDialog called - Title: {title}, Message: {message}");
             ReportDialogTitle = title;
             ReportDialogMessage = message;
             ReportDialogAcceptText = acceptText;
@@ -2261,23 +2262,32 @@ namespace Coftea_Capstone.ViewModel
             ReportDialogHasReject = false;
             _pendingReportType = null;
             IsReportDialogVisible = true;
+            System.Diagnostics.Debug.WriteLine($"🔵 IsReportDialogVisible set to: {IsReportDialogVisible}");
         }
 
         private async Task GenerateWeeklyReportAsync()
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔵 GenerateWeeklyReportAsync started");
                 IsLoading = true;
 
                 var today = DateTime.Today;
                 var weekStart = today.AddDays(-7);
                 var weekEnd = today.AddDays(1);
 
+                System.Diagnostics.Debug.WriteLine($"🔵 Fetching transactions from {weekStart:yyyy-MM-dd} to {weekEnd:yyyy-MM-dd}");
                 var transactions = await _database.GetTransactionsByDateRangeAsync(weekStart, weekEnd);
+                System.Diagnostics.Debug.WriteLine($"🔵 Found {transactions?.Count ?? 0} transactions");
+
+                System.Diagnostics.Debug.WriteLine($"🔵 TopItemsWeekly count: {TopItemsWeekly?.Count ?? 0}");
+                var topItems = TopItemsWeekly?.ToList() ?? new List<TrendItem>();
+                System.Diagnostics.Debug.WriteLine($"🔵 Calling GenerateWeeklyReportPDFAsync with {topItems.Count} top items");
 
                 var pdfService = new Services.PDFReportService();
-                var filePath = await pdfService.GenerateWeeklyReportPDFAsync(weekStart, weekEnd, transactions, TopItemsWeekly.ToList());
+                var filePath = await pdfService.GenerateWeeklyReportPDFAsync(weekStart, weekEnd, transactions, topItems);
 
+                System.Diagnostics.Debug.WriteLine($"✅ Weekly report generated successfully at: {filePath}");
                 ShowInfoDialog(
                     "Weekly Report Generated",
                     $"Weekly PDF report saved to:\n{filePath}\n\nThe report contains sales data and inventory deductions for the past 7 days.",
@@ -2285,7 +2295,12 @@ namespace Coftea_Capstone.ViewModel
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error generating weekly report: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error generating weekly report: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
                 ShowInfoDialog("Error", $"Failed to generate weekly report: {ex.Message}", "Close");
             }
             finally
@@ -2298,17 +2313,25 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"🔵 GenerateMonthlyReportAsync started");
                 IsLoading = true;
 
                 var today = DateTime.Today;
                 var monthStart = today.AddMonths(-1);
                 var monthEnd = today.AddDays(1);
 
+                System.Diagnostics.Debug.WriteLine($"🔵 Fetching transactions from {monthStart:yyyy-MM-dd} to {monthEnd:yyyy-MM-dd}");
                 var transactions = await _database.GetTransactionsByDateRangeAsync(monthStart, monthEnd);
+                System.Diagnostics.Debug.WriteLine($"🔵 Found {transactions?.Count ?? 0} transactions");
+
+                System.Diagnostics.Debug.WriteLine($"🔵 TopItemsMonthly count: {TopItemsMonthly?.Count ?? 0}");
+                var topItems = TopItemsMonthly?.ToList() ?? new List<TrendItem>();
+                System.Diagnostics.Debug.WriteLine($"🔵 Calling GenerateMonthlyReportPDFAsync with {topItems.Count} top items");
 
                 var pdfService = new Services.PDFReportService();
-                var filePath = await pdfService.GenerateMonthlyReportPDFAsync(monthStart, monthEnd, transactions, TopItemsMonthly.ToList());
+                var filePath = await pdfService.GenerateMonthlyReportPDFAsync(monthStart, monthEnd, transactions, topItems);
 
+                System.Diagnostics.Debug.WriteLine($"✅ Monthly report generated successfully at: {filePath}");
                 ShowInfoDialog(
                     "Monthly Report Generated",
                     $"Monthly PDF report saved to:\n{filePath}\n\nThe report contains sales data and inventory deductions for the past month.",
@@ -2316,7 +2339,12 @@ namespace Coftea_Capstone.ViewModel
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error generating monthly report: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Error generating monthly report: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                }
                 ShowInfoDialog("Error", $"Failed to generate monthly report: {ex.Message}", "Close");
             }
             finally

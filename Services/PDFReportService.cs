@@ -192,7 +192,9 @@ namespace Coftea_Capstone.Services
                 var monthLabel = startDate.ToString("yyyyMM");
                 var fileName = MakeSafeFileName($"Coftea_MonthlyReports_{monthLabel}.pdf");
                 var filePath = GetDownloadPath(fileName);
+                System.Diagnostics.Debug.WriteLine($"📄 Monthly report saving to: {filePath}");
                 document.Save(filePath);
+                System.Diagnostics.Debug.WriteLine($"✅ Monthly report saved successfully");
                 
                 return filePath;
             }
@@ -277,7 +279,9 @@ namespace Coftea_Capstone.Services
                 var poDate = order.OrderDate.ToString("yyyyMMdd");
                 var fileName = MakeSafeFileName($"Coftea_{supplierLabel}_{poDate}_{purchaseOrderId}.pdf");
                 var filePath = GetDownloadPath(fileName);
+                System.Diagnostics.Debug.WriteLine($"📄 Purchase order PDF saving to: {filePath}");
                 document.Save(filePath);
+                System.Diagnostics.Debug.WriteLine($"✅ Purchase order PDF saved successfully");
                 
                 return filePath;
             }
@@ -675,9 +679,9 @@ namespace Coftea_Capstone.Services
                 else if (platform == DevicePlatform.WinUI || platform == DevicePlatform.macOS)
                 {
                     downloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-            }
-            else
-            {
+                }
+                else
+                {
                     downloadPath = Path.Combine(FileSystem.AppDataDirectory, "Downloads");
                 }
 
@@ -686,12 +690,16 @@ namespace Coftea_Capstone.Services
                     Directory.CreateDirectory(downloadPath);
                 }
 
-                return Path.Combine(downloadPath, fileName);
+                var fullPath = Path.Combine(downloadPath, fileName);
+                System.Diagnostics.Debug.WriteLine($"📁 PDF download path: {fullPath} (Platform: {platform})");
+                return fullPath;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Warning: Falling back to app data directory for PDF export: {ex.Message}");
-                return Path.Combine(FileSystem.AppDataDirectory, fileName);
+                System.Diagnostics.Debug.WriteLine($"⚠️ Warning: Falling back to app data directory for PDF export: {ex.Message}");
+                var fallbackPath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                System.Diagnostics.Debug.WriteLine($"📁 PDF fallback path: {fallbackPath}");
+                return fallbackPath;
             }
         }
 
@@ -869,7 +877,9 @@ namespace Coftea_Capstone.Services
                 var dateLabel = $"{startDate:yyyyMMdd}-{endInclusive:yyyyMMdd}";
                 var fileName = MakeSafeFileName($"Coftea_WeeklyReports_{dateLabel}.pdf");
                 var filePath = GetDownloadPath(fileName);
+                System.Diagnostics.Debug.WriteLine($"📄 Weekly report saving to: {filePath}");
                 document.Save(filePath);
+                System.Diagnostics.Debug.WriteLine($"✅ Weekly report saved successfully");
 
                 return filePath;
             }
