@@ -5,7 +5,14 @@
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel.Pages"
              xmlns:views="clr-namespace:Coftea_Capstone.Views.Pages"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              BackgroundColor="#D6BCA8">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:StringToColorConverter x:Key="StringToColorConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ContentPage.BindingContext>
         <vm:PurchaseOrderHistoryPageViewModel />
@@ -203,8 +210,24 @@
                         </ScrollView>
 
                         <!-- Pagination (Fixed at bottom) -->
-                        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Padding="10" Margin="0,15,0,0">
-                            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                        <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Padding="10" Margin="0,15,0,0" ColumnSpacing="15">
+                            <!-- Back to Inventory Button -->
+                            <Button Grid.Column="0"
+                                    Text="◀ Back to Inventory"
+                                    BackgroundColor="#BDAEA2"
+                                    TextColor="#5B4F45"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="18"
+                                    BorderColor="#8B7355"
+                                    BorderWidth="2"
+                                    Padding="18,8"
+                                    HeightRequest="40"
+                                    VerticalOptions="Center"
+                                    Command="{Binding GoBackToInventoryCommand}"/>
+                            
+                            <!-- Pagination Controls -->
+                            <HorizontalStackLayout Grid.Column="1" Spacing="10" VerticalOptions="Center" HorizontalOptions="Center">
                                 <Button Text="⏮ Return to Page 1"
                                         BackgroundColor="#E0D6CC"
                                         TextColor="#5B4F45"
@@ -258,6 +281,175 @@
         <!-- All Global Popups -->
         <otherViews:NotificationPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=NotificationPopup}" Grid.ColumnSpan="2" ZIndex="1500"/>
         <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
+        
+        <!-- Order Details Popup -->
+        <Grid IsVisible="{Binding IsDetailsPopupVisible}"
+              BackgroundColor="#80000000"
+              InputTransparent="False"
+              Grid.ColumnSpan="2"
+              ZIndex="2000"
+              Padding="20">
+            <BoxView BackgroundColor="#80000000" InputTransparent="False">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding CloseDetailsPopupCommand}" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            
+            <Frame BackgroundColor="White" 
+                   CornerRadius="20" 
+                   Padding="0" 
+                   WidthRequest="800" 
+                   HeightRequest="600"
+                   HorizontalOptions="Center" 
+                   VerticalOptions="Center"
+                   HasShadow="True"
+                   InputTransparent="False">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="15" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               FontSize="22" 
+                               FontAttributes="Bold" 
+                               TextColor="White"
+                               VerticalOptions="Center">
+                            <Label.Text>
+                                <MultiBinding StringFormat="Purchase Order #{0}">
+                                    <Binding Path="SelectedOrderDetails.PurchaseOrderId"/>
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                        <ImageButton Grid.Column="1"
+                                     Source="close_icon.png" 
+                                     WidthRequest="30" 
+                                     HeightRequest="30"
+                                     HorizontalOptions="End" 
+                                     VerticalOptions="Center"
+                                     Command="{Binding CloseDetailsPopupCommand}"
+                                     BackgroundColor="Transparent"/>
+                    </Grid>
+                    
+                    <!-- Content -->
+                    <ScrollView Grid.Row="1" Padding="20">
+                        <VerticalStackLayout Spacing="15">
+                            <!-- Order Info -->
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="15">
+                                <Label Grid.Row="0" Grid.Column="0" Text="Status:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
+                                <Frame Grid.Row="0" Grid.Column="1"
+                                       BackgroundColor="{Binding SelectedOrderDetails.StatusColor, Converter={StaticResource StringToColorConverter}}"
+                                       CornerRadius="8"
+                                       Padding="10,5"
+                                       HorizontalOptions="Start"
+                                       HasShadow="False">
+                                    <Label Text="{Binding SelectedOrderDetails.Status}"
+                                           FontSize="12"
+                                           TextColor="White"
+                                           FontAttributes="Bold"
+                                           VerticalOptions="Center"/>
+                                </Frame>
+                                
+                                <Label Grid.Row="1" Grid.Column="0" Text="Date:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
+                                <Label Grid.Row="1" Grid.Column="1" 
+                                       FontSize="14" 
+                                       TextColor="#333"
+                                       VerticalOptions="Center">
+                                    <Label.Text>
+                                        <Binding Path="SelectedOrderDetails.OrderDate" StringFormat="{}{0:MMM dd, yyyy}"/>
+                                    </Label.Text>
+                                </Label>
+                                
+                                <Label Grid.Row="2" Grid.Column="0" Text="Requested By:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding SelectedOrderDetails.RequestedBy}" FontSize="14" TextColor="#333" VerticalOptions="Center"/>
+                                
+                                <Label Grid.Row="3" Grid.Column="0" Text="Supplier:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
+                                <Label Grid.Row="3" Grid.Column="1" Text="{Binding SelectedOrderDetails.SupplierName}" FontSize="14" TextColor="#333" VerticalOptions="Center"/>
+                                
+                                <Label Grid.Row="4" Grid.Column="0" Text="Total Amount:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
+                                <Label Grid.Row="4" Grid.Column="1" 
+                                       FontSize="16" 
+                                       FontAttributes="Bold"
+                                       TextColor="#D4A574"
+                                       VerticalOptions="Center">
+                                    <Label.Text>
+                                        <Binding Path="SelectedOrderDetails.TotalAmount" StringFormat="₱{0:F2}"/>
+                                    </Label.Text>
+                                </Label>
+                            </Grid>
+                            
+                            <!-- Items List -->
+                            <Label Text="Items:" FontSize="16" FontAttributes="Bold" TextColor="#5B4F45" Margin="0,10,0,5"/>
+                            <CollectionView ItemsSource="{Binding OrderDetailItems}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Frame BackgroundColor="#F5F5F5"
+                                               CornerRadius="8"
+                                               Padding="12"
+                                               Margin="0,0,0,8"
+                                               HasShadow="False">
+                                            <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto" RowSpacing="5" ColumnSpacing="10">
+                                                <Label Grid.Row="0" Grid.Column="0"
+                                                       Text="{Binding ItemName}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#5B4F45"/>
+                                                <Label Grid.Row="0" Grid.Column="1"
+                                                       FontSize="12"
+                                                       TextColor="#666"
+                                                       HorizontalOptions="End">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="Requested: {0} {1}">
+                                                            <Binding Path="RequestedQuantity"/>
+                                                            <Binding Path="UnitOfMeasurement"/>
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                                <Label Grid.Row="0" Grid.Column="2"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#4CAF50"
+                                                       HorizontalOptions="End">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="Approved: {0} {1}">
+                                                            <Binding Path="ApprovedQuantity"/>
+                                                            <Binding Path="UnitOfMeasurement"/>
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                                <Label Grid.Row="1" Grid.Column="0"
+                                                       Text="{Binding ItemCategory}"
+                                                       FontSize="12"
+                                                       TextColor="#999"/>
+                                                <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#D4A574"
+                                                       HorizontalOptions="End">
+                                                    <Label.Text>
+                                                        <Binding Path="TotalPrice" StringFormat="₱{0:F2}"/>
+                                                    </Label.Text>
+                                                </Label>
+                                            </Grid>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </ScrollView>
+                    
+                    <!-- Footer -->
+                    <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="15" ColumnDefinitions="*,Auto">
+                        <Button Grid.Column="1"
+                                Text="Close" 
+                                BackgroundColor="#BDAEA2"
+                                TextColor="White"
+                                CornerRadius="10"
+                                HeightRequest="40"
+                                WidthRequest="120"
+                                HorizontalOptions="End"
+                                Command="{Binding CloseDetailsPopupCommand}"/>
+                    </Grid>
+                </Grid>
+            </Frame>
+        </Grid>
     </Grid>
 </ContentPage>
 

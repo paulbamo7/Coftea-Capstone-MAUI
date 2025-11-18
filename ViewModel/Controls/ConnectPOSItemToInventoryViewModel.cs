@@ -292,7 +292,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         public ObservableCollection<InventoryPageModel> InventoryItems { get; set; } = new();
         public ObservableCollection<InventoryPageModel> AllInventoryItems { get; set; } = new();
         public IReadOnlyList<string> CategoryFilters { get; } = new List<string> { "All", "Ingredients", "Supplies" };
-        public bool CanManageInventory => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
+        public bool CanManageInventory => App.CurrentUser?.IsAdmin ?? false;
         
         // Addon functionality
         public ObservableCollection<InventoryPageModel> AvailableAddons { get; set; } = new();

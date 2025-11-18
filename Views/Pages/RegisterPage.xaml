@@ -43,30 +43,45 @@
                        BorderColor="#8B7355"
                        HasShadow="True"
                        WidthRequest="420"
-                       HeightRequest="620">
+                       HeightRequest="620"
+                       MinimumHeightRequest="620">
 
                     <ScrollView Orientation="Vertical" VerticalScrollBarVisibility="Default">
-                        <VerticalStackLayout Spacing="12">
+                        <VerticalStackLayout Spacing="12" MinimumHeightRequest="550" Padding="0,0,0,20">
                             <!-- First Row: Name Fields -->
                             <HorizontalStackLayout Spacing="10">
-                                <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="179" BackgroundColor="#F5F1ED">
-                                    <Entry Placeholder="First Name" 
-                                           PlaceholderColor="#8B7355" 
-                                           TextColor="#5B4F45"
-                                           FontFamily="MontserratBlack"
-                                           FontSize="16"
-                                           Margin="20,0"
-                                           Text="{Binding FirstName}"/>
-                                </Border>
-                                <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" WidthRequest="179" BackgroundColor="#F5F1ED">
-                                    <Entry Placeholder="Last Name" 
-                                           PlaceholderColor="#8B7355" 
-                                           TextColor="#5B4F45"
-                                           FontFamily="MontserratBlack"
-                                           FontSize="16"
-                                           Margin="20,0"
-                                           Text="{Binding LastName}" />
-                                </Border>
+                                <VerticalStackLayout WidthRequest="179" Spacing="4">
+                                    <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" BackgroundColor="#F5F1ED">
+                                        <Entry Placeholder="First Name" 
+                                               PlaceholderColor="#8B7355" 
+                                               TextColor="#5B4F45"
+                                               FontFamily="MontserratBlack"
+                                               FontSize="16"
+                                               Margin="20,0"
+                                               Text="{Binding FirstName}"/>
+                                    </Border>
+                                    <Label Text="{Binding FirstNameValidationMessage}"
+                                           TextColor="#D9534F"
+                                           FontSize="12"
+                                           Margin="5,0,0,0"
+                                           IsVisible="{Binding FirstNameValidationMessage, Converter={StaticResource StringToBoolConverter}}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout WidthRequest="179" Spacing="4">
+                                    <Border Stroke="#8B7355" StrokeShape="RoundRectangle 15" StrokeThickness="2" HeightRequest="55" BackgroundColor="#F5F1ED">
+                                        <Entry Placeholder="Last Name" 
+                                               PlaceholderColor="#8B7355" 
+                                               TextColor="#5B4F45"
+                                               FontFamily="MontserratBlack"
+                                               FontSize="16"
+                                               Margin="20,0"
+                                               Text="{Binding LastName}" />
+                                    </Border>
+                                    <Label Text="{Binding LastNameValidationMessage}"
+                                           TextColor="#D9534F"
+                                           FontSize="12"
+                                           Margin="5,0,0,0"
+                                           IsVisible="{Binding LastNameValidationMessage, Converter={StaticResource StringToBoolConverter}}" />
+                                </VerticalStackLayout>
                             </HorizontalStackLayout>
 
                             <!-- Second Row: Email -->
@@ -117,6 +132,11 @@
                                                 Clicked="OnToggleRegisterPasswordVisibility" />
                                 </Grid>
                             </Border>
+                            <Label Text="{Binding PasswordValidationMessage}"
+                                   TextColor="#D9534F"
+                                   FontSize="12"
+                                   Margin="20,2,0,0"
+                                   IsVisible="{Binding PasswordValidationMessage, Converter={StaticResource StringToBoolConverter}}" />
 
                             <!-- Password Requirements -->
                             <StackLayout Spacing="6" Margin="15,5,15,0" BackgroundColor="#F5F1ED" Padding="20,12" >
@@ -172,6 +192,11 @@
                                                 Clicked="OnToggleRegisterConfirmPasswordVisibility" />
                                 </Grid>
                             </Border>
+                            <Label Text="{Binding ConfirmPasswordValidationMessage}"
+                                   TextColor="#D9534F"
+                                   FontSize="12"
+                                   Margin="20,2,0,0"
+                                   IsVisible="{Binding ConfirmPasswordValidationMessage, Converter={StaticResource StringToBoolConverter}}" />
 
                             <!-- Password Match Indicator -->
                             <StackLayout Orientation="Horizontal" Spacing="8" Margin="15,5,15,0" BackgroundColor="#F5F1ED" Padding="20,10" >
@@ -180,7 +205,7 @@
                             </StackLayout>
 
                             <!-- Action Buttons -->
-                            <Grid ColumnDefinitions="1.2*,*" ColumnSpacing="20" RowDefinitions="Auto" Margin="15,0,15,0">
+                            <Grid ColumnDefinitions="1.2*,*" ColumnSpacing="20" RowDefinitions="Auto" Margin="15,15,15,0">
                                 <Button Grid.Column="0" 
                                         Text="← Back to Login" 
                                         BackgroundColor="#C1A892" 
@@ -192,7 +217,8 @@
                                         Padding="15,15"
                                         BorderColor="#8B7355"
                                         BorderWidth="2"
-                                        HeightRequest="55"/>
+                                        HeightRequest="55"
+                                        VerticalOptions="End"/>
                                 <Button Grid.Column="1" 
                                         Text="Register"
                                         BackgroundColor="#5B4F45"
@@ -202,7 +228,8 @@
                                         Command="{Binding RegisterCommand}"
                                         CornerRadius="15"
                                         Padding="30,15"
-                                        HeightRequest="55"/>
+                                        HeightRequest="55"
+                                        VerticalOptions="End"/>
                             </Grid>
                         </VerticalStackLayout>
                     </ScrollView>

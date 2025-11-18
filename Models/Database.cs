@@ -355,7 +355,7 @@ namespace Coftea_Capstone.Models
                     password VARCHAR(255) NOT NULL,
                     status VARCHAR(50) DEFAULT 'approved',
                     isAdmin BOOLEAN DEFAULT FALSE,
-                    can_access_inventory BOOLEAN DEFAULT FALSE,
+                    can_access_inventory BOOLEAN DEFAULT TRUE,
                     can_access_sales_report BOOLEAN DEFAULT FALSE,
                     reset_token VARCHAR(255),
                     reset_expiry DATETIME,
@@ -2432,6 +2432,41 @@ namespace Coftea_Capstone.Models
             return results;
         }
 
+        public async Task<List<PaymentMethodProductData>> GetProductsByPaymentMethodAsync(string paymentMethod, DateTime startDate, DateTime endDate)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+
+            var sql = @"SELECT ti.productName, ti.size, SUM(ti.quantity) as totalQuantity, SUM(ti.price * ti.quantity) as totalRevenue
+                        FROM transactions t
+                        JOIN transaction_items ti ON t.transactionID = ti.transactionID
+                        WHERE t.paymentMethod = @PaymentMethod 
+                        AND t.transactionDate >= @StartDate 
+                        AND t.transactionDate < @EndDate
+                        GROUP BY ti.productName, ti.size
+                        ORDER BY totalRevenue DESC";
+
+            await using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@PaymentMethod", paymentMethod);
+            cmd.Parameters.AddWithValue("@StartDate", startDate);
+            cmd.Parameters.AddWithValue("@EndDate", endDate);
+
+            var results = new List<PaymentMethodProductData>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                results.Add(new PaymentMethodProductData
+                {
+                    ProductName = reader.GetString("productName"),
+                    Size = reader.IsDBNull(reader.GetOrdinal("size")) ? null : reader.GetString("size"),
+                    Quantity = reader.GetInt32("totalQuantity"),
+                    Revenue = reader.GetDecimal("totalRevenue")
+                });
+            }
+
+            return results;
+        }
+
         public async Task<int> GetNextTransactionIdAsync()
         {
             await using var conn = await GetOpenConnectionAsync();
@@ -2649,7 +2684,7 @@ namespace Coftea_Capstone.Models
             cmd.Parameters.AddWithValue("@Email", user.Email);
             cmd.Parameters.AddWithValue("@Password", user.Password);
             cmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
-            cmd.Parameters.AddWithValue("@CanAccessInventory", isFirstUser); // First user gets all permissions
+            cmd.Parameters.AddWithValue("@CanAccessInventory", true); // All users can view inventory by default
             cmd.Parameters.AddWithValue("@CanAccessSalesReport", isFirstUser); // First user gets all permissions
 
             return await cmd.ExecuteNonQueryAsync();
@@ -3131,8 +3166,8 @@ namespace Coftea_Capstone.Models
                 bool isFirstUser = userCount == 0;
 
                 // Add to users table
-                var addUserSql = "INSERT INTO users (firstName, lastName, email, password, status, isAdmin) " +
-                                "VALUES (@FirstName, @LastName, @Email, @Password, @Status, @IsAdmin);";
+                var addUserSql = "INSERT INTO users (firstName, lastName, email, password, status, isAdmin, can_access_inventory, can_access_sales_report) " +
+                                "VALUES (@FirstName, @LastName, @Email, @Password, @Status, @IsAdmin, @CanAccessInventory, @CanAccessSalesReport);";
                 await using var addUserCmd = new MySqlCommand(addUserSql, conn, (MySqlTransaction)tx);
                 addUserCmd.Parameters.AddWithValue("@FirstName", registration.FirstName);
                 addUserCmd.Parameters.AddWithValue("@LastName", registration.LastName);
@@ -3140,6 +3175,8 @@ namespace Coftea_Capstone.Models
                 addUserCmd.Parameters.AddWithValue("@Password", registration.Password);
                 addUserCmd.Parameters.AddWithValue("@Status", "approved");
                 addUserCmd.Parameters.AddWithValue("@IsAdmin", isFirstUser);
+                addUserCmd.Parameters.AddWithValue("@CanAccessInventory", true);
+                addUserCmd.Parameters.AddWithValue("@CanAccessSalesReport", isFirstUser);
 
                 await addUserCmd.ExecuteNonQueryAsync();
 
@@ -3481,10 +3518,12 @@ namespace Coftea_Capstone.Models
                 System.Diagnostics.Debug.WriteLine("📦 [Database] Fetching pending purchase orders...");
                 
                 // Get all pending orders (case-insensitive and whitespace-insensitive)
+                // Include both "Pending" and "Partially Approved" orders since partially approved orders
+                // still have items that need to be processed
                 // No limit - pagination is handled in ViewModel
                 var sql = @"
                     SELECT * FROM purchase_orders
-                    WHERE LOWER(TRIM(status)) = 'pending'
+                    WHERE LOWER(TRIM(status)) IN ('pending', 'partially approved')
                     ORDER BY createdAt DESC;";
                 
                 await using var cmd = new MySqlCommand(sql, conn);
@@ -4944,5 +4983,13 @@ namespace Coftea_Capstone.Models
             }
             return null;
         }
+    }
+
+    public class PaymentMethodProductData
+    {
+        public string ProductName { get; set; } = string.Empty;
+        public string? Size { get; set; }
+        public int Quantity { get; set; }
+        public decimal Revenue { get; set; }
     }
 }

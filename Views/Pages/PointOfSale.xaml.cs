@@ -4,6 +4,7 @@ using Coftea_Capstone.ViewModel.Pages;
 using Microsoft.Maui.Dispatching;
 using Coftea_Capstone;
 using Coftea_Capstone.Services;
+using Coftea_Capstone.Views;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.C_;
@@ -441,7 +442,8 @@ public partial class PointOfSale : ContentPage
         }
         catch { }
 
-        return base.OnBackButtonPressed();
+        // If no popups are open, use the standard back button handler
+        return BackButtonHandler.HandleBackButton(this);
     }
 
     private async Task RefreshPopupBindings()

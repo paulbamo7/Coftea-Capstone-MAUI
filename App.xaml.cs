@@ -6,6 +6,7 @@ using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel;
 using System;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
@@ -18,6 +19,7 @@ namespace Coftea_Capstone
     {
 
         public static UserInfoModel CurrentUser { get; private set; }
+        public static event EventHandler CurrentUserChanged;
         public static string ResetPasswordEmail { get; set; }
 
         // Online-only mode
@@ -351,6 +353,12 @@ namespace Coftea_Capstone
             {
                 UserSession.Instance.Clear();
             }
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                (Current as App)?.OnPropertyChanged(nameof(CurrentUser));
+                CurrentUserChanged?.Invoke(null, EventArgs.Empty);
+            });
         }
 
         // Called after logout to reset everything

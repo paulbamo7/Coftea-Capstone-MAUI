@@ -72,7 +72,7 @@ namespace Coftea_Capstone.ViewModel
         public ManageInventoryOptionsViewModel ManageInventoryOptionsVM => _manageInventoryOptionsViewModel;
 
         // Permission check for Manage Inventory visibility
-        public bool CanManageInventory => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessInventory ?? false);
+        public bool CanManageInventory => App.CurrentUser?.IsAdmin ?? false;
         
         // Permission check for Manage POS visibility
         public bool CanManagePOS => (App.CurrentUser?.IsAdmin ?? false) || (App.CurrentUser?.CanAccessPOS ?? false);

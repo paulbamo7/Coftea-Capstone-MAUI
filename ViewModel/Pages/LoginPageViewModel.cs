@@ -21,6 +21,23 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private string email;
         [ObservableProperty] private string password;
         [ObservableProperty] private bool rememberMe;
+        [ObservableProperty] private string emailErrorMessage;
+        [ObservableProperty] private string passwordErrorMessage;
+        partial void OnEmailChanged(string value)
+        {
+            EmailErrorMessage = string.Empty;
+        }
+
+        partial void OnPasswordChanged(string value)
+        {
+            // Only clear error message if password is being changed by user input (not empty)
+            // This prevents clearing the error message when password is cleared after failed login
+            if (!string.IsNullOrEmpty(value))
+            {
+                PasswordErrorMessage = string.Empty;
+            }
+        }
+
         
         public RetryConnectionPopupViewModel RetryConnectionPopup { get; set; }
         public PasswordResetPopupViewModel PasswordResetPopup { get; set; }
@@ -55,10 +72,23 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task Login() // Login command
         {
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            ClearValidationMessages();
+
+            bool hasValidationError = false;
+            if (string.IsNullOrWhiteSpace(Email))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please enter email and password", "OK");
-                ClearEntries();
+                EmailErrorMessage = "Email is required.";
+                hasValidationError = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(Password))
+            {
+                PasswordErrorMessage = "Password is required.";
+                hasValidationError = true;
+            }
+
+            if (hasValidationError)
+            {
                 return;
             }
 
@@ -74,8 +104,7 @@ namespace Coftea_Capstone.ViewModel
                 var user = await _database.GetUserByEmailAsync(Email.Trim());
                 if (user == null)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "User not found", "OK");
-                    ClearEntries();
+                    EmailErrorMessage = "Account not found.";
                     return;
                 }
 
@@ -99,8 +128,8 @@ namespace Coftea_Capstone.ViewModel
 
                 if (!passwordValid)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Incorrect password", "OK");
-                    ClearEntries();
+                    Password = string.Empty;
+                    PasswordErrorMessage = "Incorrect password.";
                     return;
                 }
 
@@ -234,6 +263,9 @@ namespace Coftea_Capstone.ViewModel
         {
             try
             {
+                // Clear password before navigating to register (for security)
+                Password = string.Empty;
+                PasswordErrorMessage = string.Empty;
                 await SimpleNavigationService.NavigateToAsync("//register");
             }
             catch (Exception ex)
@@ -268,6 +300,12 @@ namespace Coftea_Capstone.ViewModel
                 // Keep email if Remember Me is checked, but always clear password for security
                 Password = string.Empty;
             }
+        }
+
+        private void ClearValidationMessages()
+        {
+            EmailErrorMessage = string.Empty;
+            PasswordErrorMessage = string.Empty;
         }
     }
 }

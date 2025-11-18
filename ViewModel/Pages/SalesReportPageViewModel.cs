@@ -26,6 +26,7 @@ namespace Coftea_Capstone.ViewModel
         public ViewModel.Controls.DateFilterPopupViewModel DateFilterPopup { get; set; }
         public ViewModel.Controls.ProductDetailPopupViewModel ProductDetailPopup { get; set; }
         public ViewModel.Controls.ProductPickerPopupViewModel ProductPickerPopup { get; set; }
+        public ViewModel.Controls.PaymentMethodProductsPopupViewModel PaymentMethodProductsPopup { get; set; }
 
         private readonly Database _database;
         private readonly Services.ISalesReportService _salesReportService;
@@ -489,6 +490,11 @@ namespace Coftea_Capstone.ViewModel
             DateFilterPopup = new ViewModel.Controls.DateFilterPopupViewModel();
             ProductDetailPopup = new ViewModel.Controls.ProductDetailPopupViewModel();
             ProductPickerPopup = new ViewModel.Controls.ProductPickerPopupViewModel();
+            PaymentMethodProductsPopup = new ViewModel.Controls.PaymentMethodProductsPopupViewModel();
+            PaymentMethodProductsPopup.OnViewProduct += async (name) =>
+            {
+                await ShowProductDetailsForSelectedPeriodAsync(name);
+            };
             ProductPickerPopup.OnProductSelected += async (name) =>
             {
                 await ShowProductDetailsForSelectedPeriodAsync(name);
@@ -2539,6 +2545,60 @@ namespace Coftea_Capstone.ViewModel
                     // Debounce was cancelled, ignore
                 }
             });
+        }
+
+        private (DateTime start, DateTime end) GetCurrentPeriodDateRange()
+        {
+            var today = DateTime.Today;
+            var filterStart = GetFilterStartDate();
+            var filterEnd = GetFilterEndDateExclusive();
+
+            return SelectedTimePeriod switch
+            {
+                "Today" => (today > filterStart ? today : filterStart, today.AddDays(1) < filterEnd ? today.AddDays(1) : filterEnd),
+                "Yesterday" => (today.AddDays(-1) > filterStart ? today.AddDays(-1) : filterStart, today < filterEnd ? today : filterEnd),
+                "1 Week" => (today.AddDays(-7) > filterStart ? today.AddDays(-7) : filterStart, today.AddDays(1) < filterEnd ? today.AddDays(1) : filterEnd),
+                "1 Month" => (new DateTime(today.Year, today.Month, 1) > filterStart ? new DateTime(today.Year, today.Month, 1) : filterStart, today.AddDays(1) < filterEnd ? today.AddDays(1) : filterEnd),
+                _ => (filterStart, filterEnd)
+            };
+        }
+
+        private string GetPeriodText()
+        {
+            return SelectedTimePeriod switch
+            {
+                "Today" => "Today",
+                "Yesterday" => "Yesterday",
+                "1 Week" => "Last 7 Days",
+                "1 Month" => "This Month",
+                _ => SelectedStartDate.HasValue && SelectedEndDate.HasValue 
+                    ? $"{SelectedStartDate.Value:MMM dd} - {SelectedEndDate.Value:MMM dd, yyyy}"
+                    : "All Time"
+            };
+        }
+
+        [RelayCommand]
+        private async Task ShowCashProducts()
+        {
+            var (start, end) = GetCurrentPeriodDateRange();
+            await PaymentMethodProductsPopup.LoadProductsAsync("Cash", start, end, GetPeriodText());
+            PaymentMethodProductsPopup.IsVisible = true;
+        }
+
+        [RelayCommand]
+        private async Task ShowGCashProducts()
+        {
+            var (start, end) = GetCurrentPeriodDateRange();
+            await PaymentMethodProductsPopup.LoadProductsAsync("GCash", start, end, GetPeriodText());
+            PaymentMethodProductsPopup.IsVisible = true;
+        }
+
+        [RelayCommand]
+        private async Task ShowBankProducts()
+        {
+            var (start, end) = GetCurrentPeriodDateRange();
+            await PaymentMethodProductsPopup.LoadProductsAsync("Bank", start, end, GetPeriodText());
+            PaymentMethodProductsPopup.IsVisible = true;
         }
     }
 }

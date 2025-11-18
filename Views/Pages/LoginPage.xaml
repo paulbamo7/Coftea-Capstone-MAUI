@@ -4,9 +4,16 @@
              x:Class="Coftea_Capstone.Views.Pages.LoginPage"
              xmlns:vm="clr-namespace:Coftea_Capstone.ViewModel"
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              NavigationPage.HasNavigationBar="False"
              Shell.TabBarIsVisible="False"
              Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ContentPage.BindingContext>
         <vm:LoginPageViewModel />
@@ -61,6 +68,11 @@
                            PlaceholderColor="Black"
                            BackgroundColor="Transparent"
                            HeightRequest="40" />
+                    <Label Text="{Binding EmailErrorMessage}"
+                           TextColor="#D9534F"
+                           FontSize="12"
+                           IsVisible="{Binding EmailErrorMessage, Converter={StaticResource StringToBoolConverter}}"
+                           Margin="5,-5,0,0"/>
 
                     <!-- Password -->
                     <Label Text="Password:"
@@ -84,6 +96,11 @@
                                     VerticalOptions="Center"
                                     Clicked="OnToggleLoginPasswordVisibility" />
                     </Grid>
+                    <Label Text="{Binding PasswordErrorMessage}"
+                           TextColor="#D9534F"
+                           FontSize="12"
+                           IsVisible="{Binding PasswordErrorMessage, Converter={StaticResource StringToBoolConverter}}"
+                           Margin="5,-5,0,0"/>
 
                     <!-- Remember Me -->
                     <HorizontalStackLayout Spacing="8"

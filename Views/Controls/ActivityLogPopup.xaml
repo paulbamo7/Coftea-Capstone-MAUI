@@ -335,13 +335,13 @@
                             </Button>
                             <ImageButton Grid.Column="2" 
                                          Source="refreshicon.png"
-                                         BackgroundColor="#BDAEA2" 
+                                         BackgroundColor="#90EE90" 
                                          BorderColor="#8B7355"
                                          BorderWidth="2"
                                          WidthRequest="55" 
                                          HeightRequest="45"
                                          CornerRadius="20"
-                                         Padding="0"
+                                         Padding="8"
                                          Command="{Binding RefreshCommand}"/>
                         </Grid>
                         
@@ -380,13 +380,13 @@
                                         <ColumnDefinition Width="1.1*"/>   <!-- Date & Time -->
                                         <ColumnDefinition Width="1*"/>     <!-- User -->
                                         <ColumnDefinition Width="0.9*"/>   <!-- Action -->
-                                        <ColumnDefinition Width="1.2*"/>   <!-- Item -->
+                                        <ColumnDefinition Width="1.4*"/>   <!-- Item -->
                                         <ColumnDefinition Width="0.8*"/>   <!-- Qty Change -->
                                         <ColumnDefinition Width="0.6*"/>   <!-- UoM -->
                                         <ColumnDefinition Width="0.8*"/>   <!-- Prev Qty -->
                                         <ColumnDefinition Width="0.8*"/>   <!-- New Qty -->
-                                        <ColumnDefinition Width="1.1*"/>   <!-- Used for Product -->
-                                        <ColumnDefinition Width="1.3*"/>   <!-- Remarks -->
+                                        <ColumnDefinition Width="1.3*"/>   <!-- Used for Product -->
+                                        <ColumnDefinition Width="1.4*"/>   <!-- Remarks -->
                                     </Grid.ColumnDefinitions>
                                     
                                     <Label Grid.Column="0" Text="#" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="Start" VerticalOptions="Center"/>
@@ -412,13 +412,13 @@
                                                     <ColumnDefinition Width="1.1*"/>   <!-- Date & Time -->
                                                     <ColumnDefinition Width="1*"/>     <!-- User -->
                                                     <ColumnDefinition Width="0.9*"/>   <!-- Action -->
-                                                    <ColumnDefinition Width="1.2*"/>   <!-- Item -->
+                                                    <ColumnDefinition Width="1.4*"/>   <!-- Item -->
                                                     <ColumnDefinition Width="0.8*"/>   <!-- Qty Change -->
                                                     <ColumnDefinition Width="0.6*"/>   <!-- UoM -->
                                                     <ColumnDefinition Width="0.8*"/>   <!-- Prev Qty -->
                                                     <ColumnDefinition Width="0.8*"/>   <!-- New Qty -->
-                                                    <ColumnDefinition Width="1.1*"/>   <!-- Used for Product -->
-                                                    <ColumnDefinition Width="1.3*"/>   <!-- Remarks -->
+                                                    <ColumnDefinition Width="1.3*"/>   <!-- Used for Product -->
+                                                    <ColumnDefinition Width="1.4*"/>   <!-- Remarks -->
                                                 </Grid.ColumnDefinitions>
                                                 
                                                 <Label Grid.Column="0" Text="{Binding RowNumber}" FontSize="10" TextColor="#333" HorizontalOptions="Start" VerticalOptions="Center"/>
@@ -430,8 +430,8 @@
                                                 <Label Grid.Column="6" Text="{Binding UnitOfMeasurement}" FontSize="10" TextColor="#666" VerticalOptions="Center"/>
                                                 <Label Grid.Column="7" Text="{Binding PreviousQuantityText}" FontSize="10" TextColor="#666" HorizontalOptions="End" VerticalOptions="Center"/>
                                                 <Label Grid.Column="8" Text="{Binding NewQuantityText}" FontSize="10" TextColor="#333" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
-                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="WordWrap" VerticalOptions="Center"/>
-                                                <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="WordWrap" VerticalOptions="Center"/>
+                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center"/>
+                                                <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center"/>
                                                 
                                                 <!-- Separator Line -->
                                                 <BoxView Grid.ColumnSpan="11" HeightRequest="1" BackgroundColor="#E0E0E0" VerticalOptions="End"/>

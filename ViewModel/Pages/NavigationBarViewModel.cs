@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Microsoft.Maui.Controls;
 using Coftea_Capstone.Services;
 using Coftea_Capstone.Views.Pages;
+using Microsoft.Maui.ApplicationModel;
 
 namespace Coftea_Capstone.ViewModel.Pages
 {
@@ -34,6 +35,7 @@ namespace Coftea_Capstone.ViewModel.Pages
         {
             _currentPage = NavigationStateService.CurrentPageTypeName;
             NavigationStateService.CurrentPageChanged += OnCurrentPageChanged;
+            App.CurrentUserChanged += OnCurrentUserChanged;
 
             GoHomeCommand = new Command(async () => 
             {
@@ -95,6 +97,11 @@ namespace Coftea_Capstone.ViewModel.Pages
         {
             _currentPage = e;
             RaiseAllActiveProps();
+        }
+
+        private void OnCurrentUserChanged(object sender, EventArgs e)
+        {
+            MainThread.BeginInvokeOnMainThread(RaiseAllActiveProps);
         }
 
         private void RaiseAllActiveProps()

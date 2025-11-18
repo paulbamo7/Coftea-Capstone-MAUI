@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel.Pages
 {
@@ -43,6 +44,15 @@ namespace Coftea_Capstone.ViewModel.Pages
         public bool HasMultiplePages => TotalPages > 1;
 
         private List<PurchaseOrderHistoryItem> _allOrders = new();
+
+        [ObservableProperty]
+        private bool isDetailsPopupVisible;
+
+        [ObservableProperty]
+        private PurchaseOrderHistoryItem selectedOrderDetails;
+
+        [ObservableProperty]
+        private ObservableCollection<PurchaseOrderItemModel> orderDetailItems = new();
 
         public PurchaseOrderHistoryPageViewModel()
         {
@@ -181,37 +191,46 @@ namespace Coftea_Capstone.ViewModel.Pages
         }
 
         [RelayCommand]
+        private async Task GoBackToInventory()
+        {
+            try
+            {
+                await Shell.Current.GoToAsync("//inventory");
+            }
+            catch (Exception ex)
+            {
+                await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Unable to return to Inventory: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
         private async Task ViewOrderDetails(PurchaseOrderHistoryItem order)
         {
             try
             {
                 var items = await _database.GetPurchaseOrderItemsAsync(order.PurchaseOrderId);
-                var itemsList = string.Join("\n", items.Select(i => 
-                    $"• {i.ItemName}: {i.RequestedQuantity} {i.UnitOfMeasurement} (Requested) / {i.ApprovedQuantity} {i.UnitOfMeasurement} (Approved)"));
-
-                var statusColor = order.Status switch
+                
+                SelectedOrderDetails = order;
+                OrderDetailItems.Clear();
+                foreach (var item in items)
                 {
-                    "Approved" => "✅",
-                    "Rejected" => "❌",
-                    "Pending" => "⏳",
-                    "Completed" => "✅",
-                    _ => "📋"
-                };
-
-                await Application.Current.MainPage.DisplayAlert(
-                    $"{statusColor} Purchase Order #{order.PurchaseOrderId}",
-                    $"Status: {order.Status}\n" +
-                    $"Date: {order.OrderDate:MMM dd, yyyy}\n" +
-                    $"Requested By: {order.RequestedBy}\n" +
-                    $"Supplier: {order.SupplierName}\n" +
-                    $"Total Amount: ₱{order.TotalAmount:F2}\n" +
-                    $"Items ({order.ItemCount}):\n{itemsList}",
-                    "OK");
+                    OrderDetailItems.Add(item);
+                }
+                
+                IsDetailsPopupVisible = true;
             }
             catch (Exception ex)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load order details: {ex.Message}", "OK");
             }
+        }
+
+        [RelayCommand]
+        private void CloseDetailsPopup()
+        {
+            IsDetailsPopupVisible = false;
+            SelectedOrderDetails = null;
+            OrderDetailItems.Clear();
         }
 
         [RelayCommand]

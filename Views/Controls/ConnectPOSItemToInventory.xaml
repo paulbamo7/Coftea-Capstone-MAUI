@@ -70,7 +70,7 @@
                                             TextColor="Black" />
                                 </Frame>
 
-                                <Border BackgroundColor="#D4A574" 
+                                <Border BackgroundColor="#90EE90" 
                                         Stroke="#8B7355"
                                         StrokeThickness="2"
                                         StrokeShape="RoundRectangle 20"
@@ -82,11 +82,11 @@
                                     </Border.GestureRecognizers>
                                     <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                                         <Image Source="refreshicon.png" 
-                                               WidthRequest="16" 
-                                               HeightRequest="16" 
+                                               WidthRequest="20" 
+                                               HeightRequest="20" 
                                                VerticalOptions="Center"/>
                                         <Label Text="Refresh" 
-                                               TextColor="White" 
+                                               TextColor="#5B4F45" 
                                                FontAttributes="Bold"
                                                FontSize="13"
                                                VerticalOptions="Center"/>

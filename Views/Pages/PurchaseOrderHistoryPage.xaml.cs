@@ -1,4 +1,5 @@
 using Coftea_Capstone.ViewModel.Pages;
+using Coftea_Capstone.Views;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -36,6 +37,11 @@ public partial class PurchaseOrderHistoryPage : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"Error opening profile: {ex.Message}");
         }
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return BackButtonHandler.HandleBackButton(this);
     }
 }
 

@@ -162,7 +162,7 @@
                                                     </Grid>
                                                     
                                                     <!-- Separator line between users -->
-                                                    <BoxView HeightRequest="1" BackgroundColor="#E5DDD3" Margin="15,5,15,5" CornerRadius="0"/>
+                                                    <BoxView HeightRequest="1" BackgroundColor="#B39A7C" Margin="15,5,15,5" CornerRadius="0"/>
                                                 </VerticalStackLayout>
                                             </DataTemplate>
                                         </CollectionView.ItemTemplate>

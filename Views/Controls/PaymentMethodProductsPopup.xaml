@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
+             x:Class="Coftea_Capstone.Views.Controls.PaymentMethodProductsPopup"
+             x:Name="Root"
+             IsVisible="{Binding IsVisible}"
+             BackgroundColor="#80000000"
+             InputTransparent="False">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter"/>
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <Grid HorizontalOptions="Fill" VerticalOptions="Fill" InputTransparent="False">
+        <!-- Click-blocking overlay -->
+        <BoxView BackgroundColor="#80000000" 
+                 HorizontalOptions="Fill" 
+                 VerticalOptions="Fill"
+                 InputTransparent="False">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseCommand}"/>
+            </BoxView.GestureRecognizers>
+        </BoxView>
+        
+        <!-- Popup Content -->
+        <Frame HorizontalOptions="Center" 
+               VerticalOptions="Center"
+               BackgroundColor="White" 
+               CornerRadius="24" 
+               Padding="0" 
+               HasShadow="True"
+               WidthRequest="600" 
+               MaximumHeightRequest="700"
+               InputTransparent="False">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="0">
+                <!-- Header -->
+                <Grid Grid.Row="0" BackgroundColor="#5B4F45" Padding="20,15" ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout>
+                        <Label Text="{Binding PaymentMethod, StringFormat='{0} Purchases'}" FontAttributes="Bold" FontSize="20" TextColor="White" VerticalOptions="Center"/>
+                        <Label Text="{Binding PeriodText}" FontSize="12" TextColor="#E0E0E0" VerticalOptions="Center" Margin="0,4,0,0"/>
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="✕" FontSize="18" BackgroundColor="Transparent" TextColor="White" 
+                            Command="{Binding CloseCommand}" WidthRequest="35" HeightRequest="35" Padding="0"/>
+                </Grid>
+                
+                <!-- Content -->
+                <ScrollView Grid.Row="1" Padding="20">
+                    <VerticalStackLayout Spacing="16">
+                        <ActivityIndicator IsVisible="{Binding IsLoading}" IsRunning="{Binding IsLoading}" Color="#5B4F45" HorizontalOptions="Center"/>
+
+                        <!-- Total Revenue -->
+                        <Frame BackgroundColor="#E8F5E8" CornerRadius="12" Padding="16" HasShadow="False" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="Total Revenue" FontAttributes="Bold" FontSize="16" TextColor="#2E7D32"/>
+                                <Label Grid.Column="1" Text="{Binding TotalRevenue, StringFormat='₱{0:N2}'}" FontAttributes="Bold" FontSize="18" TextColor="#2E7D32"/>
+                            </Grid>
+                        </Frame>
+
+                        <!-- Products List -->
+                        <CollectionView ItemsSource="{Binding Products}" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Stroke="#EADCCD" StrokeThickness="1" BackgroundColor="#FFF5EC" StrokeShape="RoundRectangle 8" Padding="12" Margin="0,0,0,8">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="4">
+                                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding ProductName}" FontAttributes="Bold" FontSize="15" TextColor="#5B4F45" LineBreakMode="TailTruncation"/>
+                                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding Size, StringFormat='Size: {0}'}" FontSize="12" TextColor="#8B7355" HorizontalOptions="End"/>
+                                            <Label Grid.Row="0" Grid.Column="2" Text="{Binding RevenueDisplay}" FontAttributes="Bold" FontSize="15" TextColor="#2E7D32" HorizontalOptions="End"/>
+                                            <Button Grid.Row="0" Grid.Column="3" 
+                                                    Grid.RowSpan="2"
+                                                    Text="VIEW"
+                                                    FontSize="11"
+                                                    BackgroundColor="#FFB3D9"
+                                                    TextColor="#5B4F45"
+                                                    CornerRadius="10"
+                                                    HeightRequest="32"
+                                                    Padding="12,2"
+                                                    VerticalOptions="Center"
+                                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.ViewProductCommand}"
+                                                    CommandParameter="{Binding ProductName}"/>
+                                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding TotalQuantity, StringFormat='Quantity: {0}'}" FontSize="12" TextColor="#757575"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- Empty State -->
+                        <Label Text="No products found for this payment method in the selected period." 
+                               FontSize="14" 
+                               TextColor="#757575" 
+                               HorizontalTextAlignment="Center"
+                               Margin="0,20,0,0"
+                               IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding Products.Count}" Value="0">
+                                    <Setter Property="IsVisible" Value="True"/>
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                    </VerticalStackLayout>
+                </ScrollView>
+                
+                <!-- Footer -->
+                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="20,12">
+                    <Button Text="Close" 
+                            BackgroundColor="#5B4F45" 
+                            TextColor="White" 
+                            CornerRadius="12"
+                            HeightRequest="44"
+                            Command="{Binding CloseCommand}"/>
+                </Grid>
+            </Grid>
+        </Frame>
+    </Grid>
+</ContentView>
+

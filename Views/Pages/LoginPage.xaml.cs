@@ -34,7 +34,7 @@ public partial class LoginPage : ContentPage
     {
         base.OnAppearing();
         
-        // Clear email if Remember Me is not checked (after logout)
+        // Clear fields when returning to login page
         if (BindingContext is LoginPageViewModel viewModel)
         {
             bool rememberMe = Preferences.Get("RememberMe", false);
@@ -43,6 +43,9 @@ public partial class LoginPage : ContentPage
                 viewModel.Email = string.Empty;
                 viewModel.RememberMe = false;
             }
+            // Always clear password for security when returning to login page
+            viewModel.Password = string.Empty;
+            viewModel.PasswordErrorMessage = string.Empty;
         }
     }
 

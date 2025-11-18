@@ -2,6 +2,7 @@ using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.ViewModel.Pages;
 using Coftea_Capstone.Services;
+using Coftea_Capstone.Views;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Dispatching;
 
@@ -216,5 +217,10 @@ public partial class Inventory : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"⚠️ Error in Inventory RefreshPopupBindings: {ex.Message}");
         }
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return BackButtonHandler.HandleBackButton(this);
     }
 }

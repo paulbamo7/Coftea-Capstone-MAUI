@@ -407,9 +407,9 @@ namespace Coftea_Capstone.ViewModel
         {
             System.Diagnostics.Debug.WriteLine("ManageInventory called");
             
-            // Check if user is admin OR has been granted inventory access
+            // Only administrators can manage inventory (editing/adding)
             var currentUser = App.CurrentUser;
-            bool hasAccess = (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessInventory ?? false);
+            bool hasAccess = currentUser?.IsAdmin ?? false;
             
             if (!hasAccess)
             {

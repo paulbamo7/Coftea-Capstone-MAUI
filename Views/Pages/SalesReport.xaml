@@ -156,6 +156,9 @@
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
                             <!-- Cash Payment -->
                             <Frame BackgroundColor="#E8F5E8" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="0">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ShowCashProductsCommand}"/>
+                                </Frame.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="Cash" FontAttributes="Bold" FontSize="14" TextColor="#2E7D32"/>
                                     <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#2E7D32" FontAttributes="Bold" LineBreakMode="NoWrap"/>
@@ -165,6 +168,9 @@
 
                             <!-- GCash Payment -->
                             <Frame BackgroundColor="#E3F2FD" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="1">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ShowGCashProductsCommand}"/>
+                                </Frame.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="GCash" FontAttributes="Bold" FontSize="14" TextColor="#1976D2"/>
                                     <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#1976D2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
@@ -174,6 +180,9 @@
 
                             <!-- Bank Payment -->
                             <Frame BackgroundColor="#F3E5F5" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="2">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ShowBankProductsCommand}"/>
+                                </Frame.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="Bank" FontAttributes="Bold" FontSize="14" TextColor="#7B1FA2"/>
                                     <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#7B1FA2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
@@ -784,5 +793,8 @@
         <controls:ProductDetailPopup BindingContext="{Binding ProductDetailPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
         <!-- Product Picker Popup -->
         <controls:ProductPickerPopup BindingContext="{Binding ProductPickerPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
+        
+        <!-- Payment Method Products Popup -->
+        <controls:PaymentMethodProductsPopup BindingContext="{Binding PaymentMethodProductsPopup}" Grid.ColumnSpan="2" ZIndex="3100"/>
     </Grid>
 </ContentPage>

@@ -30,14 +30,29 @@
             
             <Grid RowDefinitions="Auto,*,Auto">
                 <!-- Header -->
-                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="10">
-                    <Label Text="📦 Purchase Orders" 
+                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="10" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                    <Label Grid.Column="0"
+                           Text="📦 Purchase Orders" 
                            FontSize="24" 
                            FontAttributes="Bold" 
                            TextColor="White"
                            HorizontalOptions="Start"
                            VerticalOptions="Center"/>
-                    <ImageButton Source="close_icon.png" 
+                    <Button Grid.Column="1"
+                            Text="📜 PO History" 
+                            BackgroundColor="#9C27B0" 
+                            TextColor="White" 
+                            FontSize="12" 
+                            FontAttributes="Bold"
+                            CornerRadius="15"
+                            BorderColor="#7B1FA2"
+                            BorderWidth="2"
+                            Padding="12,6"
+                            HeightRequest="35"
+                            Command="{Binding ViewPurchaseOrderHistoryCommand}"
+                            VerticalOptions="Center"/>
+                    <ImageButton Grid.Column="2"
+                                 Source="close_icon.png" 
                                  WidthRequest="30" 
                                  HeightRequest="30"
                                  HorizontalOptions="End" 
@@ -104,7 +119,7 @@
                                             </Grid>
 
                                             <!-- Expandable Items Section -->
-                                            <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="8">
+                                            <Grid Grid.Row="2" RowDefinitions="Auto,Auto,*" RowSpacing="8">
                                                 <!-- Items Preview Header (Clickable to expand) -->
                                                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                                                     <Label Grid.Column="0"
@@ -121,9 +136,18 @@
                                                            VerticalOptions="Center"
                                                            HorizontalOptions="End"/>
                                                 </Grid>
+                                                
+                                                <!-- Help Note -->
+                                                <Label Grid.Row="1"
+                                                       Text="💡 Tip: Accepted items can be retracted using the 'RETRACT' button if needed"
+                                                       FontSize="10"
+                                                       TextColor="#8B7355"
+                                                       FontStyle="Italic"
+                                                       Margin="0,0,0,4"
+                                                       IsVisible="{Binding HasAcceptedItems}"/>
 
                                                 <!-- Expandable Items List -->
-                                                <VerticalStackLayout Grid.Row="1" 
+                                                <VerticalStackLayout Grid.Row="2" 
                                                                      x:Name="ItemsContainer"
                                                                      Spacing="4"
                                                                      IsVisible="True">
@@ -344,14 +368,14 @@
                                                                             <!-- Retract Button (for accepted items) -->
                                                                             <Button Grid.Column="2"
                                                                                     Grid.ColumnSpan="2"
-                                                                                    Text="RETRACT"
-                                                                                    Padding="4,2"
+                                                                                    Text="↩ RETRACT"
+                                                                                    Padding="6,3"
                                                                                     BackgroundColor="#FF9800"
                                                                                     TextColor="White"
                                                                                     CornerRadius="6"
-                                                                                    HeightRequest="26"
-                                                                                    WidthRequest="75"
-                                                                                    FontSize="9"
+                                                                                    HeightRequest="28"
+                                                                                    WidthRequest="90"
+                                                                                    FontSize="10"
                                                                                     FontAttributes="Bold"
                                                                                     Command="{Binding BindingContext.RetractItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                     CommandParameter="{Binding .}"
@@ -437,15 +461,77 @@
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
+
+                        <!-- Past Purchase Orders Section -->
+                        <Label Text="Past Purchase Orders"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               Margin="0,20,0,5"
+                               IsVisible="{Binding HasProcessedOrders}"/>
+
+                        <CollectionView ItemsSource="{Binding ProcessedOrders}"
+                                        IsVisible="{Binding HasProcessedOrders}">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame BackgroundColor="#FFFFFF"
+                                           CornerRadius="8"
+                                           Padding="12"
+                                           Margin="0,0,0,8"
+                                           BorderColor="#E0E0E0"
+                                           HasShadow="True">
+                                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding PurchaseOrderId, StringFormat='Purchase Order #{0}'}"
+                                                       FontSize="16"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#5B4F45"/>
+                                                <Border Grid.Column="1"
+                                                        BackgroundColor="#9C8A7B"
+                                                        Padding="6,2"
+                                                        HorizontalOptions="End">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="12"/>
+                                                    </Border.StrokeShape>
+                                                    <Label Text="{Binding Status}"
+                                                           FontSize="12"
+                                                           FontAttributes="Bold"
+                                                           TextColor="White"
+                                                           HorizontalOptions="Center"
+                                                           VerticalOptions="Center"/>
+                                                </Border>
+                                            </Grid>
+                                            <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="8">
+                                                <Label Grid.Column="0"
+                                                       Text="{Binding RequestedBy, StringFormat='Requested by: {0}'}"
+                                                       FontSize="12"
+                                                       TextColor="#6B5B4D"/>
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding CreatedAt, StringFormat='Date: {0:yyyy-MM-dd HH:mm}'}"
+                                                       FontSize="12"
+                                                       HorizontalTextAlignment="End"
+                                                       TextColor="#6B5B4D"/>
+                                            </Grid>
+                                            <Label Grid.Row="2"
+                                                   Text="{Binding ItemsPreview}"
+                                                   FontSize="12"
+                                                   TextColor="#555"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="2"/>
+                                        </Grid>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
                     </VerticalStackLayout>
                 </ScrollView>
 
                 <!-- Footer -->
-                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="10" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                <Grid Grid.Row="2" BackgroundColor="#F5F5F5" Padding="10" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto">
                     <!-- Close Button -->
                     <Button Grid.Column="0"
                             Grid.Row="0"
-                            Grid.RowSpan="2"
                             Text="CLOSE" 
                             BackgroundColor="#BDAEA2"
                             TextColor="White"
@@ -454,11 +540,12 @@
                             WidthRequest="150"
                             HorizontalOptions="Start"
                             VerticalOptions="Center"
-                            Command="{Binding CloseCommand}"/>
+                            Command="{Binding CloseCommand}"
+                            ZIndex="100"/>
                     
                     <!-- Pagination Controls - Bottom Right -->
-                    <HorizontalStackLayout Grid.Column="1"
-                                           Grid.Row="1"
+                    <HorizontalStackLayout Grid.Column="2"
+                                           Grid.Row="0"
                                            IsVisible="{Binding BindingContext.HasPendingOrders, Source={x:Reference PurchaseOrderApprovalPopupView}}" 
                                            Spacing="10"
                                            HorizontalOptions="End"

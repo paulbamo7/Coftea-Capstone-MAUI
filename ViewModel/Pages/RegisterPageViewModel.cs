@@ -43,6 +43,10 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private string confirmPassword;
         [ObservableProperty] private string firstName;
         [ObservableProperty] private string lastName;
+        [ObservableProperty] private string firstNameValidationMessage;
+        [ObservableProperty] private string lastNameValidationMessage;
+        [ObservableProperty] private string passwordValidationMessage;
+        [ObservableProperty] private string confirmPasswordValidationMessage;
         
         // Password validation properties
         [ObservableProperty] private bool hasUppercase;
@@ -57,9 +61,20 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty] private bool isEmailAvailable = true;
         [ObservableProperty] private string emailValidationMessage = "";
 
+        partial void OnFirstNameChanged(string value)
+        {
+            FirstNameValidationMessage = string.Empty;
+        }
+
+        partial void OnLastNameChanged(string value)
+        {
+            LastNameValidationMessage = string.Empty;
+        }
+
         // Password validation methods
         partial void OnPasswordChanged(string value)
         {
+            PasswordValidationMessage = string.Empty;
             if (string.IsNullOrEmpty(value))
             {
                 HasUppercase = false;
@@ -86,6 +101,7 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnConfirmPasswordChanged(string value)
         {
+            ConfirmPasswordValidationMessage = string.Empty;
             PasswordsMatch = !string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(value) && Password == value;
         }
 
@@ -171,50 +187,62 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task Register() // Handle user registration
         {
-            // Validations
+            ResetValidationMessages();
+
+            bool hasValidationError = false;
+
             if (string.IsNullOrWhiteSpace(FirstName))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "First Name is required.", "OK");
-                return;
+                FirstNameValidationMessage = "First name is required.";
+                hasValidationError = true;
             }
 
             if (string.IsNullOrWhiteSpace(LastName))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Last Name is required.", "OK");
-                return;
+                LastNameValidationMessage = "Last name is required.";
+                hasValidationError = true;
             }
 
             if (string.IsNullOrWhiteSpace(Email))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Email is required.", "OK");
-                return;
+                EmailValidationMessage = "Email is required.";
+                hasValidationError = true;
             }
-            if (!Regex.IsMatch(Email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            else if (!Regex.IsMatch(Email.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Enter a valid email address.", "OK");
-                return;
+                EmailValidationMessage = "Enter a valid email address.";
+                hasValidationError = true;
             }
 
             if (string.IsNullOrWhiteSpace(Password))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Password is required.", "OK");
-                return;
+                PasswordValidationMessage = "Password is required.";
+                hasValidationError = true;
             }
-            if (Password.Length < 8)
+            else if (Password.Length < 8)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Password must be at least 8 characters long.", "OK");
-                return;
+                PasswordValidationMessage = "Password must be at least 8 characters long.";
+                hasValidationError = true;
+            }
+            else if (!HasUppercase || !HasLowercase || !HasNumber || !HasSpecialChar || !HasMinLength)
+            {
+                PasswordValidationMessage = "Include uppercase, lowercase, number, and special character.";
+                hasValidationError = true;
             }
 
-            if (!HasUppercase || !HasLowercase || !HasNumber || !HasSpecialChar || !HasMinLength)
+            if (string.IsNullOrWhiteSpace(ConfirmPassword))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long.", "OK");
-                return;
+                ConfirmPasswordValidationMessage = "Confirm password is required.";
+                hasValidationError = true;
+            }
+            else if (Password != ConfirmPassword)
+            {
+                ConfirmPasswordValidationMessage = "Passwords do not match.";
+                hasValidationError = true;
             }
 
-            if (Password != ConfirmPassword)
+            if (hasValidationError)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Passwords do not match.", "OK");
                 return;
             }
 
@@ -234,8 +262,7 @@ namespace Coftea_Capstone.ViewModel
                 if (existingUser != null)
                 {
                     IsEmailAvailable = false;
-                    EmailValidationMessage = "Email is already registered";
-                    await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered.", "OK");
+                    EmailValidationMessage = "Email is already registered.";
                     return;
                 }
 
@@ -244,8 +271,7 @@ namespace Coftea_Capstone.ViewModel
                 if (existingPendingRequest != null)
                 {
                     IsEmailAvailable = false;
-                    EmailValidationMessage = "Email is already registered (pending approval)";
-                    await Application.Current.MainPage.DisplayAlert("Error", "Email is already registered. Your registration request is pending approval.", "OK");
+                    EmailValidationMessage = "Email is already registered (pending approval).";
                     return;
                 }
 
@@ -369,6 +395,18 @@ namespace Coftea_Capstone.ViewModel
             HasSpecialChar = false;
             HasMinLength = false;
             PasswordsMatch = false;
+            ResetValidationMessages();
+        }
+
+        private void ResetValidationMessages()
+        {
+            FirstNameValidationMessage = string.Empty;
+            LastNameValidationMessage = string.Empty;
+            PasswordValidationMessage = string.Empty;
+            ConfirmPasswordValidationMessage = string.Empty;
+            EmailValidationMessage = string.Empty;
+            IsEmailValid = true;
+            IsEmailAvailable = true;
         }
     }
 }

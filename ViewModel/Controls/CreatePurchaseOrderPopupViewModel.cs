@@ -460,7 +460,27 @@ namespace Coftea_Capstone.ViewModel.Controls
             OnPropertyChanged(nameof(QuantityTextColor));
         }
 
+        partial void OnMaximumQuantityChanged(double value)
+        {
+            OnPropertyChanged(nameof(MaximumStockDisplay));
+        }
+
+        partial void OnOriginalUoMChanged(string value)
+        {
+            OnPropertyChanged(nameof(MaximumStockDisplay));
+        }
+
         public double TotalAmount => ApprovedQuantity * Quantity; // Total = Unit Amount × Quantity
+
+        public string MaximumStockDisplay
+        {
+            get
+            {
+                if (MaximumQuantity <= 0) return "Not Set";
+                var unit = string.IsNullOrWhiteSpace(OriginalUoM) ? string.Empty : $" {OriginalUoM}";
+                return $"{MaximumQuantity:F1}{unit}";
+            }
+        }
 
         // Quantity text color based on stock status
         public Color QuantityTextColor

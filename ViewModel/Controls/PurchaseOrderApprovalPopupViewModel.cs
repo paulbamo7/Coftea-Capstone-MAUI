@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -23,8 +24,12 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private ObservableCollection<PurchaseOrderDisplayModel> pendingOrders = new();
 
-        private List<PurchaseOrderDisplayModel> _allOrders = new();
+        [ObservableProperty]
+        private ObservableCollection<PurchaseOrderDisplayModel> processedOrders = new();
+
+        private List<PurchaseOrderDisplayModel> _pendingOrderCache = new();
         private const int ItemsPerPage = 10;
+        private const int ProcessedOrdersLimit = 10;
 
         [ObservableProperty]
         private int currentPage = 1;
@@ -37,6 +42,7 @@ namespace Coftea_Capstone.ViewModel.Controls
         public bool HasPreviousPage => CurrentPage > 1;
         public bool HasNextPage => CurrentPage < TotalPages;
         public string PageInfo => $"Page {CurrentPage} of {TotalPages}";
+        public bool HasProcessedOrders => ProcessedOrders.Count > 0;
 
         public PurchaseOrderApprovalPopupViewModel()
         {
@@ -65,88 +71,35 @@ namespace Coftea_Capstone.ViewModel.Controls
                 IsLoading = true;
                 System.Diagnostics.Debug.WriteLine("📦 [VM] Loading pending purchase orders...");
 
-                var orders = await _database.GetPendingPurchaseOrdersAsync();
-                System.Diagnostics.Debug.WriteLine($"📦 [VM] Received {orders.Count} pending orders from database");
+                var pendingOrderModels = await _database.GetPendingPurchaseOrdersAsync();
+                System.Diagnostics.Debug.WriteLine($"📦 [VM] Received {pendingOrderModels.Count} pending orders from database");
 
-                // If no pending orders, show recent orders as fallback
-                if (orders.Count == 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("📦 [VM] No pending orders found, loading recent orders as fallback...");
-                    orders = await _database.GetAllPurchaseOrdersAsync(10); // Get last 10 orders
-                    System.Diagnostics.Debug.WriteLine($"📦 [VM] Received {orders.Count} recent orders from database");
-                }
+                var pendingDisplayOrders = await BuildDisplayOrdersAsync(pendingOrderModels, includeEditableItems: true);
 
-                // Get items for each order (process all orders first)
-                var allDisplayOrders = new List<PurchaseOrderDisplayModel>();
-                foreach (var order in orders)
-                {
-                    System.Diagnostics.Debug.WriteLine($"📦 [VM] Processing order #{order.PurchaseOrderId}");
-                    
-                    var items = await _database.GetPurchaseOrderItemsAsync(order.PurchaseOrderId);
-                    System.Diagnostics.Debug.WriteLine($"📦 [VM] Order #{order.PurchaseOrderId} has {items.Count} items");
-                    
-                    var itemsPreview = items.Count > 0
-                        ? string.Join(", ", items.Take(3).Select(i => $"{i.ItemName} ({i.RequestedQuantity} {i.UnitOfMeasurement})"))
-                        : "No items";
+                // Load processed orders separately
+                var recentOrders = await _database.GetAllPurchaseOrdersAsync(20);
+                var processedOrderModels = recentOrders
+                    .Where(o => !string.Equals(o.Status?.Trim(), "pending", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(o => o.CreatedAt)
+                    .Take(ProcessedOrdersLimit)
+                    .ToList();
 
-                    if (items.Count > 3)
-                        itemsPreview += $" and {items.Count - 3} more...";
+                var processedDisplayOrders = await BuildDisplayOrdersAsync(processedOrderModels, includeEditableItems: false);
 
-                    // Create editable items
-                    var editableItems = new ObservableCollection<EditablePurchaseOrderItem>();
-                    foreach (var item in items)
-                    {
-                        var editableItem = new EditablePurchaseOrderItem(item, order.PurchaseOrderId);
-                        
-                        // Check if item is canceled (approvedQuantity = -1) by querying database
-                        var dbItemStatus = await _database.GetPurchaseOrderItemStatusAsync(order.PurchaseOrderId, item.InventoryItemId);
-                        if (dbItemStatus.HasValue && dbItemStatus.Value < 0)
-                        {
-                            editableItem.ItemStatus = "Canceled";
-                        }
-                        else if (item.ApprovedQuantity > 0)
-                        {
-                            editableItem.ItemStatus = "Accepted";
-                        }
-                        else
-                        {
-                            editableItem.ItemStatus = "Pending";
-                        }
-                        
-                        editableItems.Add(editableItem);
-                    }
-
-                    var displayOrder = new PurchaseOrderDisplayModel
-                    {
-                        PurchaseOrderId = order.PurchaseOrderId,
-                        OrderDate = order.OrderDate,
-                        SupplierName = order.SupplierName,
-                        Status = order.Status,
-                        RequestedBy = order.RequestedBy,
-                        TotalAmount = order.TotalAmount,
-                        CreatedAt = order.CreatedAt,
-                        ItemsPreview = itemsPreview,
-                        Items = items,
-                        EditableItems = editableItems
-                    };
-                    
-                    // Subscribe to item property changes after collection is set
-                    displayOrder.InitializeItemSubscriptions();
-                    
-                    allDisplayOrders.Add(displayOrder);
-                    System.Diagnostics.Debug.WriteLine($"📦 [VM] Added order #{displayOrder.PurchaseOrderId} to display list");
-                }
-
-                // Store all orders and update pagination
-                _allOrders = allDisplayOrders;
-                TotalPages = (int)Math.Ceiling((double)_allOrders.Count / ItemsPerPage);
+                // Store pending orders and update pagination
+                _pendingOrderCache = pendingDisplayOrders;
+                TotalPages = (int)Math.Ceiling((double)_pendingOrderCache.Count / ItemsPerPage);
                 if (TotalPages == 0) TotalPages = 1;
                 
                 // Apply pagination
                 ApplyPagination();
+
+                // Update processed orders collection
+                UpdateProcessedOrders(processedDisplayOrders);
                 
                 OnPropertyChanged(nameof(HasPendingOrders));
                 OnPropertyChanged(nameof(HasNoPendingOrders));
+                OnPropertyChanged(nameof(HasProcessedOrders));
                 OnPropertyChanged(nameof(PageInfo));
 
                 System.Diagnostics.Debug.WriteLine($"✅ [VM] UI updated with {PendingOrders.Count} pending orders");
@@ -168,8 +121,8 @@ namespace Coftea_Capstone.ViewModel.Controls
         private void ApplyPagination()
         {
             var startIndex = (CurrentPage - 1) * ItemsPerPage;
-            var endIndex = Math.Min(startIndex + ItemsPerPage, _allOrders.Count);
-            var pageOrders = _allOrders.Skip(startIndex).Take(ItemsPerPage).ToList();
+            var endIndex = Math.Min(startIndex + ItemsPerPage, _pendingOrderCache.Count);
+            var pageOrders = _pendingOrderCache.Skip(startIndex).Take(ItemsPerPage).ToList();
 
             PendingOrders.Clear();
             foreach (var order in pageOrders)
@@ -882,9 +835,105 @@ namespace Coftea_Capstone.ViewModel.Controls
         }
 
         [RelayCommand]
+        private async Task ViewPurchaseOrderHistory()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("📜 Navigating to purchase order history...");
+                await Shell.Current.GoToAsync("//purchaseorderhistory");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error navigating to purchase order history: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to open purchase order history: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
         private void Close()
         {
             IsVisible = false;
+        }
+
+        private async Task<List<PurchaseOrderDisplayModel>> BuildDisplayOrdersAsync(IEnumerable<PurchaseOrderModel> orders, bool includeEditableItems)
+        {
+            var displayOrders = new List<PurchaseOrderDisplayModel>();
+
+            foreach (var order in orders)
+            {
+                var items = await _database.GetPurchaseOrderItemsAsync(order.PurchaseOrderId);
+                var itemsPreview = BuildItemsPreview(items);
+
+                var displayOrder = new PurchaseOrderDisplayModel
+                {
+                    PurchaseOrderId = order.PurchaseOrderId,
+                    OrderDate = order.OrderDate,
+                    SupplierName = order.SupplierName,
+                    Status = order.Status,
+                    RequestedBy = order.RequestedBy,
+                    ApprovedBy = order.ApprovedBy,
+                    TotalAmount = order.TotalAmount,
+                    CreatedAt = order.CreatedAt,
+                    ItemsPreview = itemsPreview,
+                    Items = items
+                };
+
+                if (includeEditableItems)
+                {
+                    var editableItems = new ObservableCollection<EditablePurchaseOrderItem>();
+                    foreach (var item in items)
+                    {
+                        var editableItem = new EditablePurchaseOrderItem(item, order.PurchaseOrderId);
+                        var dbItemStatus = await _database.GetPurchaseOrderItemStatusAsync(order.PurchaseOrderId, item.InventoryItemId);
+                        if (dbItemStatus.HasValue && dbItemStatus.Value < 0)
+                        {
+                            editableItem.ItemStatus = "Canceled";
+                        }
+                        else if (item.ApprovedQuantity > 0)
+                        {
+                            editableItem.ItemStatus = "Accepted";
+                        }
+                        else
+                        {
+                            editableItem.ItemStatus = "Pending";
+                        }
+
+                        editableItems.Add(editableItem);
+                    }
+                    displayOrder.EditableItems = editableItems;
+                    displayOrder.InitializeItemSubscriptions();
+                }
+                else
+                {
+                    displayOrder.EditableItems = new ObservableCollection<EditablePurchaseOrderItem>();
+                }
+
+                displayOrders.Add(displayOrder);
+            }
+
+            return displayOrders;
+        }
+
+        private static string BuildItemsPreview(List<PurchaseOrderItemModel> items)
+        {
+            if (items.Count == 0) return "No items";
+
+            var preview = string.Join(", ", items.Take(3).Select(i => $"{i.ItemName} ({i.RequestedQuantity} {i.UnitOfMeasurement})"));
+            if (items.Count > 3)
+            {
+                preview += $" and {items.Count - 3} more...";
+            }
+            return preview;
+        }
+
+        private void UpdateProcessedOrders(IEnumerable<PurchaseOrderDisplayModel> orders)
+        {
+            ProcessedOrders.Clear();
+            foreach (var order in orders)
+            {
+                ProcessedOrders.Add(order);
+            }
+            OnPropertyChanged(nameof(HasProcessedOrders));
         }
     }
 

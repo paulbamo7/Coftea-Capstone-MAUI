@@ -1,5 +1,6 @@
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
+using Coftea_Capstone.Views;
 using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Views.Pages;
@@ -119,6 +120,11 @@ public partial class UserManagement : ContentPage
             ReleaseVisualTree(sv.Content);
         else if (element is ContentPage page && page.Content != null)
             ReleaseVisualTree(page.Content);
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return BackButtonHandler.HandleBackButton(this);
     }
 }
 

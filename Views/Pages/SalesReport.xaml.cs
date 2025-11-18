@@ -1,6 +1,7 @@
 using Coftea_Capstone.ViewModel;
 using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Views.Controls;
+using Coftea_Capstone.Views;
 using Coftea_Capstone.Services;
 
 namespace Coftea_Capstone.Views.Pages;
@@ -156,5 +157,10 @@ public partial class SalesReport : ContentPage
         {
             Sidebar.IsVisible = !isPhoneLike;
         }
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return BackButtonHandler.HandleBackButton(this);
     }
 }

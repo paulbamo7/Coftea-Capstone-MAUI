@@ -128,12 +128,27 @@
                                         HeightRequest="40"
                                         Command="{Binding ToggleAutoDetectionCommand}" />
                                 
-                                <Button Text="Refresh Auto-Detection"
-                                        BackgroundColor="#FF9800"
-                                        TextColor="White"
-                                        CornerRadius="10"
+                                <Border BackgroundColor="#90EE90"
+                                        Stroke="#8B7355"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 10"
                                         HeightRequest="40"
-                                        Command="{Binding RefreshAutoDetectionCommand}" />
+                                        Padding="12,8">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding RefreshAutoDetectionCommand}"/>
+                                    </Border.GestureRecognizers>
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Image Source="refreshicon.png" 
+                                               WidthRequest="20" 
+                                               HeightRequest="20" 
+                                               VerticalOptions="Center"/>
+                                        <Label Text="Refresh Auto-Detection" 
+                                               FontSize="14" 
+                                               FontAttributes="Bold"
+                                               TextColor="#5B4F45" 
+                                               VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </Border>
                             </HorizontalStackLayout>
                             
                             <Label Text="{Binding AutoDetectedIP, StringFormat='Auto-Detected IP: {0}'}" 
@@ -144,13 +159,28 @@
 
                     <!-- Buttons -->
                     <Grid ColumnDefinitions="*,*,*" ColumnSpacing="15" Margin="0,20,0,0">
-                        <Button Grid.Column="0"
-                                Text="Refresh"
-                                BackgroundColor="#2196F3"
-                                TextColor="White"
-                                CornerRadius="10"
+                        <Border Grid.Column="0"
+                                BackgroundColor="#90EE90"
+                                Stroke="#8B7355"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 10"
                                 HeightRequest="40"
-                                Command="{Binding RefreshCommand}" />
+                                Padding="12,8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding RefreshCommand}"/>
+                            </Border.GestureRecognizers>
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
+                                <Image Source="refreshicon.png" 
+                                       WidthRequest="20" 
+                                       HeightRequest="20" 
+                                       VerticalOptions="Center"/>
+                                <Label Text="Refresh" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#5B4F45" 
+                                       VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                        </Border>
                         
                         <Button Grid.Column="1"
                                 Text="Save"
