@@ -682,7 +682,7 @@
                                         <!-- Action Buttons -->
                                         <StackLayout Orientation="Horizontal" Spacing="10" HorizontalOptions="Center" Margin="0,15,0,0">
                                             <Button Text="Clear" 
-                                                    Command="{Binding RemoveFromCartCommand}" 
+                                                    Command="{Binding ClearProductQuantitiesCommand}" 
                                                     CommandParameter="{Binding SelectedProduct}" 
                                                     BackgroundColor="#BDAEA2" 
                                                     TextColor="#5B4F45" 

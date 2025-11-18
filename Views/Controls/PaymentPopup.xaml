@@ -303,7 +303,7 @@
                                                 CommandParameter="1000" />
                                     </HorizontalStackLayout>
                                     
-                                    <!-- Clear and Cancel Buttons -->
+                                    <!-- Clear Button -->
                                     <HorizontalStackLayout Spacing="10" HorizontalOptions="Start" Margin="0,8,0,0">
                                         <Button Text="Clear" 
                                                 FontSize="12" FontFamily="MontserratBlack"
@@ -313,14 +313,6 @@
                                                 Padding="15,0"
                                                 HeightRequest="30"
                                                 Command="{Binding ClearAmountPaidCommand}" />
-                                        <Button Text="Cancel Payment" 
-                                                FontSize="12" FontFamily="MontserratBlack"
-                                                BackgroundColor="#C62828"
-                                                TextColor="White"
-                                                CornerRadius="15"
-                                                Padding="15,0"
-                                                HeightRequest="30"
-                                                Command="{Binding CancelPaymentCommand}" />
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
 
@@ -420,8 +412,6 @@
                                                 <Label Text="{Binding TotalAmount, StringFormat='Amount: ₱{0:F2}'}" FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" TextColor="#8B5CF6" />
                                             </VerticalStackLayout>
                                         </Frame>
-                                        
-                                        <Label Text="Use your bank's mobile app or online banking" FontSize="12" FontFamily="MontserratBlack" TextColor="#666666" HorizontalOptions="Center" />
                                     </VerticalStackLayout>
                                 </Frame>
 

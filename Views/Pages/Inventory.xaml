@@ -21,13 +21,13 @@
         <view:NavigationBar Grid.Column="0"/>
 
         <!-- Main Content -->
-        <Grid Grid.Column="1" Padding="20" RowDefinitions="Auto,*">
+        <Grid Grid.Column="1" Padding="15" RowDefinitions="Auto,*">
 
-            <VerticalStackLayout Padding="0" Spacing="20">
+            <VerticalStackLayout Padding="0" Spacing="12">
 
                 <!-- Top Bar -->
-                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="25">
-                    <Label Text="Inventory" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
+                <Grid ColumnDefinitions="*, Auto, Auto, Auto" VerticalOptions="Center" ColumnSpacing="20">
+                    <Label Text="Inventory" FontSize="26" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                     
                     <!-- Connectivity Status Indicator -->
                     <otherViews:ConnectivityStatusIndicator Grid.Column="1" VerticalOptions="Center"/>
@@ -49,15 +49,15 @@
                 </Grid>
 
                 <!-- Brownish Frame (Main Panel) -->
-                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="20" HasShadow="False" HeightRequest="660">
+                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="15" HasShadow="False" HeightRequest="580">
                     <Grid RowDefinitions="*,Auto,Auto">
                         <ScrollView Grid.Row="0">
-                        <VerticalStackLayout Spacing="15">
+                        <VerticalStackLayout Spacing="10">
 
                         <!-- Fixed Top Controls (Category Buttons, Sort By) -->
                         <Grid ColumnDefinitions="*, Auto" VerticalOptions="Start">
                             <!-- Left: Category Buttons and Refresh -->
-                            <StackLayout Orientation="Horizontal" Spacing="15" VerticalOptions="Center" HorizontalOptions="Start">
+                            <StackLayout Orientation="Horizontal" Spacing="10" VerticalOptions="Center" HorizontalOptions="Start">
                                 <!-- Refresh Button -->
                                 <Border BackgroundColor="#F0E6D8"
                                         Stroke="#D4C4B0"
@@ -68,19 +68,14 @@
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding RefreshDataCommand}"/>
                                     </Border.GestureRecognizers>
-                                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-                                        <Image Source="refreshicon.png" 
-                                               WidthRequest="18" 
-                                               HeightRequest="18" 
-                                               VerticalOptions="Center"/>
-                                        <Label Text="Refresh" 
-                                               FontSize="13" 
-                                               FontFamily="OpenSansSemibold"
-                                               FontAttributes="Bold"
-                                               TextColor="#5B4F45" 
-                                               VerticalOptions="Center"
-                                               VerticalTextAlignment="Center"/>
-                                    </HorizontalStackLayout>
+                                    <Label Text="Refresh" 
+                                           FontSize="13" 
+                                           FontFamily="OpenSansSemibold"
+                                           FontAttributes="Bold"
+                                           TextColor="#5B4F45" 
+                                           VerticalOptions="Center"
+                                           VerticalTextAlignment="Center"
+                                           HorizontalOptions="Center"/>
                                 </Border>
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -239,11 +234,11 @@
                             </VerticalStackLayout>
 
                             <!-- Fixed Header Row -->
-                            <Frame Grid.Row="0" BackgroundColor="White" Padding="10" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
+                            <Frame Grid.Row="0" BackgroundColor="White" Padding="8" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
                                 <Grid ColumnDefinitions="1*, 1*, 2*">
-                                    <Label Text="ITEMS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start" TextColor="Black"/>
-                                    <Label Text="CATEGORY" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1" TextColor="Black"/>
-                                    <Label Text="STOCKS" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2" TextColor="Black"/>
+                                    <Label Text="ITEMS" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start" TextColor="Black"/>
+                                    <Label Text="CATEGORY" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1" TextColor="Black"/>
+                                    <Label Text="STOCKS" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2" TextColor="Black"/>
                                 </Grid>
                             </Frame>
 
@@ -252,14 +247,14 @@
                                             ItemsSource="{Binding PaginatedInventoryItems}"
                                             ItemsLayout="VerticalList" 
                                             BackgroundColor="Transparent" 
-                                            Margin="0,10,0,0"
+                                            Margin="0,6,0,0"
                                             IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
 
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <Frame Padding="12"
-                                               Margin="0,6,0,6"
-                                               CornerRadius="12"
+                                        <Frame Padding="10"
+                                               Margin="0,4,0,4"
+                                               CornerRadius="10"
                                                BackgroundColor="White"
                                                BorderColor="#E5D2C1">
                                             <Frame.Triggers>
@@ -392,10 +387,11 @@
                         <Frame Grid.Row="1" 
                                BackgroundColor="#5B4F45" 
                                CornerRadius="10" 
-                               Padding="15" 
-                               HasShadow="False">
+                               Padding="8" 
+                               HasShadow="False"
+                               Margin="0,15,0,0"
+                               HorizontalOptions="Center">
                             <Grid ColumnDefinitions="Auto,*" 
-                                  HorizontalOptions="Fill" 
                                   VerticalOptions="Center">
                             
                                 <!-- Manage Inventory Button - Left -->
@@ -403,13 +399,13 @@
                                         Text="📦 MANAGE INVENTORY" 
                                         BackgroundColor="#BDAEA2" 
                                         TextColor="#5B4F45" 
-                                        FontSize="14" 
+                                        FontSize="13" 
                                         FontAttributes="Bold"
                                         CornerRadius="20"
                                         BorderColor="#8B7355"
                                         BorderWidth="2"
-                                        Padding="20,10"
-                                        HeightRequest="45"
+                                        Padding="12,8"
+                                        HeightRequest="40"
                                         Command="{Binding ManageInventoryCommand}"
                                         HorizontalOptions="Start"
                                         IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
@@ -420,18 +416,18 @@
                                             HorizontalOptions="End" 
                                             VerticalOptions="Center">
                                     <StackLayout Orientation="Horizontal" 
-                                                Spacing="10">
+                                                Spacing="8">
                                         
                                         <!-- Purchase Order Button -->
                                         <Button Text="📋 CREATE PURCHASE ORDER" 
                                                 BackgroundColor="#28a745" 
                                                 TextColor="#5B4F45" 
-                                                FontSize="14" 
+                                                FontSize="13" 
                                                 FontAttributes="Bold"
                                                 CornerRadius="20"
                                                 BorderColor="#8B7355"
                                                 BorderWidth="2"
-                                                Padding="20,10"
+                                                Padding="15,10"
                                                 HeightRequest="45"
                                                 Command="{Binding CreatePurchaseOrderCommand}"
                                                 IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
@@ -440,12 +436,12 @@
                                         <Button Text="📦 MANAGE PURCHASE ORDER" 
                                                 BackgroundColor="#4A90E2" 
                                                 TextColor="White" 
-                                                FontSize="14" 
+                                                FontSize="13" 
                                                 FontAttributes="Bold"
                                                 CornerRadius="20"
                                                 BorderColor="#3D7AC4"
                                                 BorderWidth="2"
-                                                Padding="20,10"
+                                                Padding="15,10"
                                                 HeightRequest="45"
                                                 Command="{Binding ShowPurchaseOrdersCommand}"
                                                 IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
@@ -454,12 +450,12 @@
                                         <Button Text="📝 ACTIVITY LOG" 
                                                 BackgroundColor="White" 
                                                 TextColor="#5B4F45" 
-                                                FontSize="14" 
+                                                FontSize="13" 
                                                 FontAttributes="Bold"
                                                 CornerRadius="20"
                                                 BorderColor="#8B7355"
                                                 BorderWidth="2"
-                                                Padding="20,10"
+                                                Padding="15,10"
                                                 HeightRequest="45"
                                                 Command="{Binding ShowActivityLogCommand}"/>
                                     </StackLayout>
@@ -471,12 +467,12 @@
                         <Frame Grid.Row="2" 
                                BackgroundColor="#E0E0E0" 
                                CornerRadius="10,10,0,0" 
-                               Padding="15" 
+                               Padding="12" 
                                HasShadow="False"
-                               Margin="0,10,0,0">
+                               Margin="0,12,0,0">
                             <HorizontalStackLayout HorizontalOptions="Center"
                                                    VerticalOptions="Center"
-                                                   Spacing="15">
+                                                   Spacing="12">
                                 <Button Text="PREV"
                                         FontSize="12"
                                         FontAttributes="Bold"
@@ -485,8 +481,8 @@
                                         BorderColor="Transparent"
                                         BorderWidth="0"
                                         CornerRadius="8"
-                                        Padding="15,8"
-                                        HeightRequest="36"
+                                        Padding="12,6"
+                                        HeightRequest="32"
                                         Command="{Binding GoToPreviousPageCommand}"
                                         IsEnabled="{Binding HasPreviousPage}"/>
                                 
@@ -509,8 +505,8 @@
                                         BorderColor="Transparent"
                                         BorderWidth="0"
                                         CornerRadius="8"
-                                        Padding="15,8"
-                                        HeightRequest="36"
+                                        Padding="12,6"
+                                        HeightRequest="32"
                                         Command="{Binding GoToNextPageCommand}"
                                         IsEnabled="{Binding HasNextPage}"/>
                             </HorizontalStackLayout>

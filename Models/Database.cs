@@ -377,6 +377,7 @@ namespace Coftea_Capstone.Models
                     imageData LONGBLOB,
                     description TEXT,
                     colorCode VARCHAR(20) DEFAULT NULL,
+                    isActive BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 
@@ -391,6 +392,7 @@ namespace Coftea_Capstone.Models
                     unitOfMeasurement VARCHAR(50),
                     minimumQuantity DECIMAL(10,2) DEFAULT 0,
                     maximumQuantity DECIMAL(10,2) DEFAULT 0,
+                    isActive BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 
@@ -558,6 +560,25 @@ namespace Coftea_Capstone.Models
             await using var cmd = new MySqlCommand(createTablesSql, conn);
             await cmd.ExecuteNonQueryAsync();
 
+            // Add isActive column to existing tables if it doesn't exist (for existing databases)
+            var alterTablesSql = @"
+                ALTER TABLE products 
+                    ADD COLUMN IF NOT EXISTS isActive BOOLEAN DEFAULT TRUE;
+                
+                ALTER TABLE inventory 
+                    ADD COLUMN IF NOT EXISTS isActive BOOLEAN DEFAULT TRUE;
+            ";
+
+            await using var alterCmd = new MySqlCommand(alterTablesSql, conn);
+            try
+            {
+                await alterCmd.ExecuteNonQueryAsync();
+            }
+            catch (MySqlException ex)
+            {
+                // Column might already exist, ignore error
+                System.Diagnostics.Debug.WriteLine($"Note: isActive column may already exist: {ex.Message}");
+            }
 
             // Ensure at least one user exists to prevent foreign key constraint errors
             await EnsureDefaultUserExistsAsync(conn);
@@ -643,9 +664,9 @@ namespace Coftea_Capstone.Models
 
         // ===================== POS =====================        
         // POS Database
-		public async Task<List<POSPageModel>> GetProductsAsync() // Gets all products from the database
+		public async Task<List<POSPageModel>> GetProductsAsync() // Gets all active products from the database
         {
-			var sql = "SELECT * FROM products;";
+			var sql = "SELECT * FROM products WHERE isActive = TRUE;";
 			var products = await QueryAsync(sql, reader => new POSPageModel
 			{
 				ProductID = reader.GetInt32("productID"),
@@ -1141,10 +1162,10 @@ namespace Coftea_Capstone.Models
                 throw;
             }
         }
-        public async Task<POSPageModel?> GetProductByNameAsync(string name) // Gets a product by name from the database
+        public async Task<POSPageModel?> GetProductByNameAsync(string name) // Gets an active product by name from the database
         {
             await using var conn = await GetOpenConnectionAsync();
-            var sql = "SELECT * FROM products WHERE productName = @Name LIMIT 1;";
+            var sql = "SELECT * FROM products WHERE productName = @Name AND isActive = TRUE LIMIT 1;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Name", name);
 
@@ -1237,15 +1258,58 @@ namespace Coftea_Capstone.Models
             return rows;
         }
 
-        public async Task<int> DeleteProductAsync(int productId) // Deletes a product from the database
+        public async Task<List<POSPageModel>> GetInactiveProductsAsync() // Gets all inactive (soft-deleted) products from the database
+        {
+            var sql = "SELECT * FROM products WHERE isActive = FALSE;";
+            var products = await QueryAsync(sql, reader => new POSPageModel
+            {
+                ProductID = reader.GetInt32("productID"),
+                ProductName = reader.GetString("productName"),
+                SmallPrice = reader.IsDBNull(reader.GetOrdinal("smallPrice")) ? null : reader.GetDecimal("smallPrice"),
+                MediumPrice = reader.IsDBNull(reader.GetOrdinal("mediumPrice")) ? 0 : reader.GetDecimal("mediumPrice"),
+                LargePrice = reader.GetDecimal("largePrice"),
+                ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+                Category = reader.IsDBNull(reader.GetOrdinal("category")) ? null : reader.GetString("category"),
+                Subcategory = reader.IsDBNull(reader.GetOrdinal("subcategory")) ? null : reader.GetString("subcategory"),
+                ProductDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description"),
+                ColorCode = reader.IsDBNull(reader.GetOrdinal("colorCode")) ? "" : reader.GetString("colorCode")
+            });
+            return products;
+        }
+
+        public async Task<int> RestoreProductAsync(int productId) // Restores a soft-deleted product (marks as active)
         {
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
             try
             {
-                // Ensure product exists
-                var checkSql = "SELECT COUNT(*) FROM products WHERE productID = @ProductID;";
+                var sql = "UPDATE products SET isActive = TRUE WHERE productID = @ProductID;";
+                await using var cmd = new MySqlCommand(sql, conn, tx);
+                cmd.Parameters.AddWithValue("@ProductID", productId);
+                var rows = await cmd.ExecuteNonQueryAsync();
+
+                await tx.CommitAsync();
+                InvalidateProductsCache();
+                InvalidateProductLinksCache(productId);
+                return rows;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<int> DeleteProductAsync(int productId) // Soft deletes a product from the database (marks as inactive)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            try
+            {
+                // Ensure product exists and is active
+                var checkSql = "SELECT COUNT(*) FROM products WHERE productID = @ProductID AND isActive = TRUE;";
                 await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
                 checkCmd.Parameters.AddWithValue("@ProductID", productId);
                 var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
@@ -1255,8 +1319,9 @@ namespace Coftea_Capstone.Models
                     return 0;
                 }
 
-                // Delete the product; FK cascades will remove product_ingredients / product_addons automatically
-                var sql = "DELETE FROM products WHERE productID = @ProductID;";
+                // Soft delete: Mark product as inactive instead of deleting
+                // This preserves historical data (sales, reports) while hiding it from POS menu
+                var sql = "UPDATE products SET isActive = FALSE WHERE productID = @ProductID;";
                 await using var cmd = new MySqlCommand(sql, conn, tx);
                 cmd.Parameters.AddWithValue("@ProductID", productId);
                 var rows = await cmd.ExecuteNonQueryAsync();
@@ -1275,9 +1340,9 @@ namespace Coftea_Capstone.Models
 
         // ===================== Inventory =====================
         // Inventory Database Methods
-		public async Task<List<InventoryPageModel>> GetInventoryItemsAsync() // Gets all inventory items from the database
+		public async Task<List<InventoryPageModel>> GetInventoryItemsAsync() // Gets all active inventory items from the database
         {
-			var sql = "SELECT * FROM inventory;";
+			var sql = "SELECT * FROM inventory WHERE isActive = TRUE;";
 			var items = await QueryAsync(sql, reader => new InventoryPageModel
 			{
 				itemID = reader.GetInt32("itemID"),
@@ -1373,11 +1438,11 @@ namespace Coftea_Capstone.Models
             return null;
         }
 
-        public async Task<InventoryPageModel?> GetInventoryItemByNameAsync(string itemName) // Gets an inventory item by name from the database
+        public async Task<InventoryPageModel?> GetInventoryItemByNameAsync(string itemName) // Gets an active inventory item by name from the database
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = "SELECT * FROM inventory WHERE itemName = @ItemName LIMIT 1;";
+            var sql = "SELECT * FROM inventory WHERE itemName = @ItemName AND isActive = TRUE LIMIT 1;";
             await using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@ItemName", itemName);
 
@@ -1756,15 +1821,57 @@ namespace Coftea_Capstone.Models
             await Task.CompletedTask;
         }
 
-        public async Task<int> DeleteInventoryItemAsync(int itemId) // Deletes an inventory item from the database
+        public async Task<List<InventoryPageModel>> GetInactiveInventoryItemsAsync() // Gets all inactive (soft-deleted) inventory items from the database
+        {
+            var sql = "SELECT * FROM inventory WHERE isActive = FALSE;";
+            var items = await QueryAsync(sql, reader => new InventoryPageModel
+            {
+                itemID = reader.GetInt32("itemID"),
+                itemName = reader.GetString("itemName"),
+                itemQuantity = reader.GetDouble("itemQuantity"),
+                itemCategory = reader.IsDBNull(reader.GetOrdinal("itemCategory")) ? "" : reader.GetString("itemCategory"),
+                ImageSet = reader.IsDBNull(reader.GetOrdinal("imageSet")) ? "" : reader.GetString("imageSet"),
+                itemDescription = reader.IsDBNull(reader.GetOrdinal("itemDescription")) ? "" : reader.GetString("itemDescription"),
+                unitOfMeasurement = reader.IsDBNull(reader.GetOrdinal("unitOfMeasurement")) ? "" : reader.GetString("unitOfMeasurement"),
+                minimumQuantity = reader.IsDBNull(reader.GetOrdinal("minimumQuantity")) ? 0 : reader.GetDouble("minimumQuantity"),
+                maximumQuantity = HasColumn(reader, "maximumQuantity") ? (reader.IsDBNull(reader.GetOrdinal("maximumQuantity")) ? 0 : reader.GetDouble("maximumQuantity")) : 0,
+                CreatedAt = HasColumn(reader, "created_at") && !reader.IsDBNull(reader.GetOrdinal("created_at")) ? reader.GetDateTime("created_at") : DateTime.Now
+            });
+            return items;
+        }
+
+        public async Task<int> RestoreInventoryItemAsync(int itemId) // Restores a soft-deleted inventory item (marks as active)
         {
             await using var conn = await GetOpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
 
             try
             {
-                // Ensure the item exists
-                var checkSql = "SELECT COUNT(*) FROM inventory WHERE itemID = @ItemID;";
+                var sql = "UPDATE inventory SET isActive = TRUE WHERE itemID = @ItemID;";
+                await using var cmd = new MySqlCommand(sql, conn, tx);
+                cmd.Parameters.AddWithValue("@ItemID", itemId);
+                var rows = await cmd.ExecuteNonQueryAsync();
+
+                await tx.CommitAsync();
+                InvalidateInventoryCache();
+                return rows;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<int> DeleteInventoryItemAsync(int itemId) // Soft deletes an inventory item from the database (marks as inactive)
+        {
+            await using var conn = await GetOpenConnectionAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            try
+            {
+                // Ensure the item exists and is active
+                var checkSql = "SELECT COUNT(*) FROM inventory WHERE itemID = @ItemID AND isActive = TRUE;";
                 await using var checkCmd = new MySqlCommand(checkSql, conn, tx);
                 checkCmd.Parameters.AddWithValue("@ItemID", itemId);
                 var exists = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
@@ -1774,8 +1881,9 @@ namespace Coftea_Capstone.Models
                     return 0;
                 }
 
-                // Let FK cascades handle link cleanup; just delete the inventory row
-                var sql = "DELETE FROM inventory WHERE itemID = @ItemID;";
+                // Soft delete: Mark inventory item as inactive instead of deleting
+                // This preserves historical data (activity logs, purchase orders) while hiding it from inventory list
+                var sql = "UPDATE inventory SET isActive = FALSE WHERE itemID = @ItemID;";
                 await using var cmd = new MySqlCommand(sql, conn, tx);
                 cmd.Parameters.AddWithValue("@ItemID", itemId);
                 var rows = await cmd.ExecuteNonQueryAsync();
@@ -2132,7 +2240,7 @@ namespace Coftea_Capstone.Models
         {
             try
             {
-                var sql = "SELECT productID FROM products WHERE productName = @ProductName LIMIT 1;";
+                var sql = "SELECT productID FROM products WHERE productName = @ProductName AND isActive = TRUE LIMIT 1;";
                 await using var cmd = new MySqlCommand(sql, conn, tx);
                 cmd.Parameters.AddWithValue("@ProductName", productName);
                 
@@ -2177,8 +2285,8 @@ namespace Coftea_Capstone.Models
                 if (!reader.IsDBNull(reader.GetOrdinal("productName")))
                 {
                     transaction.DrinkName = reader.GetString("productName");
-                    transaction.Quantity = reader.GetInt32("quantity");
-                    transaction.Price = reader.GetDecimal("price");
+                    transaction.Quantity = reader.IsDBNull(reader.GetOrdinal("quantity")) ? 1 : reader.GetInt32("quantity");
+                    transaction.Price = reader.IsDBNull(reader.GetOrdinal("price")) ? 0 : reader.GetDecimal("price");
                     
                     // Handle new price columns with fallback for existing data
                     try
@@ -2191,9 +2299,9 @@ namespace Coftea_Capstone.Models
                         // If all size prices are 0, try to distribute the total price based on size
                         if (transaction.SmallPrice == 0 && transaction.MediumPrice == 0 && transaction.LargePrice == 0)
                         {
-                            var totalPrice = reader.GetDecimal("price");
+                            var totalPrice = reader.IsDBNull(reader.GetOrdinal("price")) ? 0 : reader.GetDecimal("price");
                             var size = reader.IsDBNull(reader.GetOrdinal("size")) ? "" : reader.GetString("size");
-                            var quantity = reader.GetInt32("quantity");
+                            var quantity = reader.IsDBNull(reader.GetOrdinal("quantity")) ? 1 : reader.GetInt32("quantity");
                             
                             // Calculate unit price first
                             var unitPrice = quantity > 0 ? totalPrice / quantity : totalPrice;
@@ -2228,9 +2336,9 @@ namespace Coftea_Capstone.Models
                     catch
                     {
                         // Fallback for old data - distribute the total price based on size
-                        var totalPrice = reader.GetDecimal("price");
+                        var totalPrice = reader.IsDBNull(reader.GetOrdinal("price")) ? 0 : reader.GetDecimal("price");
                         var size = reader.IsDBNull(reader.GetOrdinal("size")) ? "" : reader.GetString("size");
-                        var quantity = reader.GetInt32("quantity");
+                        var quantity = reader.IsDBNull(reader.GetOrdinal("quantity")) ? 1 : reader.GetInt32("quantity");
                         
                         // For existing data, we'll distribute the price based on the size string
                         // Calculate unit price first
@@ -2359,8 +2467,8 @@ namespace Coftea_Capstone.Models
                 if (!reader.IsDBNull(reader.GetOrdinal("productName")))
                 {
                     transaction.DrinkName = reader.GetString("productName");
-                    transaction.Quantity = reader.GetInt32("quantity");
-                    transaction.Price = reader.GetDecimal("price");
+                    transaction.Quantity = reader.IsDBNull(reader.GetOrdinal("quantity")) ? 1 : reader.GetInt32("quantity");
+                    transaction.Price = reader.IsDBNull(reader.GetOrdinal("price")) ? 0 : reader.GetDecimal("price");
                     
                     try
                     {
@@ -2436,7 +2544,7 @@ namespace Coftea_Capstone.Models
         {
             await using var conn = await GetOpenConnectionAsync();
 
-            var sql = @"SELECT ti.productName, ti.size, SUM(ti.quantity) as totalQuantity, SUM(ti.price * ti.quantity) as totalRevenue
+            var sql = @"SELECT ti.productName, ti.size, SUM(ti.quantity) as totalQuantity, SUM(ti.price) as totalRevenue
                         FROM transactions t
                         JOIN transaction_items ti ON t.transactionID = ti.transactionID
                         WHERE t.paymentMethod = @PaymentMethod 

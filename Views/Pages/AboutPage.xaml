@@ -72,173 +72,234 @@
                     </Frame>
                 </Grid>
 
-                <!-- What is Coftea Card -->
+                <!-- About Coftea Card -->
                 <Frame BackgroundColor="White"
                        CornerRadius="18"
                        Padding="18"
                        HasShadow="True"
                        BorderColor="#D4C4B0">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="What is Coftea?"
+                        <Label Text="About Coftea"
                                FontSize="20"
                                FontAttributes="Bold"
                                TextColor="#2E1F1A"
                                Margin="0" />
                         
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="Coftea is a coffee-tea hybrid that combines single-origin coffee beans with premium tea leaves. Each serving contains ~120&#160;mg of natural caffeine and L-theanine from tea, giving smooth, jitter-free energy."
-                                   FontSize="13"
-                                   TextColor="#4A3F35"
-                                   LineHeight="19"
-                                   LineBreakMode="WordWrap" />
-                            
-                            <Label Text="We were founded in 2023 after our founder accidentally brewed coffee and tea together and realized it was the perfect drink."
-                                   FontSize="13"
-                                   TextColor="#4A3F35"
-                                   LineHeight="19"
-                                   LineBreakMode="WordWrap" />
-                            
-                            <Label Text="Customers love us because we taste amazing hot or iced, brew in 3 minutes, and solve the 'coffee crash vs weak tea' problem."
+                            <Label Text="Coftea is a beverage shop offering a wide variety of drinks, including fruit teas, milk teas, frappes, and hot or cold coffee options such as lattes and Americanos."
                                    FontSize="13"
                                    TextColor="#4A3F35"
                                    LineHeight="19"
                                    LineBreakMode="WordWrap" />
                         </VerticalStackLayout>
-                        
-                        <Frame BackgroundColor="#F0E6D8"
-                               BorderColor="#D4C4B0"
-                               CornerRadius="12"
-                               Padding="12"
-                               Margin="0,4,0,0">
-                            <VerticalStackLayout Spacing="3">
-                                <Label Text="Our Core Promise"
-                                       FontAttributes="Bold"
-                                       FontSize="13"
-                                       TextColor="#4A3F35" />
-                                <Label Text="Great taste + calm, long-lasting focus."
-                                       FontSize="12"
-                                       TextColor="#4A3F35"
-                                       FontAttributes="Bold" />
-                            </VerticalStackLayout>
-                        </Frame>
-                        
-                        <Frame BackgroundColor="#E8DCC8"
-                               BorderColor="#C8B8A4"
-                               CornerRadius="12"
-                               Padding="12"
-                               Margin="0,4,0,0">
-                            <VerticalStackLayout Spacing="3">
-                                <Label Text="💡 Fun Fact to Share with Guests"
-                                       FontAttributes="Bold"
-                                       FontSize="13"
-                                       TextColor="#4A3F35" />
-                                <Label Text="'It's what would happen if coffee and tea had a very productive baby.'"
-                                       FontSize="12"
-                                       TextColor="#6B5A4F"
-                                       LineHeight="17"
-                                       LineBreakMode="WordWrap" />
-                            </VerticalStackLayout>
-                        </Frame>
                     </VerticalStackLayout>
                 </Frame>
 
-                <!-- Quick Reference Card -->
+                <!-- System Overview Card -->
                 <Frame BackgroundColor="White"
-                       CornerRadius="24"
-                       Padding="28"
+                       CornerRadius="18"
+                       Padding="18"
                        HasShadow="True"
                        BorderColor="#D4C4B0">
-                    <VerticalStackLayout Spacing="20">
-                        <Label Text="Quick Reference"
-                               FontSize="26"
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="About This System"
+                               FontSize="20"
                                FontAttributes="Bold"
-                               TextColor="#2E1F1A" />
+                               TextColor="#2E1F1A"
+                               Margin="0" />
+                        
+                        <Label Text="This internal system is designed to support daily store operations by helping staff manage:"
+                               FontSize="13"
+                               TextColor="#4A3F35"
+                               LineHeight="19"
+                               LineBreakMode="WordWrap" />
+                    </VerticalStackLayout>
+                </Frame>
 
-                        <Frame CornerRadius="18"
-                               BackgroundColor="#E8DCC8"
-                               BorderColor="#C8B8A4"
-                               Padding="20"
-                               HasShadow="False">
-                            <VerticalStackLayout Spacing="14">
-                                <Label Text="Key Points to Remember"
-                                       FontAttributes="Bold"
-                                       FontSize="18"
-                                       TextColor="#4A3F35"
-                                       Margin="0" />
-                                
-                                <VerticalStackLayout Spacing="12">
-                                    <HorizontalStackLayout Spacing="12">
-                                        <Label Text="•"
-                                               FontSize="18"
-                                               FontAttributes="Bold"
-                                               TextColor="#5B4F45"
-                                               VerticalOptions="Start" />
-                                        <Label Text="Coffee-tea hybrid with ~120 mg caffeine + L-theanine"
-                                               FontSize="15"
-                                               TextColor="#4A3F35"
-                                               LineBreakMode="WordWrap"
-                                               VerticalOptions="Start"
-                                               HorizontalOptions="FillAndExpand" />
-                                    </HorizontalStackLayout>
-                                    
-                                    <HorizontalStackLayout Spacing="12">
-                                        <Label Text="•"
-                                               FontSize="18"
-                                               FontAttributes="Bold"
-                                               TextColor="#5B4F45"
-                                               VerticalOptions="Start" />
-                                        <Label Text="Smooth, jitter-free energy"
-                                               FontSize="15"
-                                               TextColor="#4A3F35"
-                                               LineBreakMode="WordWrap"
-                                               VerticalOptions="Start"
-                                               HorizontalOptions="FillAndExpand" />
-                                    </HorizontalStackLayout>
-                                    
-                                    <HorizontalStackLayout Spacing="12">
-                                        <Label Text="•"
-                                               FontSize="18"
-                                               FontAttributes="Bold"
-                                               TextColor="#5B4F45"
-                                               VerticalOptions="Start" />
-                                        <Label Text="Tastes great hot or iced"
-                                               FontSize="15"
-                                               TextColor="#4A3F35"
-                                               LineBreakMode="WordWrap"
-                                               VerticalOptions="Start"
-                                               HorizontalOptions="FillAndExpand" />
-                                    </HorizontalStackLayout>
-                                    
-                                    <HorizontalStackLayout Spacing="12">
-                                        <Label Text="•"
-                                               FontSize="18"
-                                               FontAttributes="Bold"
-                                               TextColor="#5B4F45"
-                                               VerticalOptions="Start" />
-                                        <Label Text="Brews in 3 minutes"
-                                               FontSize="15"
-                                               TextColor="#4A3F35"
-                                               LineBreakMode="WordWrap"
-                                               VerticalOptions="Start"
-                                               HorizontalOptions="FillAndExpand" />
-                                    </HorizontalStackLayout>
-                                    
-                                    <HorizontalStackLayout Spacing="12">
-                                        <Label Text="•"
-                                               FontSize="18"
-                                               FontAttributes="Bold"
-                                               TextColor="#5B4F45"
-                                               VerticalOptions="Start" />
-                                        <Label Text="Solves the coffee crash problem"
-                                               FontSize="15"
-                                               TextColor="#4A3F35"
-                                               LineBreakMode="WordWrap"
-                                               VerticalOptions="Start"
-                                               HorizontalOptions="FillAndExpand" />
-                                    </HorizontalStackLayout>
-                                </VerticalStackLayout>
-                            </VerticalStackLayout>
-                        </Frame>
+                <!-- Point of Sale Card -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="18"
+                       Padding="18"
+                       HasShadow="True"
+                       BorderColor="#D4C4B0">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="🔸 Point of Sale (POS)"
+                               FontSize="17"
+                               FontAttributes="Bold"
+                               TextColor="#2E1F1A"
+                               Margin="0" />
+                        
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="• Processing customer orders"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Handling payments (Cash, GCash, Bank)"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Automatically tracking ingredient usage"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Generating order records and receipts"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Inventory Management Card -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="18"
+                       Padding="18"
+                       HasShadow="True"
+                       BorderColor="#D4C4B0">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="🔸 Inventory Management"
+                               FontSize="17"
+                               FontAttributes="Bold"
+                               TextColor="#2E1F1A"
+                               Margin="0" />
+                        
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="• Monitoring stock levels in real time"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Tracking ingredient deductions per order"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Viewing low-stock alerts"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Printing purchase orders for suppliers"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Confirming or rejecting delivered supplies"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Sales Reporting Card -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="18"
+                       Padding="18"
+                       HasShadow="True"
+                       BorderColor="#D4C4B0">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="🔸 Sales Reporting"
+                               FontSize="17"
+                               FontAttributes="Bold"
+                               TextColor="#2E1F1A"
+                               Margin="0" />
+                        
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="• Viewing daily, weekly, and monthly sales summaries"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Tracking payment methods and top-selling products"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Exporting PDF reports for review or documentation"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- User Access Card -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="18"
+                       Padding="18"
+                       HasShadow="True"
+                       BorderColor="#D4C4B0">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="🔸 User Access"
+                               FontSize="17"
+                               FontAttributes="Bold"
+                               TextColor="#2E1F1A"
+                               Margin="0" />
+                        
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="• Managing staff accounts"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                            
+                            <Label Text="• Assigning roles and access permissions"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
+                                   LineBreakMode="WordWrap"
+                                   Margin="12,0,0,0" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Benefits Card -->
+                <Frame BackgroundColor="#F0E6D8"
+                       CornerRadius="18"
+                       Padding="18"
+                       HasShadow="False"
+                       BorderColor="#D4C4B0">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="System Benefits"
+                               FontSize="17"
+                               FontAttributes="Bold"
+                               TextColor="#4A3F35"
+                               Margin="0" />
+                        
+                        <Label Text="This system helps Coftea staff work faster, avoid manual errors, and maintain accurate records of sales and inventory. It serves as a unified platform for operations, ensuring efficiency and consistency in daily store activities."
+                               FontSize="13"
+                               TextColor="#4A3F35"
+                               LineHeight="19"
+                               LineBreakMode="WordWrap" />
                     </VerticalStackLayout>
                 </Frame>
             </VerticalStackLayout>

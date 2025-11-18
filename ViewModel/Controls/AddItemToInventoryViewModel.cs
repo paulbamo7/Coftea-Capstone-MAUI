@@ -101,6 +101,64 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool showConversionInfo = false;
 
+        // Validation message properties
+        [ObservableProperty]
+        private string itemNameValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string categoryValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string quantityValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string uoMValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string minimumQuantityValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string maximumQuantityValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string generalValidationMessage = string.Empty;
+
+        private void ClearValidationMessages()
+        {
+            ItemNameValidationMessage = string.Empty;
+            CategoryValidationMessage = string.Empty;
+            QuantityValidationMessage = string.Empty;
+            UoMValidationMessage = string.Empty;
+            MinimumQuantityValidationMessage = string.Empty;
+            MaximumQuantityValidationMessage = string.Empty;
+            GeneralValidationMessage = string.Empty;
+        }
+
+        partial void OnItemNameChanged(string value)
+        {
+            if (!string.IsNullOrEmpty(ItemNameValidationMessage))
+            {
+                ItemNameValidationMessage = string.Empty;
+            }
+        }
+
+
+        partial void OnMinimumQuantityChanged(double value)
+        {
+            if (!string.IsNullOrEmpty(MinimumQuantityValidationMessage))
+            {
+                MinimumQuantityValidationMessage = string.Empty;
+            }
+        }
+
+        partial void OnMaximumQuantityChanged(double value)
+        {
+            if (!string.IsNullOrEmpty(MaximumQuantityValidationMessage))
+            {
+                MaximumQuantityValidationMessage = string.Empty;
+            }
+        }
+
         public ObservableCollection<string> UoMOptions { get; set; } = new ObservableCollection<string> // All possible UoM options
         {
             "Pieces (pcs)",
@@ -150,6 +208,12 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnItemCategoryChanged(string value) // Triggered when item category changes
         {
+            // Clear validation message
+            if (!string.IsNullOrEmpty(CategoryValidationMessage))
+            {
+                CategoryValidationMessage = string.Empty;
+            }
+
             // Notify display text change
             OnPropertyChanged(nameof(CategoryDisplayText));
 
@@ -202,11 +266,22 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnUoMQuantityChanged(double value) // Triggered when UoM quantity changes
         {
+            // Clear validation message
+            if (!string.IsNullOrEmpty(QuantityValidationMessage))
+            {
+                QuantityValidationMessage = string.Empty;
+            }
             UpdateConversionDisplays();
         }
 
         partial void OnSelectedUoMChanged(string value) // Validate UoM selection
         {
+            // Clear validation message
+            if (!string.IsNullOrEmpty(UoMValidationMessage))
+            {
+                UoMValidationMessage = string.Empty;
+            }
+
             // Validate that selected UoM is in the UoMOptions list
             if (!string.IsNullOrWhiteSpace(value) && !UoMOptions.Contains(value))
             {
@@ -405,27 +480,29 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         public async Task AddItem() // Add or update inventory item
         {
+            ClearValidationMessages();
+
             // Block immediately if no internet for DB-backed save
             if (!Services.NetworkService.HasInternetConnection())
             {
-                try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                GeneralValidationMessage = "No internet connection. Please check your network and try again.";
                 return;
             }
             if (string.IsNullOrWhiteSpace(ItemName))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Item name is required.", "OK");
+                ItemNameValidationMessage = "Item name is required.";
                 return;
             }
             // Reject names with no letters (e.g., only digits)
             if (!ItemName.Any(char.IsLetter))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Item name must contain letters (e.g., 'IPhone 14'). Pure numbers are not allowed.", "OK");
+                ItemNameValidationMessage = "Item name must contain letters (e.g., 'IPhone 14'). Pure numbers are not allowed.";
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(ItemCategory))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Item category is required.", "OK");
+                CategoryValidationMessage = "Item category is required.";
                 return;
             }
 
@@ -434,7 +511,7 @@ namespace Coftea_Capstone.ViewModel
             {
                 if (UoMQuantity <= 0)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Item quantity must be greater than 0.", "OK");
+                    QuantityValidationMessage = "Item quantity must be greater than 0.";
                     return;
                 }
             }
@@ -443,14 +520,14 @@ namespace Coftea_Capstone.ViewModel
                 // UoM-only categories must also provide quantity now
                 if (UoMQuantity <= 0)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Please provide a stock quantity.", "OK");
+                    QuantityValidationMessage = "Please provide a stock quantity.";
                     return;
                 }
             }
 
             if (string.IsNullOrWhiteSpace(SelectedUoM))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please select a unit of measurement.", "OK");
+                UoMValidationMessage = "Please select a unit of measurement.";
                 return;
             }
 
@@ -489,14 +566,14 @@ namespace Coftea_Capstone.ViewModel
                     if (!UnitConversionService.AreCompatibleUnits(normalizedMinimumUnit, normalizedFinalUnit))
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Incompatible minimum units: {normalizedMinimumUnit} vs {normalizedFinalUnit}");
-                        await Application.Current.MainPage.DisplayAlert("Error", $"Minimum quantity unit ({minimumUnit}) is not compatible with stock quantity unit ({finalUnit}).", "OK");
+                        MinimumQuantityValidationMessage = $"Minimum quantity unit ({minimumUnit}) is not compatible with stock quantity unit ({finalUnit}).";
                         return;
                     }
                     // Ensure units match - if they don't, require user to use same unit
                     if (!string.Equals(normalizedMinimumUnit, normalizedFinalUnit, StringComparison.OrdinalIgnoreCase))
                     {
                         System.Diagnostics.Debug.WriteLine($"⚠️ Minimum unit ({normalizedMinimumUnit}) differs from final unit ({normalizedFinalUnit}) - requiring match");
-                        await Application.Current.MainPage.DisplayAlert("Error", $"Minimum quantity must use the same unit as stock quantity ({finalUnit}).", "OK");
+                        MinimumQuantityValidationMessage = $"Minimum quantity must use the same unit as stock quantity ({finalUnit}).";
                         return;
                     }
                 }
@@ -513,14 +590,14 @@ namespace Coftea_Capstone.ViewModel
                     if (!UnitConversionService.AreCompatibleUnits(normalizedMaximumUnit, normalizedFinalUnit))
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Incompatible maximum units: {normalizedMaximumUnit} vs {normalizedFinalUnit}");
-                        await Application.Current.MainPage.DisplayAlert("Error", $"Maximum quantity unit ({maximumUnit}) is not compatible with stock quantity unit ({finalUnit}).", "OK");
+                        MaximumQuantityValidationMessage = $"Maximum quantity unit ({maximumUnit}) is not compatible with stock quantity unit ({finalUnit}).";
                         return;
                     }
                     // Ensure units match - if they don't, require user to use same unit
                     if (!string.Equals(normalizedMaximumUnit, normalizedFinalUnit, StringComparison.OrdinalIgnoreCase))
                     {
                         System.Diagnostics.Debug.WriteLine($"⚠️ Maximum unit ({normalizedMaximumUnit}) differs from final unit ({normalizedFinalUnit}) - requiring match");
-                        await Application.Current.MainPage.DisplayAlert("Error", $"Maximum quantity must use the same unit as stock quantity ({finalUnit}).", "OK");
+                        MaximumQuantityValidationMessage = $"Maximum quantity must use the same unit as stock quantity ({finalUnit}).";
                         return;
                     }
                 }
@@ -536,14 +613,14 @@ namespace Coftea_Capstone.ViewModel
             // Use strict < (not <=) so equal values (e.g., 500 ml vs 0.5 L → 500 ml) are allowed
             if (minimumThreshold > 0 && finalQuantity < minimumThreshold)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Current stock must be greater than the minimum threshold.", "OK");
+                QuantityValidationMessage = "Current stock must be greater than the minimum threshold.";
                 return;
             }
 
             // Enforce business rule: current stock must not exceed the maximum storage capacity
             if (maximumThreshold > 0 && finalQuantity > maximumThreshold)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Current stock ({finalQuantity:F2} {finalUnit}) exceeds the maximum storage capacity ({maximumThreshold:F2} {finalUnit}).", "OK");
+                QuantityValidationMessage = $"Current stock ({finalQuantity:F2} {finalUnit}) exceeds the maximum storage capacity ({maximumThreshold:F2} {finalUnit}).";
                 return;
             }
 
@@ -619,12 +696,12 @@ namespace Coftea_Capstone.ViewModel
                 }
                 else
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to save inventory item.", "OK");
+                    GeneralValidationMessage = "Failed to save inventory item.";
                 }
             }
             catch (Exception ex)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to add inventory item: {ex.Message}", "OK");
+                GeneralValidationMessage = $"Failed to add inventory item: {ex.Message}";
             }
         }
 
@@ -651,13 +728,13 @@ namespace Coftea_Capstone.ViewModel
                     }
                     else
                     {
-                        await App.Current.MainPage.DisplayAlert("Error", "Failed to save image. Please try again.", "OK");
+                        GeneralValidationMessage = "Failed to save image. Please try again.";
                     }
                 }
             }
             catch (Exception ex)
             {
-                await App.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
+                GeneralValidationMessage = ex.Message;
             }
         }
 

@@ -51,12 +51,12 @@
                                        HorizontalOptions="Center" 
                                        Spacing="12" 
                                        Margin="0,0,0,20">
-                    <Button Text="ALL" 
+                    <Button Text="1 ALL" 
                             FontAttributes="Bold" 
                             FontFamily="OpenSansSemibold" 
-                            TextColor="#5B4F45" 
+                            TextColor="Black" 
                             FontSize="13"
-                            BackgroundColor="#F0E6D8"
+                            BackgroundColor="White"
                             BorderColor="#D4C4B0"
                             BorderWidth="1"
                             WidthRequest="90" 
@@ -67,8 +67,8 @@
                             CommandParameter="All">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
-                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BackgroundColor" Value="White" />
+                                <Setter Property="TextColor" Value="Black" />
                                 <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="All">
@@ -81,12 +81,12 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Text="FRAPPE" 
+                    <Button Text="2 FRAPPE" 
                             FontAttributes="Bold" 
                             FontFamily="OpenSansSemibold" 
-                            TextColor="#5B4F45" 
+                            TextColor="Black" 
                             FontSize="13"
-                            BackgroundColor="#F0E6D8"
+                            BackgroundColor="White"
                             BorderColor="#D4C4B0"
                             BorderWidth="1"
                             WidthRequest="90" 
@@ -97,8 +97,8 @@
                             CommandParameter="Frappe">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
-                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BackgroundColor" Value="White" />
+                                <Setter Property="TextColor" Value="Black" />
                                 <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Frappe">
@@ -111,12 +111,12 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Text="FRUIT/SODA" 
+                    <Button Text="3 FRUIT/SODA" 
                             FontAttributes="Bold" 
                             FontFamily="OpenSansSemibold" 
-                            TextColor="#5B4F45" 
+                            TextColor="Black" 
                             FontSize="13"
-                            BackgroundColor="#F0E6D8"
+                            BackgroundColor="White"
                             BorderColor="#D4C4B0"
                             BorderWidth="1"
                             WidthRequest="110" 
@@ -127,8 +127,8 @@
                             CommandParameter="Fruit/Soda">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
-                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BackgroundColor" Value="White" />
+                                <Setter Property="TextColor" Value="Black" />
                                 <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Fruit/Soda">
@@ -141,12 +141,12 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Text="MILKTEA" 
+                    <Button Text="4 MILKTEA" 
                             FontAttributes="Bold" 
                             FontFamily="OpenSansSemibold" 
-                            TextColor="#5B4F45" 
+                            TextColor="Black" 
                             FontSize="13"
-                            BackgroundColor="#F0E6D8"
+                            BackgroundColor="White"
                             BorderColor="#D4C4B0"
                             BorderWidth="1"
                             WidthRequest="90" 
@@ -157,8 +157,8 @@
                             CommandParameter="Milktea">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
-                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BackgroundColor" Value="White" />
+                                <Setter Property="TextColor" Value="Black" />
                                 <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Milktea">
@@ -171,12 +171,12 @@
                         </Button.Style>
                     </Button>
 
-                    <Button Text="COFFEE" 
+                    <Button Text="5 COFFEE" 
                             FontAttributes="Bold" 
                             FontFamily="OpenSansSemibold" 
-                            TextColor="#5B4F45" 
+                            TextColor="Black" 
                             FontSize="13"
-                            BackgroundColor="#F0E6D8"
+                            BackgroundColor="White"
                             BorderColor="#D4C4B0"
                             BorderWidth="1"
                             WidthRequest="90" 
@@ -187,8 +187,8 @@
                             CommandParameter="Coffee">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
-                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BackgroundColor" Value="White" />
+                                <Setter Property="TextColor" Value="Black" />
                                 <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Coffee">

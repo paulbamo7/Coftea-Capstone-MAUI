@@ -82,9 +82,15 @@
                     </Grid>
 
                     <!-- Scrollable Cart Items -->
-                    <ScrollView Grid.Row="1">
-                        <CollectionView ItemsSource="{Binding CartItems}">
-                            <CollectionView.ItemTemplate>
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding CartItems}"
+                                    RemainingItemsThreshold="10"
+                                    SelectionMode="None"
+                                    ItemSizingStrategy="MeasureAllItems">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="5"/>
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
                                 <DataTemplate>
                                     <Grid BackgroundColor="White" Padding="10" Margin="0,0,0,5">
                                         <Grid.ColumnDefinitions>
@@ -200,7 +206,6 @@
                                 </DataTemplate>
                             </CollectionView.ItemTemplate>
                         </CollectionView>
-                    </ScrollView>
                 </Grid>
 
                 <!-- Footer with Total and Checkout -->

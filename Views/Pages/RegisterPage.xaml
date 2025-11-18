@@ -43,7 +43,7 @@
                        BorderColor="#8B7355"
                        HasShadow="True"
                        WidthRequest="420"
-                       HeightRequest="620"
+                       HeightRequest="690"
                        MinimumHeightRequest="620">
 
                     <ScrollView Orientation="Vertical" VerticalScrollBarVisibility="Default">
@@ -241,7 +241,7 @@
                        CornerRadius="0"
                        HasShadow="False"
                        WidthRequest="420"
-                       HeightRequest="620">
+                       HeightRequest="690">
 
                     <Image Source="coftea_logo.png"
                            HeightRequest="250"

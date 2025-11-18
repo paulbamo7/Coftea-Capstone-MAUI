@@ -80,17 +80,12 @@
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding RefreshInventoryCommand}"/>
                                     </Border.GestureRecognizers>
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                        <Image Source="refreshicon.png" 
-                                               WidthRequest="20" 
-                                               HeightRequest="20" 
-                                               VerticalOptions="Center"/>
                                         <Label Text="Refresh" 
                                                TextColor="#5B4F45" 
                                                FontAttributes="Bold"
                                                FontSize="13"
-                                               VerticalOptions="Center"/>
-                                    </HorizontalStackLayout>
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="Center"/>
                                 </Border>
 
                                 <!-- Sort -->

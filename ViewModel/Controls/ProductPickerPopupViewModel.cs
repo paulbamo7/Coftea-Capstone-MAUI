@@ -2,9 +2,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.C_;
 using Coftea_Capstone.Models;
+using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageSource = Microsoft.Maui.Controls.ImageSource;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -12,8 +14,40 @@ namespace Coftea_Capstone.ViewModel.Controls
 	{
 		public string Name { get; set; } = string.Empty;
 		public string Category { get; set; } = "Other";
-		public string ImageSource { get; set; } = "product_placeholder.png";
+		public string ImageSet { get; set; } = "product_placeholder.png";
 		public string? Subcategory { get; set; }
+		
+		public ImageSource ImageSource // Convert ImageSet string to ImageSource for binding
+		{
+			get
+			{
+				try
+				{
+					if (string.IsNullOrWhiteSpace(ImageSet))
+						return Microsoft.Maui.Controls.ImageSource.FromFile("coftea_logo.png"); 
+					
+					// Handle HTTP URLs
+					if (ImageSet.StartsWith("http"))
+						return Microsoft.Maui.Controls.ImageSource.FromUri(new Uri(ImageSet));
+
+					// Handle local file paths (legacy support)
+					if (System.IO.Path.IsPathRooted(ImageSet) && System.IO.File.Exists(ImageSet))
+						return Microsoft.Maui.Controls.ImageSource.FromFile(ImageSet);
+
+					// Handle app data directory images (new system)
+					var appDataPath = Services.ImagePersistenceService.GetImagePath(ImageSet);
+					if (System.IO.File.Exists(appDataPath))
+						return Microsoft.Maui.Controls.ImageSource.FromFile(appDataPath);
+
+					// Fallback to bundled resource (restoration from database happens when items are loaded)
+					return Microsoft.Maui.Controls.ImageSource.FromFile(ImageSet);
+				}
+				catch
+				{
+					return Microsoft.Maui.Controls.ImageSource.FromFile("coftea_logo.png");
+				}
+			}
+		}
 	}
 
 	public partial class ProductPickerPopupViewModel : ObservableObject
@@ -75,7 +109,7 @@ namespace Coftea_Capstone.ViewModel.Controls
 					Name = p.ProductName,
 					Category = string.IsNullOrWhiteSpace(p.Category) ? "Other" : p.Category.Trim(),
 					Subcategory = string.IsNullOrWhiteSpace(p.Subcategory) ? null : p.Subcategory.Trim(),
-					ImageSource = !string.IsNullOrWhiteSpace(p.ImageSet) ? p.ImageSet : "product_placeholder.png"
+					ImageSet = !string.IsNullOrWhiteSpace(p.ImageSet) ? p.ImageSet : "product_placeholder.png"
 				});
 			}
 

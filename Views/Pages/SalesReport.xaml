@@ -20,15 +20,15 @@
             
             <!-- Style for Time Period Buttons -->
             <Style x:Key="TimePeriodButtonStyle" TargetType="Button">
-                <Setter Property="FontSize" Value="8"/>
+                <Setter Property="FontSize" Value="10"/>
                 <Setter Property="FontAttributes" Value="Bold"/>
                 <Setter Property="TextColor" Value="#2E7D32"/>
-                <Setter Property="BackgroundColor" Value="White"/>
-                <Setter Property="HeightRequest" Value="32"/>
-                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="BackgroundColor" Value="#E8D5C0"/>
+                <Setter Property="HeightRequest" Value="22"/>
+                <Setter Property="CornerRadius" Value="5"/>
                 <Setter Property="BorderColor" Value="#C8E6C9"/>
                 <Setter Property="BorderWidth" Value="1"/>
-                <Setter Property="Padding" Value="3,0"/>
+                <Setter Property="Padding" Value="2,0"/>
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
@@ -52,16 +52,16 @@
                         <Label Text="Sales Report" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                         <Label Text="{Binding LastRefreshedText}" 
                                FontSize="10" 
-                               TextColor="#666666" 
+                               TextColor="White" 
                                FontFamily="OpenSansSemibold"
                                IsVisible="{Binding LastRefreshedText, Converter={StaticResource StringToBoolConverter}}"/>
                     </VerticalStackLayout>
                     <Button Grid.Column="1" 
                             Text="{Binding DateFilterText}" 
-                            FontSize="12" 
+                            FontSize="14" 
                             FontAttributes="Bold"
                             TextColor="#2E7D32" 
-                            BackgroundColor="White"
+                            BackgroundColor="#F8E8D7"
                             BorderColor="#C8E6C9"
                             BorderWidth="1"
                             CornerRadius="8"
@@ -88,7 +88,7 @@
                 <!-- Categories - Centered above pie chart and KPI cards -->
                 <ScrollView Orientation="Horizontal" HorizontalOptions="Center">
                     <StackLayout Orientation="Horizontal" Spacing="10">
-                        <Button Text="Overview" FontAttributes="Bold" TextColor="Black" FontSize="14"
+                        <Button Text="Overview" FontAttributes="Bold" TextColor="Black" FontSize="16"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Overview">
                             <Button.Triggers>
@@ -98,7 +98,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Frappe" FontAttributes="Bold" TextColor="Black" FontSize="14"
+                        <Button Text="Frappe" FontAttributes="Bold" TextColor="Black" FontSize="16"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Frappe">
                             <Button.Triggers>
@@ -108,7 +108,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Fruit/Soda" FontAttributes="Bold" TextColor="Black" FontSize="13"
+                        <Button Text="Fruit/Soda" FontAttributes="Bold" TextColor="Black" FontSize="16"
                                 BackgroundColor="#FFEAD6" WidthRequest="140" HeightRequest="40"
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Fruit/Soda">
                             <Button.Triggers>
@@ -118,7 +118,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Milktea" FontAttributes="Bold" TextColor="Black" FontSize="14"
+                        <Button Text="Milktea" FontAttributes="Bold" TextColor="Black" FontSize="16"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Milktea">
                             <Button.Triggers>
@@ -128,7 +128,7 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                        <Button Text="Coffee" FontAttributes="Bold" TextColor="Black" FontSize="14"
+                        <Button Text="Coffee" FontAttributes="Bold" TextColor="Black" FontSize="16"
                                 BackgroundColor="#FFEAD6" WidthRequest="120" HeightRequest="40"
                                 Command="{Binding SelectCategoryCommand}" CommandParameter="Coffee">
                             <Button.Triggers>
@@ -145,48 +145,48 @@
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
                     <!-- Left Column: KPI Cards -->
                     <VerticalStackLayout Grid.Column="0" Spacing="12" VerticalOptions="Start">
-                        <Frame BackgroundColor="#F5E6D8" CornerRadius="12" HeightRequest="110" Padding="12" HasShadow="True">
-                            <VerticalStackLayout>
-                                <Label Text="Overall Most Bought Today" FontAttributes="Bold" FontSize="14" TextColor="#5B4F45"/>
-                                <Label Text="{Binding MostBoughtToday}" FontSize="20" TextColor="#5B4F45"/>
+                        <Frame BackgroundColor="#F5E6D8" CornerRadius="12" HeightRequest="140" Padding="16" HasShadow="True">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Overall Most Bought Today" FontAttributes="Bold" FontSize="16" TextColor="#5B4F45"/>
+                                <Label Text="{Binding MostBoughtToday}" FontSize="24" FontAttributes="Bold" TextColor="#5B4F45"/>
                             </VerticalStackLayout>
                         </Frame>
 
                         <!-- Payment Method Breakdown -->
                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
                             <!-- Cash Payment -->
-                            <Frame BackgroundColor="#E8F5E8" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="0">
+                            <Frame BackgroundColor="White" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="0">
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Command="{Binding ShowCashProductsCommand}"/>
                                 </Frame.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
-                                    <Label Text="Cash" FontAttributes="Bold" FontSize="14" TextColor="#2E7D32"/>
-                                    <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#2E7D32" FontAttributes="Bold" LineBreakMode="NoWrap"/>
-                                    <Label Text="{Binding CashPercentageText}" FontSize="12" TextColor="#558B2F" FontAttributes="Bold"/>
+                                    <Label Text="Cash" FontAttributes="Bold" FontSize="14" TextColor="#5B4F45" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding DisplayCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#5B4F45" FontAttributes="Bold" LineBreakMode="NoWrap" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding CashPercentageText}" FontSize="12" TextColor="Gray" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
                             </Frame>
 
                             <!-- GCash Payment -->
-                            <Frame BackgroundColor="#E3F2FD" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="1">
+                            <Frame BackgroundColor="White" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="1">
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Command="{Binding ShowGCashProductsCommand}"/>
                                 </Frame.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
-                                    <Label Text="GCash" FontAttributes="Bold" FontSize="14" TextColor="#1976D2"/>
-                                    <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#1976D2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
-                                    <Label Text="{Binding GCashPercentageText}" FontSize="12" TextColor="#1565C0" FontAttributes="Bold"/>
+                                    <Label Text="GCash" FontAttributes="Bold" FontSize="14" TextColor="#5B4F45" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding DisplayGCashTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#5B4F45" FontAttributes="Bold" LineBreakMode="NoWrap" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding GCashPercentageText}" FontSize="12" TextColor="Gray" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
                             </Frame>
 
                             <!-- Bank Payment -->
-                            <Frame BackgroundColor="#F3E5F5" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="2">
+                            <Frame BackgroundColor="White" CornerRadius="12" HeightRequest="115" Padding="8" HasShadow="True" Grid.Column="2">
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Command="{Binding ShowBankProductsCommand}"/>
                                 </Frame.GestureRecognizers>
                                 <VerticalStackLayout Spacing="2" HorizontalOptions="Center" VerticalOptions="Center">
-                                    <Label Text="Bank" FontAttributes="Bold" FontSize="14" TextColor="#7B1FA2"/>
-                                    <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#7B1FA2" FontAttributes="Bold" LineBreakMode="NoWrap"/>
-                                    <Label Text="{Binding BankPercentageText}" FontSize="12" TextColor="#6A1B9A" FontAttributes="Bold"/>
+                                    <Label Text="Bank" FontAttributes="Bold" FontSize="14" TextColor="#5B4F45" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding DisplayBankTotal, StringFormat='₱{0:N2}'}" FontSize="18" TextColor="#5B4F45" FontAttributes="Bold" LineBreakMode="NoWrap" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding BankPercentageText}" FontSize="12" TextColor="Gray" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
                             </Frame>
                         </Grid>
@@ -196,10 +196,9 @@
                     <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" VerticalOptions="Start">
                         <Grid RowDefinitions="Auto,*,Auto">
                             <!-- Header -->
-                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <Grid ColumnDefinitions="*,Auto">
                             <Label Text="Top 3 Picks Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                            <Label Text="{Binding FilteredTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1" Grid.Row="0" FontSize="14" TextColor="Gray"/>
-                            <Label Text="{Binding TotalTransactionsToday, StringFormat='Total Transactions: {0}'}" Grid.Column="1" Grid.Row="1" FontSize="12" TextColor="#666" Margin="0,2,0,0"/>
+                            <Label Text="{Binding FilteredTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1" FontSize="14" TextColor="Gray"/>
                             </Grid>
 
                             <!-- Pie left, Names right -->
@@ -233,7 +232,7 @@
                                         <BoxView Grid.RowSpan="2"
                                                  WidthRequest="10"
                                                  HeightRequest="10"
-                                                 VerticalOptions="Start"
+                                                 VerticalOptions="Center"
                                                  Color="#66BB6A"/>
                                         <Label Grid.Column="1"
                                                Grid.Row="0"
@@ -242,13 +241,15 @@
                                                TextColor="#5B4F45"
                                                LineBreakMode="WordWrap"
                                                MaxLines="2"
-                                               HorizontalOptions="Start"/>
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Center"/>
                                         <Label Grid.Column="1"
                                                Grid.Row="1"
                                                Text="{Binding Item1Count, StringFormat='{0} orders'}"
                                                FontSize="12"
                                                TextColor="Gray"
-                                               HorizontalOptions="Start"/>
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Center"/>
                                     </Grid>
                                     <Grid ColumnDefinitions="Auto,*"
                                           RowDefinitions="Auto,Auto"
@@ -257,7 +258,7 @@
                                         <BoxView Grid.RowSpan="2"
                                                  WidthRequest="10"
                                                  HeightRequest="10"
-                                                 VerticalOptions="Start"
+                                                 VerticalOptions="Center"
                                                  Color="#8D6E63"/>
                                         <Label Grid.Column="1"
                                                Grid.Row="0"
@@ -266,23 +267,24 @@
                                                TextColor="#5B4F45"
                                                LineBreakMode="WordWrap"
                                                MaxLines="2"
-                                               HorizontalOptions="Start"/>
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Center"/>
                                         <Label Grid.Column="1"
                                                Grid.Row="1"
                                                Text="{Binding Item2Count, StringFormat='{0} orders'}"
                                                FontSize="12"
                                                TextColor="Gray"
-                                               HorizontalOptions="Start"/>
+                                               HorizontalOptions="Start"
+                                               VerticalOptions="Center"/>
                                     </Grid>
                                     <Grid ColumnDefinitions="Auto,*"
                                           RowDefinitions="Auto,Auto"
                                           ColumnSpacing="8"
-                                          RowSpacing="2"
-                                          VerticalOptions="Start">
+                                          RowSpacing="2">
                                         <BoxView Grid.RowSpan="2"
                                                  WidthRequest="10"
                                                  HeightRequest="10"
-                                                 VerticalOptions="Start"
+                                                 VerticalOptions="Center"
                                                  Color="#795548"/>
                                         <Label Grid.Column="1"
                                                Grid.Row="0"
@@ -292,14 +294,14 @@
                                                LineBreakMode="WordWrap"
                                                MaxLines="2"
                                                HorizontalOptions="Start"
-                                               VerticalOptions="Start"/>
+                                               VerticalOptions="Center"/>
                                         <Label Grid.Column="1"
                                                Grid.Row="1"
                                                Text="{Binding Item3Count, StringFormat='{0} orders'}"
                                                FontSize="12"
                                                TextColor="Gray"
                                                HorizontalOptions="Start"
-                                               VerticalOptions="Start"/>
+                                               VerticalOptions="Center"/>
                                     </Grid>
                                 </VerticalStackLayout>
                             </Grid>
@@ -349,7 +351,8 @@
                                    FontFamily="Montserrat-Black"
                                    LineBreakMode="NoWrap"
                                    TextColor="#2E7D32" 
-                                   HorizontalOptions="Center"/>
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"/>
                             
                             <!-- Comparison details and payment breakdown removed per request -->
                         </VerticalStackLayout>
@@ -369,7 +372,7 @@
                                 </VerticalStackLayout>
                             </Grid>
                             <!-- Bar chart for Weekly items -->
-                            <Grid Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="180" ColumnDefinitions="35,*" RowDefinitions="*,Auto">
+                            <Grid Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="190" ColumnDefinitions="35,*" RowDefinitions="*,Auto">
                                 <!-- Y-axis labels -->
                                 <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,0,4,0">
                                     <Label Grid.Row="0" 
@@ -377,42 +380,51 @@
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,20"/>
                                     <Label Grid.Row="1" 
                                            Text="{Binding WeeklyYAxisValues[1], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
+                                           HorizontalTextAlignment="End"
                                            VerticalOptions="Center"
-                                           />
+                                           Margin="0,0,0,20"/>
                                     <Label Grid.Row="2" 
                                            Text="{Binding WeeklyYAxisValues[2], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,20"/>
                                     <Label Grid.Row="3" 
                                            Text="{Binding WeeklyYAxisValues[3], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,20"/>
                                     <Label Grid.Row="4" 
                                            Text="{Binding WeeklyYAxisValues[4], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,20"/>
                                 </Grid>
                                 
                                 <!-- Chart area with grid lines and bars -->
-                                <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End">
+                                <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,8,0,0">
                                     <!-- Y-axis grid lines -->
-                                    <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
                                     
                                     <!-- X-axis line -->
                                     <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
@@ -426,10 +438,10 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
                                                 <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
-                                                    <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
+                                                    <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="End">
                                                         <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12"/>
                                                     </Grid>
-                                                    <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
+                                                    <Label Text="{Binding Name}" TextColor="Black" FontSize="11" FontAttributes="Bold" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
                                                 </VerticalStackLayout>
                                             </DataTemplate>
                                         </CollectionView.ItemTemplate>
@@ -440,8 +452,8 @@
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <Label Text="{Binding Name}" FontSize="12" TextColor="Gray"/>
-                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Gray" Grid.Column="1"/>
+                                            <Label Text="{Binding Name}" FontSize="12" TextColor="Black" FontAttributes="Bold"/>
+                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Black" Grid.Column="1" FontAttributes="Bold"/>
                                         </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
@@ -473,7 +485,7 @@
                                 </VerticalStackLayout>
                             </Grid>
                             <!-- Bar chart for Monthly items -->
-                            <Grid Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="180" ColumnDefinitions="35,*" RowDefinitions="*,Auto">
+                            <Grid Grid.Row="1" Grid.ColumnSpan="2" HeightRequest="190" ColumnDefinitions="35,*" RowDefinitions="*,Auto">
                                 <!-- Y-axis labels -->
                                 <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,0,4,0">
                                     <Label Grid.Row="0" 
@@ -481,41 +493,51 @@
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,15"/>
                                     <Label Grid.Row="1" 
                                            Text="{Binding MonthlyYAxisValues[1], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,15"/>
                                     <Label Grid.Row="2" 
                                            Text="{Binding MonthlyYAxisValues[2], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,15"/>
                                     <Label Grid.Row="3" 
                                            Text="{Binding MonthlyYAxisValues[3], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,15"/>
                                     <Label Grid.Row="4" 
                                            Text="{Binding MonthlyYAxisValues[4], StringFormat='{0}'}" 
                                            FontSize="9" 
                                            TextColor="#666666" 
                                            HorizontalOptions="End" 
-                                           VerticalOptions="Center"/>
+                                           HorizontalTextAlignment="End"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,0,15"/>
                                 </Grid>
                                 
                                 <!-- Chart area with grid lines and bars -->
-                                <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End">
+                                <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,8,0,0">
                                     <!-- Y-axis grid lines -->
-                                    <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
-                                    <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,15" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,15" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,15" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,15" HorizontalOptions="FillAndExpand"/>
+                                    <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,15" HorizontalOptions="FillAndExpand"/>
                                     
                                     <!-- X-axis line -->
                                     <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
@@ -529,10 +551,10 @@
                                         <CollectionView.ItemTemplate>
                                             <DataTemplate>
                                                 <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="6" Padding="0">
-                                                    <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="FillAndExpand">
+                                                    <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="End">
                                                         <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12"/>
                                                     </Grid>
-                                                    <Label Text="{Binding Name}" TextColor="#8B7355" FontSize="11"  LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
+                                                    <Label Text="{Binding Name}" TextColor="Black" FontSize="11" FontAttributes="Bold" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
                                                 </VerticalStackLayout>
                                             </DataTemplate>
                                         </CollectionView.ItemTemplate>
@@ -543,8 +565,8 @@
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <Label Text="{Binding Name}" FontSize="12" TextColor="Gray"/>
-                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Gray" Grid.Column="1"/>
+                                            <Label Text="{Binding Name}" FontSize="12" TextColor="Black" FontAttributes="Bold"/>
+                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Black" Grid.Column="1" FontAttributes="Bold"/>
                                         </Grid>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>
@@ -606,15 +628,6 @@
                             <StackLayout IsVisible="{Binding HasAggregateRows}">
                                 <ScrollView Orientation="Horizontal">
                                     <VerticalStackLayout Spacing="8">
-                                        <Button Text="Browse Products"
-                                                BackgroundColor="#FFB3D9"
-                                                TextColor="#5B4F45"
-                                                FontAttributes="Bold"
-                                                HeightRequest="36"
-                                                CornerRadius="10"
-                                                Padding="12,6"
-                                                Command="{Binding BrowseProductsCommand}"
-                                                HorizontalOptions="Start"/>
                                         <Border BackgroundColor="#FFF5EC" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="0">
                                             <Grid ColumnDefinitions="280,100,150,150,150,150" Padding="10,8,10,8" RowDefinitions="Auto">
                                                 <Label Text="Group" FontAttributes="Bold" TextColor="#5B4F45" Padding="0,0"/>
@@ -653,9 +666,6 @@
                                                                         Command="{Binding Source={x:Reference Root}, Path=BindingContext.ShowProductDetailsCommand}"
                                                                         CommandParameter="{Binding GroupLabel}"/>
                                                             </Grid>
-                                                                <Label.GestureRecognizers>
-                                                                    <TapGestureRecognizer Command="{Binding Source={x:Reference Root}, Path=BindingContext.ShowProductDetailsCommand}" CommandParameter="{Binding GroupLabel}"/>
-                                                                </Label.GestureRecognizers>
                                                             <BoxView Grid.Column="1" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" InputTransparent="True" Margin="0"/>
                                                             <Label Grid.Column="1" Text="{Binding TotalQuantityDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="0,0"/>
                                                             <BoxView Grid.Column="2" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" InputTransparent="True" Margin="0"/>
@@ -700,7 +710,20 @@
                                         </CollectionView>
                                     </VerticalStackLayout>
                                 </ScrollView>
-                                <Label Text="Figures include all filtered transactions." FontSize="11" TextColor="#757575" Margin="0,4,0,0"/>
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                                    <Label Text="Figures include all filtered transactions." FontSize="11" TextColor="#757575" Grid.Column="0"/>
+                                    <Button Grid.Column="1"
+                                            Text="Browse A Product"
+                                            BackgroundColor="#FFB3D9"
+                                            TextColor="#5B4F45"
+                                            FontAttributes="Bold"
+                                            HeightRequest="36"
+                                            CornerRadius="10"
+                                            Padding="12,6"
+                                            Command="{Binding BrowseProductsCommand}"
+                                            HorizontalOptions="End"
+                                            VerticalOptions="Center"/>
+                                </Grid>
                             </StackLayout>
                             <Label Text="No sales data for this range yet." FontSize="13" TextColor="#757575" HorizontalTextAlignment="Center" Margin="0,12,0,0" IsVisible="{Binding HasAggregateRows, Converter={StaticResource InvertBoolConverter}}"/>
                         </StackLayout>

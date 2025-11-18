@@ -19,6 +19,7 @@ namespace Coftea_Capstone.ViewModel
 		[ObservableProperty] private string code;
 		[ObservableProperty] private string newPassword;
 		[ObservableProperty] private string confirmPassword;
+		[ObservableProperty] private string description;
 		[ObservableProperty] private bool isLoading;
 		[ObservableProperty] private string errorMessage;
 		[ObservableProperty] private string successMessage;

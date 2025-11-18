@@ -13,6 +13,8 @@
             <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
             <converters:NullToInvertedBoolConverter x:Key="NullToInvertedBoolConverter" />
+            <converters:StringToBoolConverter x:Key="StringToBoolConverter" />
+            <converters:ValidationBorderColorConverter x:Key="ValidationBorderColorConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
@@ -54,17 +56,28 @@
 
                     <!-- PRODUCT NAME -->
                     <Label Text="PRODUCT NAME" FontAttributes="Bold" FontSize="18" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Padding="0,20,0,0"/>
-                    <Entry Placeholder="Enter product name"
-                           Text="{Binding ProductName}"
-                           Margin="0,0,0,10"
-                           FontSize="17"
-                           TextColor="#5B4F45"
-                           PlaceholderColor="#8B7355"
-                           HeightRequest="45"/>
+                    <Border Stroke="{Binding ProductNameValidationMessage, Converter={StaticResource ValidationBorderColorConverter}}" 
+                            StrokeShape="RoundRectangle 10" 
+                            StrokeThickness="2" 
+                            HeightRequest="45"
+                            Margin="0,0,0,5">
+                        <Entry Placeholder="Enter product name"
+                               Text="{Binding ProductName}"
+                               FontSize="17"
+                               TextColor="#5B4F45"
+                               PlaceholderColor="#8B7355"
+                               BackgroundColor="Transparent"
+                               Margin="12,0"/>
+                    </Border>
+                    <Label Text="{Binding ProductNameValidationMessage}"
+                           TextColor="#D9534F"
+                           FontSize="12"
+                           Margin="5,-5,0,5"
+                           IsVisible="{Binding ProductNameValidationMessage, Converter={StaticResource StringToBoolConverter}}"/>
 
                     <!-- CATEGORY -->
                     <Label Text="CATEGORY" FontAttributes="Bold" FontSize="18" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,20,0,5" />
-                    <AbsoluteLayout>
+                    <AbsoluteLayout Margin="0,0,0,5">
                         <Button x:Name="CategoryButton"
                                 Text="{Binding CategoryDisplayText}"
                                 Command="{Binding ShowCategoryPickerCommand}"
@@ -85,18 +98,20 @@
                                HasShadow="True"
                                Padding="0"
                                WidthRequest="200"
-                               AbsoluteLayout.LayoutBounds="210,0,200,300"
+                               MaximumHeightRequest="240"
+                               AbsoluteLayout.LayoutBounds="210,0,200,240"
                                AbsoluteLayout.LayoutFlags="None"
                                ZIndex="10000"
                                InputTransparent="False">
                             <Grid RowDefinitions="Auto,*">
-                                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="12,8" ColumnDefinitions="*,Auto">
+                                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="10,6" ColumnDefinitions="*,Auto">
                                     <Label Text="Select Category" 
-                                           FontSize="14" FontFamily="MontserratBlack" 
+                                           FontSize="13" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold" 
                                            TextColor="White" 
                                            Grid.Column="0"
-                                           HorizontalOptions="Center"/>
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
                                     <Button Text="✕" 
                                             FontSize="14" 
                                             TextColor="White" 
@@ -110,24 +125,28 @@
                                             Command="{Binding CloseCategoryDropdownCommand}"/>
                                 </Grid>
                                 <ScrollView Grid.Row="1" 
-                                          VerticalOptions="FillAndExpand">
+                                          VerticalOptions="FillAndExpand"
+                                          MaximumHeightRequest="200">
                                     <CollectionView ItemsSource="{Binding Categories}"
                                                   SelectionMode="None">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <Frame BackgroundColor="#F8E8D7" 
                                                    CornerRadius="0" 
-                                                   Padding="12,10" 
+                                                   Padding="10,8" 
                                                    HasShadow="False"
-                                                   Margin="0,0,0,2">
+                                                   Margin="0,0,0,1"
+                                                   MinimumHeightRequest="36">
                                                 <Frame.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding Source={x:Reference CategoryButton}, Path=BindingContext.SelectCategoryCommand}" 
                                                                           CommandParameter="{Binding .}"/>
                                                 </Frame.GestureRecognizers>
                                                 <Label Text="{Binding .}" 
-                                                       FontSize="14" 
+                                                       FontSize="13" 
                                                        FontFamily="OpenSansSemibold"
-                                                       TextColor="#5B4F45"/>
+                                                       TextColor="#5B4F45"
+                                                       VerticalOptions="Center"
+                                                       VerticalTextAlignment="Center"/>
                                             </Frame>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
@@ -136,6 +155,11 @@
                             </Grid>
                         </Frame>
                     </AbsoluteLayout>
+                    <Label Text="{Binding CategoryValidationMessage}"
+                           TextColor="#D9534F"
+                           FontSize="12"
+                           Margin="5,-5,0,5"
+                           IsVisible="{Binding CategoryValidationMessage, Converter={StaticResource StringToBoolConverter}}"/>
 
                     <!-- SUBCATEGORY for Fruit/Soda -->
                     <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="18" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,20,0,5"
@@ -162,18 +186,20 @@
                                HasShadow="True"
                                Padding="0"
                                WidthRequest="200"
-                               AbsoluteLayout.LayoutBounds="210,0,200,200"
+                               MaximumHeightRequest="160"
+                               AbsoluteLayout.LayoutBounds="210,0,200,160"
                                AbsoluteLayout.LayoutFlags="None"
                                ZIndex="10000"
                                InputTransparent="False">
                             <Grid RowDefinitions="Auto,*">
-                                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="12,8" ColumnDefinitions="*,Auto">
+                                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="10,6" ColumnDefinitions="*,Auto">
                                     <Label Text="Select Subcategory" 
-                                           FontSize="14" FontFamily="MontserratBlack" 
+                                           FontSize="13" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold" 
                                            TextColor="White" 
                                            Grid.Column="0"
-                                           HorizontalOptions="Center"/>
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
                                     <Button Text="✕" 
                                             FontSize="14" 
                                             TextColor="White" 
@@ -186,24 +212,28 @@
                                             VerticalOptions="Center"
                                             Command="{Binding CloseSubcategoryDropdownCommand}"/>
                                 </Grid>
-                                <ScrollView Grid.Row="1">
+                                <ScrollView Grid.Row="1"
+                                          MaximumHeightRequest="120">
                                     <CollectionView ItemsSource="{Binding FruitSodaSubcategories}"
                                                   SelectionMode="None">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <Frame BackgroundColor="#F8E8D7" 
                                                    CornerRadius="0" 
-                                                   Padding="12,10" 
+                                                   Padding="10,8" 
                                                    HasShadow="False"
-                                                   Margin="0,0,0,2">
+                                                   Margin="0,0,0,1"
+                                                   MinimumHeightRequest="36">
                                                 <Frame.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding Source={x:Reference FruitSodaSubcategoryButton}, Path=BindingContext.SelectSubcategoryCommand}" 
                                                                           CommandParameter="{Binding .}"/>
                                                 </Frame.GestureRecognizers>
                                                 <Label Text="{Binding .}" 
-                                                       FontSize="14" 
+                                                       FontSize="13" 
                                                        FontFamily="OpenSansSemibold"
-                                                       TextColor="#5B4F45"/>
+                                                       TextColor="#5B4F45"
+                                                       VerticalOptions="Center"
+                                                       VerticalTextAlignment="Center"/>
                                             </Frame>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
@@ -212,6 +242,17 @@
                             </Grid>
                         </Frame>
                     </AbsoluteLayout>
+                    <Label Text="{Binding SubcategoryValidationMessage}"
+                           TextColor="#D9534F"
+                           FontSize="12"
+                           Margin="5,-5,0,5"
+                           IsVisible="{Binding IsFruitSodaSubcategoryVisible}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding SubcategoryValidationMessage, Converter={StaticResource StringToBoolConverter}}" Value="False">
+                                <Setter Property="IsVisible" Value="False"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
 
                     <!-- SUBCATEGORY for Coffee -->
                     <Label Text="SUBCATEGORY" FontAttributes="Bold" FontSize="18" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,20,0,5"
@@ -238,18 +279,20 @@
                                HasShadow="True"
                                Padding="0"
                                WidthRequest="200"
-                               AbsoluteLayout.LayoutBounds="210,0,200,200"
+                               MaximumHeightRequest="160"
+                               AbsoluteLayout.LayoutBounds="210,0,200,160"
                                AbsoluteLayout.LayoutFlags="None"
                                ZIndex="10000"
                                InputTransparent="False">
                             <Grid RowDefinitions="Auto,*">
-                                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="12,8" ColumnDefinitions="*,Auto">
+                                <Grid Grid.Row="0" BackgroundColor="#7E6D5F" Padding="10,6" ColumnDefinitions="*,Auto">
                                     <Label Text="Select Subcategory" 
-                                           FontSize="14" FontFamily="MontserratBlack" 
+                                           FontSize="13" FontFamily="MontserratBlack" 
                                            FontAttributes="Bold" 
                                            TextColor="White" 
                                            Grid.Column="0"
-                                           HorizontalOptions="Center"/>
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
                                     <Button Text="✕" 
                                             FontSize="14" 
                                             TextColor="White" 
@@ -262,24 +305,28 @@
                                             VerticalOptions="Center"
                                             Command="{Binding CloseSubcategoryDropdownCommand}"/>
                                 </Grid>
-                                <ScrollView Grid.Row="1">
+                                <ScrollView Grid.Row="1"
+                                          MaximumHeightRequest="120">
                                     <CollectionView ItemsSource="{Binding CoffeeSubcategories}"
                                                   SelectionMode="None">
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <Frame BackgroundColor="#F8E8D7" 
                                                    CornerRadius="0" 
-                                                   Padding="12,10" 
+                                                   Padding="10,8" 
                                                    HasShadow="False"
-                                                   Margin="0,0,0,2">
+                                                   Margin="0,0,0,1"
+                                                   MinimumHeightRequest="36">
                                                 <Frame.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding Source={x:Reference CoffeeSubcategoryButton}, Path=BindingContext.SelectSubcategoryCommand}" 
                                                                           CommandParameter="{Binding .}"/>
                                                 </Frame.GestureRecognizers>
                                                 <Label Text="{Binding .}" 
-                                                       FontSize="14" 
+                                                       FontSize="13" 
                                                        FontFamily="OpenSansSemibold"
-                                                       TextColor="#5B4F45"/>
+                                                       TextColor="#5B4F45"
+                                                       VerticalOptions="Center"
+                                                       VerticalTextAlignment="Center"/>
                                             </Frame>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
@@ -288,6 +335,17 @@
                             </Grid>
                         </Frame>
                     </AbsoluteLayout>
+                    <Label Text="{Binding SubcategoryValidationMessage}"
+                           TextColor="#D9534F"
+                           FontSize="12"
+                           Margin="5,-5,0,5"
+                           IsVisible="{Binding IsCoffeeSubcategoryVisible}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding SubcategoryValidationMessage, Converter={StaticResource StringToBoolConverter}}" Value="False">
+                                <Setter Property="IsVisible" Value="False"/>
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
 
                     <!-- PRODUCT IMAGE -->
                     <Label Text="PRODUCT IMAGE" FontAttributes="Bold" FontSize="16" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,20,0,5" />
@@ -394,38 +452,71 @@
                             <!-- Small price - only visible for Coffee category -->
                             <VerticalStackLayout IsVisible="{Binding IsSmallPriceVisible}">
                                 <Label Text="SMALL" FontAttributes="Bold" FontSize="14" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,0,0,5"/>
-                                <Entry Placeholder="Small Price"
-                                       Text="{Binding SmallPrice}"
-                                       Keyboard="Numeric"
-                                       TextColor="#5B4F45"
-                                       PlaceholderColor="#8B7355"
-                                       FontSize="15"
-                                       WidthRequest="140"
-                                       HeightRequest="55"/>
+                                <Border Stroke="{Binding SmallPriceValidationMessage, Converter={StaticResource ValidationBorderColorConverter}}" 
+                                        StrokeShape="RoundRectangle 10" 
+                                        StrokeThickness="2"
+                                        WidthRequest="140"
+                                        HeightRequest="55">
+                                    <Entry Placeholder="Small Price"
+                                           Text="{Binding SmallPrice}"
+                                           Keyboard="Numeric"
+                                           TextColor="#5B4F45"
+                                           PlaceholderColor="#8B7355"
+                                           FontSize="15"
+                                           BackgroundColor="Transparent"
+                                           Margin="12,0"/>
+                                </Border>
+                                <Label Text="{Binding SmallPriceValidationMessage}"
+                                       TextColor="#D9534F"
+                                       FontSize="11"
+                                       Margin="0,2,0,0"
+                                       IsVisible="{Binding SmallPriceValidationMessage, Converter={StaticResource StringToBoolConverter}}"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
                                 <Label Text="MEDIUM" FontAttributes="Bold" FontSize="14" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,0,0,5"/>
-                                <Entry Placeholder="Medium Price"
-                                       Text="{Binding MediumPrice}"
-                                       Keyboard="Numeric"
-                                       TextColor="#5B4F45"
-                                       PlaceholderColor="#8B7355"
-                                       FontSize="15"
-                                       WidthRequest="140"
-                                       HeightRequest="55"/>
+                                <Border Stroke="{Binding MediumPriceValidationMessage, Converter={StaticResource ValidationBorderColorConverter}}" 
+                                        StrokeShape="RoundRectangle 10" 
+                                        StrokeThickness="2"
+                                        WidthRequest="140"
+                                        HeightRequest="55">
+                                    <Entry Placeholder="Medium Price"
+                                           Text="{Binding MediumPrice}"
+                                           Keyboard="Numeric"
+                                           TextColor="#5B4F45"
+                                           PlaceholderColor="#8B7355"
+                                           FontSize="15"
+                                           BackgroundColor="Transparent"
+                                           Margin="12,0"/>
+                                </Border>
+                                <Label Text="{Binding MediumPriceValidationMessage}"
+                                       TextColor="#D9534F"
+                                       FontSize="11"
+                                       Margin="0,2,0,0"
+                                       IsVisible="{Binding MediumPriceValidationMessage, Converter={StaticResource StringToBoolConverter}}"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout>
                                 <Label Text="LARGE" FontAttributes="Bold" FontSize="14" FontFamily="OpenSansSemibold" TextColor="#5B4F45" Margin="0,0,0,5"/>
-                                <Entry Placeholder="Large Price"
-                                       Text="{Binding LargePrice}"
-                                       Keyboard="Numeric"
-                                       TextColor="#5B4F45"
-                                       PlaceholderColor="#8B7355"
-                                       FontSize="15"
-                                       WidthRequest="140"
-                                       HeightRequest="55"/>
+                                <Border Stroke="{Binding LargePriceValidationMessage, Converter={StaticResource ValidationBorderColorConverter}}" 
+                                        StrokeShape="RoundRectangle 10" 
+                                        StrokeThickness="2"
+                                        WidthRequest="140"
+                                        HeightRequest="55">
+                                    <Entry Placeholder="Large Price"
+                                           Text="{Binding LargePrice}"
+                                           Keyboard="Numeric"
+                                           TextColor="#5B4F45"
+                                           PlaceholderColor="#8B7355"
+                                           FontSize="15"
+                                           BackgroundColor="Transparent"
+                                           Margin="12,0"/>
+                                </Border>
+                                <Label Text="{Binding LargePriceValidationMessage}"
+                                       TextColor="#D9534F"
+                                       FontSize="11"
+                                       Margin="0,2,0,0"
+                                       IsVisible="{Binding LargePriceValidationMessage, Converter={StaticResource StringToBoolConverter}}"/>
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
 
@@ -439,6 +530,19 @@
                                     BackgroundColor="Transparent"
                                     TextColor="#5B4F45"
                                     PlaceholderColor="#8B7355"/>
+                        </Frame>
+
+                        <!-- General Validation Message -->
+                        <Frame IsVisible="{Binding GeneralValidationMessage, Converter={StaticResource StringToBoolConverter}}" 
+                               BackgroundColor="#FFE8E8" 
+                               Padding="15,10" 
+                               CornerRadius="10" 
+                               Margin="0,10,0,0"
+                               HasShadow="False">
+                            <StackLayout Orientation="Horizontal" Spacing="8">
+                                <Label Text="✗" TextColor="#D9534F" FontSize="14" FontFamily="MontserratBlack"/>
+                                <Label Text="{Binding GeneralValidationMessage}" FontSize="13" TextColor="#D9534F" FontFamily="MontserratBlack"/>
+                            </StackLayout>
                         </Frame>
 
                         <!-- BUTTONS -->

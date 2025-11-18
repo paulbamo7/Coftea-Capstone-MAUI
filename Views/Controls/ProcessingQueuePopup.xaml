@@ -10,6 +10,7 @@
         <ResourceDictionary>
             <converters:IsPositiveConverter x:Key="IsPositiveConverter"/>
             <converters:IndexOfInCollectionMultiConverter x:Key="IndexOfConverter" />
+            <converters:SelectedCountToHeightConverter x:Key="SelectedCountToHeightConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
     <Grid HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
@@ -28,180 +29,218 @@
                 </Grid>
                 
                 <!-- Orders List -->
-                <CollectionView Grid.Row="1"
-                                ItemsSource="{Binding PendingOrders}"
-                                MaximumHeightRequest="700"
-                                Margin="0">
-                    <CollectionView.ItemsLayout>
-                        <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="8" VerticalItemSpacing="8" />
-                    </CollectionView.ItemsLayout>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <Frame BackgroundColor="#FAFAFA"
-                                   HasShadow="False"
-                                   Padding="20,15"
-                                   Margin="4"
-                                   BorderColor="#E0E0E0">
-                                <Grid ColumnDefinitions="Auto,*,Auto" RowSpacing="10">
-                                    <!-- Order Number -->
-                                    <Frame Grid.Column="0"
-                                           BackgroundColor="#5B4F45"
-                                           CornerRadius="8"
-                                           Padding="10,8"
-                                           HasShadow="False"
-                                           WidthRequest="50"
-                                           HeightRequest="50"
-                                           Margin="0,0,10,0">
-                                        <Label VerticalOptions="Center"
-                                               HorizontalOptions="Center"
-                                               TextColor="White"
-                                               FontSize="18"
-                                               FontAttributes="Bold">
-                                            <Label.Text>
-                                                <MultiBinding Converter="{StaticResource IndexOfConverter}">
-                                                    <Binding Path="BindingContext.PendingOrders" Source="{x:Reference Root}" />
-                                                    <Binding />
-                                                </MultiBinding>
-                                            </Label.Text>
-                                        </Label>
-                                    </Frame>
-                                    
-                                    <!-- Order Info -->
-                                    <VerticalStackLayout Grid.Column="1" Spacing="12">
-                                        <Frame BackgroundColor="#E8D5C4"
-                                               CornerRadius="8"
-                                               Padding="12,8"
-                                               HasShadow="False">
-                                            <StackLayout Orientation="Horizontal" Spacing="8">
+                <ScrollView Grid.Row="1" 
+                            Orientation="Vertical"
+                            MaximumHeightRequest="700">
+                    <CollectionView ItemsSource="{Binding PendingOrders}"
+                                    RemainingItemsThreshold="5"
+                                    SelectionMode="None"
+                                    ItemSizingStrategy="MeasureAllItems">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="White"
+                                       HasShadow="True"
+                                       Padding="0"
+                                       Margin="12,0"
+                                       BorderColor="#E0E0E0"
+                                       CornerRadius="12">
+                                    <Grid RowDefinitions="Auto,*" RowSpacing="0">
+                                        <!-- Order Header -->
+                                        <Grid Grid.Row="0" 
+                                              BackgroundColor="#5B4F45" 
+                                              Padding="18,12" 
+                                              ColumnDefinitions="Auto,*,Auto,Auto"
+                                              ColumnSpacing="12">
+                                            <!-- Order Number Badge -->
+                                            <Frame Grid.Column="0"
+                                                   BackgroundColor="#D4A574"
+                                                   CornerRadius="20"
+                                                   Padding="12,8"
+                                                   HasShadow="False"
+                                                   WidthRequest="48"
+                                                   HeightRequest="48">
+                                                <Label VerticalOptions="Center"
+                                                       HorizontalOptions="Center"
+                                                       TextColor="White"
+                                                       FontSize="18"
+                                                       FontAttributes="Bold"
+                                                       FontFamily="MontserratBlack">
+                                                    <Label.Text>
+                                                        <MultiBinding Converter="{StaticResource IndexOfConverter}">
+                                                            <Binding Path="BindingContext.PendingOrders" Source="{x:Reference Root}" />
+                                                            <Binding />
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                            </Frame>
+                                            
+                                            <!-- Product Name -->
+                                            <VerticalStackLayout Grid.Column="1" 
+                                                                 Spacing="4"
+                                                                 VerticalOptions="Center">
                                                 <Label Text="{Binding ProductName}"
                                                        FontAttributes="Bold"
-                                                       FontSize="16"
-                                                       TextColor="#2B2B2B"
+                                                       FontSize="17"
+                                                       FontFamily="MontserratBlack"
+                                                       TextColor="White"
                                                        VerticalOptions="Center"/>
-                                                <Frame BackgroundColor="#D4A574"
-                                                       CornerRadius="6"
-                                                       Padding="6,4"
-                                                       HasShadow="False">
-                                                    <Label Text="{Binding TotalQuantity, StringFormat='Total: {0}'}"
-                                                           FontSize="14"
-                                                           VerticalOptions="Center"
-                                                           FontAttributes="Bold"
-                                                           TextColor="White"/>
-                                                </Frame>
-                                            </StackLayout>
-                                        </Frame>
+                                                <Label Text="{Binding TotalQuantity, StringFormat='Total Quantity: {0}'}"
+                                                       FontSize="13"
+                                                       FontFamily="OpenSansSemibold"
+                                                       TextColor="#E0E0E0"
+                                                       VerticalOptions="Center"/>
+                                            </VerticalStackLayout>
+                                            
+                                            <!-- Complete Order Button -->
+                                            <Button Grid.Column="2"
+                                                    Text="✓ Complete"
+                                                    FontSize="13"
+                                                    FontAttributes="Bold"
+                                                    FontFamily="MontserratBlack"
+                                                    BackgroundColor="#66BB6A"
+                                                    TextColor="White"
+                                                    CornerRadius="20"
+                                                    Padding="16,10"
+                                                    HeightRequest="42"
+                                                    Command="{Binding BindingContext.CompleteOrderCommand, Source={x:Reference Root}}"
+                                                    CommandParameter="{Binding .}"/>
+                                            
+                                            <!-- Close/Remove Button (if needed) -->
+                                        </Grid>
                                         
-                                        <VerticalStackLayout Spacing="10"
+                                        <!-- Order Items -->
+                                        <VerticalStackLayout Grid.Row="1" 
+                                                             Padding="18,12" 
+                                                             Spacing="10"
                                                              BindableLayout.ItemsSource="{Binding Items}">
                                             <BindableLayout.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Frame BackgroundColor="White"
+                                                    <Frame BackgroundColor="#F8F8F8"
                                                            CornerRadius="10"
-                                                           Padding="12"
+                                                           Padding="14"
                                                            HasShadow="False"
-                                                           BorderColor="#E0E0E0">
+                                                           BorderColor="#E0E0E0"
+                                                           Margin="0,0,0,8">
                                                         <Grid RowDefinitions="Auto,Auto,Auto"
                                                               ColumnDefinitions="*,Auto"
-                                                              RowSpacing="8">
-                                                            <StackLayout Orientation="Horizontal"
-                                                                         Spacing="8"
-                                                                         Grid.Row="0"
-                                                                         Grid.Column="0">
-                                                                <Frame BackgroundColor="#D4A574"
-                                                                       CornerRadius="6"
-                                                                       Padding="6,4"
+                                                              RowSpacing="10">
+                                                            <!-- Size and Quantity Row -->
+                                                            <Grid Grid.Row="0" 
+                                                                  ColumnDefinitions="Auto,*,Auto"
+                                                                  ColumnSpacing="12">
+                                                                <Frame Grid.Column="0"
+                                                                       BackgroundColor="#D4A574"
+                                                                       CornerRadius="8"
+                                                                       Padding="10,6"
                                                                        HasShadow="False">
                                                                     <Label Text="{Binding Size}"
                                                                            FontAttributes="Bold"
                                                                            FontSize="14"
+                                                                           FontFamily="MontserratBlack"
                                                                            TextColor="White"/>
                                                                 </Frame>
-                                                                <Label Text="{Binding Quantity, StringFormat='x{0}'}"
+                                                                <Label Grid.Column="1"
+                                                                       Text="{Binding Quantity, StringFormat='Quantity: {0}'}"
                                                                        FontSize="14"
                                                                        FontAttributes="Bold"
+                                                                       FontFamily="OpenSansSemibold"
                                                                        TextColor="#5B4F45"
                                                                        VerticalOptions="Center"/>
-                                                            </StackLayout>
-                                                            <Button Grid.Row="0"
-                                                                    Grid.Column="1"
-                                                                    Text="✓"
-                                                                    FontSize="16"
-                                                                    FontAttributes="Bold"
-                                                                    BackgroundColor="#66BB6A"
-                                                                    TextColor="White"
-                                                                    CornerRadius="20"
-                                                                    WidthRequest="42"
-                                                                    HeightRequest="42"
-                                                                    Padding="0"
-                                                                    Command="{Binding BindingContext.CompleteItemCommand, Source={x:Reference Root}}"
-                                                                    CommandParameter="{Binding .}"/>
-
+                                                                <Button Grid.Column="2"
+                                                                        Text="✓ Done"
+                                                                        FontSize="12"
+                                                                        FontAttributes="Bold"
+                                                                        FontFamily="MontserratBlack"
+                                                                        BackgroundColor="#66BB6A"
+                                                                        TextColor="White"
+                                                                        CornerRadius="16"
+                                                                        Padding="14,8"
+                                                                        HeightRequest="36"
+                                                                        Command="{Binding BindingContext.CompleteItemCommand, Source={x:Reference Root}}"
+                                                                        CommandParameter="{Binding .}"/>
+                                                            </Grid>
+                                                            
+                                                            <!-- Ingredients -->
                                                             <VerticalStackLayout Grid.Row="1"
                                                                                  Grid.ColumnSpan="2"
-                                                                                 Spacing="5"
+                                                                                 Spacing="6"
                                                                                  IsVisible="{Binding Ingredients.Count, Converter={StaticResource IsPositiveConverter}}">
-                                                                <Label Text="Ingredients:"
+                                                                <Label Text="🧪 Ingredients:"
                                                                        FontAttributes="Bold"
                                                                        FontSize="13"
+                                                                       FontFamily="MontserratBlack"
                                                                        TextColor="#5B4F45"/>
-                                                                <Frame BackgroundColor="#FBF6F0"
-                                                                       CornerRadius="6"
-                                                                       Padding="10,6"
+                                                                <Frame BackgroundColor="White"
+                                                                       CornerRadius="8"
+                                                                       Padding="12,8"
                                                                        HasShadow="False"
                                                                        BorderColor="#E0E0E0">
-                                                                    <CollectionView ItemsSource="{Binding Ingredients}"
-                                                                                    SelectionMode="None">
-                                                                        <CollectionView.ItemTemplate>
-                                                                            <DataTemplate>
-                                                                                <Label FontSize="12"
-                                                                                       TextColor="#444"
-                                                                                       Margin="0,2,0,2">
-                                                                                    <Label.Text>
-                                                                                        <MultiBinding StringFormat="• {0}: {1} {2}">
-                                                                                            <Binding Path="IngredientName"/>
-                                                                                            <Binding Path="Amount"/>
-                                                                                            <Binding Path="Unit"/>
-                                                                                        </MultiBinding>
-                                                                                    </Label.Text>
-                                                                                </Label>
-                                                                            </DataTemplate>
-                                                                        </CollectionView.ItemTemplate>
-                                                                    </CollectionView>
+                                                                    <VerticalStackLayout Spacing="4">
+                                                                        <CollectionView ItemsSource="{Binding Ingredients}"
+                                                                                        SelectionMode="None">
+                                                                            <CollectionView.ItemTemplate>
+                                                                                <DataTemplate>
+                                                                                    <Label FontSize="12"
+                                                                                           FontFamily="OpenSansSemibold"
+                                                                                           TextColor="#444"
+                                                                                           Margin="0,2"
+                                                                                           Padding="8,4">
+                                                                                        <Label.Text>
+                                                                                            <MultiBinding StringFormat="• {0}: {1} {2}">
+                                                                                                <Binding Path="IngredientName"/>
+                                                                                                <Binding Path="Amount"/>
+                                                                                                <Binding Path="Unit"/>
+                                                                                            </MultiBinding>
+                                                                                        </Label.Text>
+                                                                                    </Label>
+                                                                                </DataTemplate>
+                                                                            </CollectionView.ItemTemplate>
+                                                                        </CollectionView>
+                                                                    </VerticalStackLayout>
                                                                 </Frame>
                                                             </VerticalStackLayout>
-
+                                                            
+                                                            <!-- Add-ons -->
                                                             <VerticalStackLayout Grid.Row="2"
                                                                                  Grid.ColumnSpan="2"
-                                                                                 Spacing="5"
+                                                                                 Spacing="6"
                                                                                  IsVisible="{Binding Addons.Count, Converter={StaticResource IsPositiveConverter}}">
-                                                                <Label Text="Add-ons:"
+                                                                <Label Text="➕ Add-ons:"
                                                                        FontAttributes="Bold"
                                                                        FontSize="13"
+                                                                       FontFamily="MontserratBlack"
                                                                        TextColor="#5B4F45"/>
-                                                                <Frame BackgroundColor="#FBF6F0"
-                                                                       CornerRadius="6"
-                                                                       Padding="10,6"
+                                                                <Frame BackgroundColor="White"
+                                                                       CornerRadius="8"
+                                                                       Padding="12,8"
                                                                        HasShadow="False"
                                                                        BorderColor="#E0E0E0">
-                                                                    <CollectionView ItemsSource="{Binding Addons}"
-                                                                                    SelectionMode="None">
-                                                                        <CollectionView.ItemTemplate>
-                                                                            <DataTemplate>
-                                                                                <Label FontSize="12"
-                                                                                       TextColor="#666"
-                                                                                       Margin="0,2,0,2">
-                                                                                    <Label.Text>
-                                                                                        <MultiBinding StringFormat="• {0} (x{1}): {2} {3} per serving">
-                                                                                            <Binding Path="AddonName"/>
-                                                                                            <Binding Path="Quantity"/>
-                                                                                            <Binding Path="Amount"/>
-                                                                                            <Binding Path="Unit"/>
-                                                                                        </MultiBinding>
-                                                                                    </Label.Text>
-                                                                                </Label>
-                                                                            </DataTemplate>
-                                                                        </CollectionView.ItemTemplate>
-                                                                    </CollectionView>
+                                                                    <VerticalStackLayout Spacing="4">
+                                                                        <CollectionView ItemsSource="{Binding Addons}"
+                                                                                        SelectionMode="None">
+                                                                            <CollectionView.ItemTemplate>
+                                                                                <DataTemplate>
+                                                                                    <Label FontSize="12"
+                                                                                           FontFamily="OpenSansSemibold"
+                                                                                           TextColor="#666"
+                                                                                           Margin="0,2"
+                                                                                           Padding="8,4">
+                                                                                        <Label.Text>
+                                                                                            <MultiBinding StringFormat="• {0} (x{1}): {2} {3} per serving">
+                                                                                                <Binding Path="AddonName"/>
+                                                                                                <Binding Path="Quantity"/>
+                                                                                                <Binding Path="Amount"/>
+                                                                                                <Binding Path="Unit"/>
+                                                                                            </MultiBinding>
+                                                                                        </Label.Text>
+                                                                                    </Label>
+                                                                                </DataTemplate>
+                                                                            </CollectionView.ItemTemplate>
+                                                                        </CollectionView>
+                                                                    </VerticalStackLayout>
                                                                 </Frame>
                                                             </VerticalStackLayout>
                                                         </Grid>
@@ -209,26 +248,12 @@
                                                 </DataTemplate>
                                             </BindableLayout.ItemTemplate>
                                         </VerticalStackLayout>
-                                    </VerticalStackLayout>
-                                    
-                                    <!-- Completed Button -->
-                                    <Button Grid.Column="2"
-                                            Text="✓"
-                                            FontSize="18"
-                                            FontAttributes="Bold"
-                                            BackgroundColor="#66BB6A"
-                                            TextColor="White"
-                                            CornerRadius="25"
-                                            WidthRequest="50"
-                                            HeightRequest="50"
-                                            Padding="0"
-                                            Command="{Binding BindingContext.CompleteOrderCommand, Source={x:Reference Root}}"
-                                            CommandParameter="{Binding .}"/>
-                                </Grid>
-                            </Frame>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </ScrollView>
             </Grid>
         </Frame>
     </Grid>

@@ -144,6 +144,16 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSelectedCategoryChanged(string value) // Handle category changes
         {
+            // Clear validation message
+            if (!string.IsNullOrEmpty(CategoryValidationMessage))
+            {
+                CategoryValidationMessage = string.Empty;
+            }
+            if (!string.IsNullOrEmpty(SubcategoryValidationMessage))
+            {
+                SubcategoryValidationMessage = string.Empty;
+            }
+
             // Validate that selected category is in the Categories list
             if (!string.IsNullOrWhiteSpace(value) && !Categories.Contains(value))
             {
@@ -173,6 +183,12 @@ namespace Coftea_Capstone.ViewModel
 
         partial void OnSelectedSubcategoryChanged(string value) // Handle subcategory changes
         {
+            // Clear validation message
+            if (!string.IsNullOrEmpty(SubcategoryValidationMessage))
+            {
+                SubcategoryValidationMessage = string.Empty;
+            }
+
             // Notify display text change
             OnPropertyChanged(nameof(SubcategoryDisplayText));
 
@@ -244,8 +260,74 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int editingProductId;
 
+        // Validation message properties
+        [ObservableProperty]
+        private string productNameValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string categoryValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string subcategoryValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string smallPriceValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string mediumPriceValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string largePriceValidationMessage = string.Empty;
+
+        [ObservableProperty]
+        private string generalValidationMessage = string.Empty;
+
         public event Action<POSPageModel> ProductAdded;
         public event Action<POSPageModel> ProductUpdated;
+
+        private void ClearValidationMessages()
+        {
+            ProductNameValidationMessage = string.Empty;
+            CategoryValidationMessage = string.Empty;
+            SubcategoryValidationMessage = string.Empty;
+            SmallPriceValidationMessage = string.Empty;
+            MediumPriceValidationMessage = string.Empty;
+            LargePriceValidationMessage = string.Empty;
+            GeneralValidationMessage = string.Empty;
+        }
+
+        partial void OnProductNameChanged(string value)
+        {
+            if (!string.IsNullOrEmpty(ProductNameValidationMessage))
+            {
+                ProductNameValidationMessage = string.Empty;
+            }
+        }
+
+
+        partial void OnSmallPriceChanged(string value)
+        {
+            if (!string.IsNullOrEmpty(SmallPriceValidationMessage))
+            {
+                SmallPriceValidationMessage = string.Empty;
+            }
+        }
+
+        partial void OnMediumPriceChanged(string value)
+        {
+            if (!string.IsNullOrEmpty(MediumPriceValidationMessage))
+            {
+                MediumPriceValidationMessage = string.Empty;
+            }
+        }
+
+        partial void OnLargePriceChanged(string value)
+        {
+            if (!string.IsNullOrEmpty(LargePriceValidationMessage))
+            {
+                LargePriceValidationMessage = string.Empty;
+            }
+        }
 
         public AddItemToPOSViewModel() 
         {
@@ -275,39 +357,41 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         public async Task AddProduct() // Validates and adds/updates the product
         {
+            ClearValidationMessages();
+
             // Block immediately if no internet for DB-backed save
             if (!Services.NetworkService.HasInternetConnection())
             {
-                try { await Application.Current.MainPage.DisplayAlert("No Internet", "No internet connection. Please check your network and try again.", "OK"); } catch { }
+                GeneralValidationMessage = "No internet connection. Please check your network and try again.";
                 return;
             }
             if (string.IsNullOrWhiteSpace(ProductName))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Product name is required.", "OK");
+                ProductNameValidationMessage = "Product name is required.";
                 return;
             }
             // Reject names with no letters (e.g., only digits)
             if (!ProductName.Any(char.IsLetter))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Product name must contain letters (e.g., 'IPhone 14'). Pure numbers are not allowed.", "OK");
+                ProductNameValidationMessage = "Product name must contain letters (e.g., 'IPhone 14'). Pure numbers are not allowed.";
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(SelectedCategory))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please select a category.", "OK");
+                CategoryValidationMessage = "Please select a category.";
                 return;
             }
 
             if (string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(SelectedSubcategory))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please select a subcategory (Fruit or Soda).", "OK");
+                SubcategoryValidationMessage = "Please select a subcategory (Fruit or Soda).";
                 return;
             }
 
             if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(SelectedSubcategory))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please select a subcategory (Americano or Latte).", "OK");
+                SubcategoryValidationMessage = "Please select a subcategory (Americano or Latte).";
                 return;
             }
 
@@ -321,7 +405,7 @@ namespace Coftea_Capstone.ViewModel
                 // Coffee category requires a valid small price
                 if (!decimal.TryParse(SmallPrice, out smallPriceValue) || smallPriceValue <= 0)
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid small price for Coffee (must be greater than 0).", "OK");
+                    SmallPriceValidationMessage = "Please enter a valid small price for Coffee (must be greater than 0).";
                     return;
                 }
             }
@@ -336,25 +420,25 @@ namespace Coftea_Capstone.ViewModel
 
             if (!decimal.TryParse(MediumPrice, out decimal mediumPriceValue))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid medium price.", "OK");
+                MediumPriceValidationMessage = "Please enter a valid medium price.";
                 return;
             }
 
             if (!decimal.TryParse(LargePrice, out decimal largePriceValue))
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Please enter a valid large price.", "OK");
+                LargePriceValidationMessage = "Please enter a valid large price.";
                 return;
             }
 
             if (mediumPriceValue <= 0)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Medium price must be greater than 0.", "OK");
+                MediumPriceValidationMessage = "Medium price must be greater than 0.";
                 return;
             }
 
             if (largePriceValue <= 0)
             {
-                await Application.Current.MainPage.DisplayAlert("Error", "Large price must be greater than 0.", "OK");
+                LargePriceValidationMessage = "Large price must be greater than 0.";
                 return;
             }
 
@@ -1208,6 +1292,78 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private void OpenConnectPOSToInventory() // Opens the ConnectPOSToInventory popup
         {
+            // Validate all required fields before proceeding
+            ClearValidationMessages();
+
+            if (string.IsNullOrWhiteSpace(ProductName))
+            {
+                ProductNameValidationMessage = "Product name is required.";
+                return;
+            }
+            // Reject names with no letters (e.g., only digits)
+            if (!ProductName.Any(char.IsLetter))
+            {
+                ProductNameValidationMessage = "Product name must contain letters (e.g., 'IPhone 14'). Pure numbers are not allowed.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(SelectedCategory))
+            {
+                CategoryValidationMessage = "Please select a category.";
+                return;
+            }
+
+            if (string.Equals(SelectedCategory, "Fruit/Soda", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(SelectedSubcategory))
+            {
+                SubcategoryValidationMessage = "Please select a subcategory (Fruit or Soda).";
+                return;
+            }
+
+            if (string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(SelectedSubcategory))
+            {
+                SubcategoryValidationMessage = "Please select a subcategory (Americano or Latte).";
+                return;
+            }
+
+            // Parse and validate prices
+            // Small price is only required for Coffee category
+            decimal smallPriceValue = 0;
+            bool isCoffeeCategory = string.Equals(SelectedCategory, "Coffee", StringComparison.OrdinalIgnoreCase);
+            
+            if (isCoffeeCategory)
+            {
+                // Coffee category requires a valid small price
+                if (!decimal.TryParse(SmallPrice, out smallPriceValue) || smallPriceValue <= 0)
+                {
+                    SmallPriceValidationMessage = "Please enter a valid small price for Coffee (must be greater than 0).";
+                    return;
+                }
+            }
+
+            if (!decimal.TryParse(MediumPrice, out decimal mediumPriceValue))
+            {
+                MediumPriceValidationMessage = "Please enter a valid medium price.";
+                return;
+            }
+
+            if (!decimal.TryParse(LargePrice, out decimal largePriceValue))
+            {
+                LargePriceValidationMessage = "Please enter a valid large price.";
+                return;
+            }
+
+            if (mediumPriceValue <= 0)
+            {
+                MediumPriceValidationMessage = "Medium price must be greater than 0.";
+                return;
+            }
+
+            if (largePriceValue <= 0)
+            {
+                LargePriceValidationMessage = "Large price must be greater than 0.";
+                return;
+            }
+
             // Hide parent view and show the popup from the child VM
             IsAddItemToPOSVisible = false;
             // Populate preview data on child VM

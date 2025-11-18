@@ -300,7 +300,7 @@
                         </StackLayout>
 
                         <!-- Search and Date Filter -->
-                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
+                        <Grid Grid.Row="1" ColumnDefinitions="*, Auto" ColumnSpacing="10">
                             <Border Grid.Column="0" 
                                     Stroke="#8B7355" 
                                     StrokeShape="RoundRectangle 15" 
@@ -333,16 +333,6 @@
                                     </DataTrigger>
                                 </Button.Triggers>
                             </Button>
-                            <ImageButton Grid.Column="2" 
-                                         Source="refreshicon.png"
-                                         BackgroundColor="#90EE90" 
-                                         BorderColor="#8B7355"
-                                         BorderWidth="2"
-                                         WidthRequest="55" 
-                                         HeightRequest="45"
-                                         CornerRadius="20"
-                                         Padding="8"
-                                         Command="{Binding RefreshCommand}"/>
                         </Grid>
                         
                         <!-- Date Filter Indicator -->

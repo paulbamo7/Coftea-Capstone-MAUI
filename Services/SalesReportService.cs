@@ -114,12 +114,15 @@ namespace Coftea_Capstone.Services
                     
                     // Get all transactions for the date range
                     var transactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
-                System.Diagnostics.Debug.WriteLine($"📊 Found {transactions.Count} transactions");
+                System.Diagnostics.Debug.WriteLine($"📊 Found {transactions.Count} transaction rows");
+                
+                // Group by TransactionId to get distinct transactions (since GetTransactionsByDateRangeAsync returns one row per transaction_item)
+                var distinctTransactions = transactions.GroupBy(t => t.TransactionId).Select(g => g.First()).ToList();
                 
                 // Calculate basic metrics
-                var totalSales = transactions.Sum(t => t.Total);
-                var totalOrders = transactions.Count;
-                var activeDays = transactions.Select(t => t.TransactionDate.Date).Distinct().Count();
+                var totalSales = distinctTransactions.Sum(t => t.Total);
+                var totalOrders = distinctTransactions.Count;
+                var activeDays = distinctTransactions.Select(t => t.TransactionDate.Date).Distinct().Count();
                 // Aggregate product counts directly from transaction history
                 var aggregatedProducts = AggregateProductCounts(transactions);
 

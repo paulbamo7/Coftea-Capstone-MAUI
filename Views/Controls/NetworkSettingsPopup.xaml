@@ -137,17 +137,12 @@
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding RefreshAutoDetectionCommand}"/>
                                     </Border.GestureRecognizers>
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                        <Image Source="refreshicon.png" 
-                                               WidthRequest="20" 
-                                               HeightRequest="20" 
-                                               VerticalOptions="Center"/>
-                                        <Label Text="Refresh Auto-Detection" 
-                                               FontSize="14" 
-                                               FontAttributes="Bold"
-                                               TextColor="#5B4F45" 
-                                               VerticalOptions="Center"/>
-                                    </HorizontalStackLayout>
+                                    <Label Text="Refresh Auto-Detection" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold"
+                                           TextColor="#5B4F45" 
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="Center"/>
                                 </Border>
                             </HorizontalStackLayout>
                             
@@ -169,17 +164,12 @@
                             <Border.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding RefreshCommand}"/>
                             </Border.GestureRecognizers>
-                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center" HorizontalOptions="Center">
-                                <Image Source="refreshicon.png" 
-                                       WidthRequest="20" 
-                                       HeightRequest="20" 
-                                       VerticalOptions="Center"/>
-                                <Label Text="Refresh" 
-                                       FontSize="14" 
-                                       FontAttributes="Bold"
-                                       TextColor="#5B4F45" 
-                                       VerticalOptions="Center"/>
-                            </HorizontalStackLayout>
+                            <Label Text="Refresh" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold"
+                                   TextColor="#5B4F45" 
+                                   VerticalOptions="Center"
+                                   HorizontalOptions="Center"/>
                         </Border>
                         
                         <Button Grid.Column="1"

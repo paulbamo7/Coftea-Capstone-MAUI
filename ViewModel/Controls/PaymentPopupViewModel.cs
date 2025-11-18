@@ -486,15 +486,15 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var savedTransactions = await SaveTransaction();
                 System.Diagnostics.Debug.WriteLine($"🔵 SaveTransaction completed. Saved {savedTransactions?.Count ?? 0} transactions");
 
-                // Enqueue items to processing queue BEFORE clearing cart
+                // Enqueue items to processing queue BEFORE clearing cart (in parallel for better performance)
                 try
                 {
                     System.Diagnostics.Debug.WriteLine($"📋 Enqueueing {CartItems.Count} items to processing queue");
                     var posApp = (App)Application.Current;
                     if (posApp?.POSVM?.ProcessingQueuePopup != null)
                     {
-                        // Convert CartItems back to POSPageModel for enqueueing
-                        foreach (var cartItem in CartItems)
+                        // Convert CartItems back to POSPageModel for enqueueing and process in parallel
+                        var enqueueTasks = CartItems.Select(async cartItem =>
                         {
                             // Create POSPageModel from CartItem to enqueue to processing queue
                             var posItem = new POSPageModel
@@ -514,10 +514,22 @@ namespace Coftea_Capstone.ViewModel.Controls
                                 InventoryItems = cartItem.InventoryItems ?? new ObservableCollection<InventoryPageModel>()
                             };
                             
-                            await posApp.POSVM.ProcessingQueuePopup.EnqueueFromCartItem(posItem);
-                            System.Diagnostics.Debug.WriteLine($"✅ Enqueued {posItem.ProductName} to processing queue");
-                        }
-                        System.Diagnostics.Debug.WriteLine($"✅ All items enqueued to processing queue");
+                            try
+                            {
+                                await posApp.POSVM.ProcessingQueuePopup.EnqueueFromCartItem(posItem);
+                                System.Diagnostics.Debug.WriteLine($"✅ Enqueued {posItem.ProductName} to processing queue");
+                                return (success: true, item: posItem);
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"❌ Failed to enqueue {posItem.ProductName}: {ex.Message}");
+                                return (success: false, item: posItem);
+                            }
+                        }).ToArray();
+                        
+                        var enqueueResults = await Task.WhenAll(enqueueTasks);
+                        var successCount = enqueueResults.Count(r => r.success);
+                        System.Diagnostics.Debug.WriteLine($"✅ Enqueued {successCount}/{CartItems.Count} items to processing queue");
                     }
                 }
                 catch (Exception ex)
@@ -595,13 +607,25 @@ namespace Coftea_Capstone.ViewModel.Controls
                 // No automatic toast here; user can open notifications manually via bell
                 
                 // Add notifications for each saved transaction (badge only; panel shows details when opened)
+                // Process notifications in parallel without blocking the main flow
                 var notif = ((App)Application.Current)?.NotificationPopup;
                 if (notif != null && savedTransactions != null)
                 {
-                    foreach (var t in savedTransactions)
+                    _ = Task.Run(async () =>
                     {
-                        await notif.AddSuccess("Transaction", $"Completed: {t.DrinkName}", $"ID: {t.TransactionId}");
-                    }
+                        try
+                        {
+                            var notificationTasks = savedTransactions.Select(t =>
+                                notif.AddSuccess("Transaction", $"Completed: {t.DrinkName}", $"ID: {t.TransactionId}")
+                            ).ToArray();
+                            await Task.WhenAll(notificationTasks);
+                            System.Diagnostics.Debug.WriteLine($"✅ All {savedTransactions.Count} notifications added");
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"⚠️ Error adding notifications: {ex.Message}");
+                        }
+                    });
                 }
                 
                         // Refresh today's section (recent orders + today's totals) in Sales Report
@@ -871,23 +895,28 @@ namespace Coftea_Capstone.ViewModel.Controls
                     await database.SaveTransactionAsync(orderTransaction, CartItems);
                     System.Diagnostics.Debug.WriteLine($"✅ Database save successful for order: {transactionId}");
                     
-                    // Deduct inventory for each item
+                    // Deduct inventory for each item in parallel for better performance
                     System.Diagnostics.Debug.WriteLine($"🔧 Starting inventory deduction for {CartItems.Count} cart items");
-                    foreach (var item in CartItems)
+                    var inventoryDeductionTasks = CartItems.Select(async item =>
                     {
-                        System.Diagnostics.Debug.WriteLine($"💾 ========== Deducting inventory for: {item.ProductName} ==========");
+                        System.Diagnostics.Debug.WriteLine($"💾 ========== Queuing inventory deduction for: {item.ProductName} ==========");
                         System.Diagnostics.Debug.WriteLine($"💾 Item details - Small: {item.SmallQuantity}, Medium: {item.MediumQuantity}, Large: {item.LargeQuantity}");
                         try
                         {
                             await DeductInventoryForItemAsync(database, item);
                             System.Diagnostics.Debug.WriteLine($"✅ Inventory deduction successful for: {item.ProductName}");
+                            return (success: true, item: item);
                         }
                         catch (Exception itemEx)
                         {
                             System.Diagnostics.Debug.WriteLine($"❌ Failed to deduct inventory for {item.ProductName}: {itemEx.Message}");
+                            return (success: false, item: item);
                         }
-                    }
-                    System.Diagnostics.Debug.WriteLine($"🔧 Completed inventory deduction for all cart items");
+                    }).ToArray();
+                    
+                    var inventoryResults = await Task.WhenAll(inventoryDeductionTasks);
+                    var successCount = inventoryResults.Count(r => r.success);
+                    System.Diagnostics.Debug.WriteLine($"🔧 Completed inventory deduction for {successCount}/{CartItems.Count} cart items");
                     
                     // Add to in-memory collection for history popup
                     transactions.Add(orderTransaction);

@@ -30,7 +30,7 @@
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
                WidthRequest="400"
-               HeightRequest="200"
+               HeightRequest="280"
                HasShadow="True"
                InputTransparent="False"
                AbsoluteLayout.LayoutBounds="0.5,0.5,-1,-1"

@@ -149,23 +149,6 @@ namespace Coftea_Capstone.ViewModel
                 return;
             }
 
-            // Check for dependencies first
-            try
-            {
-                bool hasDependencies = await _database.HasProductTransactionDependenciesAsync(product.ProductID);
-                if (hasDependencies)
-                {
-                    await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
-                        "This product cannot be deleted because it has existing transaction history. Deletion is blocked to preserve records. Consider hiding or archiving the product instead.", "OK");
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error checking dependencies: {ex.Message}");
-                // Continue with deletion attempt
-            }
-
             bool confirm = await Application.Current.MainPage.DisplayAlert(
                 "Confirm Delete", 
                 $"Are you sure you want to delete '{product.ProductName}'?", 
@@ -191,12 +174,6 @@ namespace Coftea_Capstone.ViewModel
 
                 await Application.Current.MainPage.DisplayAlert("Error", "Failed to delete product.", "OK");
             }
-            catch (InvalidOperationException ex)
-            {
-                // Handle foreign key constraint violations with user-friendly message
-                await Application.Current.MainPage.DisplayAlert("Cannot Delete", 
-                    "This product cannot be deleted because it has existing transaction history. Deletion is blocked to preserve records. Consider hiding or archiving the product instead.", "OK");
-            }
             catch (Exception ex)
             {
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to delete product: {ex.Message}", "OK");
@@ -215,6 +192,16 @@ namespace Coftea_Capstone.ViewModel
         {
             IsEditProductPopupVisible = true;
             await LoadProductsAsync();
+        }
+
+        [RelayCommand]
+        private async Task OpenArchive(bool productsMode) // Open archive popup
+        {
+            var app = (App)Application.Current;
+            if (app?.ArchivePopup != null)
+            {
+                await app.ArchivePopup.OpenArchivePopupCommand.ExecuteAsync(productsMode);
+            }
         }
     }
 }

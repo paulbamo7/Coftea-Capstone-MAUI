@@ -239,6 +239,16 @@ namespace Coftea_Capstone.ViewModel
                 await Application.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
             }
         }
+
+        [RelayCommand]
+        private async Task OpenArchive(bool productsMode) // Open archive popup
+        {
+            var app = (App)Application.Current;
+            if (app?.ArchivePopup != null)
+            {
+                await app.ArchivePopup.OpenArchivePopupCommand.ExecuteAsync(productsMode);
+            }
+        }
     }
 }
 

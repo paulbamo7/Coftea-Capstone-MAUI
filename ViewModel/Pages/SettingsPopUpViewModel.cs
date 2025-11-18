@@ -185,10 +185,13 @@ namespace Coftea_Capstone.ViewModel
                 var tomorrow = today.AddDays(1);
                 
                 var transactions = await database.GetTransactionsByDateRangeAsync(today, tomorrow);
-                System.Diagnostics.Debug.WriteLine($"✅ Loaded {transactions.Count} transactions for today");
+                System.Diagnostics.Debug.WriteLine($"✅ Loaded {transactions.Count} transaction rows for today");
                 
-                TotalOrdersToday = transactions.Count;
-                TotalSalesToday = transactions.Sum(t => t.Total);
+                // Group by TransactionId to get distinct transactions (since GetTransactionsByDateRangeAsync returns one row per transaction_item)
+                var distinctTransactions = transactions.GroupBy(t => t.TransactionId).Select(g => g.First()).ToList();
+                
+                TotalOrdersToday = distinctTransactions.Count;
+                TotalSalesToday = distinctTransactions.Sum(t => t.Total);
                 
                 // Load recent orders
                 await LoadRecentOrdersAsync(transactions);
@@ -318,20 +321,21 @@ namespace Coftea_Capstone.ViewModel
             }
         }
 
-        private void CalculateDashboardYAxisScale(int maxYValue) // Calculate Y-axis scale for dashboard bar chart
+        private int CalculateDashboardYAxisScale(int maxYValue) // Calculate Y-axis scale for dashboard bar chart
         {
             DashboardYAxisValues.Clear();
             
-            // If maxYValue is 100 or less, use 100 as the top value
             int topValue;
+            
+            // Use 100 as minimum scale, or calculate appropriate scale for larger values
             if (maxYValue <= 100)
             {
+                // For values <= 100, always use 100 as the top value
                 topValue = 100;
             }
             else
             {
-                // Ensure we have at least 5 values to display, with the top value being >= maxYValue
-                // Calculate step size to show 5 evenly spaced values
+                // For values > 100, calculate step size to show 5 evenly spaced values
                 int stepSize = (int)Math.Ceiling((double)maxYValue / 4.0); // Divide by 4 to get 5 values (0, step, 2*step, 3*step, 4*step)
                 
                 // Round step size to a nice number (10, 20, 50, 100, etc.)
@@ -350,7 +354,13 @@ namespace Coftea_Capstone.ViewModel
             var values = new List<int>();
             for (int i = 0; i <= 4; i++)
             {
-                values.Add((topValue * i) / 4);
+                int value = (topValue * i) / 4;
+                // Map specific values for display
+                if (value == 0) value = 20;
+                else if (value == 25) value = 40;
+                else if (value == 50) value = 60;
+                else if (value == 75) value = 80;
+                values.Add(value);
             }
             
             // Reverse to show from top (highest) to bottom (lowest)
@@ -358,6 +368,8 @@ namespace Coftea_Capstone.ViewModel
             {
                 DashboardYAxisValues.Add(values[i]);
             }
+            
+            return topValue;
         }
 
         private async Task LoadTopSellingProductsAsync() // Load top selling products for dashboard
@@ -388,12 +400,8 @@ namespace Coftea_Capstone.ViewModel
                     int maxCount = productSales.Max(x => x.Count);
                     if (maxCount <= 0) maxCount = 1; // Prevent division by zero
                     
-                    // Calculate the Y-axis maximum value (round up to nearest 20)
-                    int yAxisMax = ((maxCount / 20) + 1) * 20;
-                    if (yAxisMax < 100) yAxisMax = 100; // Minimum scale is 100
-                    
-                    // Calculate Y-axis scale values
-                    CalculateDashboardYAxisScale(yAxisMax);
+                    // Calculate Y-axis scale values and get the actual top value used
+                    int yAxisMax = CalculateDashboardYAxisScale(maxCount);
                     
                     // Define color palette matching SalesReport
                     var colorPalette = new List<string>
@@ -420,6 +428,8 @@ namespace Coftea_Capstone.ViewModel
 
                 TopSellingProductsToday = new ObservableCollection<TrendItem>(productSales);
                 OnPropertyChanged(nameof(DashboardYAxisValues));
+                OnPropertyChanged(nameof(TopSellingProductsToday));
+                OnPropertyChanged(nameof(FilteredTopSellingProductsToday));
             }
             catch (Exception ex)
             {

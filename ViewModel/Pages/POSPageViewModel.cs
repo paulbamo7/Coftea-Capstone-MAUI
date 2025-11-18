@@ -958,6 +958,80 @@ namespace Coftea_Capstone.ViewModel
 
         
         [RelayCommand]
+        private void ClearProductQuantities(POSPageModel product) // Clears quantities for a product in the cart (right frame)
+        {
+            if (product == null) return;
+
+            // Reset all size quantities to 0
+            product.SmallQuantity = 0;
+            product.MediumQuantity = 0;
+            product.LargeQuantity = 0;
+
+            // Reset all addon quantities and selections
+            if (product.SmallAddons != null)
+            {
+                foreach (var addon in product.SmallAddons)
+                {
+                    if (addon != null)
+                    {
+                        addon.AddonQuantity = 0;
+                        addon.IsSelected = false;
+                    }
+                }
+            }
+
+            if (product.MediumAddons != null)
+            {
+                foreach (var addon in product.MediumAddons)
+                {
+                    if (addon != null)
+                    {
+                        addon.AddonQuantity = 0;
+                        addon.IsSelected = false;
+                    }
+                }
+            }
+
+            if (product.LargeAddons != null)
+            {
+                foreach (var addon in product.LargeAddons)
+                {
+                    if (addon != null)
+                    {
+                        addon.AddonQuantity = 0;
+                        addon.IsSelected = false;
+                    }
+                }
+            }
+
+            // Reset legacy InventoryItems if any
+            if (product.InventoryItems != null)
+            {
+                foreach (var item in product.InventoryItems)
+                {
+                    if (item != null)
+                    {
+                        item.AddonQuantity = 0;
+                        item.IsSelected = false;
+                    }
+                }
+            }
+
+            // Update UI
+            OnPropertyChanged(nameof(SmallAddonsDisplay));
+            OnPropertyChanged(nameof(MediumAddonsDisplay));
+            OnPropertyChanged(nameof(LargeAddonsDisplay));
+            
+            // Notify TotalPrice update
+            if (product == SelectedProduct)
+            {
+                OnPropertyChanged(nameof(SelectedProduct));
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"✅ Cleared quantities for product: {product.ProductName}");
+        }
+
+        [RelayCommand]
         private void RemoveFromCart(POSPageModel product) // Removes a product from the cart
         {
             if (product == null || CartItems == null) return;
