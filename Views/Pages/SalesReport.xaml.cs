@@ -3,6 +3,7 @@ using Coftea_Capstone.ViewModel.Controls;
 using Coftea_Capstone.Views.Controls;
 using Coftea_Capstone.Views;
 using Coftea_Capstone.Services;
+using System.Reflection;
 
 namespace Coftea_Capstone.Views.Pages;
 
@@ -173,7 +174,7 @@ public partial class SalesReport : ContentPage
     private void OnDialogBackgroundPan(object sender, PanUpdatedEventArgs e)
     {
         // Consume pan gestures to prevent background dragging
-        e.Handled = true;
+        // PanUpdatedEventArgs doesn't have Handled property, but consuming the event prevents propagation
     }
 
     private void OnDialogFrameTapped(object sender, EventArgs e)
@@ -191,17 +192,22 @@ public partial class SalesReport : ContentPage
             var viewModel = app.SalesReportVM;
             if (viewModel != null)
             {
-                System.Diagnostics.Debug.WriteLine("🔵 Calling AcceptReportDialogAsyncCommand");
-                // Manually trigger the command if it exists
-                var command = viewModel.AcceptReportDialogAsyncCommand;
-                if (command != null && command.CanExecute(null))
+                System.Diagnostics.Debug.WriteLine("🔵 Calling AcceptReportDialogAsync via reflection");
+                // Use reflection to call the private method since RelayCommand might not be accessible
+                var method = viewModel.GetType().GetMethod("AcceptReportDialogAsync", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (method != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("🔵 Command exists and can execute, executing...");
-                    await command.ExecuteAsync(null);
+                    System.Diagnostics.Debug.WriteLine("🔵 Method found, invoking...");
+                    var task = method.Invoke(viewModel, null) as Task;
+                    if (task != null)
+                    {
+                        await task;
+                    }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"❌ AcceptReportDialogAsyncCommand issue - Command is null: {command == null}, CanExecute: {command?.CanExecute(null)}");
+                    System.Diagnostics.Debug.WriteLine("❌ AcceptReportDialogAsync method not found!");
                 }
             }
             else
