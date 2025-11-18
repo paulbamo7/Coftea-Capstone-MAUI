@@ -6,14 +6,14 @@
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
-             BackgroundColor="#C1A892">
+             BackgroundColor="#E8DCC8">
 
     <Grid ColumnDefinitions="200,*" RowDefinitions="*">
         <views:NavigationBar Grid.Column="0" />
 
         <Grid Grid.Column="1" RowDefinitions="Auto,*">
             <!-- Top Bar -->
-            <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Padding="30,25,30,10" ColumnSpacing="25">
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Padding="30,25,30,20" ColumnSpacing="25">
                 <BoxView Grid.ColumnSpan="3" Opacity="0"/>
                 <ImageButton Grid.Column="1" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
                 <Grid Grid.Column="2" WidthRequest="40" HeightRequest="40">
@@ -32,161 +32,216 @@
             </Grid>
 
         <ScrollView Grid.Row="1" Padding="0">
-            <Grid RowDefinitions="Auto, *" BackgroundColor="Transparent">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <Grid Grid.Row="0" Padding="30,25,30,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <VerticalStackLayout Spacing="6" Grid.Column="0">
+            <VerticalStackLayout Spacing="24" Padding="30,20,30,40">
+                <!-- Header Section -->
+                <Grid ColumnDefinitions="*, Auto" Padding="0">
+                    <VerticalStackLayout Spacing="6" Grid.Column="0" VerticalOptions="Center">
                         <Label Text="About Coftea"
-                               FontSize="36"
+                               FontSize="34"
                                FontAttributes="Bold"
-                               TextColor="#3E2723" />
+                               TextColor="#2E1F1A" />
                         <Label Text="For Team Members"
-                               FontSize="16"
-                               TextColor="#5B4F45" />
+                               FontSize="15"
+                               TextColor="#6B5A4F"
+                               Opacity="0.9" />
                     </VerticalStackLayout>
 
                     <Frame Grid.Column="1"
                            CornerRadius="18"
-                           Padding="12"
-                           BackgroundColor="#F9F3EC"
-                           HasShadow="False"
-                           BorderColor="#E0C9B0"
+                           Padding="16,14"
+                           BackgroundColor="White"
+                           HasShadow="True"
+                           BorderColor="#D4C4B0"
                            VerticalOptions="Center">
-                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                        <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
                             <Image Source="coftea_logo.png"
-                                   WidthRequest="48"
-                                   HeightRequest="48"
+                                   WidthRequest="42"
+                                   HeightRequest="42"
                                    Aspect="AspectFill" />
-                            <VerticalStackLayout Spacing="2">
+                            <VerticalStackLayout Spacing="3">
                                 <Label Text="Coftea Café"
                                        FontAttributes="Bold"
-                                       FontSize="16"
-                                       TextColor="#5B4F45" />
+                                       FontSize="15"
+                                       TextColor="#4A3F35" />
                                 <Label Text="Version 1.0.0"
                                        FontSize="12"
-                                       TextColor="#7A5E4B" />
+                                       TextColor="#7A6B5F"
+                                       Opacity="0.85" />
                             </VerticalStackLayout>
                         </HorizontalStackLayout>
                     </Frame>
                 </Grid>
 
-                <VerticalStackLayout Grid.Row="1"
-                                     Padding="30,0,30,30"
-                                     Spacing="18">
-
-                    <!-- About Coftea for Team Members -->
-                    <Frame BackgroundColor="White"
-                           CornerRadius="24"
-                           Padding="24"
-                           HasShadow="True"
-                           BorderColor="#E5D2C1">
-                        <VerticalStackLayout Spacing="16">
-                            <HorizontalStackLayout Spacing="10">
-                                <Image Source="story_icon.png" WidthRequest="28" HeightRequest="28" />
-                                <Label Text="What is Coftea?"
-                                       FontSize="24"
-                                       FontAttributes="Bold"
-                                       TextColor="#5B4F45" />
-                            </HorizontalStackLayout>
-                            
-                            <Label Text="Coftea is a coffee-tea hybrid that combines single-origin coffee beans with premium tea leaves. Each serving has ~120 mg of natural caffeine plus L-theanine from tea, giving smooth, jitter-free energy."
-                                   FontSize="15"
-                                   TextColor="#4B3A2F"
+                <!-- What is Coftea Card -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="18"
+                       Padding="18"
+                       HasShadow="True"
+                       BorderColor="#D4C4B0">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="What is Coftea?"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="#2E1F1A"
+                               Margin="0" />
+                        
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Coftea is a coffee-tea hybrid that combines single-origin coffee beans with premium tea leaves. Each serving contains ~120&#160;mg of natural caffeine and L-theanine from tea, giving smooth, jitter-free energy."
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
                                    LineBreakMode="WordWrap" />
                             
                             <Label Text="We were founded in 2023 after our founder accidentally brewed coffee and tea together and realized it was the perfect drink."
-                                   FontSize="15"
-                                   TextColor="#4B3A2F"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
                                    LineBreakMode="WordWrap" />
                             
                             <Label Text="Customers love us because we taste amazing hot or iced, brew in 3 minutes, and solve the 'coffee crash vs weak tea' problem."
-                                   FontSize="15"
-                                   TextColor="#4B3A2F"
+                                   FontSize="13"
+                                   TextColor="#4A3F35"
+                                   LineHeight="19"
                                    LineBreakMode="WordWrap" />
-                            
-                            <Frame BackgroundColor="#F9F3EC"
-                                   BorderColor="#E0C9B0"
-                                   CornerRadius="18"
-                                   Padding="18"
-                                   Margin="0,8,0,0">
-                                <VerticalStackLayout Spacing="8">
-                                    <Label Text="Our Core Promise"
-                                           FontAttributes="Bold"
-                                           FontSize="18"
-                                           TextColor="#5B4F45" />
-                                    <Label Text="Great taste + calm, long-lasting focus."
-                                           FontSize="16"
-                                           TextColor="#4B3A2F"
-                                           FontAttributes="Bold" />
-                                </VerticalStackLayout>
-                            </Frame>
-                            
-                            <Frame BackgroundColor="#F1E2D6"
-                                   BorderColor="#D4C4B0"
-                                   CornerRadius="16"
-                                   Padding="16"
-                                   Margin="0,8,0,0">
-                                <VerticalStackLayout Spacing="6">
-                                    <Label Text="💡 Fun Fact to Share with Guests"
-                                           FontAttributes="Bold"
-                                           FontSize="16"
-                                           TextColor="#5B4F45" />
-                                    <Label Text="'It's what would happen if coffee and tea had a very productive baby.'"
-                                           FontSize="14"
-                                           TextColor="#6B5344"
-                                           LineBreakMode="WordWrap" />
-                                </VerticalStackLayout>
-                            </Frame>
                         </VerticalStackLayout>
-                    </Frame>
-
-                    <!-- Quick Reference for Staff -->
-                    <Frame BackgroundColor="White"
-                           CornerRadius="24"
-                           Padding="24"
-                           HasShadow="True"
-                           BorderColor="#E5D2C1">
-                        <VerticalStackLayout Spacing="16">
-                            <HorizontalStackLayout Spacing="10">
-                                <Image Source="features_icon.png" WidthRequest="28" HeightRequest="28" />
-                                <Label Text="Quick Reference"
-                                       FontSize="24"
+                        
+                        <Frame BackgroundColor="#F0E6D8"
+                               BorderColor="#D4C4B0"
+                               CornerRadius="12"
+                               Padding="12"
+                               Margin="0,4,0,0">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="Our Core Promise"
                                        FontAttributes="Bold"
-                                       TextColor="#5B4F45" />
-                            </HorizontalStackLayout>
+                                       FontSize="13"
+                                       TextColor="#4A3F35" />
+                                <Label Text="Great taste + calm, long-lasting focus."
+                                       FontSize="12"
+                                       TextColor="#4A3F35"
+                                       FontAttributes="Bold" />
+                            </VerticalStackLayout>
+                        </Frame>
+                        
+                        <Frame BackgroundColor="#E8DCC8"
+                               BorderColor="#C8B8A4"
+                               CornerRadius="12"
+                               Padding="12"
+                               Margin="0,4,0,0">
+                            <VerticalStackLayout Spacing="3">
+                                <Label Text="💡 Fun Fact to Share with Guests"
+                                       FontAttributes="Bold"
+                                       FontSize="13"
+                                       TextColor="#4A3F35" />
+                                <Label Text="'It's what would happen if coffee and tea had a very productive baby.'"
+                                       FontSize="12"
+                                       TextColor="#6B5A4F"
+                                       LineHeight="17"
+                                       LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </VerticalStackLayout>
+                </Frame>
 
-                            <Grid ColumnDefinitions="*"
-                                  RowSpacing="12"
-                                  Margin="0,4,0,0">
-                                <Frame CornerRadius="16"
-                                       BackgroundColor="#F1E2D6"
-                                       Padding="18"
-                                       HasShadow="False">
-                                    <VerticalStackLayout Spacing="6">
-                                        <Label Text="Key Points to Remember"
-                                               FontAttributes="Bold"
+                <!-- Quick Reference Card -->
+                <Frame BackgroundColor="White"
+                       CornerRadius="24"
+                       Padding="28"
+                       HasShadow="True"
+                       BorderColor="#D4C4B0">
+                    <VerticalStackLayout Spacing="20">
+                        <Label Text="Quick Reference"
+                               FontSize="26"
+                               FontAttributes="Bold"
+                               TextColor="#2E1F1A" />
+
+                        <Frame CornerRadius="18"
+                               BackgroundColor="#E8DCC8"
+                               BorderColor="#C8B8A4"
+                               Padding="20"
+                               HasShadow="False">
+                            <VerticalStackLayout Spacing="14">
+                                <Label Text="Key Points to Remember"
+                                       FontAttributes="Bold"
+                                       FontSize="18"
+                                       TextColor="#4A3F35"
+                                       Margin="0" />
+                                
+                                <VerticalStackLayout Spacing="12">
+                                    <HorizontalStackLayout Spacing="12">
+                                        <Label Text="•"
                                                FontSize="18"
-                                               TextColor="#5B4F45" />
-                                        <Label Text="• Coffee-tea hybrid with ~120 mg caffeine + L-theanine&#x0a;• Smooth, jitter-free energy&#x0a;• Tastes great hot or iced&#x0a;• Brews in 3 minutes&#x0a;• Solves the coffee crash problem"
-                                               FontSize="14"
-                                               TextColor="#4B3A2F"
-                                               LineBreakMode="WordWrap" />
-                                    </VerticalStackLayout>
-                                </Frame>
-                            </Grid>
-                        </VerticalStackLayout>
-                    </Frame>
-                </VerticalStackLayout>
-            </Grid>
+                                               FontAttributes="Bold"
+                                               TextColor="#5B4F45"
+                                               VerticalOptions="Start" />
+                                        <Label Text="Coffee-tea hybrid with ~120 mg caffeine + L-theanine"
+                                               FontSize="15"
+                                               TextColor="#4A3F35"
+                                               LineBreakMode="WordWrap"
+                                               VerticalOptions="Start"
+                                               HorizontalOptions="FillAndExpand" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <HorizontalStackLayout Spacing="12">
+                                        <Label Text="•"
+                                               FontSize="18"
+                                               FontAttributes="Bold"
+                                               TextColor="#5B4F45"
+                                               VerticalOptions="Start" />
+                                        <Label Text="Smooth, jitter-free energy"
+                                               FontSize="15"
+                                               TextColor="#4A3F35"
+                                               LineBreakMode="WordWrap"
+                                               VerticalOptions="Start"
+                                               HorizontalOptions="FillAndExpand" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <HorizontalStackLayout Spacing="12">
+                                        <Label Text="•"
+                                               FontSize="18"
+                                               FontAttributes="Bold"
+                                               TextColor="#5B4F45"
+                                               VerticalOptions="Start" />
+                                        <Label Text="Tastes great hot or iced"
+                                               FontSize="15"
+                                               TextColor="#4A3F35"
+                                               LineBreakMode="WordWrap"
+                                               VerticalOptions="Start"
+                                               HorizontalOptions="FillAndExpand" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <HorizontalStackLayout Spacing="12">
+                                        <Label Text="•"
+                                               FontSize="18"
+                                               FontAttributes="Bold"
+                                               TextColor="#5B4F45"
+                                               VerticalOptions="Start" />
+                                        <Label Text="Brews in 3 minutes"
+                                               FontSize="15"
+                                               TextColor="#4A3F35"
+                                               LineBreakMode="WordWrap"
+                                               VerticalOptions="Start"
+                                               HorizontalOptions="FillAndExpand" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <HorizontalStackLayout Spacing="12">
+                                        <Label Text="•"
+                                               FontSize="18"
+                                               FontAttributes="Bold"
+                                               TextColor="#5B4F45"
+                                               VerticalOptions="Start" />
+                                        <Label Text="Solves the coffee crash problem"
+                                               FontSize="15"
+                                               TextColor="#4A3F35"
+                                               LineBreakMode="WordWrap"
+                                               VerticalOptions="Start"
+                                               HorizontalOptions="FillAndExpand" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
         </ScrollView>
         </Grid>
         
