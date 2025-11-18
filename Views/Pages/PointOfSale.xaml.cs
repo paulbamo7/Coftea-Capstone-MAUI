@@ -227,6 +227,9 @@ public partial class PointOfSale : ContentPage
             // Ensure products and persisted cart are loaded
             await POSViewModel.LoadDataAsync();
             await POSViewModel.LoadCartFromStorageAsync();
+            
+            // Refresh menu button visibility based on current user permissions
+            POSViewModel.RefreshMenuButtonVisibility();
         }
         catch (Exception ex)
         {

@@ -728,20 +728,7 @@
                             Margin="0,10,10,10"
                             HeightRequest="45"
                             Command="{Binding ManagePOSCommand}"
-                            IsVisible="False">
-                        <Button.Triggers>
-                            <DataTrigger TargetType="Button"
-                                         Binding="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"
-                                         Value="True">
-                                <Setter Property="IsVisible" Value="True"/>
-                            </DataTrigger>
-                            <DataTrigger TargetType="Button"
-                                         Binding="{Binding Source={x:Static Application.Current}, Path=CurrentUser.CanAccessPOS}"
-                                         Value="True">
-                                <Setter Property="IsVisible" Value="True"/>
-                            </DataTrigger>
-                        </Button.Triggers>
-                    </Button>
+                            IsVisible="{Binding CanShowMenuButton}"/>
                 </Grid>
             </Grid>
         </Grid>

@@ -35,7 +35,8 @@ namespace Coftea_Capstone.Services
         Product,
         Day,
         Week,
-        Month
+        Month,
+        Category
     }
 
     public interface ISalesReportService
@@ -306,6 +307,10 @@ namespace Coftea_Capstone.Services
                     var monthStart = new DateTime(date.Year, date.Month, 1);
                     return ($"{monthStart:yyyy-MM}", monthStart.ToString("MMMM yyyy", CultureInfo.InvariantCulture), monthStart);
 
+                case SalesAggregateGrouping.Category:
+                    var category = InferCategory(null, transaction.DrinkName ?? "");
+                    return (category.ToUpperInvariant(), category, DateTime.MinValue);
+
                 case SalesAggregateGrouping.Product:
                 default:
                     var productName = (transaction.DrinkName ?? "Unknown").Trim();
@@ -426,7 +431,7 @@ namespace Coftea_Capstone.Services
                 })
                 .ToList();
 
-            if (grouping == SalesAggregateGrouping.Product)
+            if (grouping == SalesAggregateGrouping.Product || grouping == SalesAggregateGrouping.Category)
             {
                 rows = rows
                     .OrderByDescending(r => r.Row.TotalQuantity)

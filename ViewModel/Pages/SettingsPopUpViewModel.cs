@@ -40,6 +40,26 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<TrendItem> topSellingProductsToday = new();
 
+        // Filtered list showing only products below 80% of chart height
+        public ObservableCollection<TrendItem> FilteredTopSellingProductsToday
+        {
+            get
+            {
+                var filtered = new ObservableCollection<TrendItem>();
+                foreach (var item in TopSellingProductsToday)
+                {
+                    // Only show items where the bar height is below 80% of the chart
+                    // ScaledCount max is 140, so 80% = 112
+                    // Or check ratio: Count / YAxisMax <= 0.8
+                    if (item.YAxisMax > 0 && (double)item.Count / item.YAxisMax <= 0.8)
+                    {
+                        filtered.Add(item);
+                    }
+                }
+                return filtered;
+            }
+        }
+
         // Y-axis scale property for employee dashboard bar chart
         [ObservableProperty]
         private ObservableCollection<int> dashboardYAxisValues = new();
@@ -302,20 +322,29 @@ namespace Coftea_Capstone.ViewModel
         {
             DashboardYAxisValues.Clear();
             
-            // Ensure we have at least 5 values to display, with the top value being >= maxYValue
-            // Calculate step size to show 5 evenly spaced values
-            int stepSize = (int)Math.Ceiling((double)maxYValue / 4.0); // Divide by 4 to get 5 values (0, step, 2*step, 3*step, 4*step)
-            
-            // Round step size to a nice number (10, 20, 50, 100, etc.)
-            if (stepSize <= 10) stepSize = 10;
-            else if (stepSize <= 20) stepSize = 20;
-            else if (stepSize <= 50) stepSize = 50;
-            else if (stepSize <= 100) stepSize = 100;
-            else stepSize = ((stepSize / 50) + 1) * 50; // Round up to nearest 50
-            
-            // Calculate the top value (must be >= maxYValue)
-            int topValue = ((maxYValue / stepSize) + 1) * stepSize;
-            if (topValue < maxYValue) topValue = maxYValue + stepSize;
+            // If maxYValue is 100 or less, use 100 as the top value
+            int topValue;
+            if (maxYValue <= 100)
+            {
+                topValue = 100;
+            }
+            else
+            {
+                // Ensure we have at least 5 values to display, with the top value being >= maxYValue
+                // Calculate step size to show 5 evenly spaced values
+                int stepSize = (int)Math.Ceiling((double)maxYValue / 4.0); // Divide by 4 to get 5 values (0, step, 2*step, 3*step, 4*step)
+                
+                // Round step size to a nice number (10, 20, 50, 100, etc.)
+                if (stepSize <= 10) stepSize = 10;
+                else if (stepSize <= 20) stepSize = 20;
+                else if (stepSize <= 50) stepSize = 50;
+                else if (stepSize <= 100) stepSize = 100;
+                else stepSize = ((stepSize / 50) + 1) * 50; // Round up to nearest 50
+                
+                // Calculate the top value (must be >= maxYValue)
+                topValue = ((maxYValue / stepSize) + 1) * stepSize;
+                if (topValue < maxYValue) topValue = maxYValue + stepSize;
+            }
             
             // Generate 5 values from 0 to topValue
             var values = new List<int>();
@@ -400,6 +429,7 @@ namespace Coftea_Capstone.ViewModel
                 // Initialize with default scale on error
                 CalculateDashboardYAxisScale(100);
                 OnPropertyChanged(nameof(DashboardYAxisValues));
+                OnPropertyChanged(nameof(FilteredTopSellingProductsToday));
             }
         }
 
@@ -620,6 +650,11 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"Failed to load inventory alerts: {ex.Message}");
                 InventoryAlerts.Add("❌ Error loading inventory data");
             }
+        }
+
+        partial void OnTopSellingProductsTodayChanged(ObservableCollection<TrendItem> value)
+        {
+            OnPropertyChanged(nameof(FilteredTopSellingProductsToday));
         }
     }
 }

@@ -103,6 +103,25 @@ namespace Coftea_Capstone.Services
             {
                 System.Diagnostics.Debug.WriteLine($"Attempting to send password reset email to: {email}");
                 
+                // Check internet connectivity
+                if (!NetworkService.HasInternetConnection())
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ No internet connection - cannot send email");
+                    return false;
+                }
+                
+                // Re-read Preferences to ensure we have latest Gmail config
+                _useGmail = Preferences.Get("UseGmailSMTP", false);
+                _gmailAddress = Preferences.Get("GmailAddress", string.Empty);
+                _gmailAppPassword = Preferences.Get("GmailAppPassword", string.Empty);
+                
+                // Validate Gmail configuration if using Gmail
+                if (_useGmail && (string.IsNullOrWhiteSpace(_gmailAddress) || string.IsNullOrWhiteSpace(_gmailAppPassword)))
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Gmail is enabled but credentials are missing!");
+                    return false;
+                }
+                
                 using var client = CreateSmtpClient();
                 
                 var htmlBody = CreatePasswordResetEmailBodyWithCode(resetToken);
@@ -148,6 +167,13 @@ namespace Coftea_Capstone.Services
                 System.Diagnostics.Debug.WriteLine($"   Name: {firstName} {lastName}");
                 System.Diagnostics.Debug.WriteLine($"   IsAdmin: {isAdmin}");
                 
+                // Check internet connectivity
+                if (!NetworkService.HasInternetConnection())
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ No internet connection - cannot send email");
+                    return false;
+                }
+                
                 // Re-read Preferences to ensure we have latest Gmail config
                 _useGmail = Preferences.Get("UseGmailSMTP", false);
                 _gmailAddress = Preferences.Get("GmailAddress", string.Empty);
@@ -155,6 +181,14 @@ namespace Coftea_Capstone.Services
                 
                 System.Diagnostics.Debug.WriteLine($"   Gmail Config - UseGmail: {_useGmail}, Address: {(_gmailAddress ?? "null")}, Password: {(!string.IsNullOrWhiteSpace(_gmailAppPassword) ? "SET" : "NOT SET")}");
                 
+                // Validate Gmail configuration if using Gmail
+                if (_useGmail && (string.IsNullOrWhiteSpace(_gmailAddress) || string.IsNullOrWhiteSpace(_gmailAppPassword)))
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Gmail is enabled but credentials are missing!");
+                    return false;
+                }
+                
+                // Create SMTP client after updating instance variables
                 using var client = CreateSmtpClient();
                 
                 var fullName = $"{firstName} {lastName}".Trim();
@@ -218,6 +252,25 @@ namespace Coftea_Capstone.Services
             try
             {
                 System.Diagnostics.Debug.WriteLine($"Attempting to send email verification to: {email}");
+                
+                // Check internet connectivity
+                if (!NetworkService.HasInternetConnection())
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ No internet connection - cannot send email");
+                    return false;
+                }
+                
+                // Re-read Preferences to ensure we have latest Gmail config
+                _useGmail = Preferences.Get("UseGmailSMTP", false);
+                _gmailAddress = Preferences.Get("GmailAddress", string.Empty);
+                _gmailAppPassword = Preferences.Get("GmailAppPassword", string.Empty);
+                
+                // Validate Gmail configuration if using Gmail
+                if (_useGmail && (string.IsNullOrWhiteSpace(_gmailAddress) || string.IsNullOrWhiteSpace(_gmailAppPassword)))
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ Gmail is enabled but credentials are missing!");
+                    return false;
+                }
                 
                 using var client = CreateSmtpClient();
                 

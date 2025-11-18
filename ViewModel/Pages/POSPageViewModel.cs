@@ -108,6 +108,15 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private bool isAdmin;
 
+        public bool CanShowMenuButton
+        {
+            get
+            {
+                var currentUser = App.CurrentUser;
+                return (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessPOS ?? false);
+            }
+        }
+
         [ObservableProperty]
         private bool isCategoryLoading;
 
@@ -1425,6 +1434,12 @@ namespace Coftea_Capstone.ViewModel
             if (App.CurrentUser != null)
                 IsAdmin = App.CurrentUser.IsAdmin;
 
+            // Subscribe to CurrentUser changes
+            App.CurrentUserChanged += OnCurrentUserChanged;
+            
+            // Notify that CanShowMenuButton should be refreshed
+            OnPropertyChanged(nameof(CanShowMenuButton));
+
             await LoadDataAsync();
 
             // Load persisted cart
@@ -1461,6 +1476,23 @@ namespace Coftea_Capstone.ViewModel
             }
             
             return true;
+        }
+
+        partial void OnIsAdminChanged(bool value)
+        {
+            OnPropertyChanged(nameof(CanShowMenuButton));
+        }
+
+        private void OnCurrentUserChanged(object sender, EventArgs e)
+        {
+            if (App.CurrentUser != null)
+                IsAdmin = App.CurrentUser.IsAdmin;
+            OnPropertyChanged(nameof(CanShowMenuButton));
+        }
+
+        public void RefreshMenuButtonVisibility()
+        {
+            OnPropertyChanged(nameof(CanShowMenuButton));
         }
     }
 }

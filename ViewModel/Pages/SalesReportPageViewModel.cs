@@ -33,6 +33,7 @@ namespace Coftea_Capstone.ViewModel
         private readonly string[] _aggregateModes = new[]
         {
             "Total sales per product",
+            "Sales per category",
             "Sales per day",
             "Sales per week",
             "Sales per month"
@@ -980,6 +981,7 @@ namespace Coftea_Capstone.ViewModel
         {
             return mode switch
             {
+                "Sales per category" => SalesAggregateGrouping.Category,
                 "Sales per day" => SalesAggregateGrouping.Day,
                 "Sales per week" => SalesAggregateGrouping.Week,
                 "Sales per month" => SalesAggregateGrouping.Month,

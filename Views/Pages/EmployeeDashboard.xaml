@@ -214,17 +214,19 @@
                             </Grid>
                         </Grid>
 
-                        <!-- Product List -->
-                        <CollectionView ItemsSource="{Binding TopSellingProductsToday}" HeightRequest="80" Margin="0,10,0,0">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid ColumnDefinitions="*,Auto" Padding="5">
-                                        <Label Text="{Binding Name}" FontSize="12" VerticalOptions="Center"/>
-                                        <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Gray" Grid.Column="1" VerticalOptions="Center"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                        <!-- Product List - Scrollable, showing only items below 80% -->
+                        <ScrollView Margin="0,10,0,0" MaximumHeightRequest="120">
+                            <CollectionView ItemsSource="{Binding FilteredTopSellingProductsToday}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="*,Auto" Padding="5">
+                                            <Label Text="{Binding Name}" FontSize="12" VerticalOptions="Center"/>
+                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" FontSize="12" TextColor="Gray" Grid.Column="1" VerticalOptions="Center"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </ScrollView>
                     </VerticalStackLayout>
                 </Frame>
             </Grid>
