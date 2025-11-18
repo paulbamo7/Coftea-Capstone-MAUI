@@ -615,18 +615,18 @@
                                                 Command="{Binding BrowseProductsCommand}"
                                                 HorizontalOptions="Start"/>
                                         <Border BackgroundColor="#FFF5EC" StrokeThickness="0" StrokeShape="RoundRectangle 10" Padding="0">
-                                            <Grid ColumnDefinitions="220,80,120,120,120,120" Padding="0,0,8,0" RowDefinitions="Auto">
-                                                <Label Text="Group" FontAttributes="Bold" TextColor="#5B4F45" Padding="12,8"/>
-                                                <BoxView Grid.Column="1" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="1" Text="Qty" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="2" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="2" Text="Revenue (₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="3" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="3" Text="Cash" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="4" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="4" Text="GCash" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
-                                                <BoxView Grid.Column="5" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="End" Margin="0" InputTransparent="True"/>
-                                                <Label Grid.Column="5" Text="Bank" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="12,8"/>
+                                            <Grid ColumnDefinitions="280,100,150,150,150,150" Padding="10,8,10,8" RowDefinitions="Auto">
+                                                <Label Text="Group" FontAttributes="Bold" TextColor="#5B4F45" Padding="0,0"/>
+                                                <BoxView Grid.Column="1" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="1" Text="Qty" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="0,0"/>
+                                                <BoxView Grid.Column="2" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="2" Text="Revenue (₱)" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="0,0"/>
+                                                <BoxView Grid.Column="3" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="3" Text="Cash" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="0,0"/>
+                                                <BoxView Grid.Column="4" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="4" Text="GCash" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="0,0"/>
+                                                <BoxView Grid.Column="5" Color="#E8D9C7" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" Margin="0" InputTransparent="True"/>
+                                                <Label Grid.Column="5" Text="Bank" FontAttributes="Bold" TextColor="#5B4F45" HorizontalTextAlignment="Center" Padding="0,0"/>
                                             </Grid>
                                         </Border>
 
@@ -637,7 +637,7 @@
                                             <CollectionView.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Stroke="#EADCCD" StrokeThickness="1" BackgroundColor="{Binding RowBackgroundColor}" StrokeShape="RoundRectangle 8" Padding="0">
-                                                        <Grid ColumnDefinitions="220,80,120,120,120,120" ColumnSpacing="0" Padding="10,10,10,10">
+                                                        <Grid ColumnDefinitions="280,100,150,150,150,150" ColumnSpacing="0" Padding="10,10,10,10">
                                                             <Grid Padding="0" ColumnDefinitions="Auto,*">
                                                                 <Label Text="{Binding GroupLabel}" TextColor="#4A90E2" FontSize="13" LineBreakMode="TailTruncation" Padding="0" FontAttributes="Bold"/>
                                                                 <Button Grid.Column="1"
@@ -655,12 +655,12 @@
                                                                 <Label.GestureRecognizers>
                                                                     <TapGestureRecognizer Command="{Binding Source={x:Reference Root}, Path=BindingContext.ShowProductDetailsCommand}" CommandParameter="{Binding GroupLabel}"/>
                                                                 </Label.GestureRecognizers>
-                                                            <BoxView Grid.Column="1" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <Label Grid.Column="1" Text="{Binding TotalQuantityDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0"/>
-                                                            <BoxView Grid.Column="2" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <Label Grid.Column="2" Text="{Binding TotalRevenueDisplay}" TextColor="#2E7D32" FontSize="13" HorizontalTextAlignment="Center" Padding="12,0" FontAttributes="Bold"/>
-                                                            <BoxView Grid.Column="3" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <VerticalStackLayout Grid.Column="3" Spacing="4" HorizontalOptions="Center" Padding="8,0">
+                                                            <BoxView Grid.Column="1" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" InputTransparent="True" Margin="0"/>
+                                                            <Label Grid.Column="1" Text="{Binding TotalQuantityDisplay}" TextColor="#424242" FontSize="13" HorizontalTextAlignment="Center" Padding="0,0"/>
+                                                            <BoxView Grid.Column="2" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" InputTransparent="True" Margin="0"/>
+                                                            <Label Grid.Column="2" Text="{Binding TotalRevenueDisplay}" TextColor="#2E7D32" FontSize="13" HorizontalTextAlignment="Center" Padding="0,0" FontAttributes="Bold"/>
+                                                            <BoxView Grid.Column="3" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="3" Spacing="4" HorizontalOptions="Center" Padding="0">
                                                                 <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
                                                                     <Border BackgroundColor="#E8F5E8" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
                                                                         <Label Text="{Binding Cash.QuantityDisplay}" TextColor="#2E7D32" FontSize="11"/>
@@ -670,8 +670,8 @@
                                                                     </Border>
                                                                 </Grid>
                                                             </VerticalStackLayout>
-                                                            <BoxView Grid.Column="4" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <VerticalStackLayout Grid.Column="4" Spacing="4" HorizontalOptions="Center" Padding="8,0">
+                                                            <BoxView Grid.Column="4" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="4" Spacing="4" HorizontalOptions="Center" Padding="0">
                                                                 <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
                                                                     <Border BackgroundColor="#E3F2FD" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
                                                                         <Label Text="{Binding GCash.QuantityDisplay}" TextColor="#1976D2" FontSize="11"/>
@@ -681,8 +681,8 @@
                                                                     </Border>
                                                                 </Grid>
                                                             </VerticalStackLayout>
-                                                            <BoxView Grid.Column="5" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="End" InputTransparent="True" Margin="0"/>
-                                                            <VerticalStackLayout Grid.Column="5" Spacing="4" HorizontalOptions="Center" Padding="8,0">
+                                                            <BoxView Grid.Column="5" Color="#F1E6D9" WidthRequest="1" HorizontalOptions="Start" VerticalOptions="FillAndExpand" InputTransparent="True" Margin="0"/>
+                                                            <VerticalStackLayout Grid.Column="5" Spacing="4" HorizontalOptions="Center" Padding="0">
                                                                 <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
                                                                     <Border BackgroundColor="#F3E5F5" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
                                                                         <Label Text="{Binding Bank.QuantityDisplay}" TextColor="#7B1FA2" FontSize="11"/>

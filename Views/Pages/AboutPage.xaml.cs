@@ -16,6 +16,12 @@ public partial class AboutPage : ContentPage
         NavigationStateService.SetCurrentPageType(typeof(AboutPage));
     }
 
+    protected override void OnSizeAllocated(double width, double height)
+    {
+        base.OnSizeAllocated(width, height);
+        // Ensure content is properly laid out
+    }
+
     private void OnBellClicked(object sender, EventArgs e)
     {
         var popup = ((App)Application.Current).NotificationPopup;

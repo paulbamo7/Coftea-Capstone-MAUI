@@ -27,212 +27,222 @@
         <!-- Popup Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
-               Padding="20"
-               BackgroundColor="#F8E8D7"
-               CornerRadius="20"
+               Padding="30"
+               BackgroundColor="White"
+               CornerRadius="24"
                WidthRequest="900"
                HeightRequest="700"
                HasShadow="True"
+               BorderColor="#D4C4B0"
                InputTransparent="False">
 
-            <Grid RowDefinitions="Auto, *, Auto">
-                <VerticalStackLayout>
-                    <!-- Title -->
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
+                <!-- Title -->
                 <Label Text="Select Product to Edit"
-                       FontSize="24"
+                       FontSize="28"
                        FontAttributes="Bold"
+                       FontFamily="Montserrat-Black"
                        HorizontalOptions="Center"
                        Grid.Row="0"
-                       Margin="0,0,0,20" />
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" Margin="10">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="2"/>
-                        </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="All" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
-                                BackgroundColor="#D4C4A3" WidthRequest="100" HeightRequest="40"
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="#D4C4A3" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="All">
-                                            <Setter Property="BackgroundColor" Value="#C79A6A" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
-                            <BoxView.Triggers>
-                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedCategory}" Value="All">
-                                    <Setter Property="IsVisible" Value="True" />
-                                </DataTrigger>
-                            </BoxView.Triggers>
-                        </BoxView>
-                    </Grid>
+                       TextColor="#2E1F1A"
+                       Margin="0,0,0,24" />
+                <!-- Category Filter Buttons -->
+                <HorizontalStackLayout Grid.Row="1" 
+                                       HorizontalOptions="Center" 
+                                       Spacing="12" 
+                                       Margin="0,0,0,20">
+                    <Button Text="ALL" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="90" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="All">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="All">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="2"/>
-                        </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Frappe" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
-                                BackgroundColor="#D4C4A3" WidthRequest="100" HeightRequest="40"
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Frappe">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="#D4C4A3" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Frappe">
-                                            <Setter Property="BackgroundColor" Value="#C79A6A" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
-                            <BoxView.Triggers>
-                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedCategory}" Value="Frappe">
-                                    <Setter Property="IsVisible" Value="True" />
-                                </DataTrigger>
-                            </BoxView.Triggers>
-                        </BoxView>
-                    </Grid>
+                    <Button Text="FRAPPE" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="90" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Frappe">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Frappe">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="2"/>
-                        </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Fruit/Soda" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
-                                BackgroundColor="#D4C4A3" WidthRequest="130" HeightRequest="40"
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Fruit/Soda">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="#D4C4A3" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Fruit/Soda">
-                                            <Setter Property="BackgroundColor" Value="#C79A6A" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
-                            <BoxView.Triggers>
-                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedCategory}" Value="Fruit/Soda">
-                                    <Setter Property="IsVisible" Value="True" />
-                                </DataTrigger>
-                            </BoxView.Triggers>
-                        </BoxView>
-                    </Grid>
+                    <Button Text="FRUIT/SODA" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="110" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Fruit/Soda">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Fruit/Soda">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="2"/>
-                        </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Milktea" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
-                                BackgroundColor="#D4C4A3" WidthRequest="100" HeightRequest="40"
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Milktea">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="#D4C4A3" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Milktea">
-                                            <Setter Property="BackgroundColor" Value="#C79A6A" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
-                            <BoxView.Triggers>
-                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedCategory}" Value="Milktea">
-                                    <Setter Property="IsVisible" Value="True" />
-                                </DataTrigger>
-                            </BoxView.Triggers>
-                        </BoxView>
-                    </Grid>
+                    <Button Text="MILKTEA" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="90" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Milktea">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Milktea">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="2"/>
-                        </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Text="Coffee" FontAttributes="Bold" FontFamily="MontserratBlack" TextColor="#2b2b2b" FontSize="14"
-                                BackgroundColor="#D4C4A3" WidthRequest="100" HeightRequest="40"
-                                Command="{Binding FilterByCategoryCommand}" CommandParameter="Coffee">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="BackgroundColor" Value="#D4C4A3" />
-                                    <Setter Property="TextColor" Value="#2b2b2b" />
-                                    <Style.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Coffee">
-                                            <Setter Property="BackgroundColor" Value="#C79A6A" />
-                                            <Setter Property="TextColor" Value="White" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <BoxView Grid.Row="1" HeightRequest="2" Color="#C79A6A">
-                            <BoxView.Triggers>
-                                <DataTrigger TargetType="BoxView" Binding="{Binding SelectedCategory}" Value="Coffee">
-                                    <Setter Property="IsVisible" Value="True" />
-                                </DataTrigger>
-                            </BoxView.Triggers>
-                        </BoxView>
-                    </Grid>
+                    <Button Text="COFFEE" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="90" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Coffee">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Coffee">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </HorizontalStackLayout>
-                </VerticalStackLayout>
                 <!-- Products List -->
-                <Border Grid.Row="1" 
-                        StrokeShape="RoundRectangle 15" 
-                        BackgroundColor="White" 
-                        Padding="10">
+                <ScrollView Grid.Row="2" 
+                            BackgroundColor="#F9F3EC"
+                            Padding="16">
                     <Grid>
                         <!-- Loading Indicator -->
                         <ActivityIndicator IsRunning="{Binding IsLoading}" 
                                          IsVisible="{Binding IsLoading}" 
                                          VerticalOptions="Center" 
-                                         HorizontalOptions="Center" />
+                                         HorizontalOptions="Center"
+                                         Color="#5B4F45" />
                         
 
                         <!-- Products Collection -->
                         <CollectionView ItemsSource="{Binding Products}"
-                                       IsVisible="{Binding IsLoading, Converter={StaticResource NullToBoolConverter}}">
+                                       IsVisible="{Binding IsLoading, Converter={StaticResource NullToBoolConverter}}"
+                                       BackgroundColor="Transparent">
                             <CollectionView.ItemsLayout>
-                                <GridItemsLayout Orientation="Vertical" Span="2" />
+                                <GridItemsLayout Orientation="Vertical" Span="2" VerticalItemSpacing="16" HorizontalItemSpacing="16" />
                             </CollectionView.ItemsLayout>
 
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
-                                    <Frame BackgroundColor="#D9D9D9" 
-                                           CornerRadius="15" 
-                                           Margin="5" 
-                                           Padding="10" 
+                                    <Frame BackgroundColor="White" 
+                                           CornerRadius="18" 
+                                           Margin="0" 
+                                           Padding="16" 
+                                           HasShadow="True"
+                                           BorderColor="#E0C9B0"
                                            VerticalOptions="Fill" 
                                            HorizontalOptions="Fill">
                                         
-                                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto">
+                                        <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto">
                                             <!-- Product Image -->
                                             <Frame Grid.Row="0" Grid.RowSpan="4" Grid.Column="0"
-                                                   CornerRadius="10" 
+                                                   CornerRadius="12" 
                                                    Padding="0" 
-                                                   HeightRequest="80" 
-                                                   WidthRequest="80" 
-                                                   Margin="0,0,10,0">
+                                                   HeightRequest="70" 
+                                                   WidthRequest="70" 
+                                                   Margin="0,0,12,0"
+                                                   HasShadow="False"
+                                                   BackgroundColor="#F9F3EC">
                                                 <Image Source="{Binding ImageSource}" 
                                                        Aspect="AspectFill" />
                                             </Frame>
@@ -241,17 +251,21 @@
                                             <Label Grid.Row="0" Grid.Column="1"
                                                    Text="{Binding ProductName}" 
                                                    FontAttributes="Bold" 
-                                                   FontSize="16" 
+                                                   FontSize="16"
+                                                   FontFamily="OpenSansSemibold"
+                                                   TextColor="#2E1F1A"
                                                    VerticalOptions="Start" />
 
                                             <!-- Category and Subcategory -->
-                                            <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                            <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="3" VerticalOptions="Center" Margin="0,4,0,0">
                                                 <Label Text="{Binding Category, StringFormat='Category: {0}'}" 
                                                        FontSize="12" 
-                                                       TextColor="Gray" />
+                                                       FontFamily="OpenSansRegular"
+                                                       TextColor="#6B5A4F" />
                                                 <Label Text="{Binding Subcategory, StringFormat='Subcategory: {0}'}" 
                                                        FontSize="11" 
-                                                       TextColor="Gray">
+                                                       FontFamily="OpenSansRegular"
+                                                       TextColor="#7A6B5F">
                                                     <Label.IsVisible>
                                                         <MultiBinding Converter="{StaticResource CategoryAndSubcategoryVisibilityConverter}">
                                                             <Binding Path="Category" />
@@ -261,14 +275,16 @@
                                                 </Label>
                                             </VerticalStackLayout>
 
-                                            <!-- Prices (Small visible only for Coffee; Medium and Large visible for all) -->
+                                            <!-- Prices -->
                                             <VerticalStackLayout Grid.Row="2" Grid.Column="1" 
-                                                                 Spacing="3" 
-                                                                 VerticalOptions="Center">
+                                                                 Spacing="4" 
+                                                                 VerticalOptions="Center"
+                                                                 Margin="0,6,0,0">
                                                 <!-- Small price - only for Coffee category -->
                                                 <Label Text="{Binding SmallPrice, StringFormat='Small: ₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="DarkGreen"
+                                                       FontFamily="OpenSansSemibold"
+                                                       TextColor="#4A7C59"
                                                        IsVisible="False"
                                                        LineBreakMode="NoWrap">
                                                     <Label.Triggers>
@@ -278,40 +294,49 @@
                                                     </Label.Triggers>
                                                 </Label>
 
-                                                <!-- Medium price - always visible -->
+                                                <!-- Medium price -->
                                                 <Label Text="{Binding MediumPrice, StringFormat='Medium: ₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="DarkGreen"
+                                                       FontFamily="OpenSansSemibold"
+                                                       TextColor="#4A7C59"
                                                        LineBreakMode="NoWrap" />
 
-                                                <!-- Large price - always visible -->
+                                                <!-- Large price -->
                                                 <Label Text="{Binding LargePrice, StringFormat='Large: ₱{0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="DarkGreen"
+                                                       FontFamily="OpenSansSemibold"
+                                                       TextColor="#4A7C59"
                                                        LineBreakMode="NoWrap" />
                                             </VerticalStackLayout>
 
                                             <!-- Action Buttons -->
                                             <HorizontalStackLayout Grid.Row="3" Grid.Column="1" 
-                                                                   Spacing="10" 
+                                                                   Spacing="8" 
                                                                    VerticalOptions="End"
-                                                                   HorizontalOptions="Start">
+                                                                   HorizontalOptions="Start"
+                                                                   Margin="0,10,0,0">
                                                 <Button Text="Edit" 
-                                                        FontSize="12" 
-                                                        BackgroundColor="#4CAF50" 
+                                                        FontSize="13" 
+                                                        FontFamily="OpenSansSemibold"
+                                                        FontAttributes="Bold"
+                                                        BackgroundColor="#5B4F45" 
                                                         TextColor="White"
-                                                        WidthRequest="60" 
-                                                        HeightRequest="30"
+                                                        WidthRequest="70" 
+                                                        HeightRequest="32"
+                                                        CornerRadius="16"
                                                         Padding="0"
                                                         Command="{Binding BindingContext.EditProductCommand, Source={x:Reference EditProductPopupView}}" 
                                                         CommandParameter="{Binding .}" />
                                                 
                                                 <Button Text="Delete" 
-                                                        FontSize="12" 
-                                                        BackgroundColor="#F44336" 
+                                                        FontSize="13" 
+                                                        FontFamily="OpenSansSemibold"
+                                                        FontAttributes="Bold"
+                                                        BackgroundColor="#C85A5A" 
                                                         TextColor="White"
-                                                        WidthRequest="60" 
-                                                        HeightRequest="30"
+                                                        WidthRequest="70" 
+                                                        HeightRequest="32"
+                                                        CornerRadius="16"
                                                         Padding="0"
                                                         IsVisible="{Binding BindingContext.IsAdmin, Source={x:Reference EditProductPopupView}}"
                                                         Command="{Binding BindingContext.DeleteProductCommand, Source={x:Reference EditProductPopupView}}" 
@@ -324,18 +349,22 @@
                             </CollectionView.ItemTemplate>
                         </CollectionView>
                     </Grid>
-                </Border>
+                </ScrollView>
 
                 <!-- Close Button -->
-                <Button Text="Close"
-                        Grid.Row="2"
-                        WidthRequest="100"
-                        HeightRequest="40"
+                <Button Text="CLOSE"
+                        Grid.Row="3"
+                        WidthRequest="120"
+                        HeightRequest="44"
                         FontSize="14"
-                        BackgroundColor="Red"
+                        FontFamily="OpenSansSemibold"
+                        FontAttributes="Bold"
+                        BackgroundColor="#5B4F45"
                         TextColor="White"
+                        CornerRadius="20"
                         HorizontalOptions="Center"
-                        Margin="0,20,0,0"
+                        Margin="0,24,0,0"
+                        Padding="0"
                         Command="{Binding CloseEditProductPopupCommand}" />
             </Grid>
         </Frame>

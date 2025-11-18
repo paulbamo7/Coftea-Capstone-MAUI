@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:Coftea_Capstone.ViewModel.Others"
              x:Class="Coftea_Capstone.Views.Controls.EditInventoryPopup"
              x:Name="EditInventoryPopupView"
              BackgroundColor="#80000000"
              IsVisible="{Binding IsEditInventoryPopupVisible}"
              InputTransparent="False">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
 
     <Grid VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
         <!-- Background overlay to close on outside tap -->
@@ -18,143 +25,222 @@
         <!-- Popup Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
-               Padding="20"
-               BackgroundColor="#F8E8D7"
-               CornerRadius="20"
+               Padding="30"
+               BackgroundColor="White"
+               CornerRadius="24"
                WidthRequest="900"
                HeightRequest="700"
                HasShadow="True"
+               BorderColor="#D4C4B0"
                InputTransparent="False">
 
-            <Grid RowDefinitions="Auto, *, Auto">
-                <VerticalStackLayout>
-                    <!-- Title -->
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
+                <!-- Title -->
                 <Label Text="Select Inventory Item to Edit"
-                       FontSize="24"
+                       FontSize="28"
                        FontAttributes="Bold"
+                       FontFamily="Montserrat-Black"
                        HorizontalOptions="Center"
                        Grid.Row="0"
-                       Margin="0,0,0,20" />
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" Margin="10">
-       <Button Text="All" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14" 
-               WidthRequest="100" HeightRequest="40" CornerRadius="12"
-               Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
-           <Button.Style>
-               <Style TargetType="Button">
-                       <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                   <Setter Property="TextColor" Value="#1A1A1A"/>
-                   <Style.Triggers>
-                       <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="All">
-                           <Setter Property="BackgroundColor" Value="#5B4F45"/>
-                           <Setter Property="TextColor" Value="White"/>
-                       </DataTrigger>
-                   </Style.Triggers>
-               </Style>
-           </Button.Style>
-       </Button>
-                    <Button Text="Ingredients" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14" 
-                            WidthRequest="120" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients">
+                       TextColor="#2E1F1A"
+                       Margin="0,0,0,24" />
+                <!-- Category Filter Buttons -->
+                <HorizontalStackLayout Grid.Row="1" 
+                                       HorizontalOptions="Center" 
+                                       Spacing="12" 
+                                       Margin="0,0,0,20">
+                    <Button Text="ALL" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="90" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="All">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="All">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Text="INGREDIENTS" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="110" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Ingredients">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Ingredients">
-                                        <Setter Property="BackgroundColor" Value="#5B4F45"/>
-                                        <Setter Property="TextColor" Value="White"/>
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Text="Supplies" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14"
-                            WidthRequest="100" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies">
+
+                    <Button Text="SUPPLIES" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="90" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Supplies">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Supplies">
-                                        <Setter Property="BackgroundColor" Value="#5B4F45"/>
-                                        <Setter Property="TextColor" Value="White"/>
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Text="Syrups" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14"
-                            WidthRequest="100" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Syrups">
+
+                    <Button Text="SYRUPS" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="90" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Syrups">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Syrups">
-                                        <Setter Property="BackgroundColor" Value="#5B4F45"/>
-                                        <Setter Property="TextColor" Value="White"/>
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Text="Powdered" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14"
-                            WidthRequest="110" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Powdered">
+
+                    <Button Text="POWDERED" 
+                            FontAttributes="Bold" 
+                            FontFamily="OpenSansSemibold" 
+                            TextColor="#5B4F45" 
+                            FontSize="13"
+                            BackgroundColor="#F0E6D8"
+                            BorderColor="#D4C4B0"
+                            BorderWidth="1"
+                            WidthRequest="100" 
+                            HeightRequest="38"
+                            CornerRadius="18"
+                            Padding="0"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Powdered">
                         <Button.Style>
                             <Style TargetType="Button">
-                                <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
+                                <Setter Property="BackgroundColor" Value="#F0E6D8" />
+                                <Setter Property="TextColor" Value="#5B4F45" />
+                                <Setter Property="BorderColor" Value="#D4C4B0" />
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Powdered">
-                                        <Setter Property="BackgroundColor" Value="#5B4F45"/>
-                                        <Setter Property="TextColor" Value="White"/>
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                        <Setter Property="BorderColor" Value="#5B4F45" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
                 </HorizontalStackLayout>
-                </VerticalStackLayout>
                 <!-- Items List -->
-                <Border Grid.Row="1" 
-                        StrokeShape="RoundRectangle 15" 
-                        BackgroundColor="White" 
-                        Padding="10">
+                <ScrollView Grid.Row="2" 
+                            BackgroundColor="#F9F3EC"
+                            Padding="16">
                     <Grid>
                         <!-- Loading Indicator -->
                         <ActivityIndicator IsRunning="{Binding IsLoading}" 
                                          IsVisible="{Binding IsLoading}" 
                                          VerticalOptions="Center" 
-                                         HorizontalOptions="Center" />
+                                         HorizontalOptions="Center"
+                                         Color="#5B4F45" />
                         
 
                         <!-- Items Collection -->
                         <CollectionView ItemsSource="{Binding Items}"
-                                       IsVisible="{Binding IsLoading, Converter={StaticResource NullToBoolConverter}}">
+                                       IsVisible="{Binding IsLoading, Converter={StaticResource NullToBoolConverter}}"
+                                       BackgroundColor="Transparent">
                             <CollectionView.ItemsLayout>
-                                <GridItemsLayout Orientation="Vertical" Span="2" />
+                                <GridItemsLayout Orientation="Vertical" Span="2" VerticalItemSpacing="16" HorizontalItemSpacing="16" />
                             </CollectionView.ItemsLayout>
 
                             <CollectionView.ItemTemplate>
                                 <DataTemplate>
-                                    <Frame BackgroundColor="#D9D9D9" 
-                                           CornerRadius="15" 
-                                           Margin="5" 
-                                           Padding="10" 
+                                    <Frame BackgroundColor="White" 
+                                           CornerRadius="18" 
+                                           Margin="0" 
+                                           Padding="16" 
+                                           HasShadow="True"
+                                           BorderColor="#E0C9B0"
                                            VerticalOptions="Fill" 
                                            HorizontalOptions="Fill">
                                         
-                                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto, Auto, Auto">
+                                        <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto">
                                             <!-- Item Image -->
                                             <Frame Grid.Row="0" Grid.RowSpan="4" Grid.Column="0"
-                                                   CornerRadius="10" 
+                                                   CornerRadius="12" 
                                                    Padding="0" 
-                                                   HeightRequest="80" 
-                                                   WidthRequest="80" 
-                                                   Margin="0,0,10,0">
+                                                   HeightRequest="70" 
+                                                   WidthRequest="70" 
+                                                   Margin="0,0,12,0"
+                                                   HasShadow="False"
+                                                   BackgroundColor="#F9F3EC">
                                                 <Image Source="{Binding ImageSource}" 
                                                        Aspect="AspectFill" />
                                             </Frame>
@@ -163,49 +249,65 @@
                                             <Label Grid.Row="0" Grid.Column="1"
                                                    Text="{Binding itemName}" 
                                                    FontAttributes="Bold" 
-                                                   FontSize="16" 
+                                                   FontSize="16"
+                                                   FontFamily="OpenSansSemibold"
+                                                   TextColor="#2E1F1A"
                                                    VerticalOptions="Start" />
 
                                             <!-- Category -->
                                             <Label Grid.Row="1" Grid.Column="1"
                                                    Text="{Binding itemCategory, StringFormat='Category: {0}'}" 
                                                    FontSize="12" 
-                                                   TextColor="Gray" 
-                                                   VerticalOptions="Center" />
+                                                   FontFamily="OpenSansRegular"
+                                                   TextColor="#6B5A4F" 
+                                                   VerticalOptions="Center"
+                                                   Margin="0,4,0,0" />
 
                                             <!-- Quantity -->
-                                            <HorizontalStackLayout Grid.Row="2" Grid.Column="1" 
-                                                                   Spacing="10" 
-                                                                   VerticalOptions="Center">
+                                            <VerticalStackLayout Grid.Row="2" Grid.Column="1" 
+                                                                 Spacing="0" 
+                                                                 VerticalOptions="Center"
+                                                                 Margin="0,6,0,0">
                                                 <Label Text="{Binding itemQuantity, StringFormat='Quantity: {0:F2}'}" 
                                                        FontSize="12" 
-                                                       TextColor="DarkGreen" />
+                                                       FontFamily="OpenSansSemibold"
+                                                       TextColor="#4A7C59"
+                                                       LineBreakMode="NoWrap" />
                                                 <Label Text="{Binding unitOfMeasurement, StringFormat='{0}'}" 
                                                        FontSize="12" 
-                                                       TextColor="DarkGreen" />
-                                            </HorizontalStackLayout>
+                                                       FontFamily="OpenSansSemibold"
+                                                       TextColor="#4A7C59"
+                                                       LineBreakMode="NoWrap" />
+                                            </VerticalStackLayout>
 
                                             <!-- Action Buttons -->
                                             <HorizontalStackLayout Grid.Row="3" Grid.Column="1" 
-                                                                   Spacing="10" 
+                                                                   Spacing="8" 
                                                                    VerticalOptions="End"
-                                                                   HorizontalOptions="Start">
+                                                                   HorizontalOptions="Start"
+                                                                   Margin="0,10,0,0">
                                                 <Button Text="Edit" 
-                                                        FontSize="12" 
-                                                        BackgroundColor="#4CAF50" 
+                                                        FontSize="13" 
+                                                        FontFamily="OpenSansSemibold"
+                                                        FontAttributes="Bold"
+                                                        BackgroundColor="#5B4F45" 
                                                         TextColor="White"
-                                                        WidthRequest="60" 
-                                                        HeightRequest="30"
+                                                        WidthRequest="70" 
+                                                        HeightRequest="32"
+                                                        CornerRadius="16"
                                                         Padding="0"
                                                         Command="{Binding BindingContext.EditItemCommand, Source={x:Reference EditInventoryPopupView}}" 
                                                         CommandParameter="{Binding .}" />
                                                 
                                                 <Button Text="Delete" 
-                                                        FontSize="12" 
-                                                        BackgroundColor="#F44336" 
+                                                        FontSize="13" 
+                                                        FontFamily="OpenSansSemibold"
+                                                        FontAttributes="Bold"
+                                                        BackgroundColor="#C85A5A" 
                                                         TextColor="White"
-                                                        WidthRequest="60" 
-                                                        HeightRequest="30"
+                                                        WidthRequest="70" 
+                                                        HeightRequest="32"
+                                                        CornerRadius="16"
                                                         Padding="0"
                                                         Command="{Binding BindingContext.DeleteItemCommand, Source={x:Reference EditInventoryPopupView}}" 
                                                         CommandParameter="{Binding .}" />
@@ -217,18 +319,22 @@
                             </CollectionView.ItemTemplate>
                         </CollectionView>
                     </Grid>
-                </Border>
+                </ScrollView>
 
                 <!-- Close Button -->
-                <Button Text="Close"
-                        Grid.Row="2"
-                        WidthRequest="100"
-                        HeightRequest="40"
+                <Button Text="CLOSE"
+                        Grid.Row="3"
+                        WidthRequest="120"
+                        HeightRequest="44"
                         FontSize="14"
-                        BackgroundColor="Red"
+                        FontFamily="OpenSansSemibold"
+                        FontAttributes="Bold"
+                        BackgroundColor="#5B4F45"
                         TextColor="White"
+                        CornerRadius="20"
                         HorizontalOptions="Center"
-                        Margin="0,20,0,0"
+                        Margin="0,24,0,0"
+                        Padding="0"
                         Command="{Binding CloseEditInventoryPopupCommand}" />
             </Grid>
         </Frame>
