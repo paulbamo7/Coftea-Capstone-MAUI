@@ -374,7 +374,7 @@
                             <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
                                 <VerticalStackLayout Spacing="0">
                                     <!-- Table Header -->
-                                    <Grid BackgroundColor="#7E6D5F" Padding="10,8" ColumnSpacing="12" MinimumWidthRequest="1100">
+                                    <Grid BackgroundColor="#5B4F45" Padding="10,8" ColumnSpacing="12" MinimumWidthRequest="1100">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="40"/>      <!-- # -->
                                         <ColumnDefinition Width="1.1*"/>   <!-- Date & Time -->
@@ -389,17 +389,17 @@
                                         <ColumnDefinition Width="1.3*"/>   <!-- Remarks -->
                                     </Grid.ColumnDefinitions>
                                     
-                                    <Label Grid.Column="0" Text="#" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="Start" VerticalOptions="Center"/>
-                                    <Label Grid.Column="1" Text="Date &amp; Time" FontSize="11" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                                    <Label Grid.Column="2" Text="User" FontSize="11" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                                    <Label Grid.Column="3" Text="Action" FontSize="11" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                                    <Label Grid.Column="4" Text="Item" FontSize="11" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                                    <Label Grid.Column="5" Text="Qty Change" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="End" VerticalOptions="Center"/>
-                                    <Label Grid.Column="6" Text="UoM" FontSize="11" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                                    <Label Grid.Column="7" Text="Prev Qty" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="End" VerticalOptions="Center"/>
-                                    <Label Grid.Column="8" Text="New Qty" FontSize="11" FontAttributes="Bold" TextColor="White" HorizontalOptions="End" VerticalOptions="Center"/>
-                                    <Label Grid.Column="9" Text="Used for Product" FontSize="11" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                                    <Label Grid.Column="10" Text="Remarks" FontSize="11" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
+                                    <Label Grid.Column="0" Text="#" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="Start" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1" Text="Date &amp; Time" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
+                                    <Label Grid.Column="2" Text="User" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
+                                    <Label Grid.Column="3" Text="Action" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
+                                    <Label Grid.Column="4" Text="Item" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
+                                    <Label Grid.Column="5" Text="Qty Change" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
+                                    <Label Grid.Column="6" Text="UoM" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
+                                    <Label Grid.Column="7" Text="Prev Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
+                                    <Label Grid.Column="8" Text="New Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
+                                    <Label Grid.Column="9" Text="Used for Product" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
+                                    <Label Grid.Column="10" Text="Remarks" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
                                 </Grid>
 
                                 <!-- Table Rows -->

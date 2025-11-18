@@ -393,7 +393,7 @@
                                                                Placeholder="1"
                                                                PlaceholderColor="#8B7355"
                                                                BackgroundColor="Transparent"
-                                                               TextColor="#5B4F45"
+                                                               TextColor="{Binding QuantityTextColor}"
                                                                FontSize="16"
                                                                FontAttributes="Bold"
                                                                HorizontalTextAlignment="Center"

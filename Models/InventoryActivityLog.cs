@@ -185,8 +185,8 @@ namespace Coftea_Capstone.Models
             {
                 return Action switch
                 {
-                    "DEDUCTED" => "#FF5722", // Orange/Red for deductions
-                    "ADDED" => "#4CAF50", // Green for additions
+                    "DEDUCTED" => "#DC3545", // Red for deductions (danger)
+                    "ADDED" => "#28A745", // Green for additions (success)
                     "UPDATED" => "#2196F3", // Blue for updates
                     "PURCHASE_ORDER" => "#9C27B0", // Purple for purchase orders
                     "RETRACTED" => "#FF9800", // Orange for retracted items

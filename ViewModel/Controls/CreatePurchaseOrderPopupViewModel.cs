@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Coftea_Capstone.Services;
+using Microsoft.Maui.Controls;
 
 namespace Coftea_Capstone.ViewModel.Controls
 {
@@ -116,6 +117,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                     ItemCategory = item.itemCategory ?? "",
                     RequestedQuantity = neededQuantity,
                     CurrentStockQuantity = item.itemQuantity, // Store current stock quantity
+                    MinimumQuantity = item.minimumQuantity, // Store minimum stock quantity
+                    MaximumQuantity = item.maximumQuantity, // Store maximum stock quantity
                     ApprovedQuantity = neededQuantity, // Default unit amount to needed quantity
                     Quantity = 1, // Default to 1 unit
                     ApprovedUoM = item.unitOfMeasurement ?? "pcs",
@@ -341,6 +344,8 @@ namespace Coftea_Capstone.ViewModel.Controls
                 ItemCategory = item.itemCategory ?? "",
                 RequestedQuantity = 1,
                 CurrentStockQuantity = item.itemQuantity,
+                MinimumQuantity = item.minimumQuantity, // Store minimum stock quantity
+                MaximumQuantity = item.maximumQuantity, // Store maximum stock quantity
                 ApprovedQuantity = 1, // Default to 1
                 Quantity = 1, // Default to 1 unit
                 ApprovedUoM = item.unitOfMeasurement ?? "pcs",
@@ -439,7 +444,48 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private double currentStockQuantity; // Current stock quantity in inventory
 
+        [ObservableProperty]
+        private double minimumQuantity; // Minimum stock quantity
+
+        [ObservableProperty]
+        private double maximumQuantity; // Maximum stock quantity
+
+        partial void OnCurrentStockQuantityChanged(double value)
+        {
+            OnPropertyChanged(nameof(QuantityTextColor));
+        }
+
+        partial void OnMinimumQuantityChanged(double value)
+        {
+            OnPropertyChanged(nameof(QuantityTextColor));
+        }
+
         public double TotalAmount => ApprovedQuantity * Quantity; // Total = Unit Amount × Quantity
+
+        // Quantity text color based on stock status
+        public Color QuantityTextColor
+        {
+            get
+            {
+                if (MinimumQuantity <= 0) return Colors.Black; // No minimum set, use default color
+                
+                if (CurrentStockQuantity <= MinimumQuantity)
+                {
+                    // At or below minimum - Red (danger)
+                    return Colors.Red;
+                }
+                else if (CurrentStockQuantity <= MinimumQuantity * 2)
+                {
+                    // Between minimum and 2x minimum - Orange (warning)
+                    return Color.FromRgb(255, 165, 0); // Orange (#FFA500)
+                }
+                else
+                {
+                    // Above 2x minimum - Green (safe)
+                    return Colors.Green;
+                }
+            }
+        }
 
         public List<string> AvailableUoMs { get; set; } = new() { "pcs", "kg", "g", "L", "ml" };
     }

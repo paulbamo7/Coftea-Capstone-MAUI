@@ -507,6 +507,20 @@
                                             Command="{Binding ShowPurchaseOrdersCommand}"
                                             IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
                                     
+                                    <!-- Purchase Order History Button (Admin Only) -->
+                                    <Button Text="📜 PO HISTORY" 
+                                            BackgroundColor="#9C27B0" 
+                                            TextColor="White" 
+                                            FontSize="14" 
+                                            FontAttributes="Bold"
+                                            CornerRadius="20"
+                                            BorderColor="#7B1FA2"
+                                            BorderWidth="2"
+                                            Padding="20,10"
+                                            HeightRequest="45"
+                                            Command="{Binding ViewPurchaseOrderHistoryCommand}"
+                                            IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
+                                    
                                     <!-- Activity Log Button -->
                                     <Button Text="📝 ACTIVITY LOG" 
                                             BackgroundColor="White" 

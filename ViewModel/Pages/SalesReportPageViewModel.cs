@@ -220,6 +220,38 @@ namespace Coftea_Capstone.ViewModel
             _ => CumulativeTotalSales
         };
 
+        // Payment method percentages
+        public decimal CashPercentage
+        {
+            get
+            {
+                if (DisplayTotalSales == 0) return 0;
+                return (DisplayCashTotal / DisplayTotalSales) * 100;
+            }
+        }
+
+        public decimal GCashPercentage
+        {
+            get
+            {
+                if (DisplayTotalSales == 0) return 0;
+                return (DisplayGCashTotal / DisplayTotalSales) * 100;
+            }
+        }
+
+        public decimal BankPercentage
+        {
+            get
+            {
+                if (DisplayTotalSales == 0) return 0;
+                return (DisplayBankTotal / DisplayTotalSales) * 100;
+            }
+        }
+
+        public string CashPercentageText => $"{CashPercentage:F1}%";
+        public string GCashPercentageText => $"{GCashPercentage:F1}%";
+        public string BankPercentageText => $"{BankPercentage:F1}%";
+
         // Top items lists
         [ObservableProperty]
         private ObservableCollection<TrendItem> topCoffeeToday = new();
@@ -645,6 +677,12 @@ namespace Coftea_Capstone.ViewModel
                 OnPropertyChanged(nameof(DisplayGCashTotal));
                 OnPropertyChanged(nameof(DisplayBankTotal));
                 OnPropertyChanged(nameof(DisplayTotalSales));
+                OnPropertyChanged(nameof(CashPercentage));
+                OnPropertyChanged(nameof(GCashPercentage));
+                OnPropertyChanged(nameof(BankPercentage));
+                OnPropertyChanged(nameof(CashPercentageText));
+                OnPropertyChanged(nameof(GCashPercentageText));
+                OnPropertyChanged(nameof(BankPercentageText));
 
                 // Refresh top products for pie/bar charts (using date filter)
                 try
@@ -1058,6 +1096,12 @@ namespace Coftea_Capstone.ViewModel
             OnPropertyChanged(nameof(DisplayGCashTotal));
             OnPropertyChanged(nameof(DisplayBankTotal));
             OnPropertyChanged(nameof(DisplayTotalSales));
+            OnPropertyChanged(nameof(CashPercentage));
+            OnPropertyChanged(nameof(GCashPercentage));
+            OnPropertyChanged(nameof(BankPercentage));
+            OnPropertyChanged(nameof(CashPercentageText));
+            OnPropertyChanged(nameof(GCashPercentageText));
+            OnPropertyChanged(nameof(BankPercentageText));
             OnPropertyChanged(nameof(ComparisonDifference));
             OnPropertyChanged(nameof(ComparisonPercentageChange));
             OnPropertyChanged(nameof(ComparisonDifferenceText));
@@ -1273,6 +1317,12 @@ namespace Coftea_Capstone.ViewModel
                 OnPropertyChanged(nameof(DisplayGCashTotal));
                 OnPropertyChanged(nameof(DisplayBankTotal));
                 OnPropertyChanged(nameof(DisplayTotalSales));
+                OnPropertyChanged(nameof(CashPercentage));
+                OnPropertyChanged(nameof(GCashPercentage));
+                OnPropertyChanged(nameof(BankPercentage));
+                OnPropertyChanged(nameof(CashPercentageText));
+                OnPropertyChanged(nameof(GCashPercentageText));
+                OnPropertyChanged(nameof(BankPercentageText));
                 OnPropertyChanged(nameof(ComparisonDifference));
                 OnPropertyChanged(nameof(ComparisonPercentageChange));
                 OnPropertyChanged(nameof(ComparisonDifferenceText));

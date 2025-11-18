@@ -464,6 +464,21 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
+        private async Task ViewPurchaseOrderHistoryAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("📜 Navigating to purchase order history...");
+                await Shell.Current.GoToAsync("//purchaseorderhistory");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error navigating to purchase order history: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to open purchase order history: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
         private async Task ShowPurchaseOrdersAsync()
         {
             try
