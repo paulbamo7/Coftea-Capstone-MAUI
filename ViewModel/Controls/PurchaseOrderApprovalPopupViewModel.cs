@@ -767,11 +767,60 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
         }
 
+        [ObservableProperty]
+        private bool isPdfDialogVisible;
+
+        [ObservableProperty]
+        private string pdfDialogTitle = string.Empty;
+
+        [ObservableProperty]
+        private string pdfDialogMessage = string.Empty;
+
+        [ObservableProperty]
+        private string pdfDialogAcceptText = "Generate";
+
+        [ObservableProperty]
+        private string pdfDialogRejectText = "Cancel";
+
+        [ObservableProperty]
+        private bool pdfDialogHasReject = true;
+
+        private PurchaseOrderDisplayModel? _pendingPdfOrder;
+
         [RelayCommand]
-        private async Task ExportPurchaseOrderPDF(PurchaseOrderDisplayModel order)
+        private void ShowPurchaseOrderPdfDialog(PurchaseOrderDisplayModel order)
+        {
+            _pendingPdfOrder = order;
+            PdfDialogTitle = "Generate Purchase Order PDF?";
+            PdfDialogMessage = $"Create a PDF for Purchase Order #{order.PurchaseOrderId}?\n\nOrder Date: {order.OrderDate:MMM dd, yyyy}\nSupplier: {order.SupplierName}";
+            PdfDialogAcceptText = "Generate";
+            PdfDialogRejectText = "Cancel";
+            PdfDialogHasReject = true;
+            IsPdfDialogVisible = true;
+        }
+
+        [RelayCommand]
+        private void RejectPdfDialog()
+        {
+            IsPdfDialogVisible = false;
+            _pendingPdfOrder = null;
+        }
+
+        [RelayCommand]
+        private async Task AcceptPdfDialogAsync()
         {
             try
             {
+                if (_pendingPdfOrder == null)
+                {
+                    IsPdfDialogVisible = false;
+                    return;
+                }
+
+                var order = _pendingPdfOrder;
+                IsPdfDialogVisible = false;
+                _pendingPdfOrder = null;
+
                 System.Diagnostics.Debug.WriteLine($"📄 Starting PDF generation for Purchase Order #{order.PurchaseOrderId}");
                 
                 var pdfService = new Services.PDFReportService();
@@ -783,10 +832,12 @@ namespace Coftea_Capstone.ViewModel.Controls
                 
                 System.Diagnostics.Debug.WriteLine($"📄 PDF generated successfully at: {filePath}");
                 
-                await Application.Current.MainPage.DisplayAlert(
-                    "PDF Generated",
-                    $"Purchase Order PDF has been saved successfully!\n\nFile location: {filePath}\n\nTo find the file:\n1. Open File Manager\n2. Go to Download folder\n3. Look for Purchase_Order_{order.PurchaseOrderId}_*.pdf",
-                    "OK");
+                PdfDialogTitle = "PDF Generated";
+                PdfDialogMessage = $"Purchase Order PDF has been saved successfully!\n\nFile location: {filePath}\n\nTo find the file:\n1. Open File Manager\n2. Go to Download folder\n3. Look for Purchase_Order_{order.PurchaseOrderId}_*.pdf";
+                PdfDialogAcceptText = "Got it";
+                PdfDialogRejectText = string.Empty;
+                PdfDialogHasReject = false;
+                IsPdfDialogVisible = true;
             }
             catch (Exception ex)
             {
@@ -796,11 +847,20 @@ namespace Coftea_Capstone.ViewModel.Controls
                 {
                     System.Diagnostics.Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
                 }
-                await Application.Current.MainPage.DisplayAlert(
-                    "Error", 
-                    $"Failed to export purchase order PDF:\n\n{ex.Message}\n\nPlease check the debug console for more details.", 
-                    "OK");
+                PdfDialogTitle = "Error";
+                PdfDialogMessage = $"Failed to export PDF:\n\n{ex.Message}";
+                PdfDialogAcceptText = "Close";
+                PdfDialogRejectText = string.Empty;
+                PdfDialogHasReject = false;
+                IsPdfDialogVisible = true;
             }
+        }
+
+        [RelayCommand]
+        private async Task ExportPurchaseOrderPDF(PurchaseOrderDisplayModel order)
+        {
+            // Show confirmation dialog first
+            ShowPurchaseOrderPdfDialog(order);
         }
 
         [RelayCommand]

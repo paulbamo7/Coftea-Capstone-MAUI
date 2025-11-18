@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Coftea_Capstone.Models;
 using Microsoft.Maui.Controls;
+using System.Collections.Generic;
 
 namespace Coftea_Capstone.ViewModel.Pages
 {
@@ -64,45 +65,67 @@ namespace Coftea_Capstone.ViewModel.Pages
             try
             {
                 IsLoading = true;
+                System.Diagnostics.Debug.WriteLine("🔵 Loading purchase orders...");
                 
                 // Get all purchase orders (increase limit for history)
                 var orders = await _database.GetAllPurchaseOrdersAsync(500);
+                System.Diagnostics.Debug.WriteLine($"🔵 Loaded {orders?.Count ?? 0} orders from database");
                 
                 // Convert to history items with items preview
                 var historyItems = new List<PurchaseOrderHistoryItem>();
+                int processedCount = 0;
                 foreach (var order in orders)
                 {
-                    var items = await _database.GetPurchaseOrderItemsAsync(order.PurchaseOrderId);
-                    var itemsPreview = items.Count > 0
-                        ? string.Join(", ", items.Take(3).Select(i => $"{i.ItemName} ({i.RequestedQuantity} {i.UnitOfMeasurement})"))
-                        : "No items";
-                    
-                    if (items.Count > 3)
-                        itemsPreview += $" and {items.Count - 3} more...";
-
-                    historyItems.Add(new PurchaseOrderHistoryItem
+                    try
                     {
-                        PurchaseOrderId = order.PurchaseOrderId,
-                        OrderDate = order.OrderDate,
-                        SupplierName = order.SupplierName,
-                        Status = order.Status,
-                        RequestedBy = order.RequestedBy,
-                        ApprovedBy = order.ApprovedBy,
-                        ApprovedDate = order.ApprovedDate,
-                        TotalAmount = order.TotalAmount,
-                        CreatedAt = order.CreatedAt,
-                        Notes = order.Notes,
-                        ItemsPreview = itemsPreview,
-                        ItemCount = items.Count
-                    });
+                        var items = await _database.GetPurchaseOrderItemsAsync(order.PurchaseOrderId);
+                        var itemsPreview = items.Count > 0
+                            ? string.Join(", ", items.Take(3).Select(i => $"{i.ItemName} ({i.RequestedQuantity} {i.UnitOfMeasurement})"))
+                            : "No items";
+                        
+                        if (items.Count > 3)
+                            itemsPreview += $" and {items.Count - 3} more...";
+
+                        historyItems.Add(new PurchaseOrderHistoryItem
+                        {
+                            PurchaseOrderId = order.PurchaseOrderId,
+                            OrderDate = order.OrderDate,
+                            SupplierName = order.SupplierName,
+                            Status = order.Status,
+                            RequestedBy = order.RequestedBy,
+                            ApprovedBy = order.ApprovedBy,
+                            ApprovedDate = order.ApprovedDate,
+                            TotalAmount = order.TotalAmount,
+                            CreatedAt = order.CreatedAt,
+                            Notes = order.Notes,
+                            ItemsPreview = itemsPreview,
+                            ItemCount = items.Count
+                        });
+                        
+                        processedCount++;
+                        
+                        // Periodic GC hint every 50 items to prevent memory buildup
+                        if (processedCount % 50 == 0)
+                        {
+                            GC.Collect(0, GCCollectionMode.Optimized);
+                        }
+                    }
+                    catch (Exception itemEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ Error processing order {order.PurchaseOrderId}: {itemEx.Message}");
+                        // Continue with other orders even if one fails
+                    }
                 }
 
+                System.Diagnostics.Debug.WriteLine($"✅ Processed {processedCount} orders into history items");
                 _allOrders = historyItems;
                 ApplyFilters();
+                System.Diagnostics.Debug.WriteLine("✅ Applied filters and pagination");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ Error loading purchase orders: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load purchase orders: {ex.Message}", "OK");
             }
             finally
@@ -195,10 +218,17 @@ namespace Coftea_Capstone.ViewModel.Pages
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("🔵 Navigating back to Inventory from PO History...");
+                
+                // Navigate immediately - cleanup will happen in OnDisappearing
                 await Shell.Current.GoToAsync("//inventory");
+                
+                System.Diagnostics.Debug.WriteLine("✅ Successfully navigated to Inventory");
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"❌ Navigation error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 await Application.Current.MainPage.DisplayAlert("Navigation Error", $"Unable to return to Inventory: {ex.Message}", "OK");
             }
         }

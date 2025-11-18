@@ -594,6 +594,58 @@
                 </Grid>
             </Grid>
         </Frame>
+
+        <!-- PDF Generation Confirmation Dialog -->
+        <Grid IsVisible="{Binding IsPdfDialogVisible}"
+              BackgroundColor="#80000000"
+              InputTransparent="False"
+              Padding="20"
+              ZIndex="3500">
+            <Frame BackgroundColor="White"
+                   CornerRadius="20"
+                   Padding="24"
+                   WidthRequest="420"
+                   MinimumHeightRequest="220"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   HasShadow="True"
+                   InputTransparent="False">
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="{Binding PdfDialogTitle}"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#5B4F45"
+                           HorizontalOptions="Center"/>
+
+                    <ScrollView HeightRequest="160">
+                        <Label Text="{Binding PdfDialogMessage}"
+                               FontSize="14"
+                               TextColor="#4B3A2F"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                    </ScrollView>
+
+                    <HorizontalStackLayout Spacing="12" HorizontalOptions="Fill">
+                        <Button Text="{Binding PdfDialogRejectText}"
+                                BackgroundColor="#E0E0E0"
+                                TextColor="#5B4F45"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Command="{Binding RejectPdfDialogCommand}"
+                                HorizontalOptions="FillAndExpand"
+                                IsVisible="{Binding PdfDialogHasReject}"/>
+
+                        <Button Text="{Binding PdfDialogAcceptText}"
+                                BackgroundColor="#5B4F45"
+                                TextColor="White"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Command="{Binding AcceptPdfDialogAsyncCommand}"
+                                HorizontalOptions="FillAndExpand"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
     </Grid>
 </ContentView>
 

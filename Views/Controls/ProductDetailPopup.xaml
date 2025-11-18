@@ -46,7 +46,10 @@
                         <!-- Today's Stats -->
                         <Frame BackgroundColor="#E8F5E9" CornerRadius="12" Padding="16" HasShadow="False">
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="Today" FontAttributes="Bold" FontSize="16" TextColor="#2E7D32"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="Today" FontAttributes="Bold" FontSize="16" TextColor="#2E7D32"/>
+                                    <Label Grid.Column="1" Text="{Binding TodayDateRange}" FontSize="11" TextColor="#666" VerticalOptions="Center"/>
+                                </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                     <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
                                         <VerticalStackLayout Spacing="4">
@@ -67,7 +70,10 @@
                         <!-- Week's Stats -->
                         <Frame BackgroundColor="#E3F2FD" CornerRadius="12" Padding="16" HasShadow="False">
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="This Week" FontAttributes="Bold" FontSize="16" TextColor="#1976D2"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="This Week" FontAttributes="Bold" FontSize="16" TextColor="#1976D2"/>
+                                    <Label Grid.Column="1" Text="{Binding WeekDateRange}" FontSize="11" TextColor="#666" VerticalOptions="Center"/>
+                                </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                     <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
                                         <VerticalStackLayout Spacing="4">
@@ -88,7 +94,10 @@
                         <!-- Month's Stats -->
                         <Frame BackgroundColor="#F3E5F5" CornerRadius="12" Padding="16" HasShadow="False">
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="This Month" FontAttributes="Bold" FontSize="16" TextColor="#7B1FA2"/>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="This Month" FontAttributes="Bold" FontSize="16" TextColor="#7B1FA2"/>
+                                    <Label Grid.Column="1" Text="{Binding MonthDateRange}" FontSize="11" TextColor="#666" VerticalOptions="Center"/>
+                                </Grid>
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                     <Frame BackgroundColor="White" CornerRadius="8" Padding="12" HasShadow="False">
                                         <VerticalStackLayout Spacing="4">

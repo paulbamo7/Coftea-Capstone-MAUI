@@ -196,9 +196,10 @@
                     <Frame Grid.Column="1" BackgroundColor="White" CornerRadius="12" Padding="12" HasShadow="True" VerticalOptions="Start">
                         <Grid RowDefinitions="Auto,*,Auto">
                             <!-- Header -->
-                            <Grid ColumnDefinitions="*,Auto">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                             <Label Text="Top 3 Picks Today" FontAttributes="Bold" FontSize="18" TextColor="#5B4F45"/>
-                            <Label Text="{Binding FilteredTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1" FontSize="14" TextColor="Gray"/>
+                            <Label Text="{Binding FilteredTodayOrders, StringFormat='{0} Orders'}" Grid.Column="1" Grid.Row="0" FontSize="14" TextColor="Gray"/>
+                            <Label Text="{Binding TotalTransactionsToday, StringFormat='Total Transactions: {0}'}" Grid.Column="1" Grid.Row="1" FontSize="12" TextColor="#666" Margin="0,2,0,0"/>
                             </Grid>
 
                             <!-- Pie left, Names right -->
@@ -798,7 +799,7 @@
         <controls:DateFilterPopup BindingContext="{Binding DateFilterPopup}" Grid.ColumnSpan="2" ZIndex="2900"/>
         
         <!-- Product Detail Popup -->
-        <controls:ProductDetailPopup BindingContext="{Binding ProductDetailPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
+        <controls:ProductDetailPopup BindingContext="{Binding ProductDetailPopup}" Grid.ColumnSpan="2" ZIndex="3200"/>
         <!-- Product Picker Popup -->
         <controls:ProductPickerPopup BindingContext="{Binding ProductPickerPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
         

@@ -53,13 +53,146 @@
             </BoxView.GestureRecognizers>
         </BoxView>
 
+        <!-- Date Filter Popup -->
+        <Frame IsVisible="{Binding IsDateFilterVisible}"
+               BackgroundColor="White"
+               CornerRadius="15"
+               Padding="20"
+               WidthRequest="350"
+               HeightRequest="450"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               HasShadow="True"
+               InputTransparent="False"
+               ZIndex="4000">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="15">
+                <!-- Header -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                    <Label Text="📅 Filter by Date Range" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#5B4F45"
+                           VerticalOptions="Center"/>
+                    <Border Grid.Column="1"
+                            WidthRequest="32"
+                            HeightRequest="32"
+                            BackgroundColor="#F5F5F5"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding HideDateFilterCommand}"/>
+                        </Border.GestureRecognizers>
+                        <Label Text="✕"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+                    </Border>
+                </Grid>
+                
+                <!-- Date inputs -->
+                <VerticalStackLayout Grid.Row="1" Spacing="20">
+                    <!-- Quick Filters -->
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Quick Filters" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#5B4F45"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="10">
+                            <Button Grid.Row="0" Grid.Column="0" 
+                                    Text="Today" 
+                                    Command="{Binding SetTodayCommand}" 
+                                    BackgroundColor="#E8F5E8"
+                                    TextColor="#2E7D32"
+                                    CornerRadius="8"
+                                    HeightRequest="40"/>
+                            <Button Grid.Row="0" Grid.Column="1" 
+                                    Text="Yesterday" 
+                                    Command="{Binding SetYesterdayCommand}" 
+                                    BackgroundColor="#E8F5E8"
+                                    TextColor="#2E7D32"
+                                    CornerRadius="8"
+                                    HeightRequest="40"/>
+                            <Button Grid.Row="1" Grid.Column="0" 
+                                    Text="Last 7 Days" 
+                                    Command="{Binding SetLast7DaysCommand}" 
+                                    BackgroundColor="#E8F5E8"
+                                    TextColor="#2E7D32"
+                                    CornerRadius="8"
+                                    HeightRequest="40"/>
+                            <Button Grid.Row="1" Grid.Column="1" 
+                                    Text="Last 30 Days" 
+                                    Command="{Binding SetLast30DaysCommand}" 
+                                    BackgroundColor="#E8F5E8"
+                                    TextColor="#2E7D32"
+                                    CornerRadius="8"
+                                    HeightRequest="40"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                    
+                    <!-- Custom Date Range -->
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Custom Range" 
+                               FontSize="14" 
+                               FontAttributes="Bold" 
+                               TextColor="#5B4F45"/>
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Start Date" 
+                                   FontSize="12" 
+                                   TextColor="#666666"/>
+                            <DatePicker x:Name="HistoryStartDatePicker"
+                                       Date="{Binding FilterStartDate, Mode=TwoWay}"
+                                       MinimumDate="2020-01-01"
+                                       MaximumDate="{Binding FilterEndDate}"
+                                       TextColor="#5B4F45"
+                                       BackgroundColor="#F5F5F5"
+                                       FontSize="14"/>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="End Date" 
+                                   FontSize="12" 
+                                   TextColor="#666666"/>
+                            <DatePicker x:Name="HistoryEndDatePicker"
+                                       Date="{Binding FilterEndDate, Mode=TwoWay}"
+                                       MinimumDate="{Binding FilterStartDate}"
+                                       MaximumDate="{Binding Today}"
+                                       TextColor="#5B4F45"
+                                       BackgroundColor="#F5F5F5"
+                                       FontSize="14"/>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+                
+                <!-- Buttons -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0" 
+                            Text="Clear Filter" 
+                            Command="{Binding ClearDateFilterCommand}"
+                            BackgroundColor="#E0E0E0" 
+                            TextColor="#666666" 
+                            CornerRadius="8"
+                            HeightRequest="45"/>
+                    <Button Grid.Column="1" 
+                            Text="Apply Filter" 
+                            Command="{Binding ApplyDateFilterCommand}"
+                            BackgroundColor="#2E7D32" 
+                            TextColor="White" 
+                            CornerRadius="8"
+                            HeightRequest="45"/>
+                </Grid>
+            </Grid>
+        </Frame>
+
         <!-- Main Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
                Padding="0"
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
-               WidthRequest="900"
+               WidthRequest="1400"
                HeightRequest="700"
                HasShadow="True"
                InputTransparent="False">
@@ -89,8 +222,9 @@
                 </Grid>
 
                 <!-- Filter Buttons -->
-                <ScrollView Grid.Row="1" Orientation="Horizontal" Padding="20,25,20,5" HorizontalOptions="Center">
-                    <HorizontalStackLayout Spacing="10">
+                <Grid Grid.Row="1" RowDefinitions="Auto,Auto" Padding="20,25,20,5">
+                    <ScrollView Grid.Row="0" Orientation="Horizontal" HorizontalOptions="Center">
+                        <HorizontalStackLayout Spacing="10">
                         <!-- Filter Buttons Template -->
                         <Button Text="Today" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Today" WidthRequest="100" Style="{StaticResource FilterButtonStyle}">
                             <Button.Triggers>
@@ -136,17 +270,6 @@
                             </Button.Triggers>
                         </Button>
 
-                        <Button Text="2 Weeks Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="2 Weeks Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button"
-                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='2 Weeks Ago'}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                    <Setter Property="TextColor" Value="White" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
                         <Button Text="1 Month Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Month Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
                             <Button.Triggers>
                                 <DataTrigger TargetType="Button"
@@ -168,8 +291,47 @@
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
-                    </HorizontalStackLayout>
-                </ScrollView>
+
+                            <Button Text="📅 Filter Date" 
+                                    Command="{Binding ShowDateFilterCommand}" 
+                                    WidthRequest="130" 
+                                    Style="{StaticResource FilterButtonStyle}">
+                                <Button.Triggers>
+                                    <DataTrigger TargetType="Button"
+                                                 Binding="{Binding HasDateFilter}"
+                                                 Value="True">
+                                        <Setter Property="BackgroundColor" Value="#5B4F45" />
+                                        <Setter Property="TextColor" Value="White" />
+                                    </DataTrigger>
+                                </Button.Triggers>
+                            </Button>
+                        </HorizontalStackLayout>
+                    </ScrollView>
+                    
+                    <!-- Date Filter Indicator -->
+                    <Grid Grid.Row="1" IsVisible="{Binding HasDateFilter}" Margin="20,5,20,0">
+                        <Border BackgroundColor="#E8F5E9" 
+                                Stroke="#4CAF50" 
+                                StrokeShape="RoundRectangle 8" 
+                                StrokeThickness="1" 
+                                Padding="10,5">
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Start">
+                                <Label Text="📅" FontSize="14" VerticalOptions="Center"/>
+                                <Label Text="{Binding DateFilterText}" 
+                                       FontSize="12" 
+                                       TextColor="#2E7D32" 
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center"/>
+                                <Button Text="✕" 
+                                        BackgroundColor="Transparent" 
+                                        TextColor="#2E7D32" 
+                                        FontSize="16"
+                                        Padding="5,0"
+                                        Command="{Binding ClearDateFilterCommand}"/>
+                            </HorizontalStackLayout>
+                        </Border>
+                    </Grid>
+                </Grid>
 
                 <!-- Transaction Table -->
                 <Frame Grid.Row="2"

@@ -762,7 +762,7 @@
         <otherViews:AddonsSelectionPopup BindingContext="{Binding AddItemToPOSViewModel.ConnectPOSToInventoryVM.AddonsPopup}" Grid.ColumnSpan="2" ZIndex="1400"/>
         <otherViews:CartPopup BindingContext="{Binding CartPopup}" Grid.ColumnSpan="2"/>
         <otherViews:HistoryPopup BindingContext="{Binding HistoryPopup}" Grid.ColumnSpan="2"/>
-        <otherViews:PaymentPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PaymentPopup}" Grid.ColumnSpan="2"/>
+        <otherViews:PaymentPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PaymentPopup}" Grid.ColumnSpan="2" ZIndex="3000"/>
         <otherViews:OrderCompletePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=OrderCompletePopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:OrderConfirmedPopup BindingContext="{Binding OrderConfirmedPopup}" Grid.ColumnSpan="2" ZIndex="2000"/>
         <otherViews:ProcessingQueuePopup BindingContext="{Binding ProcessingQueuePopup}" Grid.ColumnSpan="2" ZIndex="1900"/>

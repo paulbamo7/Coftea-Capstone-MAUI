@@ -398,7 +398,7 @@
                                     <Label Grid.Column="6" Text="UoM" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
                                     <Label Grid.Column="7" Text="Prev Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
                                     <Label Grid.Column="8" Text="New Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
-                                    <Label Grid.Column="9" Text="Used for Product" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
+                                    <Label Grid.Column="9" Text="Used for Product" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center" Margin="8,0,0,0"/>
                                     <Label Grid.Column="10" Text="Remarks" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
                                 </Grid>
 
@@ -430,7 +430,7 @@
                                                 <Label Grid.Column="6" Text="{Binding UnitOfMeasurement}" FontSize="10" TextColor="#666" VerticalOptions="Center"/>
                                                 <Label Grid.Column="7" Text="{Binding PreviousQuantityText}" FontSize="10" TextColor="#666" HorizontalOptions="End" VerticalOptions="Center"/>
                                                 <Label Grid.Column="8" Text="{Binding NewQuantityText}" FontSize="10" TextColor="#333" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
-                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center"/>
+                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center" Margin="8,0,0,0"/>
                                                 <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center"/>
                                                 
                                                 <!-- Separator Line -->

@@ -10,23 +10,31 @@
     IsVisible="{Binding IsRetryPopupVisible}"
     InputTransparent="False">
 
-    <Grid VerticalOptions="FillAndExpand" 
-          HorizontalOptions="FillAndExpand" 
-          InputTransparent="False">
-        <Grid.GestureRecognizers>
-            <TapGestureRecognizer Command="{Binding CloseRetryPopupCommand}" />
-        </Grid.GestureRecognizers>
+    <AbsoluteLayout HorizontalOptions="Fill" 
+                    VerticalOptions="Fill"
+                    InputTransparent="False">
         
-        <!-- Popup Frame -->
-        <Frame VerticalOptions="Center"
-               HorizontalOptions="Center"
-               Padding="0"
+        <!-- Click-blocking overlay -->
+        <BoxView BackgroundColor="#80000000" 
+                 HorizontalOptions="Fill" 
+                 VerticalOptions="Fill"
+                 AbsoluteLayout.LayoutBounds="0,0,1,1"
+                 AbsoluteLayout.LayoutFlags="All">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseRetryPopupCommand}" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
+        
+        <!-- Popup Frame - Centered -->
+        <Frame Padding="0"
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
                WidthRequest="400"
                HeightRequest="200"
                HasShadow="True"
-               InputTransparent="False">
+               InputTransparent="False"
+               AbsoluteLayout.LayoutBounds="0.5,0.5,-1,-1"
+               AbsoluteLayout.LayoutFlags="PositionProportional">
 
             <VerticalStackLayout Spacing="20" HorizontalOptions="Fill" Padding="30">
                 <!-- Error Icon -->
@@ -82,5 +90,5 @@
                 </Grid>
             </VerticalStackLayout>
         </Frame>
-    </Grid>
+    </AbsoluteLayout>
 </ContentView>

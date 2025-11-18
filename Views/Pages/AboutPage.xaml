@@ -6,7 +6,7 @@
              xmlns:otherViews="clr-namespace:Coftea_Capstone.Views.Controls"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False"
-             BackgroundColor="#E8DCC8">
+             BackgroundColor="#D6BCA8">
 
     <Grid ColumnDefinitions="200,*" RowDefinitions="*">
         <views:NavigationBar Grid.Column="0" />

@@ -3852,6 +3852,10 @@ namespace Coftea_Capstone.Models
                                     UnitOfMeasurement = inventoryUoM,
                                     Reason = "PURCHASE_ORDER",
                                     UserEmail = App.CurrentUser?.Email ?? "System",
+                                    UserFullName = !string.IsNullOrWhiteSpace(App.CurrentUser?.FullName) 
+                                        ? App.CurrentUser.FullName 
+                                        : $"{App.CurrentUser?.FirstName} {App.CurrentUser?.LastName}".Trim(),
+                                    UserId = App.CurrentUser?.ID,
                                     OrderId = purchaseOrderId.ToString(),
                                     Notes = $"Added {approvedQuantity} {approvedUoM} (converted to {quantityToAdd} {inventoryUoM}) from purchase order #{purchaseOrderId}"
                                 };
@@ -3924,6 +3928,10 @@ namespace Coftea_Capstone.Models
                         UnitOfMeasurement = item.unitOfMeasurement,
                         Reason = "PURCHASE_ORDER",
                         UserEmail = App.CurrentUser?.Email ?? "System",
+                        UserFullName = !string.IsNullOrWhiteSpace(App.CurrentUser?.FullName) 
+                            ? App.CurrentUser.FullName 
+                            : $"{App.CurrentUser?.FirstName} {App.CurrentUser?.LastName}".Trim(),
+                        UserId = App.CurrentUser?.ID,
                         OrderId = purchaseOrderId.ToString(),
                         Notes = $"Added {item.requestedQuantity} {item.unitOfMeasurement} from purchase order #{purchaseOrderId}"
                     };
@@ -4148,7 +4156,11 @@ namespace Coftea_Capstone.Models
                     NewQuantity = newQuantity,
                     UnitOfMeasurement = inventoryUoM,
                     Reason = "PURCHASE_ORDER_RETRACT",
-                    UserEmail = retractedBy,
+                    UserEmail = App.CurrentUser?.Email ?? retractedBy ?? "System",
+                    UserFullName = !string.IsNullOrWhiteSpace(App.CurrentUser?.FullName) 
+                        ? App.CurrentUser.FullName 
+                        : $"{App.CurrentUser?.FirstName} {App.CurrentUser?.LastName}".Trim(),
+                    UserId = App.CurrentUser?.ID,
                     OrderId = purchaseOrderId.ToString(),
                     Notes = $"Retracted accepted item from purchase order #{purchaseOrderId}: {approvedQuantity} {approvedUoM} (converted to {quantityToSubtract} {inventoryUoM})"
                 };
@@ -4446,7 +4458,11 @@ namespace Coftea_Capstone.Models
                     NewQuantity = newQuantity,
                     UnitOfMeasurement = inventoryUoM,
                     Reason = "PURCHASE_ORDER",
-                    UserEmail = approvedBy,
+                    UserEmail = App.CurrentUser?.Email ?? approvedBy ?? "System",
+                    UserFullName = !string.IsNullOrWhiteSpace(App.CurrentUser?.FullName) 
+                        ? App.CurrentUser.FullName 
+                        : $"{App.CurrentUser?.FirstName} {App.CurrentUser?.LastName}".Trim(),
+                    UserId = App.CurrentUser?.ID,
                     OrderId = purchaseOrderId.ToString(),
                     Notes = $"Accepted item from purchase order #{purchaseOrderId}: {approvedQuantity} {approvedUoM} (converted to {quantityToAdd} {inventoryUoM})"
                 };

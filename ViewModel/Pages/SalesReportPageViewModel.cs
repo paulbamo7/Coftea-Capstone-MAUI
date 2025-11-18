@@ -288,6 +288,10 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int filteredTodayOrders;
 
+        // Total transactions count for today
+        [ObservableProperty]
+        private int totalTransactionsToday;
+
         [ObservableProperty]
         private int filteredWeeklyOrders;
 
@@ -775,6 +779,9 @@ namespace Coftea_Capstone.ViewModel
                 var tomorrow = today.AddDays(1);
                 var todayTransactions = await _database.GetTransactionsByDateRangeAsync(today, tomorrow);
 
+                // Set total transactions count
+                TotalTransactionsToday = todayTransactions?.Count ?? 0;
+
                 // Calculate totals by payment method
                 CashTotal = todayTransactions
                     .Where(t => t.PaymentMethod?.Equals("Cash", StringComparison.OrdinalIgnoreCase) == true)
@@ -1153,10 +1160,39 @@ namespace Coftea_Capstone.ViewModel
 
         private async Task ShowProductDetailsForSelectedPeriodAsync(string productName)
         {
-            var start = GetFilterStartDate();
-            var end = GetFilterEndDateExclusive();
-            ProductDetailPopup.IsVisible = true;
-            await ProductDetailPopup.LoadProductDetailsAsync(productName, start, end);
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"🔵 ShowProductDetailsForSelectedPeriodAsync called with product: {productName}");
+                
+                // Close the payment method products popup first
+                if (PaymentMethodProductsPopup != null)
+                {
+                    PaymentMethodProductsPopup.IsVisible = false;
+                    System.Diagnostics.Debug.WriteLine($"🔵 Closed PaymentMethodProductsPopup");
+                }
+                
+                var start = GetFilterStartDate();
+                var end = GetFilterEndDateExclusive();
+                System.Diagnostics.Debug.WriteLine($"🔵 Date range: {start:yyyy-MM-dd} to {end:yyyy-MM-dd}");
+                System.Diagnostics.Debug.WriteLine($"🔵 ProductDetailPopup is null: {ProductDetailPopup == null}");
+                
+                if (ProductDetailPopup != null)
+                {
+                    ProductDetailPopup.IsVisible = true;
+                    System.Diagnostics.Debug.WriteLine($"🔵 ProductDetailPopup.IsVisible set to: {ProductDetailPopup.IsVisible}");
+                    await ProductDetailPopup.LoadProductDetailsAsync(productName, start, end);
+                    System.Diagnostics.Debug.WriteLine($"✅ ProductDetailPopup.LoadProductDetailsAsync completed");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"❌ ProductDetailPopup is null!");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in ShowProductDetailsForSelectedPeriodAsync: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+            }
         }
 
         [RelayCommand]
@@ -1448,9 +1484,9 @@ namespace Coftea_Capstone.ViewModel
 
         private void UpdatePieChartNames(List<TrendItem> items) // Update pie chart item names and counts
         {
-            Item1Name = items.Count > 0 ? items[0].Name : "No Data";
-            Item2Name = items.Count > 1 ? items[1].Name : "";
-            Item3Name = items.Count > 2 ? items[2].Name : "";
+            Item1Name = items.Count > 0 ? FormatItemNameWithCategory(items[0]) : "No Data";
+            Item2Name = items.Count > 1 ? FormatItemNameWithCategory(items[1]) : "";
+            Item3Name = items.Count > 2 ? FormatItemNameWithCategory(items[2]) : "";
 
             Item1Count = items.Count > 0 ? items[0].Count : 0;
             Item2Count = items.Count > 1 ? items[1].Count : 0;
@@ -1460,6 +1496,14 @@ namespace Coftea_Capstone.ViewModel
             Item1HasTrend = items.Count > 0 && items[0].Count > 0;
             Item2HasTrend = items.Count > 1 && items[1].Count > 0;
             Item3HasTrend = items.Count > 2 && items[2].Count > 0;
+        }
+
+        private string FormatItemNameWithCategory(TrendItem item)
+        {
+            if (item == null) return "";
+            if (string.IsNullOrWhiteSpace(item.Category))
+                return item.Name;
+            return $"{item.Name} ({item.Category})";
         }
 
         private void SetMaxCountForItems(List<TrendItem> items)
@@ -2174,12 +2218,13 @@ namespace Coftea_Capstone.ViewModel
             }
 
             var today = DateTime.Today;
-            var weekStart = today.AddDays(-7);
-            var weekEnd = today.AddDays(-1);
+            // Calculate week starting from Monday
+            var daysUntilMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+            var weekStart = today.AddDays(-daysUntilMonday);
 
             _pendingReportType = "Weekly";
             ReportDialogTitle = "Generate Weekly Report?";
-            ReportDialogMessage = $"Create a PDF summary for {weekStart:MMM dd} - {today:MMM dd}?";
+            ReportDialogMessage = $"Create a PDF summary for {weekStart:MMM dd} - {today:MMM dd, yyyy}?";
             ReportDialogAcceptText = "Generate";
             ReportDialogRejectText = "Cancel";
             ReportDialogHasReject = true;
@@ -2195,11 +2240,12 @@ namespace Coftea_Capstone.ViewModel
             }
 
             var today = DateTime.Today;
-            var monthStart = today.AddMonths(-1);
+            // Calculate month starting from the 1st
+            var monthStart = new DateTime(today.Year, today.Month, 1);
 
             _pendingReportType = "Monthly";
             ReportDialogTitle = "Generate Monthly Report?";
-            ReportDialogMessage = $"Create a PDF summary for {monthStart:MMM dd} - {today:MMM dd}?";
+            ReportDialogMessage = $"Create a PDF summary for {monthStart:MMM dd} - {today:MMM dd, yyyy}?";
             ReportDialogAcceptText = "Generate";
             ReportDialogRejectText = "Cancel";
             ReportDialogHasReject = true;
@@ -2273,7 +2319,9 @@ namespace Coftea_Capstone.ViewModel
                 IsLoading = true;
 
                 var today = DateTime.Today;
-                var weekStart = today.AddDays(-7);
+                // Calculate week starting from Monday
+                var daysUntilMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+                var weekStart = today.AddDays(-daysUntilMonday);
                 var weekEnd = today.AddDays(1);
 
                 System.Diagnostics.Debug.WriteLine($"🔵 Fetching transactions from {weekStart:yyyy-MM-dd} to {weekEnd:yyyy-MM-dd}");
@@ -2317,7 +2365,8 @@ namespace Coftea_Capstone.ViewModel
                 IsLoading = true;
 
                 var today = DateTime.Today;
-                var monthStart = today.AddMonths(-1);
+                // Calculate month starting from the 1st
+                var monthStart = new DateTime(today.Year, today.Month, 1);
                 var monthEnd = today.AddDays(1);
 
                 System.Diagnostics.Debug.WriteLine($"🔵 Fetching transactions from {monthStart:yyyy-MM-dd} to {monthEnd:yyyy-MM-dd}");

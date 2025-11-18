@@ -27,6 +27,25 @@ namespace Coftea_Capstone.ViewModel.Controls
         [ObservableProperty]
         private string selectedFilter = "Today";
 
+        [ObservableProperty]
+        private bool isDateFilterVisible = false;
+
+        [ObservableProperty]
+        private DateTime filterStartDate = DateTime.Now.AddDays(-7);
+
+        [ObservableProperty]
+        private DateTime filterEndDate = DateTime.Now;
+
+        public DateTime Today => DateTime.Today;
+
+        private bool _hasDateFilter = false;
+
+        public bool HasDateFilter => _hasDateFilter;
+        
+        public string DateFilterText => _hasDateFilter 
+            ? $"Filtered: {FilterStartDate:MMM dd, yyyy} - {FilterEndDate:MMM dd, yyyy}"
+            : string.Empty;
+
         public HistoryPopupViewModel()
         {
             // Set default filter to Today
@@ -104,6 +123,11 @@ namespace Coftea_Capstone.ViewModel.Controls
         private async Task FilterByTimePeriod(string timePeriod) // Filter transactions by time period
         {
             System.Diagnostics.Debug.WriteLine($"FilterByTimePeriod called with: {timePeriod}");
+            
+            // Clear date filter when selecting a time period filter
+            _hasDateFilter = false;
+            OnPropertyChanged(nameof(HasDateFilter));
+            OnPropertyChanged(nameof(DateFilterText));
             
             // Update the selected filter to trigger UI updates
             SelectedFilter = timePeriod?.Trim() ?? "Today";
@@ -186,9 +210,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                     case "1 Week Ago":
                         startDate = DateTime.Today.AddDays(-7);
                         break;
-                    case "2 Weeks Ago":
-                        startDate = DateTime.Today.AddDays(-14);
-                        break;
                     case "1 Month Ago":
                         startDate = DateTime.Today.AddDays(-30);
                         break;
@@ -229,7 +250,14 @@ namespace Coftea_Capstone.ViewModel.Controls
             // Apply time period filtering
             var filteredItems = AllTransactions.AsEnumerable();
             
-            if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All Time")
+            // Apply date range filter if active
+            if (_hasDateFilter)
+            {
+                var startDate = FilterStartDate.Date;
+                var endDate = FilterEndDate.Date.AddDays(1).AddSeconds(-1); // Include entire end date
+                filteredItems = filteredItems.Where(t => t.TransactionDate >= startDate && t.TransactionDate <= endDate);
+            }
+            else if (!string.IsNullOrWhiteSpace(SelectedFilter) && SelectedFilter != "All Time")
             {
                 var now = DateTime.Now;
                 var filter = SelectedFilter?.Trim() ?? string.Empty;
@@ -250,9 +278,6 @@ namespace Coftea_Capstone.ViewModel.Controls
                     case "1 Week Ago":
                         filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-7));
                         break;
-                    case "2 Weeks Ago":
-                        filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-14));
-                        break;
                     case "1 Month Ago":
                         filteredItems = filteredItems.Where(t => t.TransactionDate.Date == now.Date.AddDays(-30));
                         break;
@@ -269,6 +294,70 @@ namespace Coftea_Capstone.ViewModel.Controls
             }
             
             System.Diagnostics.Debug.WriteLine($"Filtered transactions count: {FilteredTransactions.Count}");
+        }
+
+        [RelayCommand]
+        private void ShowDateFilter()
+        {
+            IsDateFilterVisible = true;
+        }
+
+        [RelayCommand]
+        private void HideDateFilter()
+        {
+            IsDateFilterVisible = false;
+        }
+
+        [RelayCommand]
+        private void ApplyDateFilter()
+        {
+            _hasDateFilter = true;
+            SelectedFilter = "All Time"; // Clear time period filter when using date filter
+            IsDateFilterVisible = false;
+            OnPropertyChanged(nameof(HasDateFilter));
+            OnPropertyChanged(nameof(DateFilterText));
+            ApplyTransactionFilter();
+        }
+
+        [RelayCommand]
+        private void ClearDateFilter()
+        {
+            _hasDateFilter = false;
+            FilterStartDate = DateTime.Now.AddDays(-7);
+            FilterEndDate = DateTime.Now;
+            IsDateFilterVisible = false;
+            OnPropertyChanged(nameof(HasDateFilter));
+            OnPropertyChanged(nameof(DateFilterText));
+            ApplyTransactionFilter();
+        }
+
+        [RelayCommand]
+        private void SetToday()
+        {
+            FilterStartDate = DateTime.Now.Date;
+            FilterEndDate = DateTime.Now.Date;
+        }
+
+        [RelayCommand]
+        private void SetYesterday()
+        {
+            var yesterday = DateTime.Now.AddDays(-1).Date;
+            FilterStartDate = yesterday;
+            FilterEndDate = yesterday;
+        }
+
+        [RelayCommand]
+        private void SetLast7Days()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-7).Date;
+            FilterEndDate = DateTime.Now.Date;
+        }
+
+        [RelayCommand]
+        private void SetLast30Days()
+        {
+            FilterStartDate = DateTime.Now.AddDays(-30).Date;
+            FilterEndDate = DateTime.Now.Date;
         }
 
         public void Dispose() // Cleanup

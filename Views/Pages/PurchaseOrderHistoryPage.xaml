@@ -154,7 +154,7 @@
                                                         CommandParameter="{Binding .}"/>
 
                                                 <!-- Requested By & Supplier -->
-                                                <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4">
+                                                <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Spacing="4">
                                                     <Label FontSize="13" TextColor="#666">
                                                         <Label.FormattedText>
                                                             <FormattedString>
@@ -172,15 +172,6 @@
                                                         </Label.FormattedText>
                                                     </Label>
                                                 </VerticalStackLayout>
-
-                                                <!-- Total Amount -->
-                                                <Label Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
-                                                       Text="{Binding FormattedAmount}"
-                                                       FontSize="16"
-                                                       FontAttributes="Bold"
-                                                       TextColor="#D4A574"
-                                                       VerticalOptions="Center"
-                                                       HorizontalOptions="End"/>
 
                                                 <!-- Items Preview -->
                                                 <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
@@ -332,7 +323,7 @@
                     <ScrollView Grid.Row="1" Padding="20">
                         <VerticalStackLayout Spacing="15">
                             <!-- Order Info -->
-                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="15">
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="15">
                                 <Label Grid.Row="0" Grid.Column="0" Text="Status:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
                                 <Frame Grid.Row="0" Grid.Column="1"
                                        BackgroundColor="{Binding SelectedOrderDetails.StatusColor, Converter={StaticResource StringToColorConverter}}"
@@ -362,17 +353,6 @@
                                 
                                 <Label Grid.Row="3" Grid.Column="0" Text="Supplier:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
                                 <Label Grid.Row="3" Grid.Column="1" Text="{Binding SelectedOrderDetails.SupplierName}" FontSize="14" TextColor="#333" VerticalOptions="Center"/>
-                                
-                                <Label Grid.Row="4" Grid.Column="0" Text="Total Amount:" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
-                                <Label Grid.Row="4" Grid.Column="1" 
-                                       FontSize="16" 
-                                       FontAttributes="Bold"
-                                       TextColor="#D4A574"
-                                       VerticalOptions="Center">
-                                    <Label.Text>
-                                        <Binding Path="SelectedOrderDetails.TotalAmount" StringFormat="₱{0:F2}"/>
-                                    </Label.Text>
-                                </Label>
                             </Grid>
                             
                             <!-- Items List -->
@@ -414,19 +394,10 @@
                                                         </MultiBinding>
                                                     </Label.Text>
                                                 </Label>
-                                                <Label Grid.Row="1" Grid.Column="0"
+                                                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                                                        Text="{Binding ItemCategory}"
                                                        FontSize="12"
                                                        TextColor="#999"/>
-                                                <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
-                                                       FontSize="12"
-                                                       FontAttributes="Bold"
-                                                       TextColor="#D4A574"
-                                                       HorizontalOptions="End">
-                                                    <Label.Text>
-                                                        <Binding Path="TotalPrice" StringFormat="₱{0:F2}"/>
-                                                    </Label.Text>
-                                                </Label>
                                             </Grid>
                                         </Frame>
                                     </DataTemplate>

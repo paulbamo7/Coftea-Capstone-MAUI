@@ -32,9 +32,24 @@ namespace Coftea_Capstone.ViewModel.Controls
         [RelayCommand]
         private async Task ViewProduct(string productName)
         {
-            if (OnViewProduct != null)
+            try
             {
-                await OnViewProduct(productName);
+                System.Diagnostics.Debug.WriteLine($"🔵 ViewProduct command called with product: {productName}");
+                if (OnViewProduct != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔵 OnViewProduct event handler is not null, invoking...");
+                    await OnViewProduct(productName);
+                    System.Diagnostics.Debug.WriteLine($"✅ OnViewProduct event handler completed");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ OnViewProduct event handler is null!");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in ViewProduct command: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
             }
         }
 

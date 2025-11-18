@@ -52,8 +52,40 @@ namespace Coftea_Capstone.ViewModel.Controls
 		[ObservableProperty]
 		private int periodOrders;
 
-		[ObservableProperty]
-		private decimal periodSales;
+        [ObservableProperty]
+        private decimal periodSales;
+
+        // Date range display properties
+        public string TodayDateRange
+        {
+            get
+            {
+                var today = DateTime.Today;
+                return today.ToString("MMM dd, yyyy");
+            }
+        }
+
+        public string WeekDateRange
+        {
+            get
+            {
+                var today = DateTime.Today;
+                // Calculate Monday of current week
+                var daysUntilMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+                var monday = today.AddDays(-daysUntilMonday);
+                return $"{monday:MMM dd} - {today:MMM dd, yyyy}";
+            }
+        }
+
+        public string MonthDateRange
+        {
+            get
+            {
+                var today = DateTime.Today;
+                var firstOfMonth = new DateTime(today.Year, today.Month, 1);
+                return $"{firstOfMonth:MMM dd} - {today:MMM dd, yyyy}";
+            }
+        }
 
         [RelayCommand]
         private void Close()
@@ -74,11 +106,14 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var todayStart = today;
                 var todayEnd = today.AddDays(1);
 
-                var weekStart = today.AddDays(-7);
+                // Calculate week starting from Monday
+                var daysUntilMonday = ((int)today.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+                var weekStart = today.AddDays(-daysUntilMonday);
                 var weekEnd = today.AddDays(1);
 
+                // Calculate month starting from the 1st
                 var monthStart = new DateTime(today.Year, today.Month, 1);
-                var monthEnd = monthStart.AddMonths(1);
+                var monthEnd = today.AddDays(1);
 
                 // Get transactions only for the date ranges we need (optimize performance)
                 var earliestDate = monthStart; // We need at least a month back
@@ -126,6 +161,11 @@ namespace Coftea_Capstone.ViewModel.Controls
                 var products = await _database.GetProductsAsyncCached();
                 var product = products.FirstOrDefault(p => p.ProductName?.Equals(productName, StringComparison.OrdinalIgnoreCase) == true);
                 ProductCategory = product?.Category ?? "Unknown";
+
+                // Notify date range properties changed
+                OnPropertyChanged(nameof(TodayDateRange));
+                OnPropertyChanged(nameof(WeekDateRange));
+                OnPropertyChanged(nameof(MonthDateRange));
             }
             catch (Exception ex)
             {

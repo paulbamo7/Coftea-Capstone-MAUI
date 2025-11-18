@@ -172,9 +172,7 @@ namespace Coftea_Capstone.Services
                         .Select(d =>
                         {
                             var unit = unitMap.TryGetValue(d.Key, out var value) ? value : string.Empty;
-                            var amountText = string.IsNullOrWhiteSpace(unit)
-                                ? $"{d.Value:N1}"
-                                : $"{d.Value:N1} {unit}";
+                            var amountText = FormatAmountWithUnit(d.Value, unit);
                             return new[] { d.Key, amountText };
                         })
                         .ToList();
@@ -643,6 +641,23 @@ namespace Coftea_Capstone.Services
             return map;
         }
 
+        private string FormatAmountWithUnit(double value, string unit)
+        {
+            // Convert ml to L when value is >= 1000 ml
+            if (!string.IsNullOrWhiteSpace(unit) && 
+                string.Equals(unit.Trim(), "ml", StringComparison.OrdinalIgnoreCase) && 
+                value >= 1000)
+            {
+                var liters = value / 1000.0;
+                return $"{liters:F1} L";
+            }
+            
+            // Default formatting
+            return string.IsNullOrWhiteSpace(unit)
+                ? $"{value:N1}"
+                : $"{value:N1} {unit}";
+        }
+
         private string GetDownloadPath(string fileName)
         {
             try
@@ -856,9 +871,7 @@ namespace Coftea_Capstone.Services
                         .Select(d =>
                         {
                             var unit = unitMap.TryGetValue(d.Key, out var value) ? value : string.Empty;
-                            var amountText = string.IsNullOrWhiteSpace(unit)
-                                ? $"{d.Value:N1}"
-                                : $"{d.Value:N1} {unit}";
+                            var amountText = FormatAmountWithUnit(d.Value, unit);
                             return new[] { d.Key, amountText };
                         })
                         .ToList();

@@ -24,70 +24,6 @@
             <TapGestureRecognizer Command="{Binding ClosePaymentCommand}" />
         </Grid.GestureRecognizers>
         
-        <!-- Cancel Confirmation Overlay -->
-        <Frame IsVisible="{Binding IsCancelConfirmationVisible}"
-               BackgroundColor="#E0000000"
-               VerticalOptions="Fill"
-               HorizontalOptions="Fill"
-               Padding="0"
-               HasShadow="False"
-               InputTransparent="False"
-               ZIndex="10000">
-            <Grid VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="False">
-                <Frame BackgroundColor="#F8E8D7"
-                       CornerRadius="20"
-                       Padding="30"
-                       WidthRequest="400"
-                       HasShadow="True"
-                       InputTransparent="False">
-                    <VerticalStackLayout Spacing="20">
-                        <Label Text="Pause Payment"
-                               FontSize="20" FontFamily="MontserratBlack" FontAttributes="Bold"
-                               TextColor="#5B4F45"
-                               HorizontalOptions="Center"
-                               IsVisible="{Binding IsProcessingPayment}" />
-                        <Label Text="Cancel Payment"
-                               FontSize="20" FontFamily="MontserratBlack" FontAttributes="Bold"
-                               TextColor="#5B4F45"
-                               HorizontalOptions="Center"
-                               IsVisible="{Binding IsProcessingPayment, Converter={StaticResource InvertBoolConverter}}" />
-                        <Label Text="Payment is currently being processed. Do you want to pause it?"
-                               FontSize="14" FontFamily="MontserratBlack"
-                               TextColor="#5B4F45"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"
-                               LineBreakMode="WordWrap"
-                               IsVisible="{Binding IsProcessingPayment}" />
-                        <Label Text="Are you sure you want to cancel this payment? All entered amounts will be reset."
-                               FontSize="14" FontFamily="MontserratBlack"
-                               TextColor="#5B4F45"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"
-                               LineBreakMode="WordWrap"
-                               IsVisible="{Binding IsProcessingPayment, Converter={StaticResource InvertBoolConverter}}" />
-                        <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-                            <Button Text="Yes"
-                                    BackgroundColor="#4CAF50"
-                                    TextColor="White"
-                                    FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold"
-                                    CornerRadius="15"
-                                    WidthRequest="100"
-                                    HeightRequest="40"
-                                    Command="{Binding ConfirmCancelCommand}" />
-                            <Button Text="No"
-                                    BackgroundColor="#BDAEA2"
-                                    TextColor="White"
-                                    FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold"
-                                    CornerRadius="15"
-                                    WidthRequest="100"
-                                    HeightRequest="40"
-                                    Command="{Binding DismissCancelConfirmationCommand}" />
-                        </HorizontalStackLayout>
-                    </VerticalStackLayout>
-                </Frame>
-            </Grid>
-        </Frame>
-        
         <!-- Payment Frame -->
         <Frame VerticalOptions="Center"
                HorizontalOptions="Center"
@@ -97,7 +33,8 @@
                WidthRequest="750"
                HeightRequest="550"
                HasShadow="True"
-               InputTransparent="False">
+               InputTransparent="False"
+               ZIndex="1">
 
             <Grid RowDefinitions="Auto, *, Auto">
                 <!-- Header -->
@@ -592,6 +529,70 @@
                         </Frame>
                     </ScrollView>
                 </Grid>
+            </Grid>
+        </Frame>
+        
+        <!-- Cancel Confirmation Overlay - Must be after Payment Frame to appear on top -->
+        <Frame IsVisible="{Binding IsCancelConfirmationVisible}"
+               BackgroundColor="#E0000000"
+               VerticalOptions="Fill"
+               HorizontalOptions="Fill"
+               Padding="0"
+               HasShadow="False"
+               InputTransparent="False"
+               ZIndex="10000">
+            <Grid VerticalOptions="Center" HorizontalOptions="Center" InputTransparent="False">
+                <Frame BackgroundColor="#F8E8D7"
+                       CornerRadius="20"
+                       Padding="30"
+                       WidthRequest="400"
+                       HasShadow="True"
+                       InputTransparent="False">
+                    <VerticalStackLayout Spacing="20">
+                        <Label Text="Pause Payment"
+                               FontSize="20" FontFamily="MontserratBlack" FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               IsVisible="{Binding IsProcessingPayment}" />
+                        <Label Text="Cancel Payment"
+                               FontSize="20" FontFamily="MontserratBlack" FontAttributes="Bold"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               IsVisible="{Binding IsProcessingPayment, Converter={StaticResource InvertBoolConverter}}" />
+                        <Label Text="Payment is currently being processed. Do you want to pause it?"
+                               FontSize="14" FontFamily="MontserratBlack"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding IsProcessingPayment}" />
+                        <Label Text="Are you sure you want to cancel this payment? All entered amounts will be reset."
+                               FontSize="14" FontFamily="MontserratBlack"
+                               TextColor="#5B4F45"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"
+                               IsVisible="{Binding IsProcessingPayment, Converter={StaticResource InvertBoolConverter}}" />
+                        <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                            <Button Text="Yes"
+                                    BackgroundColor="#4CAF50"
+                                    TextColor="White"
+                                    FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold"
+                                    CornerRadius="15"
+                                    WidthRequest="100"
+                                    HeightRequest="40"
+                                    Command="{Binding ConfirmCancelCommand}" />
+                            <Button Text="No"
+                                    BackgroundColor="#BDAEA2"
+                                    TextColor="White"
+                                    FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold"
+                                    CornerRadius="15"
+                                    WidthRequest="100"
+                                    HeightRequest="40"
+                                    Command="{Binding DismissCancelConfirmationCommand}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
             </Grid>
         </Frame>
     </Grid>

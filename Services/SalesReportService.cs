@@ -161,6 +161,7 @@ namespace Coftea_Capstone.Services
                     {
                         Name = product.Key,
                         Count = product.Value,
+                        Category = category,
                         ColorCode = string.IsNullOrWhiteSpace(productInfo?.ColorCode) ? GetDefaultColor(category) : productInfo!.ColorCode!
                     };
 
