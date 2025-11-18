@@ -142,7 +142,6 @@
                                                        Text="💡 Tip: Accepted items can be retracted using the 'RETRACT' button if needed"
                                                        FontSize="10"
                                                        TextColor="#8B7355"
-                                                       FontStyle="Italic"
                                                        Margin="0,0,0,4"
                                                        IsVisible="{Binding HasAcceptedItems}"/>
 
