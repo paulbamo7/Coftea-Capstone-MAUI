@@ -72,7 +72,10 @@
                                         <Image Source="refreshicon.png" 
                                                WidthRequest="20" 
                                                HeightRequest="20" 
-                                               VerticalOptions="Center"/>
+                                               VerticalOptions="Center"
+                                               HorizontalOptions="Center"
+                                               Aspect="AspectFit"
+                                               IsVisible="True"/>
                                         <Label Text="Refresh" 
                                                FontSize="12" 
                                                FontAttributes="Bold"

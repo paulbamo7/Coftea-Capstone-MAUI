@@ -185,10 +185,10 @@
                                 <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
                                 <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
                                 
-                                <!-- X-axis line -->
+                                <!-- X-axis line (0 line) -->
                                 <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
                                 
-                                <!-- Bars -->
+                                <!-- Bars - aligned to bottom (0 line) -->
                                 <CollectionView Grid.RowSpan="5" 
                                                 ItemsSource="{Binding TopSellingProductsToday}" 
                                                 ItemsLayout="HorizontalList"
@@ -197,16 +197,32 @@
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
                                             <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" VerticalOptions="End" Spacing="6">
-                                                <Grid HeightRequest="150" VerticalOptions="End" RowDefinitions="*,Auto">
-                                                    <Grid>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="*"/>
-                                                        </Grid.RowDefinitions>
-                                                        <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="45" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 8,8,8,8"/>
-                                                        <Label Text="{Binding Count}" FontSize="10" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" FontAttributes="Bold"/>
+                                                <!-- Chart area - exactly 150px height, aligned to bottom -->
+                                                <Grid HeightRequest="150" VerticalOptions="End" RowDefinitions="*">
+                                                    <Grid VerticalOptions="FillAndExpand">
+                                                        <Border VerticalOptions="End" 
+                                                                HeightRequest="{Binding ScaledCount}" 
+                                                                WidthRequest="45" 
+                                                                BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" 
+                                                                StrokeThickness="0" 
+                                                                StrokeShape="RoundRectangle 8,8,0,0" 
+                                                                Margin="0,0,0,0"/>
+                                                        <Label Text="{Binding Count}" 
+                                                               FontSize="10" 
+                                                               TextColor="White" 
+                                                               HorizontalOptions="Center" 
+                                                               VerticalOptions="Center" 
+                                                               FontAttributes="Bold"
+                                                               IsVisible="{Binding ScaledCount, Converter={StaticResource IsPositiveConverter}}"/>
                                                     </Grid>
-                                                    <Label Grid.Row="1" Text="{Binding Name}" FontSize="10" LineBreakMode="WordWrap" HorizontalTextAlignment="Center" MaxLines="2" Margin="0,5,0,0"/>
                                                 </Grid>
+                                                <!-- Product name below chart -->
+                                                <Label Text="{Binding Name}" 
+                                                       FontSize="10" 
+                                                       LineBreakMode="WordWrap" 
+                                                       HorizontalTextAlignment="Center" 
+                                                       MaxLines="2" 
+                                                       Margin="0,0,0,0"/>
                                             </VerticalStackLayout>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>

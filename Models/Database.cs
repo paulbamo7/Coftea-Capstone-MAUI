@@ -3518,13 +3518,21 @@ namespace Coftea_Capstone.Models
                 System.Diagnostics.Debug.WriteLine("📦 [Database] Fetching pending purchase orders...");
                 
                 // Get all pending orders (case-insensitive and whitespace-insensitive)
-                // Include both "Pending" and "Partially Approved" orders since partially approved orders
-                // still have items that need to be processed
+                // Include "Pending", "Partially Approved", and "Approved" orders
+                // - Partially approved orders still have items that need to be processed
+                // - Approved orders are included so users can retract items if they made a mistake
                 // No limit - pagination is handled in ViewModel
                 var sql = @"
                     SELECT * FROM purchase_orders
-                    WHERE LOWER(TRIM(status)) IN ('pending', 'partially approved')
-                    ORDER BY createdAt DESC;";
+                    WHERE LOWER(TRIM(status)) IN ('pending', 'partially approved', 'approved')
+                    ORDER BY 
+                        CASE 
+                            WHEN LOWER(TRIM(status)) = 'pending' THEN 1
+                            WHEN LOWER(TRIM(status)) = 'partially approved' THEN 2
+                            WHEN LOWER(TRIM(status)) = 'approved' THEN 3
+                            ELSE 4
+                        END,
+                        createdAt DESC;";
                 
                 await using var cmd = new MySqlCommand(sql, conn);
                 await using var reader = await cmd.ExecuteReaderAsync();

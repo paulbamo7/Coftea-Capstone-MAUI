@@ -32,12 +32,15 @@
                                 ItemsSource="{Binding PendingOrders}"
                                 MaximumHeightRequest="700"
                                 Margin="0">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="8" VerticalItemSpacing="8" />
+                    </CollectionView.ItemsLayout>
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Frame BackgroundColor="#FAFAFA"
                                    HasShadow="False"
                                    Padding="20,15"
-                                   Margin="0,0,0,8"
+                                   Margin="4"
                                    BorderColor="#E0E0E0">
                                 <Grid ColumnDefinitions="Auto,*,Auto" RowSpacing="10">
                                     <!-- Order Number -->

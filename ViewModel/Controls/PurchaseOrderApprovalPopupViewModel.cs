@@ -76,10 +76,15 @@ namespace Coftea_Capstone.ViewModel.Controls
 
                 var pendingDisplayOrders = await BuildDisplayOrdersAsync(pendingOrderModels, includeEditableItems: true);
 
-                // Load processed orders separately
+                // Load processed orders separately (exclude pending, partially approved, and approved orders since they're in pending section)
                 var recentOrders = await _database.GetAllPurchaseOrdersAsync(20);
                 var processedOrderModels = recentOrders
-                    .Where(o => !string.Equals(o.Status?.Trim(), "pending", StringComparison.OrdinalIgnoreCase))
+                    .Where(o => {
+                        var status = o.Status?.Trim() ?? "";
+                        return !string.Equals(status, "pending", StringComparison.OrdinalIgnoreCase) &&
+                               !string.Equals(status, "partially approved", StringComparison.OrdinalIgnoreCase) &&
+                               !string.Equals(status, "approved", StringComparison.OrdinalIgnoreCase);
+                    })
                     .OrderByDescending(o => o.CreatedAt)
                     .Take(ProcessedOrdersLimit)
                     .ToList();

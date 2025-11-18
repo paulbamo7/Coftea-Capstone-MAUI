@@ -2209,25 +2209,39 @@ namespace Coftea_Capstone.ViewModel
         [RelayCommand]
         private async Task AcceptReportDialogAsync()
         {
-            if (ReportDialogHasReject && !string.IsNullOrEmpty(_pendingReportType))
+            try
             {
-                var pendingType = _pendingReportType;
-                IsReportDialogVisible = false;
-                _pendingReportType = null;
+                System.Diagnostics.Debug.WriteLine($"🔵 AcceptReportDialogAsync called - HasReject: {ReportDialogHasReject}, PendingType: {_pendingReportType}");
+                
+                if (!string.IsNullOrEmpty(_pendingReportType))
+                {
+                    var pendingType = _pendingReportType;
+                    IsReportDialogVisible = false;
+                    _pendingReportType = null;
 
-                if (pendingType == "Weekly")
-                {
-                    await GenerateWeeklyReportAsync();
+                    System.Diagnostics.Debug.WriteLine($"🔵 Generating {pendingType} report...");
+
+                    if (pendingType == "Weekly")
+                    {
+                        await GenerateWeeklyReportAsync();
+                    }
+                    else if (pendingType == "Monthly")
+                    {
+                        await GenerateMonthlyReportAsync();
+                    }
                 }
-                else if (pendingType == "Monthly")
+                else
                 {
-                    await GenerateMonthlyReportAsync();
+                    System.Diagnostics.Debug.WriteLine($"🔵 No pending report type, closing dialog");
+                    IsReportDialogVisible = false;
                 }
             }
-            else
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"❌ Error in AcceptReportDialogAsync: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
                 IsReportDialogVisible = false;
-                _pendingReportType = null;
+                ShowInfoDialog("Error", $"Failed to process report request: {ex.Message}", "Close");
             }
         }
 

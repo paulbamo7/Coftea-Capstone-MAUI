@@ -36,13 +36,25 @@
                        Grid.Row="0"
                        Margin="0,0,0,20" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="15" Margin="10">
-       <Button Text="All" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14" 
-               WidthRequest="100" HeightRequest="40" CornerRadius="12"
-               Command="{Binding FilterByCategoryCommand}" CommandParameter="All">
+       <Button Text="All" 
+               FontAttributes="Bold" 
+               FontSize="14" 
+               FontFamily="MontserratBlack"
+               WidthRequest="90" 
+               HeightRequest="40" 
+               CornerRadius="8"
+               Padding="8,4"
+               BackgroundColor="#E8D5C4" 
+               TextColor="#000000"
+               BorderWidth="0"
+               MinimumHeightRequest="40"
+               MinimumWidthRequest="90"
+               Command="{Binding FilterByCategoryCommand}" 
+               CommandParameter="All">
            <Button.Style>
                <Style TargetType="Button">
-                       <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                   <Setter Property="TextColor" Value="#1A1A1A"/>
+                   <Setter Property="TextColor" Value="#000000"/>
+                   <Setter Property="BackgroundColor" Value="#E8D5C4"/>
                    <Style.Triggers>
                        <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="All">
                            <Setter Property="BackgroundColor" Value="#5B4F45"/>
@@ -52,13 +64,25 @@
                </Style>
            </Button.Style>
        </Button>
-                    <Button Text="Ingredients" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14" 
-                            WidthRequest="120" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Ingredients">
+                    <Button Text="Ingredients" 
+                            FontAttributes="Bold" 
+                            FontSize="14" 
+                            FontFamily="MontserratBlack"
+                            WidthRequest="160" 
+                            HeightRequest="40" 
+                            CornerRadius="8"
+                            Padding="8,4"
+                            BackgroundColor="#E8D5C4" 
+                            TextColor="#000000"
+                            BorderWidth="0"
+                            MinimumHeightRequest="40"
+                            MinimumWidthRequest="160"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Ingredients">
                         <Button.Style>
                             <Style TargetType="Button">
+                                <Setter Property="TextColor" Value="#000000"/>
                                 <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Ingredients">
                                         <Setter Property="BackgroundColor" Value="#5B4F45"/>
@@ -68,13 +92,25 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Text="Supplies" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14"
-                            WidthRequest="100" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Supplies">
+                    <Button Text="Supplies" 
+                            FontAttributes="Bold" 
+                            FontSize="14" 
+                            FontFamily="MontserratBlack"
+                            WidthRequest="110" 
+                            HeightRequest="40" 
+                            CornerRadius="8"
+                            Padding="8,4"
+                            BackgroundColor="#E8D5C4" 
+                            TextColor="#000000"
+                            BorderWidth="0"
+                            MinimumHeightRequest="40"
+                            MinimumWidthRequest="110"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Supplies">
                         <Button.Style>
                             <Style TargetType="Button">
+                                <Setter Property="TextColor" Value="#000000"/>
                                 <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Supplies">
                                         <Setter Property="BackgroundColor" Value="#5B4F45"/>
@@ -84,13 +120,25 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Text="Syrups" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14"
-                            WidthRequest="100" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Syrups">
+                    <Button Text="Syrups" 
+                            FontAttributes="Bold" 
+                            FontSize="14" 
+                            FontFamily="MontserratBlack"
+                            WidthRequest="100" 
+                            HeightRequest="40" 
+                            CornerRadius="8"
+                            Padding="8,4"
+                            BackgroundColor="#E8D5C4" 
+                            TextColor="#000000"
+                            BorderWidth="0"
+                            MinimumHeightRequest="40"
+                            MinimumWidthRequest="100"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Syrups">
                         <Button.Style>
                             <Style TargetType="Button">
+                                <Setter Property="TextColor" Value="#000000"/>
                                 <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Syrups">
                                         <Setter Property="BackgroundColor" Value="#5B4F45"/>
@@ -100,13 +148,25 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Text="Powdered" FontAttributes="Bold" FontFamily="MontserratBlack" FontSize="14"
-                            WidthRequest="110" HeightRequest="40" CornerRadius="12"
-                            Command="{Binding FilterByCategoryCommand}" CommandParameter="Powdered">
+                    <Button Text="Powdered" 
+                            FontAttributes="Bold" 
+                            FontSize="14" 
+                            FontFamily="MontserratBlack"
+                            WidthRequest="130" 
+                            HeightRequest="40" 
+                            CornerRadius="8"
+                            Padding="8,4"
+                            BackgroundColor="#E8D5C4" 
+                            TextColor="#000000"
+                            BorderWidth="0"
+                            MinimumHeightRequest="40"
+                            MinimumWidthRequest="130"
+                            Command="{Binding FilterByCategoryCommand}" 
+                            CommandParameter="Powdered">
                         <Button.Style>
                             <Style TargetType="Button">
+                                <Setter Property="TextColor" Value="#000000"/>
                                 <Setter Property="BackgroundColor" Value="#E8D5C4"/>
-                                <Setter Property="TextColor" Value="#1A1A1A"/>
                                 <Style.Triggers>
                                     <DataTrigger TargetType="Button" Binding="{Binding SelectedCategory}" Value="Powdered">
                                         <Setter Property="BackgroundColor" Value="#5B4F45"/>

@@ -20,12 +20,12 @@ namespace Coftea_Capstone.Models
         { 
             get 
             {
-                if (Count <= 0) return 10; // Minimum height for visibility
-                if (YAxisMax <= 0) return 10;
+                if (Count <= 0) return 0; // Allow 0 height for zero values
+                if (YAxisMax <= 0) return 0;
                 
                 // Scale relative to the Y-axis maximum value, with the highest item reaching 140px
                 double ratio = (double)Count / YAxisMax;
-                return Math.Max(10, ratio * 140); // Minimum 10px, maximum 140px
+                return ratio * 140; // Scale from 0 to 140px based on ratio
             } 
         }
     }

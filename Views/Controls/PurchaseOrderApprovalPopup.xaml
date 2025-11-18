@@ -21,8 +21,8 @@
                BackgroundColor="White" 
                CornerRadius="20" 
                Padding="0" 
-               WidthRequest="900" 
-               HeightRequest="600"
+               WidthRequest="1200" 
+               HeightRequest="750"
                HorizontalOptions="Center" 
                VerticalOptions="Center"
                HasShadow="True"
@@ -42,13 +42,13 @@
                             Text="📜 PO History" 
                             BackgroundColor="#9C27B0" 
                             TextColor="White" 
-                            FontSize="12" 
+                            FontSize="14" 
                             FontAttributes="Bold"
                             CornerRadius="15"
                             BorderColor="#7B1FA2"
                             BorderWidth="2"
-                            Padding="12,6"
-                            HeightRequest="35"
+                            Padding="14,8"
+                            HeightRequest="40"
                             Command="{Binding ViewPurchaseOrderHistoryCommand}"
                             VerticalOptions="Center"/>
                     <ImageButton Grid.Column="2"
@@ -93,29 +93,29 @@
                                             <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                                                 <Label Grid.Column="0"
                                                        Text="{Binding PurchaseOrderId, StringFormat='Purchase Order #{0}'}"
-                                                       FontSize="18"
+                                                       FontSize="20"
                                                        FontAttributes="Bold"
                                                        TextColor="#5B4F45"/>
                                                 <Label Grid.Column="1"
                                                        Text="{Binding Status}"
-                                                       FontSize="14"
+                                                       FontSize="16"
                                                        FontAttributes="Bold"
                                                        TextColor="#D4A574"
-                                                       Padding="5,3"
+                                                       Padding="6,4"
                                                        BackgroundColor="#FFF8E1"
                                                        HorizontalOptions="End"/>
                                             </Grid>
 
                                             <!-- Order Info -->
                                             <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto" RowSpacing="5">
-                                                <Label Grid.Row="0" Grid.Column="0" Text="Requested by:" FontSize="12" TextColor="Gray"/>
-                                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding RequestedBy}" FontSize="12" TextColor="#333" FontAttributes="Bold"/>
+                                                <Label Grid.Row="0" Grid.Column="0" Text="Requested by:" FontSize="14" TextColor="Gray"/>
+                                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding RequestedBy}" FontSize="14" TextColor="#333" FontAttributes="Bold"/>
                                                 
-                                                <Label Grid.Row="1" Grid.Column="0" Text="Date:" FontSize="12" TextColor="Gray"/>
-                                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding CreatedAt, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="12" TextColor="#333"/>
+                                                <Label Grid.Row="1" Grid.Column="0" Text="Date:" FontSize="14" TextColor="Gray"/>
+                                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding CreatedAt, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontSize="14" TextColor="#333"/>
                                                 
-                                                <Label Grid.Row="2" Grid.Column="0" Text="Total:" FontSize="12" TextColor="Gray"/>
-                                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" FontSize="12" TextColor="#333" FontAttributes="Bold"/>
+                                                <Label Grid.Row="2" Grid.Column="0" Text="Total:" FontSize="14" TextColor="Gray"/>
+                                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding TotalAmount, StringFormat='₱{0:F2}'}" FontSize="14" TextColor="#333" FontAttributes="Bold"/>
                                             </Grid>
 
                                             <!-- Expandable Items Section -->
@@ -124,7 +124,7 @@
                                                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                                                     <Label Grid.Column="0"
                                                            Text="📋 Items in this order"
-                                                           FontSize="14"
+                                                           FontSize="16"
                                                            FontAttributes="Bold"
                                                            TextColor="#5B4F45"
                                                            VerticalOptions="Center"/>
@@ -140,7 +140,7 @@
                                                 <!-- Help Note -->
                                                 <Label Grid.Row="1"
                                                        Text="💡 Tip: Accepted items can be retracted using the 'RETRACT' button if needed"
-                                                       FontSize="10"
+                                                       FontSize="12"
                                                        TextColor="#8B7355"
                                                        Margin="0,0,0,4"
                                                        IsVisible="{Binding HasAcceptedItems}"/>
@@ -151,19 +151,22 @@
                                                                      Spacing="4"
                                                                      IsVisible="True">
                                                     <CollectionView ItemsSource="{Binding EditableItems}">
+                                                        <CollectionView.ItemsLayout>
+                                                            <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="8" VerticalItemSpacing="8" />
+                                                        </CollectionView.ItemsLayout>
                                                         <CollectionView.ItemTemplate>
                                                             <DataTemplate>
                                                                 <Frame BackgroundColor="#edeff0"
                                                                        CornerRadius="6"
                                                                        Padding="8,6"
-                                                                       Margin="0,0,0,4"
+                                                                       Margin="4"
                                                                        BorderColor="#D0D0D0"
                                                                        HasShadow="False">
                                                                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="8">
                                                                         <!-- Item Name and Status -->
                                                                         <Label Grid.Row="0" Grid.Column="0"
                                                                                Text="{Binding ItemName}"
-                                                                               FontSize="12"
+                                                                               FontSize="14"
                                                                                FontAttributes="Bold"
                                                                                TextColor="#333"/>
                                                                         
@@ -171,11 +174,11 @@
                                                                         <Frame Grid.Row="0" Grid.Column="1"
                                                                                BackgroundColor="{Binding ItemStatus, Converter={StaticResource StatusColorConverter}}"
                                                                                CornerRadius="8"
-                                                                               Padding="4,1"
+                                                                               Padding="5,2"
                                                                                HorizontalOptions="End"
-                                                                               HeightRequest="18">
+                                                                               HeightRequest="22">
                                                                             <Label Text="{Binding ItemStatus}"
-                                                                                   FontSize="9"
+                                                                                   FontSize="11"
                                                                                    TextColor="White"
                                                                                    FontAttributes="Bold"
                                                                                    VerticalOptions="Center"
@@ -192,7 +195,7 @@
                                                                             <!-- Amount Label -->
                                                                             <Label Grid.Column="0"
                                                                                    Text="Amount:"
-                                                                                   FontSize="11"
+                                                                                   FontSize="13"
                                                                                    TextColor="#333"
                                                                                    Padding="0"
                                                                                    Margin="0"
@@ -204,16 +207,16 @@
                                                                                    Placeholder="0"
                                                                                    PlaceholderColor="#8B7355"
                                                                                    TextColor="#5B4F45"
-                                                                                   FontSize="16"
+                                                                                   FontSize="18"
                                                                                    HorizontalTextAlignment="Center"
                                                                                    VerticalTextAlignment="Center"
                                                                                    Margin="4,0"
-                                                                                   HeightRequest="45"
+                                                                                   HeightRequest="50"
                                                                                    IsEnabled="{Binding IsPending}"/>
                                                                             <!-- UoM Label -->
                                                                             <Label Grid.Column="2"
                                                                                    Text="UoM:"
-                                                                                   FontSize="11"
+                                                                                   FontSize="13"
                                                                                    TextColor="#333"
                                                                                    Padding="0"
                                                                                    Margin="0"
@@ -223,11 +226,11 @@
                                                                                     ItemsSource="{Binding AvailableUoMs}"
                                                                                     SelectedItem="{Binding ApprovedUoM}"
                                                                                     TextColor="#5B4F45"
-                                                                                    FontSize="16"
+                                                                                    FontSize="18"
                                                                                     HorizontalOptions="Center"
                                                                                     VerticalOptions="Center"
-                                                                                    HeightRequest="45"
-                                                                                    WidthRequest="60"
+                                                                                    HeightRequest="50"
+                                                                                    WidthRequest="70"
                                                                                     Margin="4,0"
                                                                                     Title=""
                                                                                     IsEnabled="{Binding IsPending}">
@@ -235,7 +238,7 @@
                                                                             <!-- Quantity Label -->
                                                                             <Label Grid.Column="4"
                                                                                    Text="Quantity:"
-                                                                                   FontSize="11"
+                                                                                   FontSize="13"
                                                                                    Padding="0"
                                                                                    TextColor="#333"
                                                                                    Margin="0"
@@ -244,16 +247,17 @@
                                                                             <Grid Grid.Column="5"
                                                                                   ColumnDefinitions="Auto,*,Auto"
                                                                                   VerticalOptions="Center"
-                                                                                  HeightRequest="35">
+                                                                                  HeightRequest="40">
                                                                                 <Button Grid.Column="0"
                                                                                         Text="−"
-                                                                                        BackgroundColor="Transparent"
-                                                                                        TextColor="#5B4F45"
-                                                                                        FontSize="16"
+                                                                                        BackgroundColor="#F44336"
+                                                                                        TextColor="White"
+                                                                                        FontSize="18"
                                                                                         FontAttributes="Bold"
                                                                                         Padding="0"
-                                                                                        WidthRequest="22"
-                                                                                        HeightRequest="35"
+                                                                                        WidthRequest="28"
+                                                                                        HeightRequest="40"
+                                                                                        CornerRadius="6"
                                                                                         Command="{Binding BindingContext.DecreaseItemQuantityCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                         CommandParameter="{Binding .}"
                                                                                         IsEnabled="{Binding IsPending}"/>
@@ -263,28 +267,29 @@
                                                                                        Placeholder="1"
                                                                                        PlaceholderColor="#8B7355"
                                                                                        TextColor="#5B4F45"
-                                                                                       FontSize="16"
+                                                                                       FontSize="18"
                                                                                        HorizontalTextAlignment="Center"
                                                                                        VerticalTextAlignment="Center"
-                                                                                       HeightRequest="45"
+                                                                                       HeightRequest="50"
                                                                                        Margin="4,0"
                                                                                        IsEnabled="{Binding IsPending}"/>
                                                                                 <Button Grid.Column="2"
                                                                                         Text="+"
-                                                                                        BackgroundColor="Transparent"
-                                                                                        TextColor="#5B4F45"
-                                                                                        FontSize="16"
+                                                                                        BackgroundColor="#4CAF50"
+                                                                                        TextColor="White"
+                                                                                        FontSize="18"
                                                                                         FontAttributes="Bold"
                                                                                         Padding="0"
-                                                                                        WidthRequest="22"
-                                                                                        HeightRequest="35"
+                                                                                        WidthRequest="28"
+                                                                                        HeightRequest="40"
+                                                                                        CornerRadius="6"
                                                                                         Command="{Binding BindingContext.IncreaseItemQuantityCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                         CommandParameter="{Binding .}"
                                                                                         IsEnabled="{Binding IsPending}"/>
                                                                             </Grid>
                                                                             <!-- Total Display -->
                                                                             <Label Grid.Column="6"
-                                                                                   FontSize="11"
+                                                                                   FontSize="13"
                                                                                    FontAttributes="Bold"
                                                                                    TextColor="#5B4F45"
                                                                                    VerticalOptions="Center"
@@ -303,11 +308,15 @@
 
                                                                         <!-- Original UoM Display and Action Buttons -->
                                                                         <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-                                                                              ColumnDefinitions="*,*,Auto,Auto,Auto"
-                                                                              ColumnSpacing="6"
+                                                                              RowDefinitions="Auto,Auto"
+                                                                              RowSpacing="6"
                                                                               Margin="0,4,0,0">
+                                                                            <!-- First Row: Requested/Approved Info and Action Buttons -->
+                                                                            <Grid Grid.Row="0"
+                                                                                  ColumnDefinitions="*,*,Auto,Auto"
+                                                                                  ColumnSpacing="6">
                                                                             <Label Grid.Column="0"
-                                                                                   FontSize="10"
+                                                                                   FontSize="12"
                                                                                    TextColor="#333"
                                                                                    Padding="0"
                                                                                    Margin="0"
@@ -322,7 +331,7 @@
                                                                                 </Label.FormattedText>
                                                                             </Label>
                                                                             <Label Grid.Column="1"
-                                                                                   FontSize="10"
+                                                                                   FontSize="12"
                                                                                    TextColor="#333"
                                                                                    Padding="0"
                                                                                    Margin="0"
@@ -339,13 +348,13 @@
                                                                             <!-- Accept Button (for pending items) -->
                                                                             <Button Grid.Column="2"
                                                                                     Text="ACCEPT"
-                                                                                    Padding="4,2"
+                                                                                    Padding="6,4"
                                                                                     BackgroundColor="#4CAF50"
                                                                                     TextColor="White"
                                                                                     CornerRadius="6"
-                                                                                    HeightRequest="26"
-                                                                                    WidthRequest="70"
-                                                                                    FontSize="9"
+                                                                                    HeightRequest="32"
+                                                                                    WidthRequest="80"
+                                                                                    FontSize="11"
                                                                                     FontAttributes="Bold"
                                                                                     Command="{Binding BindingContext.AcceptItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                     CommandParameter="{Binding .}"
@@ -353,32 +362,35 @@
                                                                             <!-- Reject Button (for pending items) -->
                                                                             <Button Grid.Column="3"
                                                                                     Text="REJECT"
-                                                                                    Padding="4,2"
+                                                                                    Padding="6,4"
                                                                                     BackgroundColor="#F44336"
                                                                                     TextColor="White"
                                                                                     CornerRadius="6"
-                                                                                    HeightRequest="26"
-                                                                                    WidthRequest="70"
-                                                                                    FontSize="9"
+                                                                                    HeightRequest="32"
+                                                                                    WidthRequest="80"
+                                                                                    FontSize="11"
                                                                                     FontAttributes="Bold"
                                                                                     Command="{Binding BindingContext.CancelItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                     CommandParameter="{Binding .}"
                                                                                     IsVisible="{Binding IsPending}"/>
-                                                                            <!-- Retract Button (for accepted items) -->
-                                                                            <Button Grid.Column="2"
-                                                                                    Grid.ColumnSpan="2"
+                                                                            </Grid>
+                                                                            <!-- Second Row: Retract Button (for accepted items) -->
+                                                                            <Button Grid.Row="1"
                                                                                     Text="↩ RETRACT"
-                                                                                    Padding="6,3"
+                                                                                    Padding="8,6"
                                                                                     BackgroundColor="#FF9800"
                                                                                     TextColor="White"
                                                                                     CornerRadius="6"
-                                                                                    HeightRequest="28"
-                                                                                    WidthRequest="90"
-                                                                                    FontSize="10"
+                                                                                    HeightRequest="32"
+                                                                                    FontSize="12"
                                                                                     FontAttributes="Bold"
+                                                                                    BorderColor="#E68900"
+                                                                                    BorderWidth="1"
                                                                                     Command="{Binding BindingContext.RetractItemCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                                                     CommandParameter="{Binding .}"
-                                                                                    IsVisible="{Binding IsAccepted}"/>
+                                                                                    IsVisible="{Binding IsAccepted}"
+                                                                                    HorizontalOptions="Start"
+                                                                                    WidthRequest="100"/>
                                                                         </Grid>
                                                                     </Grid>
                                                                 </Frame>
@@ -394,10 +406,10 @@
                                                         Text="ACCEPT ALL"
                                                         BackgroundColor="#4CAF50"
                                                         TextColor="White"
-                                                        FontSize="12"
+                                                        FontSize="14"
                                                         FontAttributes="Bold"
                                                         CornerRadius="8"
-                                                        HeightRequest="38"
+                                                        HeightRequest="42"
                                                         Command="{Binding BindingContext.AcceptAllItemsCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                         CommandParameter="{Binding .}">
                                                     <Button.Triggers>
@@ -416,10 +428,10 @@
                                                         Text="REJECT ALL"
                                                         BackgroundColor="#F44336"
                                                         TextColor="White"
-                                                        FontSize="12"
+                                                        FontSize="14"
                                                         FontAttributes="Bold"
                                                         CornerRadius="8"
-                                                        HeightRequest="38"
+                                                        HeightRequest="42"
                                                         Command="{Binding BindingContext.RejectOrderCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                         CommandParameter="{Binding .}">
                                                     <Button.Style>
@@ -447,11 +459,11 @@
                                                         Text="📄 PDF"
                                                         BackgroundColor="#2196F3"
                                                         TextColor="White"
-                                                        FontSize="12"
+                                                        FontSize="14"
                                                         FontAttributes="Bold"
                                                         CornerRadius="8"
-                                                        HeightRequest="38"
-                                                        WidthRequest="90"
+                                                        HeightRequest="42"
+                                                        WidthRequest="100"
                                                         Command="{Binding BindingContext.ExportPurchaseOrderPDFCommand, Source={x:Reference PurchaseOrderApprovalPopupView}}"
                                                         CommandParameter="{Binding .}"/>
                                             </Grid>
