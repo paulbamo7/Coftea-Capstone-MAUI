@@ -1101,14 +1101,6 @@ namespace Coftea_Capstone.ViewModel
         {
             System.Diagnostics.Debug.WriteLine($"Category changed to: {value}");
             ApplyCategoryFilter();
-            
-            // Force UI updates for all filtered collections
-            OnPropertyChanged(nameof(TopItemsToday));
-            OnPropertyChanged(nameof(TopItemsWeekly));
-            OnPropertyChanged(nameof(TopItemsMonthly));
-            OnPropertyChanged(nameof(FilteredTodayOrders));
-            OnPropertyChanged(nameof(FilteredWeeklyOrders));
-            OnPropertyChanged(nameof(MonthlyOrders));
         }
 
         partial void OnIsAggregateSectionVisibleChanged(bool value)
@@ -1456,7 +1448,8 @@ namespace Coftea_Capstone.ViewModel
                 System.Diagnostics.Debug.WriteLine($"Order counts - Today: {FilteredTodayOrders}, Weekly: {FilteredWeeklyOrders}, Monthly: {MonthlyOrders}");
 
                 // Update the collections with new data on the main thread
-                MainThread.BeginInvokeOnMainThread(() =>
+                // Use InvokeOnMainThreadAsync to ensure updates happen in order
+                _ = MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     try
                     {
@@ -1465,15 +1458,21 @@ namespace Coftea_Capstone.ViewModel
                         TopItemsWeekly = new ObservableCollection<TrendItem>(topWeeklyItems);
                         TopItemsMonthly = new ObservableCollection<TrendItem>(topMonthlyItems);
                         
-                        // Update pie chart with the filtered items
+                        // Update pie chart with the filtered items (this MUST happen before property notifications)
+                        System.Diagnostics.Debug.WriteLine($"📊 Updating pie chart for category: {SelectedCategory} with {topTodayItems.Count} items");
                         UpdatePieChartNames(topTodayItems);
                         
-                        // Force UI to update
+                        // Force UI to update - property notifications must happen AFTER data is set
                         OnPropertyChanged(nameof(TopItemsToday));
                         OnPropertyChanged(nameof(TopItemsWeekly));
                         OnPropertyChanged(nameof(TopItemsMonthly));
                         OnPropertyChanged(nameof(WeeklyYAxisValues));
                         OnPropertyChanged(nameof(MonthlyYAxisValues));
+                        OnPropertyChanged(nameof(FilteredTodayOrders));
+                        OnPropertyChanged(nameof(FilteredWeeklyOrders));
+                        OnPropertyChanged(nameof(MonthlyOrders));
+                        
+                        // Explicitly notify pie chart properties after UpdatePieChartNames sets them
                         OnPropertyChanged(nameof(Item1Name));
                         OnPropertyChanged(nameof(Item2Name));
                         OnPropertyChanged(nameof(Item3Name));
@@ -1489,11 +1488,15 @@ namespace Coftea_Capstone.ViewModel
                         // Debug output for pie chart data
                         if (topTodayItems.Any())
                         {
-                            System.Diagnostics.Debug.WriteLine("Pie Chart Data:");
+                            System.Diagnostics.Debug.WriteLine($"📊 Pie Chart Data for {SelectedCategory}:");
                             for (int i = 0; i < Math.Min(3, topTodayItems.Count); i++)
                             {
                                 System.Diagnostics.Debug.WriteLine($"  Item {i + 1}: {topTodayItems[i].Name} - {topTodayItems[i].Count}");
                             }
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"📊 Pie Chart: No data for {SelectedCategory}");
                         }
                     }
                     catch (Exception ex)
@@ -1659,13 +1662,15 @@ namespace Coftea_Capstone.ViewModel
                     break;
                     
                 case "frappe":
+                    System.Diagnostics.Debug.WriteLine($"🥤 Filtering for Frappe category");
                     // First check dedicated frappe items
                     if (frappeItems != null && frappeItems.Any())
                     {
+                        System.Diagnostics.Debug.WriteLine($"🥤 Found {frappeItems.Count} dedicated frappe items");
                         filteredItems.AddRange(frappeItems);
                     }
                     
-                    // Always check coffee and milk tea items for frappe products
+                    // Always check coffee, milk tea, and fruit/soda items for frappe products
                     var frappeKeywords = new[] { "frappe", "frap" };
                     
                     if (coffeeItems != null)
@@ -1674,6 +1679,7 @@ namespace Coftea_Capstone.ViewModel
                             .Where(item => frappeKeywords.Any(keyword => 
                                 item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
                             .ToList();
+                        System.Diagnostics.Debug.WriteLine($"🥤 Found {frappeFromCoffee.Count} frappe items from coffee collection");
                         filteredItems.AddRange(frappeFromCoffee);
                     }
                     
@@ -1683,22 +1689,39 @@ namespace Coftea_Capstone.ViewModel
                             .Where(item => frappeKeywords.Any(keyword => 
                                 item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
                             .ToList();
+                        System.Diagnostics.Debug.WriteLine($"🥤 Found {frappeFromMilkTea.Count} frappe items from milk tea collection");
                         filteredItems.AddRange(frappeFromMilkTea);
+                    }
+                    
+                    if (fruitSodaItems != null)
+                    {
+                        var frappeFromFruitSoda = fruitSodaItems
+                            .Where(item => frappeKeywords.Any(keyword => 
+                                item.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0))
+                            .ToList();
+                        System.Diagnostics.Debug.WriteLine($"🥤 Found {frappeFromFruitSoda.Count} frappe items from fruit/soda collection");
+                        filteredItems.AddRange(frappeFromFruitSoda);
                     }
                     
                     // If still no items, try to find any items that might be frappes
                     if (!filteredItems.Any())
                     {
+                        System.Diagnostics.Debug.WriteLine($"🥤 No frappe items found, trying fallback search");
                         var allItems = new List<TrendItem>();
                         if (coffeeItems != null) allItems.AddRange(coffeeItems);
                         if (milkTeaItems != null) allItems.AddRange(milkTeaItems);
+                        if (fruitSodaItems != null) allItems.AddRange(fruitSodaItems);
                         
                         var possibleFrappes = allItems
                             .Where(item => item.Name.IndexOf("fr", StringComparison.OrdinalIgnoreCase) >= 0 ||
                                          item.Name.IndexOf("fp", StringComparison.OrdinalIgnoreCase) >= 0)
                             .ToList();
-                            
+                        System.Diagnostics.Debug.WriteLine($"🥤 Found {possibleFrappes.Count} possible frappes from fallback search");
                         filteredItems.AddRange(possibleFrappes);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🥤 Total frappe items found: {filteredItems.Count}");
                     }
                     break;
                     
@@ -1803,23 +1826,7 @@ namespace Coftea_Capstone.ViewModel
         {
             System.Diagnostics.Debug.WriteLine($"Applying category filter for: {SelectedCategory}");
             UpdateCombinedCollections();
-            
-            // Force UI updates for all related properties
-            OnPropertyChanged(nameof(TopItemsToday));
-            OnPropertyChanged(nameof(TopItemsWeekly));
-            OnPropertyChanged(nameof(TopItemsMonthly));
-            OnPropertyChanged(nameof(FilteredTodayOrders));
-            OnPropertyChanged(nameof(FilteredWeeklyOrders));
-            OnPropertyChanged(nameof(MonthlyOrders));
-            OnPropertyChanged(nameof(Item1Name));
-            OnPropertyChanged(nameof(Item2Name));
-            OnPropertyChanged(nameof(Item3Name));
-            OnPropertyChanged(nameof(Item1Count));
-            OnPropertyChanged(nameof(Item2Count));
-            OnPropertyChanged(nameof(Item3Count));
-            OnPropertyChanged(nameof(Item1HasTrend));
-            OnPropertyChanged(nameof(Item2HasTrend));
-            OnPropertyChanged(nameof(Item3HasTrend));
+            // Property notifications are handled inside UpdateCombinedCollections() on the main thread
         }
         private async Task LoadCumulativeTotalsAsync() // Load cumulative totals from preferences
         {

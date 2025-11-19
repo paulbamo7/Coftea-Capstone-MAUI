@@ -68,12 +68,12 @@
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding RefreshDataCommand}"/>
                                     </Border.GestureRecognizers>
-                                    <Label Text="Refresh" 
-                                           FontSize="13" 
-                                           FontFamily="OpenSansSemibold"
-                                           FontAttributes="Bold"
-                                           TextColor="#5B4F45" 
-                                           VerticalOptions="Center"
+                                        <Label Text="Refresh" 
+                                               FontSize="13" 
+                                               FontFamily="OpenSansSemibold"
+                                               FontAttributes="Bold"
+                                               TextColor="#5B4F45" 
+                                               VerticalOptions="Center"
                                            VerticalTextAlignment="Center"
                                            HorizontalOptions="Center"/>
                                 </Border>
