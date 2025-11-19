@@ -372,10 +372,10 @@
                                         <ColumnDefinition Width="0.9*"/>   <!-- Action -->
                                         <ColumnDefinition Width="1.4*"/>   <!-- Item -->
                                         <ColumnDefinition Width="0.8*"/>   <!-- Qty Change -->
-                                        <ColumnDefinition Width="0.6*"/>   <!-- UoM -->
-                                        <ColumnDefinition Width="0.8*"/>   <!-- Prev Qty -->
-                                        <ColumnDefinition Width="0.8*"/>   <!-- New Qty -->
-                                        <ColumnDefinition Width="1.3*"/>   <!-- Used for Product -->
+                                        <ColumnDefinition Width="0.7*"/>   <!-- UoM -->
+                                        <ColumnDefinition Width="0.9*"/>   <!-- Prev Qty -->
+                                        <ColumnDefinition Width="0.9*"/>   <!-- New Qty -->
+                                        <ColumnDefinition Width="1.5*"/>   <!-- Used for Product -->
                                         <ColumnDefinition Width="1.4*"/>   <!-- Remarks -->
                                     </Grid.ColumnDefinitions>
                                     
@@ -385,9 +385,9 @@
                                     <Label Grid.Column="3" Text="Action" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
                                     <Label Grid.Column="4" Text="Item" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
                                     <Label Grid.Column="5" Text="Qty Change" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
-                                    <Label Grid.Column="6" Text="UoM" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
-                                    <Label Grid.Column="7" Text="Prev Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
-                                    <Label Grid.Column="8" Text="New Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center"/>
+                                    <Label Grid.Column="6" Text="UoM" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center" Margin="8,0,0,0"/>
+                                    <Label Grid.Column="7" Text="Prev Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center" Margin="8,0,0,0"/>
+                                    <Label Grid.Column="8" Text="New Qty" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" HorizontalOptions="End" VerticalOptions="Center" Margin="8,0,0,0"/>
                                     <Label Grid.Column="9" Text="Used for Product" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center" Margin="8,0,0,0"/>
                                     <Label Grid.Column="10" Text="Remarks" FontSize="11" FontAttributes="Bold" TextColor="#E0D6CC" VerticalOptions="Center"/>
                                 </Grid>
@@ -404,10 +404,10 @@
                                                     <ColumnDefinition Width="0.9*"/>   <!-- Action -->
                                                     <ColumnDefinition Width="1.4*"/>   <!-- Item -->
                                                     <ColumnDefinition Width="0.8*"/>   <!-- Qty Change -->
-                                                    <ColumnDefinition Width="0.6*"/>   <!-- UoM -->
-                                                    <ColumnDefinition Width="0.8*"/>   <!-- Prev Qty -->
-                                                    <ColumnDefinition Width="0.8*"/>   <!-- New Qty -->
-                                                    <ColumnDefinition Width="1.3*"/>   <!-- Used for Product -->
+                                                    <ColumnDefinition Width="0.7*"/>   <!-- UoM -->
+                                                    <ColumnDefinition Width="0.9*"/>   <!-- Prev Qty -->
+                                                    <ColumnDefinition Width="0.9*"/>   <!-- New Qty -->
+                                                    <ColumnDefinition Width="1.5*"/>   <!-- Used for Product -->
                                                     <ColumnDefinition Width="1.4*"/>   <!-- Remarks -->
                                                 </Grid.ColumnDefinitions>
                                                 
@@ -417,10 +417,10 @@
                                                 <Label Grid.Column="3" Text="{Binding ActionText}" FontSize="10" TextColor="{Binding ColorCode}" FontAttributes="Bold" VerticalOptions="Center"/>
                                                 <Label Grid.Column="4" Text="{Binding ItemName}" FontSize="10" TextColor="#333" LineBreakMode="TailTruncation" VerticalOptions="Center"/>
                                                 <Label Grid.Column="5" Text="{Binding QuantityChangeText}" FontSize="10" TextColor="{Binding ColorCode}" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
-                                                <Label Grid.Column="6" Text="{Binding UnitOfMeasurement}" FontSize="10" TextColor="#666" VerticalOptions="Center"/>
-                                                <Label Grid.Column="7" Text="{Binding PreviousQuantityText}" FontSize="10" TextColor="#666" HorizontalOptions="End" VerticalOptions="Center"/>
-                                                <Label Grid.Column="8" Text="{Binding NewQuantityText}" FontSize="10" TextColor="#333" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center"/>
-                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center" Margin="8,0,0,0"/>
+                                                <Label Grid.Column="6" Text="{Binding UnitOfMeasurement}" FontSize="10" TextColor="#666" VerticalOptions="Center" Margin="8,0,0,0"/>
+                                                <Label Grid.Column="7" Text="{Binding PreviousQuantityText}" FontSize="10" TextColor="#666" HorizontalOptions="End" VerticalOptions="Center" Margin="8,0,0,0"/>
+                                                <Label Grid.Column="8" Text="{Binding NewQuantityText}" FontSize="10" TextColor="#333" FontAttributes="Bold" HorizontalOptions="End" VerticalOptions="Center" Margin="8,0,0,0"/>
+                                                <Label Grid.Column="9" Text="{Binding UsedForProductText}" FontSize="10" TextColor="#4A90E2" FontAttributes="Bold" LineBreakMode="WordWrap" MaxLines="2" VerticalOptions="Center" Margin="8,0,0,0"/>
                                                 <Label Grid.Column="10" Text="{Binding RemarksText}" FontSize="10" TextColor="#666" LineBreakMode="TailTruncation" MaxLines="1" VerticalOptions="Center"/>
                                                 
                                                 <!-- Separator Line -->

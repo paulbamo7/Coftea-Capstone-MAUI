@@ -60,6 +60,19 @@
             </Button>
             <Label Text="Sales Reports" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"/>
 
+            <Button ImageSource="inventory.png" BackgroundColor="#FFEAD6" HeightRequest="80"
+                    x:Name="PurchaseOrderButton"
+                    Command="{Binding GoPurchaseOrderCommand}"
+                    IsVisible="{Binding IsPurchaseOrderVisible}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding IsPurchaseOrderActive}" Value="True">
+                        <Setter Property="BackgroundColor" Value="#D4A574" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+            <Label Text="Purchase Order" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black"
+                   IsVisible="{Binding IsPurchaseOrderVisible}"/>
+
             <Button ImageSource="usermanagementicon.png" BackgroundColor="#FFEAD6" HeightRequest="80"
                     x:Name="UserManagementButton"
                     Command="{Binding GoUserManagementCommand}"

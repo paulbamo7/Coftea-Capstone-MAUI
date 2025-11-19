@@ -30,8 +30,8 @@
                Padding="0"
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
-               WidthRequest="750"
-               HeightRequest="550"
+               WidthRequest="900"
+               HeightRequest="750"
                HasShadow="True"
                InputTransparent="False"
                ZIndex="1">
@@ -469,25 +469,25 @@
                                                 <Grid RowDefinitions="Auto, Auto, Auto, Auto">
                                                     <!-- Product Name -->
                                                     <Label Grid.Row="0" Text="{Binding ProductName}" 
-                                                           FontSize="14" FontFamily="MontserratBlack" FontAttributes="Bold" 
+                                                           FontSize="16" FontFamily="MontserratBlack" FontAttributes="Bold" 
                                                            TextColor="Black" Margin="0,0,0,4" />
                                                     
                                                     <!-- Size Breakdown -->
                                                     <StackLayout Grid.Row="1" Spacing="3" Margin="0,0,0,3">
                                                         <Label Text="{Binding SmallDisplayCompact}" 
-                                                               FontSize="11" FontFamily="MontserratBlack" TextColor="#666666" 
+                                                               FontSize="13" FontFamily="MontserratBlack" TextColor="#666666" 
                                                                IsVisible="{Binding HasSmall}" />
                                                         <Label Text="{Binding MediumDisplayCompact}" 
-                                                               FontSize="11" FontFamily="MontserratBlack" TextColor="#666666" 
+                                                               FontSize="13" FontFamily="MontserratBlack" TextColor="#666666" 
                                                                IsVisible="{Binding HasMedium}" />
                                                         <Label Text="{Binding LargeDisplayCompact}" 
-                                                               FontSize="11" FontFamily="MontserratBlack" TextColor="#666666" 
+                                                               FontSize="13" FontFamily="MontserratBlack" TextColor="#666666" 
                                                                IsVisible="{Binding HasLarge}" />
                                                     </StackLayout>
                                                     
                                                     <!-- Add-ons -->
                                                     <Label Grid.Row="2" Text="{Binding AddOnsDisplay}" 
-                                                           FontSize="10" FontFamily="MontserratBlack" TextColor="#8B5CF6" 
+                                                           FontSize="12" FontFamily="MontserratBlack" TextColor="#8B5CF6" 
                                                            IsVisible="{Binding AddOnsDisplay, Converter={StaticResource NullToBoolConverter}}"
                                                            Margin="0,0,0,3"
                                                            LineBreakMode="TailTruncation" />
@@ -495,10 +495,10 @@
                                                     <!-- Item Total -->
                                                     <Grid Grid.Row="3" ColumnDefinitions="*, Auto">
                                                         <Label Grid.Column="0" Text="Subtotal:" 
-                                                               FontSize="11" FontFamily="MontserratBlack" FontAttributes="Bold" 
+                                                               FontSize="13" FontFamily="MontserratBlack" FontAttributes="Bold" 
                                                                TextColor="#5B4F45" />
                                                         <Label Grid.Column="1" Text="{Binding TotalPrice, StringFormat='₱{0:F2}'}" 
-                                                               FontSize="12" FontFamily="MontserratBlack" FontAttributes="Bold" 
+                                                               FontSize="13" FontFamily="MontserratBlack" FontAttributes="Bold" 
                                                                TextColor="#5B4F45" />
                                                     </Grid>
                                                 </Grid>

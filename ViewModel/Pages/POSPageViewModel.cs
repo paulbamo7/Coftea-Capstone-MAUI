@@ -1394,17 +1394,6 @@ namespace Coftea_Capstone.ViewModel
     }
 
 
-        [RelayCommand] 
-        private async Task ShowHistory() // Opens the transaction history popup
-        {
-            System.Diagnostics.Debug.WriteLine("ShowHistory command called");
-
-            // Use shared transactions populated from checkout
-            var app = (App)Application.Current;
-            var transactions = app?.Transactions ?? new ObservableCollection<TransactionHistoryModel>();
-            await HistoryPopup.ShowHistory(transactions);
-            System.Diagnostics.Debug.WriteLine($"HistoryPopup.IsHistoryVisible: {HistoryPopup.IsHistoryVisible}");
-        }
 
         [RelayCommand]
         private void Cart() // Opens the cart popup

@@ -17,6 +17,14 @@ public partial class PurchaseOrderHistoryPage : ContentPage
     {
         base.OnAppearing();
         
+        // Check if user is admin/owner - only they can access Purchase Order
+        if (App.CurrentUser == null || !App.CurrentUser.IsAdmin)
+        {
+            await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only administrators can access Purchase Order.", "OK");
+            await Shell.Current.GoToAsync("//dashboard");
+            return;
+        }
+        
         if (BindingContext is PurchaseOrderHistoryPageViewModel vm)
         {
             await vm.LoadPurchaseOrdersCommand.ExecuteAsync(null);

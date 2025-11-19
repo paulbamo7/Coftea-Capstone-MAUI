@@ -394,72 +394,34 @@
                             <Grid ColumnDefinitions="Auto,*" 
                                   VerticalOptions="Center">
                             
-                                <!-- Manage Inventory Button - Left -->
-                                <Button Grid.Column="0"
-                                        Text="📦 MANAGE INVENTORY" 
-                                        BackgroundColor="#BDAEA2" 
-                                        TextColor="#5B4F45" 
-                                        FontSize="13" 
-                                        FontAttributes="Bold"
-                                        CornerRadius="20"
-                                        BorderColor="#8B7355"
-                                        BorderWidth="2"
-                                        Padding="12,8"
-                                        HeightRequest="40"
-                                        Command="{Binding ManageInventoryCommand}"
-                                        HorizontalOptions="Start"
-                                        IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
-                                
-                                <!-- Purchase Order and Activity Log Buttons - Right -->
-                                <ScrollView Grid.Column="1"
-                                            Orientation="Horizontal"
-                                            HorizontalOptions="End" 
-                                            VerticalOptions="Center">
-                                    <StackLayout Orientation="Horizontal" 
-                                                Spacing="8">
-                                        
-                                        <!-- Purchase Order Button -->
-                                        <Button Text="📋 CREATE PURCHASE ORDER" 
-                                                BackgroundColor="#28a745" 
-                                                TextColor="#5B4F45" 
-                                                FontSize="13" 
-                                                FontAttributes="Bold"
-                                                CornerRadius="20"
-                                                BorderColor="#8B7355"
-                                                BorderWidth="2"
-                                                Padding="15,10"
-                                                HeightRequest="45"
-                                                Command="{Binding CreatePurchaseOrderCommand}"
-                                                IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
-                                        
-                                        <!-- View Purchase Orders Button (Admin Only) -->
-                                        <Button Text="📦 MANAGE PURCHASE ORDER" 
-                                                BackgroundColor="#4A90E2" 
-                                                TextColor="White" 
-                                                FontSize="13" 
-                                                FontAttributes="Bold"
-                                                CornerRadius="20"
-                                                BorderColor="#3D7AC4"
-                                                BorderWidth="2"
-                                                Padding="15,10"
-                                                HeightRequest="45"
-                                                Command="{Binding ShowPurchaseOrdersCommand}"
-                                                IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
-                                        
-                                        <!-- Activity Log Button -->
-                                        <Button Text="📝 ACTIVITY LOG" 
-                                                BackgroundColor="White" 
-                                                TextColor="#5B4F45" 
-                                                FontSize="13" 
-                                                FontAttributes="Bold"
-                                                CornerRadius="20"
-                                                BorderColor="#8B7355"
-                                                BorderWidth="2"
-                                                Padding="15,10"
-                                                HeightRequest="45"
-                                                Command="{Binding ShowActivityLogCommand}"/>
-                                    </StackLayout>
-                                </ScrollView>
+                                <!-- Manage Inventory and Add Menu Buttons - Left -->
+                                <StackLayout Grid.Column="0" Orientation="Horizontal" Spacing="8" HorizontalOptions="Start">
+                                    <Button Text="📦 MANAGE INVENTORY" 
+                                            BackgroundColor="#BDAEA2" 
+                                            TextColor="#5B4F45" 
+                                            FontSize="13" 
+                                            FontAttributes="Bold"
+                                            CornerRadius="20"
+                                            BorderColor="#8B7355"
+                                            BorderWidth="2"
+                                            Padding="12,8"
+                                            HeightRequest="40"
+                                            Command="{Binding ManageInventoryCommand}"
+                                            IsVisible="{Binding Source={x:Static Application.Current}, Path=CurrentUser.IsAdmin}"/>
+                                    
+                                    <!-- Manage POS Menu Button (users with POS access can use this) -->
+                                    <Button Text="🍽️ MANAGE POS MENU" 
+                                            BackgroundColor="#5B4F45" 
+                                            TextColor="White" 
+                                            FontSize="13" 
+                                            FontAttributes="Bold"
+                                            CornerRadius="20"
+                                            BorderColor="#8B7355"
+                                            BorderWidth="2"
+                                            Padding="12,8"
+                                            HeightRequest="40"
+                                            Command="{Binding ManagePOSCommand}"/>
+                                </StackLayout>
                             </Grid>
                         </Frame>
                         

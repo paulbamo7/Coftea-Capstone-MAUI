@@ -18,6 +18,7 @@ namespace Coftea_Capstone.ViewModel.Pages
         public ICommand GoPOSCommand { get; }
         public ICommand GoInventoryCommand { get; }
         public ICommand GoSalesReportCommand { get; }
+        public ICommand GoPurchaseOrderCommand { get; }
         public ICommand GoUserManagementCommand { get; }
         public ICommand GoAboutCommand { get; }
 
@@ -25,10 +26,12 @@ namespace Coftea_Capstone.ViewModel.Pages
         public bool IsPOSActive => string.Equals(_currentPage, nameof(PointOfSale), StringComparison.Ordinal);
         public bool IsInventoryActive => string.Equals(_currentPage, nameof(Inventory), StringComparison.Ordinal);
         public bool IsSalesReportActive => string.Equals(_currentPage, nameof(SalesReport), StringComparison.Ordinal);
+        public bool IsPurchaseOrderActive => string.Equals(_currentPage, nameof(PurchaseOrderHistoryPage), StringComparison.Ordinal);
         public bool IsUserManagementActive => string.Equals(_currentPage, nameof(UserManagement), StringComparison.Ordinal);
         public bool IsAboutActive => string.Equals(_currentPage, nameof(AboutPage), StringComparison.Ordinal);
 
         public bool IsUserManagementVisible => App.CurrentUser?.IsAdmin ?? false;
+        public bool IsPurchaseOrderVisible => App.CurrentUser?.IsAdmin ?? false; // Only admin/owner can access
         public bool IsAboutVisible => App.CurrentUser != null;
 
         public NavigationBarViewModel()
@@ -72,6 +75,18 @@ namespace Coftea_Capstone.ViewModel.Pages
                 }
                 await SimpleNavigationService.NavigateToAsync("//salesreport");
             });
+            GoPurchaseOrderCommand = new Command(async () =>
+            {
+                if (App.CurrentUser == null) return;
+                UiOverlayService.CloseGlobalOverlays();
+                // Only admin/owner can access Purchase Order
+                if (!(App.CurrentUser?.IsAdmin ?? false))
+                {
+                    await Application.Current.MainPage.DisplayAlert("Unauthorized", "Only administrators can access Purchase Order.", "OK");
+                    return;
+                }
+                await SimpleNavigationService.NavigateToAsync("//purchaseorderhistory");
+            });
             GoUserManagementCommand = new Command(async () =>
             {
                 if (App.CurrentUser == null) return;
@@ -110,9 +125,11 @@ namespace Coftea_Capstone.ViewModel.Pages
             OnPropertyChanged(nameof(IsPOSActive));
             OnPropertyChanged(nameof(IsInventoryActive));
             OnPropertyChanged(nameof(IsSalesReportActive));
+            OnPropertyChanged(nameof(IsPurchaseOrderActive));
             OnPropertyChanged(nameof(IsUserManagementActive));
             OnPropertyChanged(nameof(IsAboutActive));
             OnPropertyChanged(nameof(IsUserManagementVisible));
+            OnPropertyChanged(nameof(IsPurchaseOrderVisible));
             OnPropertyChanged(nameof(IsAboutVisible));
         }
 

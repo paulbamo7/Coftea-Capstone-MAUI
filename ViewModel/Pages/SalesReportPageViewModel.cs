@@ -449,6 +449,9 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private int recentOrdersCount;
 
+        // Transaction History Popup
+        public ViewModel.Controls.HistoryPopupViewModel HistoryPopup { get; set; }
+
         public ObservableCollection<string> AggregateModes { get; } = new();
         public ObservableCollection<SalesAggregateRow> SalesAggregateRows { get; } = new();
 
@@ -505,6 +508,7 @@ namespace Coftea_Capstone.ViewModel
             ProductDetailPopup = new ViewModel.Controls.ProductDetailPopupViewModel();
             ProductPickerPopup = new ViewModel.Controls.ProductPickerPopupViewModel();
             PaymentMethodProductsPopup = new ViewModel.Controls.PaymentMethodProductsPopupViewModel();
+            HistoryPopup = ((App)Application.Current).HistoryPopup;
             PaymentMethodProductsPopup.OnViewProduct += async (name) =>
             {
                 await ShowProductDetailsForSelectedPeriodAsync(name);
@@ -589,6 +593,56 @@ namespace Coftea_Capstone.ViewModel
         private RetryConnectionPopupViewModel GetRetryConnectionPopup()
         {
             return ((App)Application.Current).RetryConnectionPopup;
+        }
+
+        [RelayCommand]
+        private async Task ShowHistory() // Opens the transaction history popup
+        {
+            System.Diagnostics.Debug.WriteLine("ShowHistory command called in SalesReport");
+            
+            try
+            {
+                // Use shared transactions populated from checkout
+                var app = (App)Application.Current;
+                var transactions = app?.Transactions ?? new ObservableCollection<TransactionHistoryModel>();
+                
+                // Also load all transactions from database for the current filter
+                var startDate = GetFilterStartDate();
+                var endDate = GetFilterEndDateExclusive();
+                var allTransactions = await _database.GetTransactionsByDateRangeAsync(startDate, endDate);
+                
+                // Merge with in-memory transactions
+                var combinedTransactions = new ObservableCollection<TransactionHistoryModel>(allTransactions);
+                if (transactions != null && transactions.Any())
+                {
+                    foreach (var transaction in transactions)
+                    {
+                        bool exists = combinedTransactions.Any(t =>
+                            t.TransactionId == transaction.TransactionId ||
+                            (t.TransactionDate == transaction.TransactionDate &&
+                             string.Equals(t.DrinkName, transaction.DrinkName, StringComparison.OrdinalIgnoreCase) &&
+                             t.Total == transaction.Total &&
+                             t.Quantity == transaction.Quantity));
+                        
+                        if (!exists)
+                            combinedTransactions.Add(transaction);
+                    }
+                }
+                
+                if (HistoryPopup != null)
+                {
+                    await HistoryPopup.ShowHistory(combinedTransactions);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("HistoryPopup is null in SalesReport");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing history in SalesReport: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to open transaction history: {ex.Message}", "OK");
+            }
         }
 
         private async Task LoadRecentOrdersAsync() // Load recent orders from today
@@ -2749,6 +2803,37 @@ namespace Coftea_Capstone.ViewModel
             var (start, end) = GetCurrentPeriodDateRange();
             await PaymentMethodProductsPopup.LoadProductsAsync("Bank", start, end, GetPeriodText());
             PaymentMethodProductsPopup.IsVisible = true;
+        }
+
+        [RelayCommand]
+        private async Task ShowActivityLogAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("📋 Showing activity log from Sales Report...");
+                
+                // Get the ActivityLogPopup from the app
+                var app = (App)Application.Current;
+                var activityLogPopup = app.ActivityLogPopup;
+                
+                if (activityLogPopup != null)
+                {
+                    // Load activity log data
+                    await activityLogPopup.LoadActivityLogAsync();
+                    activityLogPopup.IsVisible = true;
+                    System.Diagnostics.Debug.WriteLine("✅ Activity log popup shown");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ ActivityLogPopup is null");
+                    await Application.Current.MainPage.DisplayAlert("Error", "Activity log feature is not available.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error showing activity log: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load activity log: {ex.Message}", "OK");
+            }
         }
     }
 }

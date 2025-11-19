@@ -433,6 +433,36 @@ namespace Coftea_Capstone.ViewModel
         }
 
         [RelayCommand]
+        private void ManagePOS() // Open the Manage POS Options panel (Add Menu functionality)
+        {
+            System.Diagnostics.Debug.WriteLine("ManagePOS called from Inventory");
+            
+            // Check if user is admin OR has been granted POS access (users still need access)
+            var currentUser = App.CurrentUser;
+            bool hasAccess = (currentUser?.IsAdmin ?? false) || (currentUser?.CanAccessPOS ?? false);
+            
+            if (!hasAccess)
+            {
+                Application.Current?.MainPage?.DisplayAlert("Access Denied", 
+                    "You don't have permission to manage POS menu. Please contact an administrator.", "OK");
+                return;
+            }
+            
+            // Get the ManagePOSOptionsViewModel from the app
+            var managePOSPopup = ((App)Application.Current).ManagePOSPopup;
+            if (managePOSPopup != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Setting ManagePOSPopup visibility to true. Current value: {managePOSPopup.IsPOSManagementPopupVisible}");
+                managePOSPopup.IsPOSManagementPopupVisible = true;
+                System.Diagnostics.Debug.WriteLine($"ManagePOSPopup visibility set to: {managePOSPopup.IsPOSManagementPopupVisible}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ManagePOSPopup is null");
+            }
+        }
+
+        [RelayCommand]
         private async Task ShowActivityLogAsync()
         {
             try

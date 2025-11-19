@@ -60,6 +60,74 @@ namespace Coftea_Capstone.ViewModel.Pages
         }
 
         [RelayCommand]
+        private async Task CreatePurchaseOrderAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("🛒 Creating purchase order from Purchase Order module...");
+                
+                // Get items that are below minimum stock levels (if any)
+                var lowStockItems = await _database.GetInventoryItemsAsyncCached();
+                var itemsBelowMinimum = lowStockItems.Where(item => item.itemQuantity <= item.minimumQuantity).ToList();
+                
+                // Always show the popup, even if there are no low stock items
+                // This allows users to create purchase orders in advance
+                var app = (App)Application.Current;
+                if (app?.CreatePurchaseOrderPopup != null)
+                {
+                    var currentUserIsAdmin = App.CurrentUser?.IsAdmin ?? false;
+                    await app.CreatePurchaseOrderPopup.LoadItems(itemsBelowMinimum, currentUserIsAdmin);
+                    app.CreatePurchaseOrderPopup.IsVisible = true;
+                }
+                else
+                {
+                    await Application.Current.MainPage.DisplayAlert(
+                        "Error", 
+                        "Purchase order popup is not initialized.", 
+                        "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error creating purchase order: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert(
+                    "Error", 
+                    $"Failed to create purchase order: {ex.Message}", 
+                    "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ShowPurchaseOrdersAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("📦 Showing purchase orders from Purchase Order module...");
+                
+                // Get the PurchaseOrderApprovalPopup from the app
+                var app = (App)Application.Current;
+                var purchaseOrderPopup = app.PurchaseOrderApprovalPopup;
+                
+                if (purchaseOrderPopup != null)
+                {
+                    // Show the popup (it will load data when shown)
+                    await purchaseOrderPopup.ShowAsync();
+                    System.Diagnostics.Debug.WriteLine("✅ Purchase order popup shown");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("❌ PurchaseOrderApprovalPopup is null");
+                    await Application.Current.MainPage.DisplayAlert("Error", "Purchase order feature is not available.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error showing purchase orders: {ex.Message}");
+                await Application.Current.MainPage.DisplayAlert("Error", $"Failed to load purchase orders: {ex.Message}", "OK");
+            }
+        }
+
+        [RelayCommand]
         public async Task LoadPurchaseOrdersAsync()
         {
             try

@@ -47,7 +47,7 @@
             <VerticalStackLayout Padding="20" Spacing="16">
 
                 <!-- Top Bar -->
-                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto" Padding="0,10" VerticalOptions="Center" ColumnSpacing="16">
                     <VerticalStackLayout Spacing="2">
                         <Label Text="Sales Report" FontSize="32" FontAttributes="Bold" FontFamily="MontserratBlack" VerticalOptions="Center" TextColor="Black"/>
                         <Label Text="{Binding LastRefreshedText}" 
@@ -68,8 +68,34 @@
                             Padding="12,8"
                             HeightRequest="36"
                             Command="{Binding SelectDateFilterCommand}"/>
-                    <ImageButton Grid.Column="2" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
-                    <Grid Grid.Column="3" WidthRequest="40" HeightRequest="40">
+                    <!-- Transaction History Button -->
+                    <Button Grid.Column="2"
+                            Text="📝" 
+                            BackgroundColor="#D4A574" 
+                            TextColor="White" 
+                            BorderColor="#8B7355"
+                            BorderWidth="2"
+                            CornerRadius="25"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            FontSize="20"
+                            Padding="0"
+                            Command="{Binding ShowHistoryCommand}" />
+                    <!-- Activity Log Button -->
+                    <Button Grid.Column="3"
+                            Text="📋 ACTIVITY LOG" 
+                            BackgroundColor="White" 
+                            TextColor="#5B4F45" 
+                            FontSize="12" 
+                            FontAttributes="Bold"
+                            CornerRadius="20"
+                            BorderColor="#8B7355"
+                            BorderWidth="2"
+                            Padding="12,8"
+                            HeightRequest="40"
+                            Command="{Binding ShowActivityLogCommand}"/>
+                    <ImageButton Grid.Column="4" Source="notification.png" WidthRequest="35" HeightRequest="35" BackgroundColor="Transparent" Clicked="OnBellClicked"/>
+                    <Grid Grid.Column="5" WidthRequest="40" HeightRequest="40">
                         <Image Source="{Binding Source={x:Static Application.Current}, Path=ProfilePopup.ProfileImageSource}" 
                                WidthRequest="40" 
                                HeightRequest="40" 
@@ -817,6 +843,7 @@
         <otherViews:ProfilePopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ProfilePopup}" Grid.ColumnSpan="2" ZIndex="1600"/>
         <otherViews:PasswordResetPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=PasswordResetPopup}" Grid.ColumnSpan="2" ZIndex="1700"/>
         <otherViews:RetryConnectionPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=RetryConnectionPopup}" Grid.ColumnSpan="2" ZIndex="2800"/>
+        <otherViews:ActivityLogPopup BindingContext="{Binding Source={x:Static Application.Current}, Path=ActivityLogPopup}" Grid.ColumnSpan="2" ZIndex="1800"/>
         
         <!-- Date Filter Popup -->
         <controls:DateFilterPopup BindingContext="{Binding DateFilterPopup}" Grid.ColumnSpan="2" ZIndex="2900"/>

@@ -180,21 +180,8 @@
                     </StackLayout>
                 </ScrollView>
 
-                <!-- History + Cart (far right) -->
+                <!-- Cart (far right) -->
                 <StackLayout Orientation="Horizontal" Grid.Column="1" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
-                    
-                    <!-- History button -->
-                    <Button Text="📝" 
-                            BackgroundColor="#D4A574" 
-                            TextColor="White" 
-                            BorderColor="#8B7355"
-                            BorderWidth="2"
-                            CornerRadius="25"
-                            WidthRequest="48"
-                            HeightRequest="48"
-                            FontSize="20"
-                            Padding="0"
-                            Command="{Binding ShowHistoryCommand}" />
                     
                     <!-- Replace button (formerly To Prepare) -->
                     <Button Text="⏰"
@@ -712,23 +699,6 @@
                         </Grid>
                     </Frame>
                 
-                    <!-- Manage POS Menu Button - Bottom Right -->
-                    <Button Grid.Row="1" 
-                            Text="Menu" 
-                            BackgroundColor="#BDAEA2" 
-                            TextColor="#5B4F45" 
-                            FontSize="14" 
-                            FontAttributes="Bold"
-                            CornerRadius="20"
-                            BorderColor="#8B7355"
-                            BorderWidth="2"
-                            Padding="20,10"
-                            HorizontalOptions="End"
-                            VerticalOptions="End"
-                            Margin="0,10,10,10"
-                            HeightRequest="45"
-                            Command="{Binding ManagePOSCommand}"
-                            IsVisible="{Binding CanShowMenuButton}"/>
                 </Grid>
             </Grid>
         </Grid>
