@@ -58,8 +58,8 @@
                BackgroundColor="White"
                CornerRadius="15"
                Padding="20"
-               WidthRequest="350"
-               HeightRequest="450"
+               WidthRequest="410"
+               HeightRequest="370"
                HorizontalOptions="Center"
                VerticalOptions="Center"
                HasShadow="True"
@@ -95,44 +95,6 @@
                 
                 <!-- Date inputs -->
                 <VerticalStackLayout Grid.Row="1" Spacing="20">
-                    <!-- Quick Filters -->
-                    <VerticalStackLayout Spacing="10">
-                        <Label Text="Quick Filters" 
-                               FontSize="14" 
-                               FontAttributes="Bold" 
-                               TextColor="#5B4F45"/>
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10" RowDefinitions="Auto,Auto" RowSpacing="10">
-                            <Button Grid.Row="0" Grid.Column="0" 
-                                    Text="Today" 
-                                    Command="{Binding SetTodayCommand}" 
-                                    BackgroundColor="#E8F5E8"
-                                    TextColor="#2E7D32"
-                                    CornerRadius="8"
-                                    HeightRequest="40"/>
-                            <Button Grid.Row="0" Grid.Column="1" 
-                                    Text="Yesterday" 
-                                    Command="{Binding SetYesterdayCommand}" 
-                                    BackgroundColor="#E8F5E8"
-                                    TextColor="#2E7D32"
-                                    CornerRadius="8"
-                                    HeightRequest="40"/>
-                            <Button Grid.Row="1" Grid.Column="0" 
-                                    Text="Last 7 Days" 
-                                    Command="{Binding SetLast7DaysCommand}" 
-                                    BackgroundColor="#E8F5E8"
-                                    TextColor="#2E7D32"
-                                    CornerRadius="8"
-                                    HeightRequest="40"/>
-                            <Button Grid.Row="1" Grid.Column="1" 
-                                    Text="Last 30 Days" 
-                                    Command="{Binding SetLast30DaysCommand}" 
-                                    BackgroundColor="#E8F5E8"
-                                    TextColor="#2E7D32"
-                                    CornerRadius="8"
-                                    HeightRequest="40"/>
-                        </Grid>
-                    </VerticalStackLayout>
-                    
                     <!-- Custom Date Range -->
                     <VerticalStackLayout Spacing="10">
                         <Label Text="Custom Range" 
@@ -192,10 +154,10 @@
                Padding="0"
                BackgroundColor="#F8E8D7"
                CornerRadius="20"
-               MaximumWidthRequest="900"
-               WidthRequest="{OnPlatform Default=900, Android=850, iOS=850, WinUI=900}"
-               MaximumHeightRequest="700"
-               HeightRequest="{OnPlatform Default=700, Android=650, iOS=650, WinUI=700}"
+               MaximumWidthRequest="950"
+               WidthRequest="{OnPlatform Default=950, Android=850, iOS=850, WinUI=950}"
+               MaximumHeightRequest="750"
+               HeightRequest="{OnPlatform Default=750, Android=650, iOS=650, WinUI=700}"
                HasShadow="True"
                InputTransparent="False">
 
@@ -225,75 +187,8 @@
 
                 <!-- Filter Buttons -->
                 <Grid Grid.Row="1" RowDefinitions="Auto,Auto" Padding="20,25,20,5">
-                    <ScrollView Grid.Row="0" Orientation="Horizontal" HorizontalOptions="Center">
+                    <ScrollView Grid.Row="0" Orientation="Horizontal" HorizontalOptions="Start">
                         <HorizontalStackLayout Spacing="10">
-                        <!-- Filter Buttons Template -->
-                        <Button Text="Today" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Today" WidthRequest="100" Style="{StaticResource FilterButtonStyle}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button"
-                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Today}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                    <Setter Property="TextColor" Value="White" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <Button Text="Yesterday" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="Yesterday" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button"
-                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter=Yesterday}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                    <Setter Property="TextColor" Value="White" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <Button Text="3 Days Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="3 Days Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button"
-                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='3 Days Ago'}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                    <Setter Property="TextColor" Value="White" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <Button Text="1 Week Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Week Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button"
-                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Week Ago'}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                    <Setter Property="TextColor" Value="White" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <Button Text="1 Month Ago" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="1 Month Ago" WidthRequest="120" Style="{StaticResource FilterButtonStyle}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button"
-                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='1 Month Ago'}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                    <Setter Property="TextColor" Value="White" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
-                        <Button Text="All Time" Command="{Binding FilterByTimePeriodCommand}" CommandParameter="All Time" WidthRequest="100" Style="{StaticResource FilterButtonStyle}">
-                            <Button.Triggers>
-                                <DataTrigger TargetType="Button"
-                                             Binding="{Binding SelectedFilter, Converter={StaticResource FilterButtonConverter}, ConverterParameter='All Time'}"
-                                             Value="True">
-                                    <Setter Property="BackgroundColor" Value="#5B4F45" />
-                                    <Setter Property="TextColor" Value="White" />
-                                </DataTrigger>
-                            </Button.Triggers>
-                        </Button>
-
                             <Button Text="📅 Filter Date" 
                                     Command="{Binding ShowDateFilterCommand}" 
                                     WidthRequest="130" 
@@ -354,10 +249,10 @@
                                             <Label Grid.Column="3" Text="Sizes" FontAttributes="Bold" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
                                             <Label Grid.Column="4" Text="Add On" FontAttributes="Bold" FontSize="11" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
                                             <Label Grid.Column="5" Text="Price" FontAttributes="Bold" FontSize="11" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="6" Text="Small" FontAttributes="Bold" FontSize="11" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="7" Text="Medium" FontAttributes="Bold" FontSize="11" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="8" Text="Large" FontAttributes="Bold" FontSize="11" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
-                                            <Label Grid.Column="9" Text="Addon" FontAttributes="Bold" FontSize="11" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="6" Text="Small" FontAttributes="Bold" FontSize="11" Padding="12,0,0,0" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="7" Text="Medium" FontAttributes="Bold" FontSize="11" Padding="12,0,0,0" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="8" Text="Large" FontAttributes="Bold" FontSize="11" Padding="12,0,0,0" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
+                                            <Label Grid.Column="9" Text="Addon" FontAttributes="Bold" FontSize="11" Padding="6,0,0,0" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
                                             <Label Grid.Column="10" Text="Total" FontAttributes="Bold" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
                                             <Label Grid.Column="11" Text="Date" FontAttributes="Bold" FontSize="12" FontFamily="MontserratBlack" TextColor="Black" HorizontalOptions="Center"/>
                                         </Grid>
@@ -389,10 +284,10 @@
                                                     <Label Grid.Column="3" Text="{Binding AllSizesDisplay}" FontSize="10" FontFamily="MontserratBlack" HorizontalOptions="Start" VerticalOptions="Center" TextColor="Black" LineBreakMode="WordWrap" MaxLines="3"/>
                                                     <Label Grid.Column="4" Text="{Binding AddOns}" FontSize="10" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black" LineBreakMode="WordWrap" MaxLines="2"/>
                                                     <Label Grid.Column="5" Text="{Binding FormattedPrice}" FontSize="10" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
-                                                    <Label Grid.Column="6" Text="{Binding FormattedSmallPrice}" FontSize="10" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
-                                                    <Label Grid.Column="7" Text="{Binding FormattedMediumPrice}" FontSize="10" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
-                                                    <Label Grid.Column="8" Text="{Binding FormattedLargePrice}" FontSize="10" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
-                                                    <Label Grid.Column="9" Text="{Binding FormattedAddonPrice}" FontSize="10" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
+                                                    <Label Grid.Column="6" Text="{Binding FormattedSmallPrice}" FontSize="10" FontFamily="MontserratBlack" Padding="12,0,0,0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
+                                                    <Label Grid.Column="7" Text="{Binding FormattedMediumPrice}" FontSize="10" FontFamily="MontserratBlack" Padding="12,0,0,0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
+                                                    <Label Grid.Column="8" Text="{Binding FormattedLargePrice}" FontSize="10" FontFamily="MontserratBlack" Padding="12,0,0,0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
+                                                    <Label Grid.Column="9" Text="{Binding FormattedAddonPrice}" FontSize="10" FontFamily="MontserratBlack" Padding="6,0,0,0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
                                                     <Label Grid.Column="10" Text="{Binding FormattedTotal}" FontSize="11" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
                                                     <Label Grid.Column="11" Text="{Binding FormattedDate}" FontSize="11" FontFamily="MontserratBlack" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black"/>
                                                 </Grid>

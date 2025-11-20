@@ -248,6 +248,7 @@
                                             ItemsLayout="VerticalList" 
                                             BackgroundColor="Transparent" 
                                             Margin="0,6,0,0"
+                                            ItemSizingStrategy="MeasureFirstItem"
                                             IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
 
                                 <CollectionView.ItemTemplate>

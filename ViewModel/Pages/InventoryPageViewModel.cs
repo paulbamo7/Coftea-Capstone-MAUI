@@ -223,10 +223,15 @@ namespace Coftea_Capstone.ViewModel
             // Apply sorting
             query = ApplySorting(query);
 
-            InventoryItems = new ObservableCollection<InventoryPageModel>(query);
-            foreach (var item in InventoryItems)
+            // Convert to list first for better performance
+            var filteredList = query.ToList();
+            
+            // Update collection - Clear and add items efficiently
+            InventoryItems.Clear();
+            foreach (var item in filteredList)
             {
                 item.IsExpanded = false;
+                InventoryItems.Add(item);
             }
             System.Diagnostics.Debug.WriteLine($"✅ Final result: {InventoryItems.Count} items in InventoryItems collection");
             
@@ -245,11 +250,22 @@ namespace Coftea_Capstone.ViewModel
                 CurrentPage = 1;
             }
             
+            ApplyPaginationFast();
+        }
+
+        private void ApplyPaginationFast()
+        {
             // Get items for current page
             var skip = (CurrentPage - 1) * PageSize;
             var pageItems = InventoryItems.Skip(skip).Take(PageSize).ToList();
             
-            PaginatedInventoryItems = new ObservableCollection<InventoryPageModel>(pageItems);
+            // Optimize: Update collection in place instead of recreating
+            // This is faster because it doesn't trigger a complete UI refresh
+            PaginatedInventoryItems.Clear();
+            foreach (var item in pageItems)
+            {
+                PaginatedInventoryItems.Add(item);
+            }
             
             OnPropertyChanged(nameof(HasNextPage));
             OnPropertyChanged(nameof(HasPreviousPage));
@@ -264,7 +280,7 @@ namespace Coftea_Capstone.ViewModel
             if (HasNextPage)
             {
                 CurrentPage++;
-                ApplyPagination();
+                ApplyPaginationFast();
             }
         }
 
@@ -274,7 +290,7 @@ namespace Coftea_Capstone.ViewModel
             if (HasPreviousPage)
             {
                 CurrentPage--;
-                ApplyPagination();
+                ApplyPaginationFast();
             }
         }
 

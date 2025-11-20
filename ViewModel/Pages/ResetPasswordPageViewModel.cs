@@ -16,6 +16,7 @@ namespace Coftea_Capstone.ViewModel
 		private readonly string _email;
 
 		// ===================== State =====================
+		[ObservableProperty] private string email;
 		[ObservableProperty] private string code;
 		[ObservableProperty] private string newPassword;
 		[ObservableProperty] private string confirmPassword;
@@ -31,6 +32,7 @@ namespace Coftea_Capstone.ViewModel
 		public ResetPasswordPageViewModel(string email)
 		{
 			_email = email;
+			Email = email ?? string.Empty; // Initialize Email property with the provided email
 			// Clear any previous messages when ViewModel is created
 			ClearMessages();
 		}
@@ -85,11 +87,14 @@ namespace Coftea_Capstone.ViewModel
 					return;
 				}
 
-				System.Diagnostics.Debug.WriteLine($"[ResetPasswordVM] Email: {_email}");
+				// Use the Email property if it's been updated, otherwise use the stored _email
+				var emailToUse = string.IsNullOrWhiteSpace(Email) ? _email : Email.Trim();
+
+				System.Diagnostics.Debug.WriteLine($"[ResetPasswordVM] Email: {emailToUse}");
 				System.Diagnostics.Debug.WriteLine($"[ResetPasswordVM] Code entered: '{Code}' (Length: {Code?.Length})");
 				System.Diagnostics.Debug.WriteLine($"[ResetPasswordVM] Code trimmed: '{Code.Trim()}' (Length: {Code.Trim()?.Length})");
 				
-				var ok = await _database.ResetPasswordAsync(_email.Trim(), NewPassword, Code.Trim());
+				var ok = await _database.ResetPasswordAsync(emailToUse, NewPassword, Code.Trim());
 				if (!ok)
 				{
 					ShowError("Invalid or expired verification code. Please check your email and try again.");
@@ -132,6 +137,22 @@ namespace Coftea_Capstone.ViewModel
 				IsLoading = true;
 				ClearMessages();
 
+				// Validate email input
+				if (string.IsNullOrWhiteSpace(Email))
+				{
+					ShowError("Please enter your email address.");
+					return;
+				}
+
+				var emailToUse = Email.Trim();
+
+				// Basic email validation
+				if (!emailToUse.Contains("@") || !emailToUse.Contains("."))
+				{
+					ShowError("Please enter a valid email address.");
+					return;
+				}
+
 				// Check internet connection
 				if (!NetworkService.HasInternetConnection())
 				{
@@ -139,17 +160,19 @@ namespace Coftea_Capstone.ViewModel
 					return;
 				}
 
-				// Request a new password reset token
-				string newToken = await _database.RequestPasswordResetAsync(_email.Trim());
+				// Request a new password reset token for the entered email
+				string newToken = await _database.RequestPasswordResetAsync(emailToUse);
 				if (!string.IsNullOrEmpty(newToken))
 				{
 					// Send email via MailHog
 					var emailService = new EmailService();
-					bool emailSent = await emailService.SendPasswordResetEmailAsync(_email.Trim(), newToken);
+					bool emailSent = await emailService.SendPasswordResetEmailAsync(emailToUse, newToken);
 					
 					if (emailSent)
 					{
-						ShowSuccess("A new verification code has been sent to your email.");
+						ShowSuccess($"A new verification code has been sent to {emailToUse}.");
+						// Update the stored email to the new one
+						_email = emailToUse;
 					}
 					else
 					{
@@ -158,7 +181,7 @@ namespace Coftea_Capstone.ViewModel
 				}
 				else
 				{
-					ShowError("Failed to generate new verification code. Please try again.");
+					ShowError("No account found with this email address or failed to generate verification code.");
 				}
 			}
 			catch (MySqlConnector.MySqlException ex)
