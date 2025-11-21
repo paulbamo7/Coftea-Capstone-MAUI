@@ -353,12 +353,18 @@
                                         
                                         <!-- Low Stock Overlay -->
                                         <Frame BackgroundColor="#80FF0000" CornerRadius="20" IsVisible="{Binding IsLowStock}" 
-                                               VerticalOptions="Fill" HorizontalOptions="Fill">
+                                               VerticalOptions="Fill" HorizontalOptions="Fill" InputTransparent="False">
+                                            <Frame.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding BindingContext.SelectProductCommand, Source={x:Reference POS}}" 
+                                                                     CommandParameter="{Binding .}" />
+                                            </Frame.GestureRecognizers>
                                             <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="5">
                                                 <Label Text="UNAVAILABLE" FontSize="12" FontAttributes="Bold" TextColor="White" 
                                                        HorizontalOptions="Center"/>
                                                 <Label Text="Insufficient inventory" FontSize="10" TextColor="White" 
                                                        HorizontalOptions="Center"/>
+                                                <Label Text="Click to view items" FontSize="9" TextColor="White" 
+                                                       HorizontalOptions="Center" Margin="0,5,0,0"/>
                                             </VerticalStackLayout>
                                         </Frame>
                                     </Grid>
@@ -378,7 +384,61 @@
                             <!-- Cart Content -->
                             <ScrollView Grid.Row="1" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" VerticalScrollBarVisibility="Default">
                                 <Grid>
-                                    <VerticalStackLayout IsVisible="{Binding SelectedProduct, Converter={StaticResource NullToBoolConverter}}" Spacing="10" Padding="10">
+                                    <!-- Restocking Items View -->
+                                    <VerticalStackLayout IsVisible="{Binding IsShowingRestockingItems}" Spacing="10" Padding="15">
+                                        <Label Text="{Binding SelectedProductForRestocking, StringFormat='Items Needing Restocking for: {0}'}"
+                                               FontAttributes="Bold" FontSize="18" HorizontalOptions="Center" TextColor="#5B4F45" Margin="0,0,0,10"/>
+                                        
+                                        <CollectionView ItemsSource="{Binding RestockingItems}" SelectionMode="None">
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Frame Padding="12" Margin="0,5,0,5" CornerRadius="10" BackgroundColor="#F5E6D8" BorderColor="#D4A574" BorderWidth="2">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                                            <Frame Grid.Column="0" CornerRadius="8" Padding="0" BackgroundColor="White" WidthRequest="60" HeightRequest="60" IsClippedToBounds="True">
+                                                                <Image Source="{Binding ImageSet}" Aspect="AspectFill" WidthRequest="60" HeightRequest="60"/>
+                                                            </Frame>
+                                                            <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                                                <Label Text="{Binding itemName}" FontSize="14" FontAttributes="Bold" TextColor="#5B4F45"/>
+                                                                <Label Text="{Binding itemCategory}" FontSize="11" TextColor="#8B7355"/>
+                                                                <Label FontSize="12" TextColor="#D9534F" FontAttributes="Bold">
+                                                                    <Label.Text>
+                                                                        <MultiBinding StringFormat="Stock: {0} {1}">
+                                                                            <Binding Path="itemQuantity"/>
+                                                                            <Binding Path="unitOfMeasurement"/>
+                                                                        </MultiBinding>
+                                                                    </Label.Text>
+                                                                </Label>
+                                                                <Label IsVisible="{Binding minimumQuantity, Converter={StaticResource IsPositiveConverter}}" 
+                                                                       FontSize="11" TextColor="#8B7355">
+                                                                    <Label.Text>
+                                                                        <MultiBinding StringFormat="Min: {0} {1}">
+                                                                            <Binding Path="minimumQuantity"/>
+                                                                            <Binding Path="unitOfMeasurement"/>
+                                                                        </MultiBinding>
+                                                                    </Label.Text>
+                                                                </Label>
+                                                            </VerticalStackLayout>
+                                                            <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End">
+                                                                <Label Text="⚠️" FontSize="24" HorizontalOptions="Center"/>
+                                                                <Label Text="Low Stock" FontSize="10" FontAttributes="Bold" TextColor="#D9534F" HorizontalOptions="Center"/>
+                                                            </VerticalStackLayout>
+                                                        </Grid>
+                                                    </Frame>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                            <CollectionView.EmptyView>
+                                                <Label Text="No items need restocking" TextColor="Gray" FontSize="14" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                            </CollectionView.EmptyView>
+                                        </CollectionView>
+                                        
+                                        <Button Text="Close" Command="{Binding CloseRestockingViewCommand}" 
+                                                BackgroundColor="#BDAEA2" TextColor="#5B4F45" FontSize="14" FontAttributes="Bold"
+                                                CornerRadius="15" HeightRequest="40" Margin="0,10,0,0"/>
+                                    </VerticalStackLayout>
+                                    
+                                    <!-- Normal Product Selection View -->
+                                    <VerticalStackLayout IsVisible="{Binding IsNormalProductViewVisible}" 
+                                                         Spacing="10" Padding="10">
                                         <Frame CornerRadius="20" Padding="0" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center">
                                             <Image x:Name="SelectedProductImage" Source="{Binding SelectedProduct.ImageSource}" Aspect="AspectFill" />
                                         </Frame>

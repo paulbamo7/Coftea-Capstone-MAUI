@@ -118,12 +118,13 @@
                             <CollectionView ItemsSource="{Binding RecentOrders}" ItemsLayout="HorizontalList">
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <Frame BackgroundColor="#FAFAFA" CornerRadius="24" Padding="16" Margin="6" WidthRequest="170" HeightRequest="190" HasShadow="True">
-                                            <VerticalStackLayout Spacing="10">
+                                        <Frame BackgroundColor="#FAFAFA" CornerRadius="24" Padding="16" Margin="6" WidthRequest="170" HeightRequest="220" HasShadow="True">
+                                            <VerticalStackLayout Spacing="8">
                                                 <Frame CornerRadius="35" Padding="0" BackgroundColor="White" WidthRequest="70" HeightRequest="70" HorizontalOptions="Center" IsClippedToBounds="True">
                                                     <Image Source="{Binding ImageSource}" Aspect="AspectFill" WidthRequest="70" HeightRequest="70"/>
                                                 </Frame>
                                                 <Label Text="{Binding OrderDisplay}" FontSize="13" FontAttributes="Bold" TextColor="#5B4F45" HorizontalOptions="Center"/>
+                                                <Label Text="{Binding ProductName}" FontSize="12" TextColor="#5B4F45" HorizontalOptions="Center" LineBreakMode="WordWrap" MaxLines="2" HorizontalTextAlignment="Center"/>
                                                 <Label Text="{Binding Status}" FontSize="11" TextColor="{Binding StatusColor}" HorizontalOptions="Center"/>
                                             </VerticalStackLayout>
                                         </Frame>
@@ -200,12 +201,12 @@
                                                 BackgroundColor="Transparent"
                                                 VerticalOptions="End">
                                     <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="16"/>
+                                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
                                     </CollectionView.ItemsLayout>
                                     <CollectionView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="End" WidthRequest="90">
-                                                <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12" HorizontalOptions="Center"/>
+                                            <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="End" HorizontalOptions="FillAndExpand">
+                                                <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="40" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 10,10,10,10" HorizontalOptions="Center"/>
                                             </Grid>
                                         </DataTemplate>
                                     </CollectionView.ItemTemplate>
@@ -218,13 +219,13 @@
                                             BackgroundColor="Transparent"
                                             HeightRequest="60">
                                 <CollectionView.ItemsLayout>
-                                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="16"/>
+                                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
                                 </CollectionView.ItemsLayout>
                                 <CollectionView.ItemTemplate>
                                     <DataTemplate>
-                                        <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="4" Padding="0">
-                                            <Label Text="{Binding Name}" TextColor="Black" FontSize="12" FontAttributes="Bold" LineBreakMode="TailTruncation" HorizontalTextAlignment="Center"/>
-                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" TextColor="Black" FontSize="11" FontAttributes="Bold" HorizontalTextAlignment="Center" Margin="0,2,0,0"/>
+                                        <VerticalStackLayout HorizontalOptions="FillAndExpand" Spacing="4" Padding="0">
+                                            <Label Text="{Binding Name}" TextColor="Black" FontSize="11" FontAttributes="Bold" LineBreakMode="TailTruncation" MaxLines="2" HorizontalTextAlignment="Center"/>
+                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" TextColor="Black" FontSize="10" FontAttributes="Bold" HorizontalTextAlignment="Center" Margin="0,2,0,0"/>
                                         </VerticalStackLayout>
                                     </DataTemplate>
                                 </CollectionView.ItemTemplate>

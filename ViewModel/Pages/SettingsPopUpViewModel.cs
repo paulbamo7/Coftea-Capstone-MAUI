@@ -449,36 +449,67 @@ namespace Coftea_Capstone.ViewModel
             {
                 RecentOrders.Clear();
                 
-                // Get the most recent 5 transactions
-                var recentTransactions = transactions
-                    .OrderByDescending(t => t.TransactionDate)
-                    .Take(5)
-                    .ToList();
-
-                var database = new Models.Database();
-                foreach (var transaction in recentTransactions)
+                // First, add pending orders from cart items
+                var app = (App)Application.Current;
+                if (app?.POSVM?.CartItems != null && app.POSVM.CartItems.Any())
                 {
-                    // Try to get the actual product image from the products table
-                    string productImage = "drink.png"; // default fallback
-                    try
+                    var cartItems = app.POSVM.CartItems
+                        .Where(item => item != null && (item.SmallQuantity > 0 || item.MediumQuantity > 0 || item.LargeQuantity > 0))
+                        .Take(3) // Limit to 3 pending orders
+                        .ToList();
+                    
+                    int pendingOrderCounter = 9999; // Use high numbers for pending orders
+                    foreach (var cartItem in cartItems)
                     {
-                        var product = await database.GetProductByNameAsync(transaction.DrinkName);
-                        if (product != null && !string.IsNullOrWhiteSpace(product.ImageSet))
+                        var orderNumber = pendingOrderCounter;
+                        pendingOrderCounter++;
+                        
+                        RecentOrders.Add(new RecentOrderModel
                         {
-                            productImage = product.ImageSet;
-                        }
+                            OrderNumber = orderNumber,
+                            ProductName = cartItem.ProductName ?? "Unknown Product",
+                            ProductImage = cartItem.ImageSet ?? "drink.png",
+                            TotalAmount = cartItem.TotalPrice,
+                            OrderTime = DateTime.Now,
+                            Status = "Pending"
+                        });
                     }
-                    catch { /* ignore and use default */ }
+                }
+                
+                // Then, add completed orders from transactions (limit to ensure total doesn't exceed reasonable amount)
+                var remainingSlots = 5 - RecentOrders.Count;
+                if (remainingSlots > 0)
+                {
+                    var recentTransactions = transactions
+                        .OrderByDescending(t => t.TransactionDate)
+                        .Take(remainingSlots)
+                        .ToList();
 
-                    RecentOrders.Add(new RecentOrderModel
+                    var database = new Models.Database();
+                    foreach (var transaction in recentTransactions)
                     {
-                        OrderNumber = transaction.TransactionId,
-                        ProductName = transaction.DrinkName,
-                        ProductImage = productImage,
-                        TotalAmount = transaction.Total,
-                        OrderTime = transaction.TransactionDate,
-                        Status = "Completed"
-                    });
+                        // Try to get the actual product image from the products table
+                        string productImage = "drink.png"; // default fallback
+                        try
+                        {
+                            var product = await database.GetProductByNameAsync(transaction.DrinkName);
+                            if (product != null && !string.IsNullOrWhiteSpace(product.ImageSet))
+                            {
+                                productImage = product.ImageSet;
+                            }
+                        }
+                        catch { /* ignore and use default */ }
+
+                        RecentOrders.Add(new RecentOrderModel
+                        {
+                            OrderNumber = transaction.TransactionId,
+                            ProductName = transaction.DrinkName,
+                            ProductImage = productImage,
+                            TotalAmount = transaction.Total,
+                            OrderTime = transaction.TransactionDate,
+                            Status = "Completed"
+                        });
+                    }
                 }
             }
             catch (Exception ex)

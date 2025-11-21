@@ -13,7 +13,7 @@ namespace Coftea_Capstone.ViewModel
 	public partial class ResetPasswordPageViewModel : ObservableObject
 	{
 		private readonly Database _database = new();
-		private readonly string _email;
+		private string _email;
 
 		// ===================== State =====================
 		[ObservableProperty] private string email;

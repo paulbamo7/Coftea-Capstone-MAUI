@@ -126,9 +126,20 @@ namespace Coftea_Capstone.ViewModel
         [ObservableProperty]
         private ObservableCollection<string> availableSizes = new();
 
+        [ObservableProperty]
+        private ObservableCollection<InventoryPageModel> restockingItems = new();
+
+        [ObservableProperty]
+        private bool isShowingRestockingItems = false;
+
+        [ObservableProperty]
+        private string selectedProductForRestocking;
+
         public bool IsSmallSizeVisibleInCart => string.Equals(SelectedProduct?.Category, "Coffee", StringComparison.OrdinalIgnoreCase);
         public bool IsMediumSizeVisibleInCart => true; 
         public bool IsLargeSizeVisibleInCart => true;
+
+        public bool IsNormalProductViewVisible => !IsShowingRestockingItems && SelectedProduct != null;
 
         // Addon summary properties for display
         public string SmallAddonsDisplay => GetAddonsDisplay("Small");
@@ -170,11 +181,17 @@ namespace Coftea_Capstone.ViewModel
             return $"{size} addons: {string.Join(", ", selectedAddons)}";
         }
 
+        partial void OnIsShowingRestockingItemsChanged(bool value)
+        {
+            OnPropertyChanged(nameof(IsNormalProductViewVisible));
+        }
+
         partial void OnSelectedProductChanged(POSPageModel value)
         {
             OnPropertyChanged(nameof(SmallAddonsDisplay));
             OnPropertyChanged(nameof(MediumAddonsDisplay));
             OnPropertyChanged(nameof(LargeAddonsDisplay));
+            OnPropertyChanged(nameof(IsNormalProductViewVisible));
             
             // Unsubscribe from previous product
             if (value == null)
@@ -782,16 +799,32 @@ namespace Coftea_Capstone.ViewModel
        
 
         [RelayCommand]
-        private void SelectProduct(POSPageModel product) // Selects a product and loads its details
+        private void CloseRestockingView() // Closes the restocking items view
+        {
+            IsShowingRestockingItems = false;
+            SelectedProductForRestocking = null;
+            RestockingItems.Clear();
+            SelectedProduct = null;
+            OnPropertyChanged(nameof(IsShowingRestockingItems));
+        }
+
+        [RelayCommand]
+        private async Task SelectProduct(POSPageModel product) // Selects a product and loads its details
         {
             System.Diagnostics.Debug.WriteLine($"SelectProduct called with product: {product?.ProductName ?? "null"}");
             
-            // Don't allow selection if product has low stock
+            // If product has low stock, show restocking items instead
             if (product?.IsLowStock == true)
             {
-                System.Diagnostics.Debug.WriteLine($"Product {product.ProductName} has low stock, selection blocked");
+                System.Diagnostics.Debug.WriteLine($"Product {product.ProductName} has low stock, showing restocking items");
+                await ShowRestockingItemsAsync(product);
                 return;
             }
+            
+            // Normal product selection
+            IsShowingRestockingItems = false;
+            SelectedProductForRestocking = null;
+            RestockingItems.Clear();
             
             SelectedProduct = product;
             System.Diagnostics.Debug.WriteLine($"🔧 SelectProduct: Set SelectedProduct to {product.ProductName} (ID: {product.ProductID})");
@@ -811,6 +844,144 @@ namespace Coftea_Capstone.ViewModel
 
             // Load linked addons from DB for this product
             _ = LoadAddonsForSelectedAsync();
+        }
+
+        private async Task ShowRestockingItemsAsync(POSPageModel product) // Shows inventory items that need restocking for a product
+        {
+            try
+            {
+                SelectedProductForRestocking = product.ProductName;
+                IsShowingRestockingItems = true;
+                RestockingItems.Clear();
+                
+                // Get all ingredients for this product
+                var ingredients = await _database.GetProductIngredientsAsync(product.ProductID);
+                
+                if (ingredients == null || !ingredients.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"Product {product.ProductName} has no ingredients");
+                    return;
+                }
+
+                // Get fresh inventory data
+                _database.InvalidateInventoryCache();
+                
+                foreach (var tuple in ingredients)
+                {
+                    var item = tuple.item;
+                    
+                    // Get the MAXIMUM amount needed across all sizes
+                    var maxAmount = Math.Max(item.InputAmountSmall, Math.Max(item.InputAmountMedium, item.InputAmountLarge));
+                    var maxUnit = item.InputAmountLarge > 0 && item.InputAmountLarge >= maxAmount ? item.InputUnitLarge :
+                                 item.InputAmountMedium > 0 && item.InputAmountMedium >= maxAmount ? item.InputUnitMedium :
+                                 item.InputAmountSmall > 0 ? item.InputUnitSmall :
+                                 item.InputUnitMedium;
+                    
+                    if (maxAmount <= 0)
+                    {
+                        if (item.InputAmountLarge > 0)
+                        {
+                            maxAmount = item.InputAmountLarge;
+                            maxUnit = item.InputUnitLarge;
+                        }
+                        else if (item.InputAmountMedium > 0)
+                        {
+                            maxAmount = item.InputAmountMedium;
+                            maxUnit = item.InputUnitMedium;
+                        }
+                        else
+                        {
+                            maxAmount = tuple.amount;
+                            maxUnit = tuple.unit;
+                        }
+                    }
+                    
+                    if (maxAmount <= 0) continue;
+                    
+                    // Get fresh inventory item data
+                    var freshItem = await _database.GetInventoryItemByIdAsync(item.itemID);
+                    if (freshItem == null) continue;
+                    
+                    // Check if this item needs restocking
+                    var inventoryUnit = UnitConversionService.Normalize(freshItem.unitOfMeasurement);
+                    var recipeUnit = UnitConversionService.Normalize(maxUnit);
+                    
+                    bool needsRestocking = false;
+                    double requiredInInventoryUnit = 0;
+                    double availableInInventoryUnit = freshItem.itemQuantity;
+                    
+                    if (string.IsNullOrWhiteSpace(inventoryUnit) || string.IsNullOrWhiteSpace(recipeUnit))
+                    {
+                        requiredInInventoryUnit = maxAmount;
+                        needsRestocking = requiredInInventoryUnit > availableInInventoryUnit;
+                    }
+                    else if (!UnitConversionService.AreCompatibleUnits(recipeUnit, inventoryUnit))
+                    {
+                        needsRestocking = true; // Incompatible units = needs attention
+                    }
+                    else
+                    {
+                        var commonUnit = UnitConversionService.GetCommonUnit(recipeUnit, inventoryUnit);
+                        requiredInInventoryUnit = UnitConversionService.Convert(maxAmount, recipeUnit, commonUnit);
+                        availableInInventoryUnit = UnitConversionService.Convert(freshItem.itemQuantity, inventoryUnit, commonUnit);
+                        needsRestocking = requiredInInventoryUnit > availableInInventoryUnit;
+                    }
+                    
+                    if (needsRestocking)
+                    {
+                        // Create a model with restocking information
+                        var restockingItem = new InventoryPageModel
+                        {
+                            itemID = freshItem.itemID,
+                            itemName = freshItem.itemName,
+                            itemCategory = freshItem.itemCategory,
+                            itemDescription = freshItem.itemDescription,
+                            itemQuantity = freshItem.itemQuantity,
+                            unitOfMeasurement = freshItem.unitOfMeasurement,
+                            minimumQuantity = freshItem.minimumQuantity,
+                            maximumQuantity = freshItem.maximumQuantity,
+                            ImageSet = freshItem.ImageSet
+                        };
+                        
+                        // Store required amount as a property we can display
+                        // We'll use a custom property or display it in the UI
+                        RestockingItems.Add(restockingItem);
+                        System.Diagnostics.Debug.WriteLine($"Added restocking item: {restockingItem.itemName} - Available: {availableInInventoryUnit}, Required: {requiredInInventoryUnit}");
+                    }
+                }
+                
+                // Also check cups and straws if they're insufficient
+                var smallCup = await _database.GetInventoryItemByNameCachedAsync("Small Cup");
+                var mediumCup = await _database.GetInventoryItemByNameCachedAsync("Medium Cup");
+                var largeCup = await _database.GetInventoryItemByNameCachedAsync("Large Cup");
+                var straw = await _database.GetInventoryItemByNameCachedAsync("Straw");
+                
+                bool hasCups = (smallCup?.itemQuantity > 0 || mediumCup?.itemQuantity > 0 || largeCup?.itemQuantity > 0);
+                bool hasStraw = straw?.itemQuantity > 0;
+                
+                if (!hasCups)
+                {
+                    if (smallCup != null && smallCup.itemQuantity <= 0)
+                        RestockingItems.Add(smallCup);
+                    if (mediumCup != null && mediumCup.itemQuantity <= 0)
+                        RestockingItems.Add(mediumCup);
+                    if (largeCup != null && largeCup.itemQuantity <= 0)
+                        RestockingItems.Add(largeCup);
+                }
+                
+                if (!hasStraw && straw != null)
+                {
+                    RestockingItems.Add(straw);
+                }
+                
+                OnPropertyChanged(nameof(IsShowingRestockingItems));
+                OnPropertyChanged(nameof(SelectedProductForRestocking));
+                System.Diagnostics.Debug.WriteLine($"Showing {RestockingItems.Count} restocking items for {product.ProductName}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing restocking items: {ex.Message}");
+            }
         }
 
 
