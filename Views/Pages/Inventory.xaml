@@ -49,7 +49,7 @@
                 </Grid>
 
                 <!-- Brownish Frame (Main Panel) -->
-                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="15" HasShadow="False" HeightRequest="580">
+                <Frame BackgroundColor="#7E6D5F" CornerRadius="15" Padding="15" HasShadow="False" HeightRequest="715">
                     <Grid RowDefinitions="*,Auto,Auto">
                         <ScrollView Grid.Row="0">
                         <VerticalStackLayout Spacing="10">
@@ -235,10 +235,10 @@
 
                             <!-- Fixed Header Row -->
                             <Frame Grid.Row="0" BackgroundColor="White" Padding="8" IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
-                                <Grid ColumnDefinitions="1*, 1*, 2*">
-                                    <Label Text="ITEMS" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start" TextColor="Black"/>
-                                    <Label Text="CATEGORY" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="1" TextColor="Black"/>
-                                    <Label Text="STOCKS" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2" TextColor="Black"/>
+                                <Grid ColumnDefinitions="Auto,*,1.2*,3.5*" ColumnSpacing="12">
+                                    <Label Text="ITEMS" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Start" TextColor="Black" Grid.Column="0"/>
+                                    <Label Text="CATEGORY" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="2" TextColor="Black"/>
+                                    <Label Text="STOCKS" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" HorizontalOptions="Center" Grid.Column="3" TextColor="Black"/>
                                 </Grid>
                             </Frame>
 
@@ -248,7 +248,6 @@
                                             ItemsLayout="VerticalList" 
                                             BackgroundColor="Transparent" 
                                             Margin="0,6,0,0"
-                                            ItemSizingStrategy="MeasureFirstItem"
                                             IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}">
 
                                 <CollectionView.ItemTemplate>
@@ -266,60 +265,64 @@
                                                     <Setter Property="BorderColor" Value="#D4A574" />
                                                 </DataTrigger>
                                             </Frame.Triggers>
-                                            <Frame.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleInventoryItemCommand}"
-                                                                      CommandParameter="{Binding .}" />
-                                            </Frame.GestureRecognizers>
 
                                             <Grid RowDefinitions="Auto,Auto">
                                                 <Grid Grid.Row="0"
-                                                      ColumnDefinitions="Auto,*,1*,2*"
+                                                      ColumnDefinitions="Auto,*,1.2*,3.5*"
                                                       ColumnSpacing="12"
                                                       VerticalOptions="Center">
-                                                    <HorizontalStackLayout Grid.Column="0"
-                                                                            Spacing="10"
-                                                                            VerticalOptions="Center">
-                                                        <Frame WidthRequest="48"
-                                                               HeightRequest="48"
-                                                               CornerRadius="8"
-                                                               Padding="0"
-                                                               BackgroundColor="#EFEFEF"
-                                                               HasShadow="False">
-                                                            <Image Source="{Binding ImageSource}"
-                                                                   Aspect="AspectFill" />
-                                                        </Frame>
-                                                    </HorizontalStackLayout>
+                                                    <Grid.GestureRecognizers>
+                                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleInventoryItemCommand}"
+                                                                              CommandParameter="{Binding .}" />
+                                                    </Grid.GestureRecognizers>
+                                                    <Frame Grid.Column="0"
+                                                           WidthRequest="48"
+                                                           HeightRequest="48"
+                                                           CornerRadius="8"
+                                                           Padding="0"
+                                                           BackgroundColor="#EFEFEF"
+                                                           HasShadow="False"
+                                                           VerticalOptions="Center">
+                                                        <Image Source="{Binding ImageSource}"
+                                                               Aspect="AspectFill" />
+                                                    </Frame>
 
                                                     <VerticalStackLayout Grid.Column="1"
                                                                           Spacing="2"
-                                                                          VerticalOptions="Center">
+                                                                          VerticalOptions="Center"
+                                                                          HorizontalOptions="Start">
                                                         <Label Text="{Binding itemName}"
                                                                FontAttributes="Bold"
                                                                FontSize="15"
                                                                TextColor="#3C3C3C" />
                                                     </VerticalStackLayout>
 
-                                                    <Label Grid.Column="2"
-                                                           Text="{Binding itemCategory}"
-                                                           FontSize="13"
-                                                           TextColor="#7A6B5E"
-                                                           HorizontalOptions="Center"
-                                                           VerticalOptions="Center" />
+                                                    <Grid Grid.Column="2"
+                                                          HorizontalOptions="FillAndExpand"
+                                                          VerticalOptions="Center">
+                                                        <Label Text="{Binding itemCategory}"
+                                                               FontSize="13"
+                                                               TextColor="#7A6B5E"
+                                                               HorizontalOptions="Center"
+                                                               HorizontalTextAlignment="Center"
+                                                               VerticalOptions="Center" />
+                                                    </Grid>
 
                                                     <VerticalStackLayout Grid.Column="3"
                                                                           Spacing="4"
-                                                                          HorizontalOptions="End"
+                                                                          HorizontalOptions="Center"
                                                                           VerticalOptions="Center">
                                                         <Frame BackgroundColor="White"
                                                                CornerRadius="10"
                                                                Padding="8"
-                                                               HasShadow="True">
+                                                               HasShadow="True"
+                                                               HorizontalOptions="Start">
                                                             <Label FormattedText="{Binding NewStockDisplayFormatted}"
                                                                    FontSize="13"
                                                                    HorizontalOptions="Start"
                                                                    VerticalOptions="Center"
                                                                    LineBreakMode="WordWrap"
-                                                                   MaxLines="2" />
+                                                                   MaxLines="3" />
                                                         </Frame>
                                                     </VerticalStackLayout>
                                                 </Grid>
@@ -334,10 +337,10 @@
                                                         <shapes:RoundRectangle CornerRadius="10" />
                                                     </Border.StrokeShape>
                                                     <VerticalStackLayout Spacing="10">
-                                                        <Label Text="{Binding NewStockDisplay}"
+                                                        <Label FormattedText="{Binding NewStockDisplayFormatted}"
                                                                FontSize="12"
-                                                               TextColor="#3C3C3C"
-                                                               LineBreakMode="WordWrap" />
+                                                               LineBreakMode="WordWrap"
+                                                               MaxLines="3" />
                                                         <Label Text="Description:"
                                                                FontSize="12"
                                                                FontAttributes="Bold"

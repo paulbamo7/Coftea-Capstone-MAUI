@@ -1154,6 +1154,29 @@ namespace Coftea_Capstone.ViewModel
         partial void OnSelectedCategoryChanged(string value) // Apply category filter
         {
             System.Diagnostics.Debug.WriteLine($"Category changed to: {value}");
+            
+            // Immediately clear pie chart data to prevent showing stale data
+            Item1Name = "";
+            Item2Name = "";
+            Item3Name = "";
+            Item1Count = 0;
+            Item2Count = 0;
+            Item3Count = 0;
+            Item1HasTrend = false;
+            Item2HasTrend = false;
+            Item3HasTrend = false;
+            
+            // Notify UI of cleared data
+            OnPropertyChanged(nameof(Item1Name));
+            OnPropertyChanged(nameof(Item2Name));
+            OnPropertyChanged(nameof(Item3Name));
+            OnPropertyChanged(nameof(Item1Count));
+            OnPropertyChanged(nameof(Item2Count));
+            OnPropertyChanged(nameof(Item3Count));
+            OnPropertyChanged(nameof(Item1HasTrend));
+            OnPropertyChanged(nameof(Item2HasTrend));
+            OnPropertyChanged(nameof(Item3HasTrend));
+            
             ApplyCategoryFilter();
         }
 
@@ -1568,7 +1591,23 @@ namespace Coftea_Capstone.ViewModel
 
         private void UpdatePieChartNames(List<TrendItem> items) // Update pie chart item names and counts
         {
-            Item1Name = items.Count > 0 ? FormatItemNameWithCategory(items[0]) : "No Data";
+            // Clear all pie chart data first to prevent showing stale data
+            if (items == null || items.Count == 0)
+            {
+                Item1Name = "";
+                Item2Name = "";
+                Item3Name = "";
+                Item1Count = 0;
+                Item2Count = 0;
+                Item3Count = 0;
+                Item1HasTrend = false;
+                Item2HasTrend = false;
+                Item3HasTrend = false;
+                return;
+            }
+
+            // Update with actual data
+            Item1Name = items.Count > 0 ? FormatItemNameWithCategory(items[0]) : "";
             Item2Name = items.Count > 1 ? FormatItemNameWithCategory(items[1]) : "";
             Item3Name = items.Count > 2 ? FormatItemNameWithCategory(items[2]) : "";
 

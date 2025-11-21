@@ -340,6 +340,7 @@ namespace Coftea_Capstone.ViewModel
 
             var wasExpanded = item.IsExpanded;
 
+            // Collapse all other items in both collections
             foreach (var inv in InventoryItems)
             {
                 if (inv != null && inv != item)
@@ -348,6 +349,15 @@ namespace Coftea_Capstone.ViewModel
                 }
             }
 
+            foreach (var inv in PaginatedInventoryItems)
+            {
+                if (inv != null && inv != item)
+                {
+                    inv.IsExpanded = false;
+                }
+            }
+
+            // Toggle the selected item - ObservableProperty will automatically notify
             item.IsExpanded = !wasExpanded;
         }
 

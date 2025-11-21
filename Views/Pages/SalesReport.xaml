@@ -352,6 +352,7 @@
                                 <Button Text="Yesterday" 
                                         Style="{StaticResource TimePeriodButtonStyle}"
                                         Grid.Column="1"
+                                        FontSize="8.3"
                                         Command="{Binding SelectTimePeriodCommand}" 
                                         CommandParameter="Yesterday"/>
                                 <Button Text="1 Week" 

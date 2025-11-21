@@ -12,6 +12,7 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:StringToColorConverter x:Key="StringToColorConverter"/>
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -144,92 +145,91 @@
                         <!-- Bar Chart for Top Selling Products -->
                         <Grid ColumnDefinitions="35,*" RowDefinitions="150,Auto">
                             <!-- Y-axis labels -->
-                            <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,8,4,0">
+                            <Grid Grid.Column="0" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,0,4,0">
                                 <Label Grid.Row="0" 
                                        Text="{Binding DashboardYAxisValues[0], StringFormat='{0}'}" 
                                        FontSize="9" 
                                        TextColor="#666666" 
                                        HorizontalOptions="End" 
                                        HorizontalTextAlignment="End"
-                                       VerticalOptions="Start"/>
+                                       VerticalOptions="Center"
+                                       Margin="0,0,0,20"/>
                                 <Label Grid.Row="1" 
                                        Text="{Binding DashboardYAxisValues[1], StringFormat='{0}'}" 
                                        FontSize="9" 
                                        TextColor="#666666" 
                                        HorizontalOptions="End" 
                                        HorizontalTextAlignment="End"
-                                       VerticalOptions="Start"
-                                      />
+                                       VerticalOptions="Center"
+                                       Margin="0,0,0,20"/>
                                 <Label Grid.Row="2" 
                                        Text="{Binding DashboardYAxisValues[2], StringFormat='{0}'}" 
                                        FontSize="9" 
                                        TextColor="#666666" 
                                        HorizontalOptions="End" 
                                        HorizontalTextAlignment="End"
-                                       VerticalOptions="Start"/>
+                                       VerticalOptions="Center"
+                                       Margin="0,0,0,20"/>
                                 <Label Grid.Row="3" 
                                        Text="{Binding DashboardYAxisValues[3], StringFormat='{0}'}" 
                                        FontSize="9" 
                                        TextColor="#666666" 
                                        HorizontalOptions="End" 
                                        HorizontalTextAlignment="End"
-                                       VerticalOptions="Start"/>
+                                       VerticalOptions="Center"
+                                       Margin="0,0,0,20"/>
                                 <Label Grid.Row="4" 
                                        Text="{Binding DashboardYAxisValues[4], StringFormat='{0}'}" 
                                        FontSize="9" 
                                        TextColor="#666666" 
                                        HorizontalOptions="End" 
                                        HorizontalTextAlignment="End"
-                                       VerticalOptions="Start"/>
+                                       VerticalOptions="Center"
+                                       Margin="0,0,0,20"/>
                             </Grid>
                             
                             <!-- Chart area with grid lines and bars -->
                             <Grid Grid.Column="1" Grid.Row="0" RowDefinitions="*,*,*,*,*" HeightRequest="150" VerticalOptions="End" Margin="0,8,0,0">
                                 <!-- Y-axis grid lines -->
-                                <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="Start"/>
-                                <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="Start"/>
-                                <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="Start"/>
-                                <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="Start"/>
-                                <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="Start"/>
+                                <BoxView Grid.Row="0" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="1" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="2" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="3" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
+                                <BoxView Grid.Row="4" Color="#B0B0B0" HeightRequest="1" Margin="0,0,0,20" HorizontalOptions="FillAndExpand"/>
                                 
                                 <!-- X-axis line -->
                                 <BoxView Grid.Row="4" Color="#999999" HeightRequest="1" HorizontalOptions="FillAndExpand" VerticalOptions="End"/>
                                 
-                                <!-- Bars -->
-                                <CollectionView Grid.RowSpan="5" 
-                                                ItemsSource="{Binding TopSellingProductsToday}" 
-                                                BackgroundColor="Transparent"
-                                                VerticalOptions="End">
-                                    <CollectionView.ItemsLayout>
-                                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
-                                    </CollectionView.ItemsLayout>
-                                    <CollectionView.ItemTemplate>
+                                <!-- Bars - Fixed HorizontalStackLayout (no scrolling) -->
+                                <HorizontalStackLayout Grid.RowSpan="5" 
+                                                      BindableLayout.ItemsSource="{Binding TopSellingProductsToday}"
+                                                      Spacing="0"
+                                                      HorizontalOptions="FillAndExpand">
+                                    <BindableLayout.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="End" HorizontalOptions="FillAndExpand">
-                                                <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="40" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 10,10,10,10" HorizontalOptions="Center"/>
+                                            <Grid HeightRequest="150" BackgroundColor="Transparent" VerticalOptions="End" HorizontalOptions="FillAndExpand" WidthRequest="90">
+                                                <Border VerticalOptions="End" HeightRequest="{Binding ScaledCount}" WidthRequest="50" BackgroundColor="{Binding ColorCode, Converter={StaticResource StringToColorConverter}}" StrokeThickness="0" StrokeShape="RoundRectangle 12,12,12,12" HorizontalOptions="Center"/>
                                             </Grid>
                                         </DataTemplate>
-                                    </CollectionView.ItemTemplate>
-                                </CollectionView>
+                                    </BindableLayout.ItemTemplate>
+                                </HorizontalStackLayout>
                             </Grid>
                             
-                            <!-- Product names row -->
-                            <CollectionView Grid.Column="1" Grid.Row="1" 
-                                            ItemsSource="{Binding TopSellingProductsToday}" 
-                                            BackgroundColor="Transparent"
-                                            HeightRequest="60">
-                                <CollectionView.ItemsLayout>
-                                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="8"/>
-                                </CollectionView.ItemsLayout>
-                                <CollectionView.ItemTemplate>
+                            <!-- Product names row (below chart) - Fixed HorizontalStackLayout (no scrolling) -->
+                            <HorizontalStackLayout Grid.Column="1" Grid.Row="1" 
+                                                  BindableLayout.ItemsSource="{Binding TopSellingProductsToday}"
+                                                  Spacing="0"
+                                                  HorizontalOptions="FillAndExpand"
+                                                  Margin="0,8,0,0">
+                                <BindableLayout.ItemTemplate>
                                     <DataTemplate>
-                                        <VerticalStackLayout HorizontalOptions="FillAndExpand" Spacing="4" Padding="0">
-                                            <Label Text="{Binding Name}" TextColor="Black" FontSize="11" FontAttributes="Bold" LineBreakMode="TailTruncation" MaxLines="2" HorizontalTextAlignment="Center"/>
-                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" TextColor="Black" FontSize="10" FontAttributes="Bold" HorizontalTextAlignment="Center" Margin="0,2,0,0"/>
+                                        <VerticalStackLayout HorizontalOptions="Center" WidthRequest="90" Spacing="4" Padding="0">
+                                            <Label Text="{Binding Name}" TextColor="Black" FontSize="11" FontAttributes="Bold" LineBreakMode="WordWrap" MaxLines="2" HorizontalTextAlignment="Center"/>
+                                            <Label Text="{Binding Count, StringFormat='{0} sold'}" TextColor="Black" FontSize="10" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
                                         </VerticalStackLayout>
                                     </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                                </BindableLayout.ItemTemplate>
+                            </HorizontalStackLayout>
                         </Grid>
                     </VerticalStackLayout>
                 </Frame>
